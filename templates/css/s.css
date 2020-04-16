@@ -1,0 +1,119 @@
+body,h1 {font-family: "Open Sans", sans-serif}
+body, html {height: 100%}
+
+	.bgimg {
+	min-height: 100%;
+	background-position: center;
+	background-size: cover;
+}
+
+.bgimg:after {
+	content : "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-image: url(venice-2451047_1920.jpg);
+	background-position: center;
+	background-size: cover;
+	width: 100%;
+	height: 100%;
+	opacity : 0.2;
+	z-index: -1;
+}
+
+#mapid {
+	height: 100%;
+	width: 100%;
+	z-index: 0;
+	margin: 0px;
+	padding: 0px;
+	border: 1px solid;
+}
+.map {
+	z-index: 1;
+	opacity: 1;
+}
+.full_page {
+	opacity: 1!important;
+}
+.searchbar {
+	border: 5px solid blue;
+	border-radius: 50px;
+	height: 70vh;
+	padding: 20px;
+}
+.mappa {
+	padding: 10px;
+	height: 70vh;
+}
+.footer {
+	border: 10px inset aqua;
+	height: 16.3vh;
+	border-radius: 10px;
+}
+.bueae {
+	border: 5px outset green;
+	height: 70vh;
+	border-radius: 20px;
+	padding: 20px;
+}
+.searchfield {
+	z-index: 6;
+	margin: 1%;
+	padding: 1%;
+	border-radius: 20px;
+	width: 150%;
+}
+.v4wbtn {
+	background-color: #FFF;
+	padding: 0.3rem 0.6rem;
+	border-radius: 0.2rem;
+}
+.helpwindowpopup {
+	z-index: 5;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #EEE;
+	text-align: center;
+	padding: 0.65rem;
+}
+.closebutton {
+	border: 1px solid black;
+	background-color: #999;
+}
+.maptype {
+	margin-bottom: 2rem;
+	z-index: 1;
+}
+.mapbtn {
+	z-index: 1;
+	margin-bottom: 2rem;
+}
+.Xbtn {
+	float: right;
+}
+.srcbtn {
+	margin: 0px !important;
+}
+
+.aboveZoom {
+	padding-bottom: 6.3rem;
+	margin-bottom: 3rem;
+}
+.biggerText {
+	font-size: 1.4rem;
+}
+.smallerTextLink {
+	font-size: 0.8rem;
+	background-color: blue;
+	color: white;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+}
+.mediumText {
+	font-size: 0.95rem;
+}
