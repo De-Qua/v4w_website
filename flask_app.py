@@ -27,7 +27,7 @@ logging.info("Carico i nodi")
 
 @app.route('/update_server',methods=['POST'])
 def webhook():
-    if request.methods == 'POST':
+    if request.method == 'POST':
         repo = git.Repo('/home/rafiki')
         origin = repo.remotes.origin
         origin.pull()
