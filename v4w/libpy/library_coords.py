@@ -98,7 +98,7 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     option_number = 1 #rimetto 3 per adesso, poi cambiamo
     # trova il nome piu vicino
     matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
-    logging.info(matches)
+    logging.info("c2c: Trovato all'indice {ind}", ind=matches)
     # estrae la sua coordinata
     #if not matches:
     #    indice_lista_civico = 0
