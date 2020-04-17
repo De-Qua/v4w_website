@@ -113,7 +113,7 @@ def short_path():
         t0=time.perf_counter()
         start_coord, start_name = civico2coord_first_result(G_list, da, civici_tpn, coords)
         stop_coord, stop_name =  civico2coord_first_result(G_list, a, civici_tpn, coords)
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.process_time() - t0))
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True
         else:
@@ -121,8 +121,8 @@ def short_path():
 
         t2=time.perf_counter()
         strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.process_time() - t1))
-        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.process_time() - t2))
+        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
+        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
     else:
         logging.info('ci ho messo tot a processare la richiesta')
@@ -138,7 +138,7 @@ def find_address():
         logging.info('DEBUG: indirizzo: {}'.format(da))
         #a = request.form['arrivo']
         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.process_time() - t0))
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
