@@ -113,9 +113,9 @@
 
 <script>
   closeHelpWindow();
-	if (typeof({{start_coordx}}) === 'undefined') {
-    marker_arrivo = L.marker([, ]).addTo(mymap);
-    mymap.setView([, ], 18);
+	if ({{start_coordx}} > 0) {
+    marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
+    mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
 	}
 </script>
 

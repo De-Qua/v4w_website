@@ -11,7 +11,7 @@
 	function showHelpWindow() {
 		document.getElementById("helpwindow").style.display = "block";
 		document.getElementById("searchbar").style.display = "none";
-		var thingstoBeHidden = document.getElementsByClass("onlyMap");
+		var thingstoBeHidden = document.getElementsByClassName("onlyMap");
 		for (i = 0; i < thingstoBeHidden.length; i++) {
 			thingstoBeHidden[i].style.display = "none";
 		}
