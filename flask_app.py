@@ -5,6 +5,7 @@ import logging
 import git
 import hmac
 import hashlib
+import time
 
 logging.basicConfig(filename='example.log',format='[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',level=logging.DEBUG)
 sys.path.append('/home/rafiki/v4w/src')
@@ -105,20 +106,26 @@ def index():
 def short_path():
 
     logging.info('grazie per aver aperto short_path')
-
+    t1=time.perf_counter()
     if request.method == 'POST':
         da = request.form['partenza']
         a = request.form['arrivo']
+        t0=time.perf_counter()
         start_coord, start_name = civico2coord_first_result(G_list, da, civici_tpn, coords)
         stop_coord, stop_name =  civico2coord_first_result(G_list, a, civici_tpn, coords)
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.process_time() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True
         else:
             f_ponti=False
+
+        t2=time.perf_counter()
         strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        logging.info(strada)
+        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.process_time() - t1))
+        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.process_time() - t2))
         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
     else:
+        logging.info('ci ho messo tot a processare la richiesta')
         return render_template('find_path.html')
 
 @app.route('/indirizzo', methods=['GET', 'POST'])

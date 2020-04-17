@@ -13,7 +13,7 @@
 	 <!-- Make sure you put this AFTER Leaflet's CSS -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-	
+
 	<!-- Make sure you put this AFTER Leaflet's CSS -->
 	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
 		 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
@@ -112,9 +112,11 @@
 
 
 <script>
-    closeHelpWindow();
+  closeHelpWindow();
+	if {{start_coordx}} > 1) {
     marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
     mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+	}
 </script>
 
 </body>
