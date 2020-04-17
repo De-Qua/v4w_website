@@ -130,9 +130,10 @@ def short_path():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
-
+    
+    t0=time.perf_counter()
     if request.method == 'POST':
-        t0=time.perf_counter()
+
         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
         da = request.form['partenza']
         logging.info('DEBUG: indirizzo: {}'.format(da))
@@ -146,8 +147,9 @@ def find_address():
         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
         logging.info('grazie per aver aperto find_address')
-        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t0))
-        return render_template('map_pa.html', start_coordx=-1)
+        temp= render_template('map_pa.html', start_coordx=-1)
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+        return temp
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
