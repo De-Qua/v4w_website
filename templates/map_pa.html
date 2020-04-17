@@ -30,10 +30,11 @@
 			mymap.zoomControl.setPosition('bottomright');
 			// a random marker to show a markers are used
 			//var marker = L.marker([45.43, 12.33]).addTo(mymap);
-			var marker;
-			var circle;
-			var marker_arrivo;
-			var lc = L.control.locate({
+			//var marker;
+			//var circle;
+			//var marker_arrivo;
+			//var lc =
+			L.control.locate({
 		    position: 'bottomright',
 		    strings: {
 		        title: "Show me where I am, yo!"
@@ -104,7 +105,7 @@
     marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
     mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@[VERSION]/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 <!-- Make sure you put this AFTER Leaflet's CSS -->
 <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
 	 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
