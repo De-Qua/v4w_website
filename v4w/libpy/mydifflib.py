@@ -36,7 +36,7 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.8):
 #            result_idx.append(idx)
 
     # Move the best scorers to head of list
-    if not result:
+    if not result_ratio:
         result = -1
     else:
         ratios = np.asarray(result_ratio)
