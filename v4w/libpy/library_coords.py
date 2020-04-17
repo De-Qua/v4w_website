@@ -101,7 +101,7 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     # estrae la sua coordinata
     if not matches:
         indice_lista_civico = 0
-    elif matches[0] < 0 or matches[0] > len(civico_coasdasdord):
+    elif matches[0] < 0 or matches[0] > len(civico_coord):
         indice_lista_civico = 0
     else:
         indice_lista_civico = matches[0]
