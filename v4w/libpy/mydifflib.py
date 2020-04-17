@@ -25,15 +25,15 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.5):
     s.set_seq2(word)
     for idx, x in enumerate(possibilities):
         s.set_seq1(x)
-        our_ratio = (s.find_longest_match(0, len(x), 0, len(word)).size) / len(word)
-        if our_ratio >= cutoff:
-            result_ratio.append(our_ratio)
+        #our_ratio = (s.find_longest_match(0, len(x), 0, len(word)).size) / len(word)
+        #if our_ratio >= cutoff:
+    #        result_ratio.append(our_ratio)
+    #        result_idx.append(idx)
+        if s.real_quick_ratio() >= cutoff and \
+           s.quick_ratio() >= cutoff and \
+           s.ratio() >= cutoff:
+            result_ratio.append(s.ratio())
             result_idx.append(idx)
-        #if s.real_quick_ratio() >= cutoff and \
-        #   s.quick_ratio() >= cutoff and \
-        #   s.ratio() >= cutoff:
-    #        result_ratio.append(s.ratio())
-#            result_idx.append(idx)
 
     # Move the best scorers to head of list
     if not result_ratio:
