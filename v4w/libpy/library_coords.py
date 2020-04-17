@@ -109,7 +109,7 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     if matches < 0:
         indice_lista_civico = 0
     else:
-        indice_lista_civico = 1
+        indice_lista_civico = matches
     coord = civico_coord[indice_lista_civico]
     # nome del civico/toponimo piu vicino
     name_chosen = civico_list[indice_lista_civico]
