@@ -1,8 +1,9 @@
 # mydifflib.py
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
+import numpy as np
 
-def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.7):
+def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.8):
     """Use SequenceMatcher to return a list of the indexes of the best
     "good enough" matches. word is a sequence for which close matches
     are desired (typically a string).
@@ -23,13 +24,15 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.7):
     s.set_seq2(word)
     for idx, x in enumerate(possibilities):
         s.set_seq1(x)
+        #our_ratio = s.find_longest_match(0, len(x), 0, len(word))
+        #if our_ratio
         if s.real_quick_ratio() >= cutoff and \
            s.quick_ratio() >= cutoff and \
            s.ratio() >= cutoff:
             result.append((s.ratio(), idx))
 
     # Move the best scorers to head of list
-    result = _nlargest(n, result)
+    result = np.max(result)
 
     # Strip scores for the best n matches
     return [x for score, x in result]
