@@ -78,6 +78,20 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
 
     return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1], (t11, t21, t31)
 
+"""
+Cerca la coordinata e la ritorna insieme al suo nome.
+Non fa nulla riguardante il grafo, quindi risparmia tempo (in teoria) rispetto
+al corrispettivo first_result qui sopra!
+
+@param:
+    - civico_name: il nome da trovare tra quelli in civico_list
+    - civico_list: lista dei civici DALLO SHAPEFILE
+    - civico_coord: le coordinate dei civici relativi alla lista civico_list SHAPEFILE
+
+@return:
+    - coordinata: tupla (x,y) - relativa alle coordinate del GRAFO
+    - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
+"""
 def civico2coord_find_address(civico_name, civico_list, civico_coord):
 
     # solo il match migliore!
@@ -87,14 +101,12 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     # estrae la sua coordinata
     if not matches:
         indice_lista_civico = 0
-    elif matches[0] < 0 or matches[0] > len(civico_coord):
+    elif matches[0] < 0 or matches[0] > len(civico_coasdasdord):
         indice_lista_civico = 0
     else:
         indice_lista_civico = matches[0]
     coord = civico_coord[indice_lista_civico]
     # nome del civico/toponimo piu vicino
     name_chosen = civico_list[indice_lista_civico]
-
-
 
     return (coord[0], coord[1]), name_chosen[:-1]
