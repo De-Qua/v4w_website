@@ -19,7 +19,8 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.8):
         raise ValueError("n must be > 0: %r" % (n,))
     if not 0.0 <= cutoff <= 1.0:
         raise ValueError("cutoff must be in [0.0, 1.0]: %r" % (cutoff,))
-    result = []
+    result_ratio = []
+    result_idx = []
     s = SequenceMatcher()
     s.set_seq2(word)
     for idx, x in enumerate(possibilities):
@@ -29,13 +30,14 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.8):
         if s.real_quick_ratio() >= cutoff and \
            s.quick_ratio() >= cutoff and \
            s.ratio() >= cutoff:
-            result.append((s.ratio(), idx))
+            result_ratio.append(s.ratio())
+            result_idx.append(idx)
 
     # Move the best scorers to head of list
     if not result:
         result = -1
     else:
-        result = np.max(result)
+        result = result_idx[np.argmax(result_ratio)]
 
     # Strip scores for the best n matches
     return result
