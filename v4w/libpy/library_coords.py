@@ -45,8 +45,7 @@ Piu in dettaglio,
     - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
 """
 def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord):
-    
-    logging.basicConfig(filename='example.log',format='[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',level=logging.DEBUG)
+
     # numpy array delle coordinate
     coordinate = np.asarray(coord_list)
     # solo il match migliore!
@@ -54,9 +53,9 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
     # trova il nome piu vicino
     t1=time.perf_counter()
     matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
+    t11 = time.perf_counter() - t1
     logging.info('ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t1))
     # estrae la sua coordinata
-
     if not matches:
         indice_lista_civico = 0
     elif matches[0] < 0 or matches[0] > len(civico_coord):
@@ -69,13 +68,15 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
     # cerca il nodo piu vicino
     t2 = time.perf_counter()
     tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
-    logging.info('ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t2))
+    t21 = time.perf_counter() - t2
+    logging.info('ci ho messo {tot} a trovare il risultato piu vicino'.format(tot=time.perf_counter() - t2))
     t3 = time.perf_counter()
     # indice del nodo piu vicino
     idx = np.argmin(np.sum(tmp * tmp, axis=1))
+    t31 = time.perf_counter() - t3
     logging.info('ci ho messo {tot} trovare l indice'.format(tot=time.perf_counter() - t3))
 
-    return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1]
+    return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1], (t11, t21, t31)
 
 def civico2coord_find_address(civico_name, civico_list, civico_coord):
 
