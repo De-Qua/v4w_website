@@ -11,7 +11,15 @@
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
 		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
 		 crossorigin=""/>
-
+	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+		 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+		 crossorigin=""></script>
+	<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
+	<script src="/static/js/leaflet-providers.js"></script>
+	<!-- Our own (little) javascript library. -->
+	<script src="/static/js/v4w.js"></script>
 <body>
 
 
@@ -105,14 +113,6 @@
     marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
     mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
-<!-- Make sure you put this AFTER Leaflet's CSS -->
-<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-	 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-	 crossorigin=""></script>
-<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
-<script src="/static/js/leaflet-providers.js"></script>
-<!-- Our own (little) javascript library. -->
-<script src="/static/js/v4w.js"></script>
+
 </body>
 </html>
