@@ -19,16 +19,7 @@
 	<script src="/static/js/v4w.js"></script>
 <body>
 
-	<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
-		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
-	<div class="leaflet-top leaflet-left" id="searchbar">
-		<div class="searchfield leaflet-control w3-medium">
-			<form id="ricerca_ind" action="indirizzo" method="POST">
-				<input type="text"  placeholder="cerca.." name="partenza">
-				<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
-			</form>
-		</div>
-	</div>
+
 	<!-- DIV CON LA MAPPA -->
 	<div id="mapid">
 		<script>
@@ -49,12 +40,13 @@
 		</script>
 	</div>
 
-	<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
-		<div class="leaflet-top leaflet-left">
+		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
+		<div class="leaflet-top leaflet-left" id="searchbar">
 			<div class="searchfield leaflet-control w3-medium">
 				<form id="ricerca_ind" action="indirizzo" method="POST">
-					<input type="text" placeholder="cerca..">
-					<button class="btn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
+					<input type="text"  placeholder="cerca.." name="partenza">
+					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
 				</form>
 			</div>
 		</div>
