@@ -23,7 +23,7 @@
 	function closeHelpWindow() {
 		document.getElementById("helpwindow").style.display = "none";
 		document.getElementById("searchbar").style.display = "block";
-		var thingstoBeShown = document.getElementsByClass("onlyMap");
+		var thingstoBeShown = document.getElementsByClassName("onlyMap");
 		for (i = 0; i < thingstoBeShown.length; i++) {
 			thingstoBeShown[i].style.display = "inline";
 		}
