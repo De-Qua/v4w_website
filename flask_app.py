@@ -125,7 +125,7 @@ def short_path():
         logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
     else:
-        logging.info('ci ho messo tot a processare la richiesta')
+        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
         return render_template('find_path.html')
 
 @app.route('/indirizzo', methods=['GET', 'POST'])

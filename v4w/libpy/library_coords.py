@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import time
 
+logging.basicConfig(filename='example.log',format='[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',level=logging.DEBUG)
 
 """
 da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
@@ -46,6 +47,9 @@ Piu in dettaglio,
     - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
 """
 def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord):
+
+    
+
     # numpy array delle coordinate
     coordinate = np.asarray(coord_list)
     # solo il match migliore!
