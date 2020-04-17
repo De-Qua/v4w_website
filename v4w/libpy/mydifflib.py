@@ -32,7 +32,10 @@ def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.8):
             result.append((s.ratio(), idx))
 
     # Move the best scorers to head of list
-    result = np.max(result)
+    if not result:
+        result = -1
+    else:
+        result = np.max(result)
 
     # Strip scores for the best n matches
-    return [x for score, x in result]
+    return result

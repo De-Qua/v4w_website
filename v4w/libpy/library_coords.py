@@ -99,12 +99,16 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     # trova il nome piu vicino
     matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
     # estrae la sua coordinata
-    if not matches:
-        indice_lista_civico = 0
-    elif matches[0] < 0 or matches[0] > len(civico_coord):
+    #if not matches:
+    #    indice_lista_civico = 0
+    #elif matches[0] < 0 or matches[0] > len(civico_coord):
+    #    indice_lista_civico = 0
+    #else:
+    #    indice_lista_civico = matches[0]
+    if matches < 0:
         indice_lista_civico = 0
     else:
-        indice_lista_civico = matches[0]
+        indice_lista_civico = 1
     coord = civico_coord[indice_lista_civico]
     # nome del civico/toponimo piu vicino
     name_chosen = civico_list[indice_lista_civico]
