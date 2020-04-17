@@ -2,7 +2,7 @@
 from difflib import SequenceMatcher
 from heapq import nlargest as _nlargest
 
-def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.0):
+def get_close_matches_indexes(word, possibilities, n=3, cutoff=0.7):
     """Use SequenceMatcher to return a list of the indexes of the best
     "good enough" matches. word is a sequence for which close matches
     are desired (typically a string).
