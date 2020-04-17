@@ -111,8 +111,8 @@ def short_path():
         da = request.form['partenza']
         a = request.form['arrivo']
         t0=time.perf_counter()
-        start_coord, start_name = civico2coord_first_result(G_list, da, civici_tpn, coords)
-        stop_coord, stop_name =  civico2coord_first_result(G_list, a, civici_tpn, coords)
+        start_coord, start_name, timing = civico2coord_first_result(G_list, da, civici_tpn, coords)
+        stop_coord, stop_name, timing =  civico2coord_first_result(G_list, a, civici_tpn, coords)
         logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True
@@ -138,7 +138,7 @@ def find_address():
         da = request.form['partenza']
         logging.info('DEBUG: indirizzo: {}'.format(da))
         #a = request.form['arrivo']
-        start_coord, start_name, timing = civico2coord_find_address(da, civici_tpn, coords)
+        start_coord, start_name, timing = civico2coord_first_result(da, civici_tpn, coords)
         logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         logging.info('ci ho messo {t1} per trovare la stringa'.format(t1=timing[0]))
         logging.info('ci ho messo {t2} per trovare il nodo'.format(t2=timing[1]))
