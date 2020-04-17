@@ -18,16 +18,7 @@
 	<!-- Our own (little) javascript library. -->
 	<script src="/static/js/v4w.js"></script>
 <body>
-    <!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
-    <!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
-	<div class="leaflet-top leaflet-left" id="searchbar">
-		<div class="searchfield leaflet-control w3-medium">
-			<form id="ricerca_ind" action="indirizzo" method="POST">
-				<input type="text"  placeholder="cerca.." name="partenza">
-				<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
-			</form>
-		</div>
-	</div>
+    
 	<!-- DIV CON LA MAPPA -->
 	<div id="mapid">
 		<script>
@@ -46,7 +37,18 @@
 			var circle;
 			var marker_arrivo;
 		</script>
-		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+	</div>
+	<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+    <!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
+	<div class="leaflet-top leaflet-left" id="searchbar">
+		<div class="searchfield leaflet-control w3-medium">
+			<form id="ricerca_ind" action="indirizzo" method="POST">
+				<input type="text"  placeholder="cerca.." name="partenza">
+				<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
+			</form>
+		</div>
+	</div>
+	<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
 		<div class="leaflet-top leaflet-left">
 			<div class="searchfield leaflet-control w3-medium">
 				<form id="ricerca_ind" action="indirizzo" method="POST">
@@ -79,7 +81,6 @@
 				</div>
 			</a>
 		</div>
-	</div>
 
 	<div class="helpwindowpopup" id="helpwindow">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
