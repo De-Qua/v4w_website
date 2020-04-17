@@ -143,7 +143,7 @@ def find_address():
         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
         logging.info('grazie per aver aperto find_address')
-        return render_template('map_pa.html')
+        return render_template('map_pa.html', start_coordx=-1)
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
