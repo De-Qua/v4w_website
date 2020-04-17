@@ -25,7 +25,7 @@ G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_
 G_list = list(G_un.nodes)
 logging.info("Carico i nodi")
 
-@app.route('/update_server',method=['POST'])
+@app.route('/update_server',methods=['POST'])
 def webhook():
     if request.methods == 'POST':
         repo = git.Repo('/home/rafiki')
