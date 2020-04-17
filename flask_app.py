@@ -127,6 +127,8 @@ def find_address():
     if request.method == 'POST':
         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
         da = request.form['partenza']
+        logging.info('DEBUG: indirizzo:')
+        logging.info(da)
         #a = request.form['arrivo']
         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
