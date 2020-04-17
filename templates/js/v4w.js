@@ -51,7 +51,8 @@ function locateUser(map, marker, circle) {
 				marker = L.marker([e.latitude, e.longitude]).bindPopup('Your are here :)');
 				circle = L.circle([e.latitude, e.longitude], e.accuracy/2, {
 						weight: 1,
-						fillColor: '#cacaca',
+						color: '#add8e6',
+						fillColor: '#add8e6',
 						fillOpacity: 0.2
 				});
 				map.addLayer(marker);
