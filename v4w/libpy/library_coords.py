@@ -69,10 +69,10 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
     t2 = time.perf_counter()
     tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
     logging.info('ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t2))
-    t3=time.perf_counter()
+    t3 = time.perf_counter()
     # indice del nodo piu vicino
     idx = np.argmin(np.sum(tmp * tmp, axis=1))
-    logging.info('ci ho messo {tot} trovare l indice'.format(tot=time.perf_counter() - t1))
+    logging.info('ci ho messo {tot} trovare l indice'.format(tot=time.perf_counter() - t3))
 
     return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1]
 
