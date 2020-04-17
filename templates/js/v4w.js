@@ -46,12 +46,11 @@
 	}
 
 function locateUser(map, marker, circle) {
-	map.locate({setView: true, watch: true}) /* This will return map so you can do chaining */
+	map.locate({setView: false, watch: true}) /* This will return map so you can do chaining */
 		.on('locationfound', function(e){
 				marker = L.marker([e.latitude, e.longitude]).bindPopup('Your are here :)');
 				circle = L.circle([e.latitude, e.longitude], e.accuracy/2, {
 						weight: 1,
-						color: 'blue',
 						fillColor: '#cacaca',
 						fillOpacity: 0.2
 				});
