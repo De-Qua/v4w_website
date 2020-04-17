@@ -46,10 +46,7 @@
 	}
 
 function locateUser(map, marker, circle) {
-	L.control.locate().addTo(map);
-	/* This will return map so you can do chaining */
-	/*
-	map.locate({setView: false, watch: false})
+	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
 		.on('locationfound', function(e){
 				marker = L.marker([e.latitude, e.longitude]).bindPopup('Your are here :)');
 				circle = L.circle([e.latitude, e.longitude], e.accuracy/2, {
@@ -65,5 +62,4 @@ function locateUser(map, marker, circle) {
 				console.log(e);
 				alert("Location access denied.");
 		});
-	*/
 	}
