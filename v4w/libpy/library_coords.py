@@ -1,5 +1,7 @@
 from libpy.mydifflib import get_close_matches_indexes
 import numpy as np
+import logging
+import time
 
 
 """
@@ -49,8 +51,11 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
     # solo il match migliore!
     option_number = 1 #rimetto 3 per adesso, poi cambiamo
     # trova il nome piu vicino
+    t1=time.perf_counter()
     matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
+    logging.info('ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t1))
     # estrae la sua coordinata
+
     if not matches:
         indice_lista_civico = 0
     elif matches[0] < 0 or matches[0] > len(civico_coord):
@@ -61,9 +66,13 @@ def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord
     # nome del civico/toponimo piu vicino
     name_chosen = civico_list[indice_lista_civico]
     # cerca il nodo piu vicino
+    t2 = time.perf_counter()
     tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
+    logging.info('ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t2))
+    t3=time.perf_counter()
     # indice del nodo piu vicino
     idx = np.argmin(np.sum(tmp * tmp, axis=1))
+    logging.info('ci ho messo {tot} trovare l indice'.format(tot=time.perf_counter() - t1))
 
     return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1]
 
