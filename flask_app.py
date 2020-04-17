@@ -132,11 +132,13 @@ def short_path():
 def find_address():
 
     if request.method == 'POST':
+        t0=time.perf_counter()
         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
         da = request.form['partenza']
         logging.info('DEBUG: indirizzo: {}'.format(da))
         #a = request.form['arrivo']
         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.process_time() - t0))
         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
