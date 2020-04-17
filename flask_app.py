@@ -130,7 +130,7 @@ def short_path():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
-    
+
     t0=time.perf_counter()
     if request.method == 'POST':
 
@@ -148,7 +148,7 @@ def find_address():
     else:
         logging.info('grazie per aver aperto find_address')
         temp= render_template('map_pa.html', start_coordx=-1)
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+        logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
         return temp
 
 @app.route('/degoogling', methods=['GET', 'POST'])
