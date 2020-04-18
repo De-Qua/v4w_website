@@ -2,7 +2,8 @@ import numpy as np
 import networkx as nt
 from networkx.exception import NetworkXNoPath
 import sys
-sys.path.append('/home/rafiki/v4w')
+import os
+sys.path.append(os.path.join(os.getcwd(), "app"))
 #utility per coordinates
 from libpy.library_coords import civico2coord_first_result
 from libpy.weights_libs import weight_bridge
