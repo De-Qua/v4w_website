@@ -3,10 +3,10 @@ import networkx as nt
 from networkx.exception import NetworkXNoPath
 import sys
 import os
-sys.path.append(os.path.join(os.getcwd(), "app"))
+#sys.path.append(os.path.join(os.getcwd(), "app"))
 #utility per coordinates
-from libpy.library_coords import civico2coord_first_result
-from libpy.weights_libs import weight_bridge
+from app.src.libpy.library_coords import civico2coord_first_result
+from app.src.libpy.weights_libs import weight_bridge
 import pickle
 from shapely.geometry import shape
 import json

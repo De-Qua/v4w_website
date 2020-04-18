@@ -7,20 +7,25 @@ import git
 import hmac
 import hashlib
 import logging
-from app.libpy import pyAny_lib, library_coords
-from app.libpy.library_coords import civico2coord_first_result, civico2coord_find_address
+import time
+from app.src import libpy
+from app.src.libpy import pyAny_lib
+from app.src.libpy.library_coords import civico2coord_first_result, civico2coord_find_address
 
-
+# Useful paths
 folder = os.getcwd()
-folder_lib = folder + "/app/lib/"
-folder_db = folder + "/app/db/"
-path_pickle = folder_db + "grafo_pickle"
+folder_db = os.path.join(folder,"app","static","files")
+path_pickle = os.path.join(folder_db,"grafo_pickle")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
-path_civ = folder_db + "lista_key.txt"
-path_coords = folder_db + "lista_coords.txt"
+path_civ = os.path.join(folder_db,"lista_key.txt")
+path_coords = os.path.join(folder_db,"lista_coords.txt")
+
+# Load graph
 G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_tpn_path=path_civ, coords_path=path_coords)
 G_list = list(G_un.nodes)
+
+# Logging
 logging.info("Carico i nodi")
 
 # check webhook github signature
@@ -32,8 +37,11 @@ def is_valid_signature(x_hub_signature, data, private_key):
     encoded_key = bytes(private_key, 'latin_1')
     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
     return hmac.compare_digest(mac.hexdigest(), github_signature)
+
+# Webhook secret key
 w_secret = os.getenv("WEBHOOK_SECRET_KEY")
 
+# webhook to sync with github
 @app.route('/update_server',methods=['POST'])
 def webhook():
     if request.method != 'POST':
@@ -101,35 +109,50 @@ def index():
 def short_path():
 
     logging.info('grazie per aver aperto short_path')
-
+    t1=time.perf_counter()
     if request.method == 'POST':
         da = request.form['partenza']
         a = request.form['arrivo']
-        start_coord, start_name = civico2coord_first_result(G_list, da, civici_tpn, coords)
-        stop_coord, stop_name =  civico2coord_first_result(G_list, a, civici_tpn, coords)
+        t0=time.perf_counter()
+        start_coord, start_name, timing = civico2coord_first_result(G_list, da, civici_tpn, coords)
+        stop_coord, stop_name, timing1 =  civico2coord_first_result(G_list, a, civici_tpn, coords)
+        logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
+        logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
+        logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True
         else:
             f_ponti=False
+
+        t2=time.perf_counter()
         strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        logging.info(strada)
+        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
+        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
     else:
+        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
         return render_template('find_path.html')
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
 
+    t0=time.perf_counter()
     if request.method == 'POST':
+
         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
         da = request.form['partenza']
+        logging.info('DEBUG: indirizzo: {}'.format(da))
         #a = request.form['arrivo']
-        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
+        start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
         logging.info('grazie per aver aperto find_address')
-        return render_template('map_pa.html')
+        temp= render_template('map_pa.html', start_coordx=-1)
+        logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
+        return temp
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():

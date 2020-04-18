@@ -11,6 +11,10 @@
 	function showHelpWindow() {
 		document.getElementById("helpwindow").style.display = "block";
 		document.getElementById("searchbar").style.display = "none";
+		var thingstoBeHidden = document.getElementsByClassName("onlyMap");
+		for (i = 0; i < thingstoBeHidden.length; i++) {
+			thingstoBeHidden[i].style.display = "none";
+		}
 	}
 
 	/* Close the window visualizing a help message on how to make the correct search.
@@ -19,6 +23,10 @@
 	function closeHelpWindow() {
 		document.getElementById("helpwindow").style.display = "none";
 		document.getElementById("searchbar").style.display = "block";
+		var thingstoBeShown = document.getElementsByClassName("onlyMap");
+		for (i = 0; i < thingstoBeShown.length; i++) {
+			thingstoBeShown[i].style.display = "inline";
+		}
 	}
 
 
@@ -46,13 +54,13 @@
 	}
 
 function locateUser(map, marker, circle) {
-	map.locate({setView: true, watch: true}) /* This will return map so you can do chaining */
+	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
 		.on('locationfound', function(e){
 				marker = L.marker([e.latitude, e.longitude]).bindPopup('Your are here :)');
 				circle = L.circle([e.latitude, e.longitude], e.accuracy/2, {
 						weight: 1,
-						color: 'blue',
-						fillColor: '#cacaca',
+						color: '#add8e6',
+						fillColor: '#add8e6',
 						fillOpacity: 0.2
 				});
 				map.addLayer(marker);
