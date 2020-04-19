@@ -29,6 +29,79 @@ G_list = list(G_un.nodes)
 # Logging
 logging.info("Carico i nodi")
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+
+    return render_template('index.html')
+
+@app.route('/direzione', methods=['GET', 'POST'])
+def short_path():
+
+    logging.info('grazie per aver aperto short_path')
+    t1=time.perf_counter()
+    if request.method == 'POST':
+        da = request.form['partenza']
+        a = request.form['arrivo']
+        t0=time.perf_counter()
+        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords, G_list)
+        stop_coord, stop_name =  civico2coord_find_address(a, civici_tpn, coords, G_list)
+        #logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
+        #logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
+        #logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+        if request.form.get('meno_ponti'):
+            f_ponti=True
+        else:
+            f_ponti=False
+
+        t2=time.perf_counter()
+        strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
+        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
+        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
+        return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
+    else:
+        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
+        return render_template('find_path.html')
+
+@app.route('/indirizzo', methods=['GET', 'POST'])
+def find_address():
+
+    t0=time.perf_counter()
+    if request.method == 'POST':
+        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
+        da = request.form['partenza']
+        logging.info('DEBUG: indirizzo: {}'.format(da))
+        #a = request.form['arrivo']
+        start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
+        return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
+    else:
+        logging.info('grazie per aver aperto find_address')
+        temp= render_template('map_pa.html', start_coordx=-1)
+        logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
+        return temp
+
+@app.route('/degoogling', methods=['GET', 'POST'])
+def degoogle_us_please():
+
+    if request.method == 'POST':
+        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
+        da = request.form['partenza']
+        #a = request.form['arrivo']
+        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
+        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
+        return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
+    else:
+        logging.info('grazie per aver aperto find_address')
+        return render_template('degoogling.html')
+
+@app.route('/download_path', methods=['GET', 'POST'])
+def download():
+    return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")
+
+
+
 # check webhook github signature
 def is_valid_signature(x_hub_signature, data, private_key):
     # x_hub_signature and data are from the webhook payload
@@ -97,75 +170,3 @@ def webhook():
         build_commit = f'build_commit = "{commit_hash}"'
         print(f'{build_commit}')
         return 'Updated PythonAnywhere server to commit {commit}'.format(commit=commit_hash)
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-
-    return render_template('index.html')
-
-@app.route('/direzione', methods=['GET', 'POST'])
-def short_path():
-
-    logging.info('grazie per aver aperto short_path')
-    t1=time.perf_counter()
-    if request.method == 'POST':
-        da = request.form['partenza']
-        a = request.form['arrivo']
-        t0=time.perf_counter()
-        start_coord, start_name = civico2coord_find_address(G_list, da, civici_tpn, coords)
-        stop_coord, stop_name =  civico2coord_find_address(G_list, a, civici_tpn, coords)
-        #logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
-        #logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
-        #logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-        if request.form.get('meno_ponti'):
-            f_ponti=True
-        else:
-            f_ponti=False
-
-        t2=time.perf_counter()
-        strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
-        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
-        return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
-    else:
-        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
-        return render_template('find_path.html')
-
-@app.route('/indirizzo', methods=['GET', 'POST'])
-def find_address():
-
-    t0=time.perf_counter()
-    if request.method == 'POST':
-
-        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-        da = request.form['partenza']
-        logging.info('DEBUG: indirizzo: {}'.format(da))
-        #a = request.form['arrivo']
-        start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-        return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
-    else:
-        logging.info('grazie per aver aperto find_address')
-        temp= render_template('map_pa.html', start_coordx=-1)
-        logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
-        return temp
-
-@app.route('/degoogling', methods=['GET', 'POST'])
-def degoogle_us_please():
-
-    if request.method == 'POST':
-        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-        da = request.form['partenza']
-        #a = request.form['arrivo']
-        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
-        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-        return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
-    else:
-        logging.info('grazie per aver aperto find_address')
-        return render_template('degoogling.html')
-
-@app.route('/download_path', methods=['GET', 'POST'])
-def download():
-    return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")
