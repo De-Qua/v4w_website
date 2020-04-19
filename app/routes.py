@@ -115,11 +115,11 @@ def short_path():
         da = request.form['partenza']
         a = request.form['arrivo']
         t0=time.perf_counter()
-        start_coord, start_name, timing = civico2coord_first_result(G_list, da, civici_tpn, coords)
-        stop_coord, stop_name, timing1 =  civico2coord_first_result(G_list, a, civici_tpn, coords)
-        logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
-        logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
-        logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
+        start_coord, start_name = civico2coord_find_address(G_list, da, civici_tpn, coords)
+        stop_coord, stop_name =  civico2coord_find_address(G_list, a, civici_tpn, coords)
+        #logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
+        #logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
+        #logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
         logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True

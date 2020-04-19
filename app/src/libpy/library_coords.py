@@ -92,7 +92,7 @@ al corrispettivo first_result qui sopra!
     - coordinata: tupla (x,y) - relativa alle coordinate del GRAFO
     - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
 """
-def civico2coord_find_address(civico_name, civico_list, civico_coord):
+def civico2coord_find_address(civico_name, civico_list, civico_coord, coord_list=None):
 
     # solo il match migliore!
     option_number = 1 #rimetto 3 per adesso, poi cambiamo
@@ -113,5 +113,12 @@ def civico2coord_find_address(civico_name, civico_list, civico_coord):
     coord = civico_coord[indice_lista_civico]
     # nome del civico/toponimo piu vicino
     name_chosen = civico_list[indice_lista_civico]
-
-    return (coord[0], coord[1]), name_chosen[:-1]
+    if coord_list==None:
+        return (coord[0], coord[1]), name_chosen[:-1]
+    else:
+        # numpy array delle coordinate
+        coordinate = np.asarray(coord_list)
+        tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
+        # indice del nodo piu vicino
+        idx = np.argmin(np.sum(tmp * tmp, axis=1))
+        return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1]
