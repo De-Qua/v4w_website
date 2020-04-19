@@ -96,6 +96,7 @@ def degoogle_us_please():
         logging.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
 
+    
 @app.route('/download_path', methods=['GET', 'POST'])
 def download():
     return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")
