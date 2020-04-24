@@ -1,5 +1,6 @@
-from flask import render_template, request, send_from_directory
+from flask import flash, render_template, request, send_from_directory
 from app import app
+from app.forms import FeedbackForm
 import os
 import sys
 import logging
@@ -65,22 +66,33 @@ def short_path():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
-
+    form = FeedbackForm()
     t0=time.perf_counter()
     if request.method == 'POST':
-        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-        da = request.form['partenza']
-        logging.info('DEBUG: indirizzo: {}'.format(da))
-        #a = request.form['arrivo']
-        start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-        return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
+        if form.is_submitted():
+            if form.validate_on_submit():
+                logging.info("feedback inviato")
+                return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=1)
+            else:
+                logging.info('errore nel feedback')
+                return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
     else:
-        logging.info('grazie per aver aperto find_address')
-        temp= render_template('map_pa.html', start_coordx=-1)
-        logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
-        return temp
+        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
+        da = request.args.get('partenza', default='', type=str)
+        if da == '':
+            print('primo caricamento')
+            logging.info('grazie per aver aperto find_address')
+            temp= render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
+            logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
+            return temp
+        else:
+            logging.info('DEBUG: indirizzo: {}'.format(da))
+            #a = request.form['arrivo']
+            start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+            logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+            #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
+            return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
+
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
@@ -96,7 +108,7 @@ def degoogle_us_please():
         logging.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
 
-    
+
 @app.route('/download_path', methods=['GET', 'POST'])
 def download():
     return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")

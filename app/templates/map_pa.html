@@ -58,11 +58,16 @@
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 		<div class="leaflet-top leaflet-left" id="searchbar">
 			<div class="searchfield leaflet-control w3-medium">
-				<form id="ricerca_ind" action="" method="POST">
+				<form id="ricerca_ind" action="" method="GET">
 					<input type="text"  placeholder="cerca.." name="partenza">
 					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
 				</form>
 			</div>
+			<a onclick="showFeedbackWindow()">
+				<div class="leaflet-control w3-medium">
+					<button class="btn v4wbtn"><i class="fa fa-exclamation-triangle"></i></button>
+				</div>
+			</a>
 		</div>
 		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO -->
 		<div class="leaflet-top leaflet-right onlyMap">
@@ -109,10 +114,58 @@
 		</p>
 
 	</div>
+	<div class="feedbackwindowpopup" id="feedbackwindow">
+		<a onclick="closeFeedbackWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
+		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
+		{% if feedbacksent==0 %}
+		<form action="" method="post">
+			{{ form.hidden_tag() }}
+			<p>
+				{{ form.name.label }}
+				{{ form.name(size=32) }} <br>
+				{% for error in form.name.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+				{{ form.email.label }}
+				{{ form.email(size=32) }} <br>
+				{% for error in form.email.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+				{{ form.category.label }}
+				{{ form.category() }}
+				{% for error in form.category.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+		    {{ form.feedback.label }}<br>
+		    {{ form.feedback(cols=50, rows=4) }}<br>
+		    {% for error in form.feedback.errors %}
+		    <span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+		  </p>
+			<p>
+				{{ form.submit() }}
+			</p>
+		</form>
+		{% elif feedbacksent==1 %}
+		<p> Grazie per il tuo feedback! </p>
+		{% endif %}
+		</p>
 
+	</div>
 
 <script>
   closeHelpWindow();
+	if (typeof feedbacksent === 'undefined') {
+		closeFeedbackWindow();
+	} else {
+		showFeedbackWindow();
+	}
 	if ({{start_coordx}} > 0) {
     marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
     mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);

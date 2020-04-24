@@ -29,6 +29,31 @@
 		}
 	}
 
+	/* Open a window visualizing a help message on how to make the correct search.
+		In the window a button to close it should be available, calling closeHelpWindow().
+		The actual happening is just making the element with id "helpwindow" visible.
+	*/
+	function showFeedbackWindow() {
+		document.getElementById("feedbackwindow").style.display = "block";
+		document.getElementById("searchbar").style.display = "none";
+		var thingstoBeHidden = document.getElementsByClassName("onlyMap");
+		for (i = 0; i < thingstoBeHidden.length; i++) {
+			thingstoBeHidden[i].style.display = "none";
+		}
+	}
+
+	/* Close the window visualizing a help message on how to make the correct search.
+		The actual happening is just making the element with id "helpwindow" invisible.
+	*/
+	function closeFeedbackWindow() {
+		document.getElementById("feedbackwindow").style.display = "none";
+		document.getElementById("searchbar").style.display = "block";
+		var thingstoBeShown = document.getElementsByClassName("onlyMap");
+		for (i = 0; i < thingstoBeShown.length; i++) {
+			thingstoBeShown[i].style.display = "inline";
+		}
+	}
+
 
 	function changeMap(currentMap) {
 		if (currentMap == "osm") {
