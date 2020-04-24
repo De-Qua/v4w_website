@@ -27,6 +27,8 @@ path_coords = os.path.join(folder_db,"lista_coords.txt")
 G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_tpn_path=path_civ, coords_path=path_coords)
 G_list = list(G_un.nodes)
 
+file_feedback = os.path.join(folder,"file_feedback.txt")
+
 # Logging
 logging.info("Carico i nodi")
 
@@ -66,19 +68,32 @@ def short_path():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
+    da = request.args.get('partenza', default='', type=str)
     form = FeedbackForm()
+    form.searched_string.data = da
     t0=time.perf_counter()
     if request.method == 'POST':
         if form.is_submitted():
             if form.validate_on_submit():
                 logging.info("feedback inviato")
+                with open(file_feedback,'a') as f:
+                    f.write('*****\n')
+                    f.write(time.asctime( time.localtime(time.time()))+"\n")
+                    categoria = dict(form.category.choices).get(form.category.data)
+                    f.write(categoria+'\n')
+                    f.write(form.name.data+'\n')
+                    f.write(form.email.data+'\n')
+                    f.write(form.searched_string.data+'\n')
+                    f.write(form.found_string.data+'\n')
+                    f.write(form.feedback.data + "\n")
+                    f.write('*****\n')
+
                 return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=1)
             else:
                 logging.info('errore nel feedback')
                 return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
     else:
         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-        da = request.args.get('partenza', default='', type=str)
         if da == '':
             print('primo caricamento')
             logging.info('grazie per aver aperto find_address')
@@ -89,6 +104,7 @@ def find_address():
             logging.info('DEBUG: indirizzo: {}'.format(da))
             #a = request.form['arrivo']
             start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+            form.found_string.data = start_name
             logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
             return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
