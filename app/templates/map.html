@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+	<title>Cerca casa a Venezia!</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/w3s.css">
+	<link rel="stylesheet" href="css/s.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+		 crossorigin=""/>
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+		 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+		 crossorigin=""></script>
+	<!-- Our own (little) javascript library. -->
+	<script src="js/v4w.js"></script>
+<body>
+	<!-- DIV CON LA MAPPA -->
+	<div id="mapid">
+		<script>
+			var mymap = L.map('mapid').setView([45.43, 12.33], 13);
+			var OpenStreetMap_DE = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+			maxZoom: 20,
+			zoomControl: false,
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(mymap);
+			// Zoom buttons to the bottom right
+			mymap.zoomControl.setPosition('bottomright');
+			// a random marker to show a markers are used
+			var marker = L.marker([45.43, 12.33]).addTo(mymap);
+		</script>
+		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+		<div class="leaflet-top leaflet-left">
+			<div class="searchfield leaflet-control">
+				<form id="ricerca_ind" action="indirizzo">
+					<input type="text" placeholder="cerca..">
+					<button class="btn cercabtn" type="submit" form="ricerca_ind" ><i class="fa fa-search"></i></button>
+				</form>
+			</div>
+		</div>
+		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO -->
+		<div class="leaflet-top leaflet-right">
+			<a onclick="showHelpWindow()">
+				<div class="leaflet-control w3-large">
+					<button class="btn helpbtn"><i class="fa fa-question"></i></button>
+				</div>
+			</a>
+		</div>
+	</div>
+
+	<div class="helpwindowpopup" id="helpwindow" style="display: none">
+		<p class="w3-large"><b>COSA POSSO FARE?</b></p><br>
+		Cerca il tuo indirizzo, inserendo SESTIERE e NUMERO CIVICO.<br>
+		<br>
+		Ad esempio, Cannaregio 5218.<br>
+		<br>
+		Al momento, alcuni indirizzi non sono trovabili usando un'area della città (ad esempio Santa Marta), ma bisogna usare il sestiere (esempio precendte, Dorsoduro).<br>
+		<br>
+		Nel caso in cui l'indirizzo effettivamente non sia stato trovato, contattateci!<br>
+		Un form per il feedback verrà rilasciato a breve.<br>
+		<br>
+		Buona giornata.<br>
+		I fioi.<br>
+		<br>
+		<a onclick="closeHelpWindow()"><button class="btn closebutton">HO CAPITO</button></a>
+
+	</div>
+
+<script>closeHelpWindow();</script>
+</body>
+</html>
