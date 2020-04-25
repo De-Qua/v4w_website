@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# log
+*.log*
+
+# v4w useless files
+file_feedback.txt

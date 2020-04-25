@@ -1,9 +1,0 @@
-import os
-import sys
-folder = os.getcwd()
-sys.path.append(folder + '/v4w/src')
-sys.path.append(folder +'/v4w/libpy')
-import pyAny_lib
-from library_coords import civico2coord_first_result, civico2coord_find_address
-
-civico2coord_first_result

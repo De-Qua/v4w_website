@@ -30,17 +30,23 @@ G_list = list(G_un.nodes)
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
 # Logging
-logging.info("Carico i nodi")
+app.logger.info("Carico i nodi")
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-
+    app.logger.info('Prova info')
+    app.logger.error('Prova error')
+    app.logger.debug('Prova debug')
+    app.logger.warning('Prova warning')
+    app.logger.critical('Prova critical')
+    app.logger.log(10,'Prova log debug')
+    app.logger.log(20,'Prova log info')
     return render_template('index.html')
 
 @app.route('/direzione', methods=['GET', 'POST'])
 def short_path():
 
-    logging.info('grazie per aver aperto short_path')
+    app.logger.info('grazie per aver aperto short_path')
     t1=time.perf_counter()
     if request.method == 'POST':
         da = request.form['partenza']
@@ -51,7 +57,7 @@ def short_path():
         #logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
         #logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
         #logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
-        logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+        app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
         if request.form.get('meno_ponti'):
             f_ponti=True
         else:
@@ -59,11 +65,11 @@ def short_path():
 
         t2=time.perf_counter()
         strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        logging.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
-        logging.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
+        app.logger.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
+        app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
     else:
-        logging.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
+        app.logger.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
         return render_template('find_path.html')
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
@@ -75,7 +81,6 @@ def find_address():
     if request.method == 'POST':
         if form.is_submitted():
             if form.validate_on_submit():
-                logging.info("feedback inviato")
                 with open(file_feedback,'a') as f:
                     f.write('*****\n')
                     f.write(time.asctime( time.localtime(time.time()))+"\n")
@@ -87,25 +92,25 @@ def find_address():
                     f.write(form.found_string.data+'\n')
                     f.write(form.feedback.data + "\n")
                     f.write('*****\n')
-
+                app.logger.info("feedback inviato")
                 return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=1)
             else:
-                logging.info('errore nel feedback')
+                app.logger.info('errore nel feedback')
                 return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
     else:
-        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
+        app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
         if da == '':
             print('primo caricamento')
-            logging.info('grazie per aver aperto find_address')
+            app.logger.info('grazie per aver aperto find_address')
             temp= render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
-            logging.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
+            app.logger.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
             return temp
         else:
-            logging.info('DEBUG: indirizzo: {}'.format(da))
+            app.logger.debug('indirizzo: {}'.format(da))
             #a = request.form['arrivo']
             start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
             form.found_string.data = start_name
-            logging.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+            app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
             return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
 
@@ -114,14 +119,14 @@ def find_address():
 def degoogle_us_please():
 
     if request.method == 'POST':
-        logging.info('grazie per aver mandato il tuo indirizzo in find_address')
+        app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
         da = request.form['partenza']
         #a = request.form['arrivo']
         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
         return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
     else:
-        logging.info('grazie per aver aperto find_address')
+        app.logger.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
 
 
@@ -147,7 +152,9 @@ w_secret = os.getenv("WEBHOOK_SECRET_KEY")
 # webhook to sync with github
 @app.route('/update_server',methods=['POST'])
 def webhook():
+    app.logger.info("Webhook request")
     if request.method != 'POST':
+        app.logger.info("Webhook is not POST")
         return 'OK'
     else:
         abort_code = 418
@@ -198,4 +205,5 @@ def webhook():
         commit_hash = pull_info[0].commit.hexsha
         build_commit = f'build_commit = "{commit_hash}"'
         print(f'{build_commit}')
+        app.logger.info('Updated PythonAnywhere server to commit {commit}'.format(commit=commit_hash))
         return 'Updated PythonAnywhere server to commit {commit}'.format(commit=commit_hash)
