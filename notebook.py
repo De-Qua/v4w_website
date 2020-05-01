@@ -19,8 +19,8 @@ path_denominazioni_only = os.path.join(folder_db,"lista_denominazioni_csv.txt")
 path_coords_denominazioni_only = os.path.join(folder_db,"lista_coords_civici_only.txt")
 path_toponimi_only = os.path.join(folder_db,"lista_TP_csv.txt")
 path_coords_toponimi_only = os.path.join(folder_db,"lista_TP_coords_csv.txt")
-
-civici_tpn = np.loadtxt(path_civ, delimiter = ";" ,dtype='str')
+# DA RIMETTERE COMMENTS DOVE SERVE (NON ERA STATO PUSHATO?!)
+civici_tpn = np.loadtxt(path_civ, delimiter = ";" , comments=",",dtype='str')
 coords = np.loadtxt(path_coords, delimiter = ",")
 civici_only = np.loadtxt(path_civ_only, delimiter = ";" ,dtype='str')
 coords_civici_only = np.loadtxt(path_coords_civ_only, delimiter = ",")
@@ -29,10 +29,74 @@ toponimi_only = np.loadtxt(path_toponimi_only, delimiter = ";" ,dtype='str')
 coords_toponimi_only = np.loadtxt(path_coords_toponimi_only, delimiter = ",")
 
 
-# %%
-# Copia-incolla della versione originale
-from difflib import SequenceMatcher
-from heapq import nlargest as _nlargest
+
+
+    # %%
+def get_close_matches_indexes(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
+    """Use SequenceMatcher to return a list of the indexes of the best
+    "good enough" matches. word is a sequence for which close matches
+    are desired (typically a string).
+    possibilities is a list of sequences against which to match word
+    (typically a list of strings).
+    Optional arg n (default 3) is the maximum number of close matches to
+    return.  n must be > 0.
+    Optional arg cutoff (default 0.6) is a float in [0, 1].  Possibilities
+    that don't score at least that similar to word are ignored.
+    """
+    if not n >  0:
+        raise ValueError("n must be > 0: %r" % (n,))
+    if not 0.0 <= cutoff <= 1.0:
+        raise ValueError("cutoff must be in [0.0, 1.0]: %r" % (cutoff,))
+    result_ratio = []
+    result_idx = []
+    #result = []
+    # se vogliamo escludere le "junk sequence" (in questo caso lo spazio) SequenceMatcher(lambda x: x==" "),
+    if junk_seq:
+        s = SequenceMatcher(isjunk=lambda x: x==junk_seq)
+    else:
+        s = SequenceMatcher()
+    s.set_seq2(word)
+
+    for idx, x in enumerate(possibilities):
+        s.set_seq1(x)
+
+        #print(longest_word, word)
+        longest_match = s.find_longest_match(0, len(x), 0, len(word))
+        our_ratio = (longest_match.size) / len(word)
+        if our_ratio >= cutoff:
+            match = s.find_longest_match(0, len(x), 0, len(word))
+            #print(match)
+            #print (word[match.a:match.a + match.size])
+            result_ratio.append(our_ratio)
+            result_idx.append(idx)
+    #    if s.real_quick_ratio() >= cutoff and \
+    #       s.quick_ratio() >= cutoff and \
+    #       s.ratio() >= cutoff:
+    #        result_ratio.append(s.ratio())
+    #        result_idx.append(idx)
+
+    # Move the best scorers to head of list
+    max_idx = []
+    if result_ratio:
+        ratios = np.asarray(result_ratio)
+        #result = nlargest(n, result_ratio)
+        max_idx = []
+        for i in range(n):
+            arg_max_idx=np.argmax(result_ratio)
+            if result_ratio[arg_max_idx] < cutoff:
+                max_idx.append((-1, 0))
+            else:
+                max_idx.append((result_idx[arg_max_idx], result_ratio[arg_max_idx]))
+            #print(result_ratio[arg_max_idx])
+            #messo a zero cosi la prossima volta prendiamo il prossimo "massimo"
+            result_ratio[arg_max_idx] = 0
+
+    #max_idx e una lista con
+    #[(indice del match, score), (indice match, score)]
+    final_result = []
+    for i,s in max_idx:
+        final_result.append((possibilities[i],s))
+    return final_result
 
 def get_close_matches_indexes_original(word, possibilities, junk_seq=None, n=3, cutoff=0.6):
     """Use SequenceMatcher to return a list of the indexes of the best
@@ -59,91 +123,16 @@ def get_close_matches_indexes_original(word, possibilities, junk_seq=None, n=3, 
            s.quick_ratio() >= cutoff and \
            s.ratio() >= cutoff:
             name_result = possibilities[idx]
-            result.append(name_result,(s.ratio()))
+            result.append((name_result,(s.ratio())))
 
     # Move the best scorers to head of list
-    result = _nlargest(n, result)
+    result = nlargest(n, result)
 
     # Strip scores for the best n matches
     #return [x for score, x in result]
     # Modified by Ale
     return result
 
-# %%
-def get_close_matches_indexes(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
-    """Use SequenceMatcher to return a list of the indexes of the best
-    "good enough" matches. word is a sequence for which close matches
-    are desired (typically a string).
-    possibilities is a list of sequences against which to match word
-    (typically a list of strings).
-    Optional arg n (default 3) is the maximum number of close matches to
-    return.  n must be > 0.
-    Optional arg cutoff (default 0.6) is a float in [0, 1].  Possibilities
-    that don't score at least that similar to word are ignored.
-    """
-
-    if not n >  0:
-        raise ValueError("n must be > 0: %r" % (n,))
-    if not 0.0 <= cutoff <= 1.0:
-        raise ValueError("cutoff must be in [0.0, 1.0]: %r" % (cutoff,))
-    result_ratio = []
-    result_idx = []
-    #result = []
-    # se vogliamo escludere le "junk sequence" (in questo caso lo spazio) SequenceMatcher(lambda x: x==" "),
-    if junk_seq:
-        s = SequenceMatcher(isjunk=lambda x: x==junk_seq)
-    else:
-        s = SequenceMatcher()
-    s.set_seq2(word)
-
-    for idx, x in enumerate(possibilities):
-        s.set_seq1(x)
-
-        #print(longest_word, word)
-        longest_match = s.find_longest_match(0, len(x), 0, len(word))
-        words = x.split(' ')
-        longest_word = len(word)
-        for c_word in words:
-            if len(c_word) > longest_word:
-                #print(c_word)
-                longest_word = len(c_word)
-        our_ratio = (longest_match.size) / longest_word
-
-        if our_ratio >= cutoff:
-            match = s.find_longest_match(0, len(x), 0, len(word))
-            #print(match)
-            #print (word[match.a:match.a + match.size])
-            result_ratio.append(our_ratio)
-            result_idx.append(idx)
-    #    if s.real_quick_ratio() >= cutoff and \
-    #       s.quick_ratio() >= cutoff and \
-    #       s.ratio() >= cutoff:
-    #        result_ratio.append(s.ratio())
-    #        result_idx.append(idx)
-
-    # Move the best scorers to head of list
-    max_idx = []
-    if result_ratio:
-        ratios = np.asarray(result_ratio)
-
-        #result = nlargest(n, result_ratio)
-        max_idx = []
-        for i in range(n):
-            arg_max_idx=np.argmax(result_ratio)
-            if result_ratio[arg_max_idx] < cutoff:
-                max_idx.append((-1, 0))
-            else:
-                max_idx.append((result_idx[arg_max_idx], result_ratio[arg_max_idx]))
-            #print(result_ratio[arg_max_idx])
-            #messo a zero cosi la prossima volta prendiamo il prossimo "massimo"
-            result_ratio[arg_max_idx] = 0
-
-    #max_idx e una lista con
-    #[(indice del match, score), (indice match, score)]
-    final_result = []
-    for i,s in max_idx:
-        final_result.append(possibilities[i],s)
-    return final_result
 
 #%%
 def fuzzy_extract_matches(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
@@ -259,8 +248,7 @@ def calculate_points(results_tuples, desired_results, desired_results_scores):
 
         # controlliamo se abbiamo trovato
         for k in range(len(desired_results)):
-            desired_result = desired_results
-            if string_found == desired_result:
+            if string_found == desired_results[k]:
                 score_general += desired_results_scores[k]
 
         # controlla solo il primo!
@@ -281,14 +269,15 @@ def test_functions(functions_to_test):
         # loop through searches
         for i in range(len(list_of_searches)):
 
-            print("ricerca: {}".format(list_of_searches[i]))
-            challenging_search = list_of_searches[i][0]
+     #       print("ricerca: {}".format(list_of_searches[i]))
+            challenging_search = list_of_searches[i][0].upper()
             desired_results = list_of_searches[i][1]
             desired_results_scores = list_of_searches[i][2]
             category = list_of_searches[i][3]
             results_tuples = function_to_test(challenging_search, civici_tpn, n=n, cutoff=cutoff)
             score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
-            print("{met}: {pt} punti ottenuti per la ricerca di: ({search})".format(met=function_to_test, pt=score_general, search=challenging_search))
+            print("###############################################")
+            print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
             print("trovato: {}, volevamo che trovasse {}".format(results_tuples, desired_results))
             for j in range(len(categories)):
                 if (category == categories[j]):
@@ -302,6 +291,10 @@ def test_functions(functions_to_test):
     # salva un file con i risultati
     # np.savetxt("{fd}/punti_{met}.txt".format(fd=folder, met=function_to_test.tolist()))
     print("finished")
+
+
+
+
 #%%
-functions_to_test = [fuzzy_extract_matches,get_close_matches_indexes,get_close_matches_indexes_original]
+functions_to_test = [get_close_matches_indexes_original,get_close_matches_indexes,fuzzy_extract_matches]
 test_functions(functions_to_test)
