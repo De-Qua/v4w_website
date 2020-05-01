@@ -1,37 +1,19 @@
-# %% Importa librerie
-# mydifflib.py
+"""
+Solo funzioni
+"""
+import re
+import difflib
 from difflib import SequenceMatcher
-#from heapq import nlargest as _nlargest
 import numpy as np
-import os
-import time
 from heapq import nlargest
 from fuzzywuzzy import fuzz, process
-# install python-Levenshtein for speed up - problemi in locale
 
-# %% File utili
-folder = os.getcwd()
-folder_db = os.path.join(folder,"app","static","files")
-path_civ = os.path.join(folder_db,"lista_key.txt")
-path_coords = os.path.join(folder_db,"lista_coords.txt")
-path_civ_only = os.path.join(folder_db,"lista_civici_only.txt")
-path_coords_civ_only = os.path.join(folder_db,"lista_coords_civici_only.txt")
-path_denominazioni_only = os.path.join(folder_db,"lista_denominazioni_csv.txt")
-path_coords_denominazioni_only = os.path.join(folder_db,"lista_coords_civici_only.txt")
-path_toponimi_only = os.path.join(folder_db,"lista_TP_csv.txt")
-path_coords_toponimi_only = os.path.join(folder_db,"lista_TP_coords_csv.txt")
-# DA RIMETTERE COMMENTS DOVE SERVE (NON ERA STATO PUSHATO?!)
-civici_tpn = np.loadtxt(path_civ, delimiter = ";" , comments=",",dtype='str')
-coords = np.loadtxt(path_coords, delimiter = ",")
-civici_only = np.loadtxt(path_civ_only, delimiter = ";" ,dtype='str')
-coords_civici_only = np.loadtxt(path_coords_civ_only, delimiter = ",")
-denominazioni_only = np.loadtxt(path_denominazioni_only, delimiter = ";" ,dtype='str')
-toponimi_only = np.loadtxt(path_toponimi_only, delimiter = ";" ,dtype='str')
-coords_toponimi_only = np.loadtxt(path_coords_toponimi_only, delimiter = ",")
+n = 3
+cutoff = 0.5
 
-
-
-# %%
+"""
+La versione modificata di get_close_matches_indexes_original
+"""
 def get_close_matches_indexes(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
     if not n >  0:
         raise ValueError("n must be > 0: %r" % (n,))
@@ -115,8 +97,7 @@ def get_close_matches_indexes_original(word, possibilities, junk_seq=None, n=3, 
     # Modified by Ale
     return result
 
-
-#%%
+    #%%
 def fuzzy_extract_matches(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
     score_cutoff = int(cutoff*100)
     matches = process.extractBests(word,possibilities,score_cutoff=score_cutoff,limit=n)
@@ -125,9 +106,7 @@ def fuzzy_extract_matches(word, possibilities, junk_seq=None, n=3, cutoff=0.5):
         final_matches.append((m,s/100))
     return final_matches
 #%%
-import re
-import difflib
-from difflib import SequenceMatcher
+
 def correct_name(name):
     # prende la stringa in ingresso e fa delle sostituzioni
     # 0. Eliminare spazi iniziali e finali
@@ -178,36 +157,6 @@ def search_name(name,search_func,n=3,cutoff=0.6):
         list_of_possibilities = toponimi_only
     return search_func(name2search,list_of_possibilities,n=n,cutoff=cutoff)
 
-#%% TEST FUNCTION
-# per ogni ricerca abbiamo 3 risultati e diamo un punteggio in base a cosa ogni metodo trova
-#list_of_wanted_result = [[37486, 38372, 37457], []]
-
-list_of_searches = [
-    #Esempio: ('Stringa di ricerca',['Soluzione1','Soluzione2','Soluzione3'], 'categoria')
-    ('rialto', ["PONTE DE RIALTO", "SOTOPORTEGO DE RIALTO","CAMPO RIALTO NOVO"], [0.4, 0.3, 0.3], 'ambiguo'),
-    ('rilato', ["PONTE DE RIALTO", "SOTOPORTEGO DE RIALTO","CAMPO RIALTO NOVO"], [0.5, 0.4, 0.1], 'errori'),
-    ('accademia',["PONTE DE L'ACCADEMIA"], [1], 'ambiguo'),
-    ('academia',["PONTE DE L'ACCADEMIA"], [1], 'errori'),
-    ('acaedmia',["PONTE DE L'ACCADEMIA"], [1], 'errori'),
-    ('campo dell accademia',["PONTE DE L'ACCADEMIA"], [1], 'stopwords'),
-    ('fte nuove',["FONDAMENTE NOVE"],[1],'ambiguo'),
-    ('fondamente nuove',["FONDAMENTE NOVE"],[1],'ambiguo'),
-    ('fondmenta nve',["FONDAMENTE NOVE"],[1],'errori'),
-    ('santa margherita',["CAMPO SANTA MARGARITA","PONTE SANTA MARGARITA"],[0.7,0.3],'ambiguo'),
-    ('santa marghe',["CAMPO SANTA MARGARITA","PONTE SANTA MARGARITA"],[0.7,0.3],'ambiguo'),
-    ('santa mazrgherta',["CAMPO SANTA MARGARITA","PONTE SANTA MARGARITA"],[0.7,0.3],'errori'),
-    ('margherita',["CAMPO SANTA MARGARITA","PONTE SANTA MARGARITA"],[0.7,0.3],'stopwords'),
-    ('cannaregio 3782/B',["CANNAREGIO 3782/B"],[1],'ambiguo'),
-    ('canareggio 3782/B',["CANNAREGIO 3782/B"],[1],'errori'),
-    ('canareiuoa 3782/B',["CANNAREGIO 3782/B"],[1],'errori'),
-    ('santa marta',["PONTE NOVO DE SANTA MARTA","CALLE LARGA SANTA MARTA"],[0.5, 0.5],'ambiguo'),
-    ('san basilio',["CAMPO DE SAN BASEGIO","FONDAMENTA DE SAN BASEGIO","PONTE DE SAN BASEGIO", "SALIZADA SAN BASEGIO"],[0.4, 0.3, 0.2, 0.1],'ambiguo'),
-    ('gnecca 8',["GIUDECCA 8"],[1],'ambiguo'),
-    ('2054 santa marta',["DORSODURO 2054"],[1],'delirio')
-    ]
-
-categories = ['ambiguo', 'errori', 'stopwords', 'delirio']
-#%%
 """
 Ritorna due punteggi in base ai risultati migliori
 ------
@@ -238,12 +187,11 @@ def calculate_points(results_tuples, desired_results, desired_results_scores):
             score_perfect += 1
 
     return score_perfect, score_general
-#%%
-n = 3
-cutoff = 0.5
-import numpy as np
 
-def test_functions(functions_to_test):
+def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, categories, SAVETXT=False):
+
+    points_functions = []
+
     for function_to_test in functions_to_test:
 
         punti = np.zeros((len(categories),2))
@@ -256,7 +204,7 @@ def test_functions(functions_to_test):
             desired_results = list_of_searches[i][1]
             desired_results_scores = list_of_searches[i][2]
             category = list_of_searches[i][3]
-            results_tuples = function_to_test(challenging_search, civici_tpn, n=n, cutoff=cutoff)
+            results_tuples = function_to_test(challenging_search, lista_su_cui_cercare, n=n, cutoff=cutoff)
             score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
             print("###############################################")
             print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
@@ -270,13 +218,10 @@ def test_functions(functions_to_test):
         for j in range(len(categories)):
             print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
 
+        points_functions.append(punti)
     # salva un file con i risultati
-    # np.savetxt("{fd}/punti_{met}.txt".format(fd=folder, met=function_to_test.tolist()))
+    if SAVETXT:
+        np.savetxt("{fd}/punti_{met}.txt".format(fd=folder, met=function_to_test.tolist()))
+        print("saving a txt file with results")
     print("finished")
-
-
-
-
-#%%
-functions_to_test = [get_close_matches_indexes_original,get_close_matches_indexes,fuzzy_extract_matches]
-test_functions(functions_to_test)
+    return punti
