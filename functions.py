@@ -10,6 +10,8 @@ from fuzzywuzzy import fuzz, process
 
 n = 3
 cutoff = 0.5
+import os
+folder = os.getcwd() + "/log_ricerca"
 
 """
 La versione modificata di get_close_matches_indexes_original
@@ -188,15 +190,16 @@ def calculate_points(results_tuples, desired_results, desired_results_scores):
 
     return score_perfect, score_general
 
-def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, categories, SAVERESULTS=False, SAVELOG=False):
+def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, categories, saveresults=False, savelog=False):
 
     points_functions = []
 
     for function_to_test in functions_to_test:
 
+        print("testiamo ora {func}".format(func=function_to_test.__name__))
         punti = np.zeros((len(categories),2))
-        if SAVELOG:
-            file = open("{fd}/log_{met}.txt".format(fd=folder, met=function_to_test.tolist()), 'w')
+        if savelog:
+            file = open("{fd}/log_{met}.txt".format(fd=folder, met=function_to_test.__name__), 'w')
 
         # loop through searches
         for i in range(len(list_of_searches)):
@@ -208,10 +211,10 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
             category = list_of_searches[i][3]
             results_tuples = function_to_test(challenging_search, lista_su_cui_cercare, n=n, cutoff=cutoff)
             score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
-            if SAVELOG:
-                file.write("###############################################")
-                file.write("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
-                file.write("trovato: {}, volevamo che trovasse {}".format(results_tuples, desired_results))
+            if savelog:
+                file.write("###############################################\n")
+                file.write("{pt} punti ottenuti per la ricerca di: ({search})\n".format(pt=score_general, search=challenging_search))
+                file.write("trovato: {}, volevamo che trovasse {}\n".format(results_tuples, desired_results))
             else:
                 print("###############################################")
                 print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
@@ -222,18 +225,19 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
                     punti[j,1] += score_general
 
         print("Il metodo {met} riceve {x} punti".format(met=function_to_test, x=np.sum(punti)))
-        if SAVELOG:
-            file.write("Il metodo {met} riceve {x} punti".format(met=function_to_test, x=np.sum(punti)))
+        if savelog:
+            file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test, x=np.sum(punti)))
         for j in range(len(categories)):
             print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
-            if SAVELOG:
-                file.write("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
+            if savelog:
+                file.write("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale\n".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
 
         points_functions.append(punti)
-        file.close()
-    # salva un file con i risultati
-    if SAVERESULTS:
-        np.savetxt("{fd}/punti_{met}.csv".format(fd=folder, met=function_to_test.tolist()), punti)
-        print("saving a txt file with results")
+        if savelog:
+            file.close()
+        # salva un file con i risultati
+        if saveresults:
+            np.savetxt("{fd}/punti_{met}.csv".format(fd=folder, met=function_to_test.__name__), punti)
+            print("saving a csv file with results")
     print("finished")
-    return punti
+    return points_functions
