@@ -11,7 +11,7 @@ from fuzzywuzzy import fuzz, process
 n = 3
 cutoff = 0.5
 import os
-folder = os.getcwd() + "/log_ricerca"
+folder_log = os.path.join(os.getcwd(),"log_ricerca")
 
 """
 La versione modificata di get_close_matches_indexes_original
@@ -120,7 +120,11 @@ def correct_name(name):
     # Ritorna stringa corretta
     return name.upper()
 
-def search_name(name,search_func,n=3,cutoff=0.6):
+def search_name(name,possibilities,search_func,n=3,cutoff=0.6):
+    # estrae i file in cui cercare
+    civici = possibilities[0]
+    denominazioni = possibilities[1]
+    toponimi = possibilities[2]
     # in base alla formattazione del nome cerca nel database civici o toponimi
     # prima di tutto correggere il nome
     name = correct_name(name)
@@ -136,7 +140,7 @@ def search_name(name,search_func,n=3,cutoff=0.6):
         numero = is_civico.group(0)
         # formatta il numero nel format in cui è salvato nel database
         numero_cifra = re.findall(r'\d+',numero)
-        numero_lettera = re.findall(r'[a-z]',numero)
+        numero_lettera = re.findall(r'[A-z]',numero)
         numero = numero_cifra[0]
         if numero_lettera:
             numero += '/' + numero_lettera[0]
@@ -150,13 +154,13 @@ def search_name(name,search_func,n=3,cutoff=0.6):
             # concatena sestiere e numero
             name2search = sestiere_found[0] + " " + numero
             # TODO lista INDIRIZZI
-            list_of_possibilities = civici_only
+            list_of_possibilities = civici
         else:
             name2search = sestiere + " " + numero
-            list_of_possibilities = denominazioni_only
+            list_of_possibilities = denominazioni
     else:
         name2search = name
-        list_of_possibilities = toponimi_only
+        list_of_possibilities = toponimi
     return search_func(name2search,list_of_possibilities,n=n,cutoff=cutoff)
 
 """
@@ -193,13 +197,13 @@ def calculate_points(results_tuples, desired_results, desired_results_scores):
 def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, categories, saveresults=False, savelog=False):
 
     points_functions = []
-
     for function_to_test in functions_to_test:
-
         print("testiamo ora {func}".format(func=function_to_test.__name__))
         punti = np.zeros((len(categories),2))
         if savelog:
-            file = open("{fd}/log_{met}.txt".format(fd=folder, met=function_to_test.__name__), 'w')
+            if not os.path.exists(folder_log):
+                os.mkdir(folder_log)
+            file = open(os.path.join(folder_log,"log_{met}.txt".format(met=function_to_test.__name__)), 'w')
 
         # loop through searches
         for i in range(len(list_of_searches)):
@@ -224,9 +228,9 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
                     punti[j,0] += score_perfect
                     punti[j,1] += score_general
 
-        print("Il metodo {met} riceve {x} punti".format(met=function_to_test, x=np.sum(punti)))
+        print("Il metodo {met} riceve {x} punti".format(met=function_to_test.__name__, x=np.sum(punti)))
         if savelog:
-            file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test, x=np.sum(punti)))
+            file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test.__name__, x=np.sum(punti)))
         for j in range(len(categories)):
             print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
             if savelog:
@@ -237,7 +241,60 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
             file.close()
         # salva un file con i risultati
         if saveresults:
-            np.savetxt("{fd}/punti_{met}.csv".format(fd=folder, met=function_to_test.__name__), punti)
+            np.savetxt("{fd}/punti_{met}.csv".format(fd=folder_log, met=function_to_test.__name__), punti)
+            print("saving a csv file with results")
+    print("finished")
+    return points_functions
+
+def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, categories, saveresults=False, savelog=False):
+
+    points_functions = []
+    for function_to_test in functions_to_test:
+        print("testiamo ora {func}".format(func=function_to_test.__name__))
+        punti = np.zeros((len(categories),2))
+        if savelog:
+            if not os.path.exists(folder_log):
+                os.mkdir(folder_log)
+            file = open(os.path.join(folder_log,"log_search_{met}.txt".format(met=function_to_test.__name__)), 'w')
+
+        # loop through searches
+        for i in range(len(list_of_searches)):
+
+     #       print("ricerca: {}".format(list_of_searches[i]))
+            challenging_search = list_of_searches[i][0].upper()
+            desired_results = list_of_searches[i][1]
+            desired_results_scores = list_of_searches[i][2]
+            category = list_of_searches[i][3]
+            #results_tuples = function_to_test(challenging_search, lista_su_cui_cercare, n=n, cutoff=cutoff)
+            results_tuples = search_name(challenging_search,lista_su_cui_cercare,function_to_test,n=n,cutoff=cutoff)
+            score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
+            if savelog:
+                file.write("###############################################\n")
+                file.write("{pt} punti ottenuti per la ricerca di: ({search})\n".format(pt=score_general, search=challenging_search))
+                file.write("trovato: {}, volevamo che trovasse {}\n".format(results_tuples, desired_results))
+            else:
+                print("###############################################")
+                print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
+                print("trovato: {}, volevamo che trovasse {}".format(results_tuples, desired_results))
+            for j in range(len(categories)):
+                if (category == categories[j]):
+                    punti[j,0] += score_perfect
+                    punti[j,1] += score_general
+
+        print("Il metodo {met} riceve {x} punti".format(met=function_to_test.__name__, x=np.sum(punti)))
+        if savelog:
+            file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test.__name__, x=np.sum(punti)))
+        for j in range(len(categories)):
+            print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
+            if savelog:
+                file.write("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale\n".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
+
+        points_functions.append(punti)
+        if savelog:
+            file.close()
+        # salva un file con i risultati
+        if saveresults:
+            np.savetxt("{fd}/punti_{met}.csv".format(fd=folder_log, met=function_to_test.__name__), punti)
             print("saving a csv file with results")
     print("finished")
     return points_functions

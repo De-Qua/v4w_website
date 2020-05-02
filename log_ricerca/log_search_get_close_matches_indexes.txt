@@ -1,0 +1,65 @@
+###############################################
+1.0 punti ottenuti per la ricerca di: (RIALTO)
+trovato: [('SOTOPORTEGO DE RIALTO', 1.0), ('CAMPO RIALTO NOVO', 1.0), ('PONTE DE RIALTO', 1.0)], volevamo che trovasse ['PONTE DE RIALTO', 'SOTOPORTEGO DE RIALTO', 'CAMPO RIALTO NOVO']
+###############################################
+0 punti ottenuti per la ricerca di: (RILATO)
+trovato: [('CORTE DEL FILATOIO', 0.8333333333333334), ('SOTOPORTEGO DEL FILATOIO', 0.8333333333333334), ('CALLE DEL BISATO', 0.5)], volevamo che trovasse ['PONTE DE RIALTO', 'SOTOPORTEGO DE RIALTO', 'CAMPO RIALTO NOVO']
+###############################################
+0 punti ottenuti per la ricerca di: (ACCADEMIA)
+trovato: [("PONTE DE L'ACCADEMIA DEI PITTORI", 1.0), ("CALLE LONGA DE L'ACCADEMIA DEI NOBILI", 1.0), ("SOTOPORTEGO DE L'ACCADEMIA DEI NOBILI", 1.0)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+###############################################
+0 punti ottenuti per la ricerca di: (ACADEMIA)
+trovato: [("PONTE DE L'ACCADEMIA DEI PITTORI", 0.875), ("CALLE LONGA DE L'ACCADEMIA DEI NOBILI", 0.875), ("SOTOPORTEGO DE L'ACCADEMIA DEI NOBILI", 0.875)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+###############################################
+0 punti ottenuti per la ricerca di: (ACAEDMIA)
+trovato: [], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+###############################################
+0 punti ottenuti per la ricerca di: (CAMPO DELL ACCADEMIA)
+trovato: [], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+###############################################
+0 punti ottenuti per la ricerca di: (FTE NUOVE)
+trovato: [('CALLE DEL NUOVO COMMERCIO', 0.5555555555555556), ('PONTE STORTO', 0), ('PONTE STORTO', 0)], volevamo che trovasse ['FONDAMENTE NOVE']
+###############################################
+2 punti ottenuti per la ricerca di: (FONDAMENTE NUOVE)
+trovato: [('FONDAMENTE NOVE', 0.75), ('FONDAMENTE NOVE', 0.75), ('FONDAMENTA RIMPETO MOCENIGO', 0.5625)], volevamo che trovasse ['FONDAMENTE NOVE']
+###############################################
+0 punti ottenuti per la ricerca di: (FONDMENTA NVE)
+trovato: [('FONDAMENTA NARISI', 0.5384615384615384), ('FONDAMENTA NANI', 0.5384615384615384), ('PONTE STORTO', 0)], volevamo che trovasse ['FONDAMENTE NOVE']
+###############################################
+1.0 punti ottenuti per la ricerca di: (SANTA MARGHERITA)
+trovato: [('CAMPO SANTA MARGARITA', 0.625), ('PONTE SANTA MARGARITA', 0.625), ('CAMPO SANTA MARIA ZOBENIGO O DEL GIGLIO', 0.5625)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+###############################################
+1.0 punti ottenuti per la ricerca di: (SANTA MARGHE)
+trovato: [('CAMPO SANTA MARGARITA', 0.8333333333333334), ('PONTE SANTA MARGARITA', 0.8333333333333334), ('CAMPO SANTA MARIA ZOBENIGO O DEL GIGLIO', 0.75)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+###############################################
+0 punti ottenuti per la ricerca di: (SANTA MAZRGHERTA)
+trovato: [('CAMPO SANTA MARIA ZOBENIGO O DEL GIGLIO', 0.5), ('CAMPO SANTA MARIA FORMOSA', 0.5), ('FONDAMENTA SANTA MARIA FORMOSA', 0.5)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+###############################################
+0 punti ottenuti per la ricerca di: (MARGHERITA)
+trovato: [('CALLE DEI PERSEGHERI', 0.5), ('PONTE DEI CALLEGHERI', 0.5), ("CAMPIELLO DE LA REGINA D'UNGHERIA", 0.5)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+###############################################
+1 punti ottenuti per la ricerca di: (CANNAREGIO 3782/B)
+trovato: [('CANNAREGIO 3782/B', 1.0), ('CANNAREGIO 3782/A', 0.9411764705882353), ('CANNAREGIO 3782', 0.8823529411764706)], volevamo che trovasse ['CANNAREGIO 3782/B']
+###############################################
+1 punti ottenuti per la ricerca di: (CANAREGGIO 3782/B)
+trovato: [('CANNAREGIO 3782/B', 1.0), ('CANNAREGIO 3782/A', 0.9411764705882353), ('CANNAREGIO 3782', 0.8823529411764706)], volevamo che trovasse ['CANNAREGIO 3782/B']
+###############################################
+1 punti ottenuti per la ricerca di: (CANAREIUOA 3782/B)
+trovato: [('CANNAREGIO 3782/B', 1.0), ('CANNAREGIO 3782/A', 0.9411764705882353), ('CANNAREGIO 3782', 0.8823529411764706)], volevamo che trovasse ['CANNAREGIO 3782/B']
+###############################################
+1.5 punti ottenuti per la ricerca di: (SANTA MARTA)
+trovato: [('PONTE NOVO DE SANTA MARTA', 1.0), ('CALLE LARGA SANTA MARTA', 1.0), ('CALLE LARGA SANTA MARTA', 1.0)], volevamo che trovasse ['PONTE NOVO DE SANTA MARTA', 'CALLE LARGA SANTA MARTA']
+###############################################
+0.4 punti ottenuti per la ricerca di: (SAN BASILIO)
+trovato: [('RAMPA SAN BASILIO', 1.0), ('CALLE SAN BASSO', 0.6363636363636364), ('CAMPO DE SAN BASEGIO', 0.6363636363636364)], volevamo che trovasse ['CAMPO DE SAN BASEGIO', 'FONDAMENTA DE SAN BASEGIO', 'PONTE DE SAN BASEGIO', 'SALIZADA SAN BASEGIO']
+###############################################
+0 punti ottenuti per la ricerca di: (GNECCA 8)
+trovato: [('GIUDECCA 809', 1.0), ('GIUDECCA 807', 1.0), ('GIUDECCA 807/A', 1.0)], volevamo che trovasse ['GIUDECCA 8']
+###############################################
+0 punti ottenuti per la ricerca di: (2054 SANTA MARTA)
+trovato: [('SAN MARCO 2054', 1.0), ('SAN MARCO 2052/B', 0.9285714285714286), ('SAN MARCO 2059', 0.9285714285714286)], volevamo che trovasse ['DORSODURO 2054']
+Il metodo get_close_matches_indexes riceve 19.9 punti
+per la categoria ambiguo, 8.0 punti per la perfezione (solo il primo) e 7.9 punti per i matches in generale
+per la categoria errori, 2.0 punti per la perfezione (solo il primo) e 2.0 punti per i matches in generale
+per la categoria stopwords, 0.0 punti per la perfezione (solo il primo) e 0.0 punti per i matches in generale
+per la categoria delirio, 0.0 punti per la perfezione (solo il primo) e 0.0 punti per i matches in generale
