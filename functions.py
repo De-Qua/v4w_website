@@ -7,6 +7,8 @@ from difflib import SequenceMatcher
 import numpy as np
 from heapq import nlargest
 from fuzzywuzzy import fuzz, process
+import matplotlib.pyplot as plt
+import time
 
 n = 3
 cutoff = 0.5
@@ -199,7 +201,7 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
     points_functions = []
     for function_to_test in functions_to_test:
         print("testiamo ora {func}".format(func=function_to_test.__name__))
-        punti = np.zeros((len(categories),2))
+        punti = np.zeros((len(categories),3))
         if savelog:
             if not os.path.exists(folder_log):
                 os.mkdir(folder_log)
@@ -208,29 +210,39 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
         # loop through searches
         for i in range(len(list_of_searches)):
 
-     #       print("ricerca: {}".format(list_of_searches[i]))
+     #      print("ricerca: {}".format(list_of_searches[i]))
             challenging_search = list_of_searches[i][0].upper()
             desired_results = list_of_searches[i][1]
             desired_results_scores = list_of_searches[i][2]
             category = list_of_searches[i][3]
+            time_start = time.time()
             results_tuples = function_to_test(challenging_search, lista_su_cui_cercare, n=n, cutoff=cutoff)
+            time_end = time.time()
+            search_time = time_end - time_start
             score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
             if savelog:
                 file.write("###############################################\n")
                 file.write("{pt} punti ottenuti per la ricerca di: ({search})\n".format(pt=score_general, search=challenging_search))
                 file.write("trovato: {}, volevamo che trovasse {}\n".format(results_tuples, desired_results))
+                file.write("ci ha messo {sec} secondi\n".format(sec=search_time))
             else:
                 print("###############################################")
                 print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
                 print("trovato: {}, volevamo che trovasse {}".format(results_tuples, desired_results))
+                print("ci ha messo {sec} secondi".format(sec=search_time))
             for j in range(len(categories)):
                 if (category == categories[j]):
                     punti[j,0] += score_perfect
                     punti[j,1] += score_general
+            punti[0,2] += search_time
 
+        punti[0,2] /= len(list_of_searches)
+        avg_search_time = punti[0,2]
         print("Il metodo {met} riceve {x} punti".format(met=function_to_test.__name__, x=np.sum(punti)))
+        print("In media ci mette {tempo} per ogni ricerca".format(tempo=avg_search_time))
         if savelog:
             file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test.__name__, x=np.sum(punti)))
+            file.write("In media ci mette {tempo} per ogni ricerca\n".format(tempo=avg_search_time))
         for j in range(len(categories)):
             print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
             if savelog:
@@ -265,25 +277,34 @@ def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searc
             desired_results = list_of_searches[i][1]
             desired_results_scores = list_of_searches[i][2]
             category = list_of_searches[i][3]
+            time_start = time.time()
             #results_tuples = function_to_test(challenging_search, lista_su_cui_cercare, n=n, cutoff=cutoff)
             results_tuples = search_name(challenging_search,lista_su_cui_cercare,function_to_test,n=n,cutoff=cutoff)
+            time_end = time.time()
+            search_time = time_end - time_start
             score_perfect, score_general = calculate_points(results_tuples, desired_results, desired_results_scores)
             if savelog:
                 file.write("###############################################\n")
                 file.write("{pt} punti ottenuti per la ricerca di: ({search})\n".format(pt=score_general, search=challenging_search))
                 file.write("trovato: {}, volevamo che trovasse {}\n".format(results_tuples, desired_results))
+                file.write("ci ha messo {sec} secondi\n".format(sec=search_time))
             else:
                 print("###############################################")
                 print("{pt} punti ottenuti per la ricerca di: ({search})".format(pt=score_general, search=challenging_search))
                 print("trovato: {}, volevamo che trovasse {}".format(results_tuples, desired_results))
+                print("ci ha messo {sec} secondi".format(sec=search_time))
             for j in range(len(categories)):
                 if (category == categories[j]):
                     punti[j,0] += score_perfect
                     punti[j,1] += score_general
-
+            punti[0,2] += search_time
+        punti[0,2] /= len(list_of_searches)
+        avg_search_time = punti[0,2]
         print("Il metodo {met} riceve {x} punti".format(met=function_to_test.__name__, x=np.sum(punti)))
+        print("In media ci mette {tempo} per ogni ricerca".format(tempo=avg_search_time))
         if savelog:
             file.write("Il metodo {met} riceve {x} punti\n".format(met=function_to_test.__name__, x=np.sum(punti)))
+            file.write("In media ci mette {tempo} per ogni ricerca\n".format(tempo=avg_search_time))
         for j in range(len(categories)):
             print("per la categoria {c}, {p} punti per la perfezione (solo il primo) e {g} punti per i matches in generale".format(c=categories[j], p=punti[j,0], g=punti[j,1]))
             if savelog:
@@ -298,3 +319,55 @@ def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searc
             print("saving a csv file with results")
     print("finished")
     return points_functions
+
+def plot_figure(folder_with_results, categories):
+
+    if not os.path.exists(folder_with_results):
+        raise ValueError("La cartella non esiste! O qualcosa con le path e andato storto ;(. qui siamo in {cpwd}".format(os.getcwd()))
+
+    files = os.listdir(folder_with_results)
+    csv_files = [file for file in files if (file[-4:] == '.csv')]
+    if not csv_files:
+        raise ValueError("La cartella e vuota! Sicuro di aver messo quello gista? O meglio, non ci sono .csv file. \nLa cartella contiene {}".format(files))
+
+    plt.figure(figsize=(16, 16), dpi=80, facecolor='w', edgecolor='k')
+    how_many = len(csv_files)
+
+    mid_val = how_many / 2
+    x_fake = np.asarray([0, 2, 4, 6])
+    x_fake_times = np.asarray([0])
+    ax = plt.subplot(221)
+    for i in range(how_many):
+
+        cur_file_rel_path = csv_files[i]
+        cur_path = os.path.join(folder_with_results, cur_file_rel_path)
+        cur_func_res = np.loadtxt(cur_path)
+
+        ax.bar(x_fake+(0.2*(i-mid_val)), cur_func_res[:,0], width=0.2, label = cur_file_rel_path[6:-4])
+        plt.xticks(x_fake, categories)
+        plt.title("PERFETTO")
+        plt.legend()
+
+    ax = plt.subplot(222)
+    for i in range(how_many):
+
+        cur_file_rel_path = csv_files[i]
+        cur_path = os.path.join(folder_with_results, cur_file_rel_path)
+        cur_func_res = np.loadtxt(cur_path)
+        ax.bar(x_fake+(0.2*(i-mid_val)), cur_func_res[:,1], width=0.2, label = cur_file_rel_path[6:-4])
+        plt.xticks(x_fake, categories)
+        plt.title("GENERALE")
+        plt.legend()
+
+    ax = plt.subplot(223)
+    for i in range(how_many):
+
+        cur_file_rel_path = csv_files[i]
+        cur_path = os.path.join(folder_with_results, cur_file_rel_path)
+        cur_func_res = np.loadtxt(cur_path)
+        ax.bar((0.2*(i)), cur_func_res[0,2], width=0.2, label = cur_file_rel_path[6:-4])
+        plt.xticks([], [])
+        plt.xlabel("secondi")
+        plt.xlabel("tempo")
+        plt.title("TEMPO (in secondi)")
+        plt.legend()
