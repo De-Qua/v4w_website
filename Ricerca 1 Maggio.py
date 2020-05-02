@@ -1,9 +1,13 @@
 # %% codecell
+import sys, importlib
+reload(sys.modules["functions"])
+reload(sys.modules["searches"])
 import functions as func
 import searches as src
 import numpy as np
 import os
 from functools import partial, update_wrapper
+
 # %% codecell
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
@@ -35,31 +39,6 @@ punti_search = func.test_search_functions(search_functions_to_test, possibilitie
 # %% codecell
 ## NON FUNZIONANTE
 # IDEA DI PLOTTARE I GRAFICI DEI RISULTATI
-import matplotlib.pyplot as plt
-%matplotlib
-
-print(punti)
-for punti_func in punti:
-
-plt.bar([0, 1, 2, 3], punti[:,0]);
-plt.bar([0, 1, 2, 3], punti[:,1])
-
-# %%
-import re
-name = "CANNAREGIO 3782/B"
-format_civico = re.compile("(^\d+([ |/]?\w )?)|(\d+[ |/]?\w?$)")
-is_civico = format_civico.search(name)
-if is_civico:
-    # se il nome cercato rientra nel format del civico estrae il numero
-    numero = is_civico.group(0)
-    # formatta il numero nel format in cui è salvato nel database
-    numero_cifra = re.findall(r'\d+',numero)
-    numero_lettera = re.findall(r'[A-z]',numero)
-    numero = numero_cifra[0]
-    if numero_lettera:
-        numero += '/' + numero_lettera[0]
-
-
-
-numero
-numero_lettera
+# %% codecell
+folder_log = os.path.join(folder,"log_ricerca")
+func.plot_figure(folder_log, src.categories)

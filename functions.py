@@ -263,7 +263,7 @@ def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searc
     points_functions = []
     for function_to_test in functions_to_test:
         print("testiamo ora {func}".format(func=function_to_test.__name__))
-        punti = np.zeros((len(categories),2))
+        punti = np.zeros((len(categories),3))
         if savelog:
             if not os.path.exists(folder_log):
                 os.mkdir(folder_log)
@@ -315,7 +315,7 @@ def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searc
             file.close()
         # salva un file con i risultati
         if saveresults:
-            np.savetxt("{fd}/punti_{met}.csv".format(fd=folder_log, met=function_to_test.__name__), punti)
+            np.savetxt("{fd}/punti_search_{met}.csv".format(fd=folder_log, met=function_to_test.__name__), punti)
             print("saving a csv file with results")
     print("finished")
     return points_functions
@@ -323,7 +323,7 @@ def test_search_functions(functions_to_test, lista_su_cui_cercare, list_of_searc
 def plot_figure(folder_with_results, categories):
 
     if not os.path.exists(folder_with_results):
-        raise ValueError("La cartella non esiste! O qualcosa con le path e andato storto ;(. qui siamo in {cpwd}".format(os.getcwd()))
+        raise ValueError("La cartella non esiste! O qualcosa con le path e andato storto ;(. qui siamo in {cpwd}".format(cpwd=os.getcwd()))
 
     files = os.listdir(folder_with_results)
     csv_files = [file for file in files if (file[-4:] == '.csv')]
