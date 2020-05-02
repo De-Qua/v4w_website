@@ -11,7 +11,7 @@ from fuzzywuzzy import fuzz, process
 n = 3
 cutoff = 0.5
 import os
-folder = os.getcwd() + "/log_ricerca"
+folder = os.getcwd() + "/logs_ricerca"
 
 """
 La versione modificata di get_close_matches_indexes_original
@@ -241,3 +241,36 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
             print("saving a csv file with results")
     print("finished")
     return points_functions
+
+def plot_figure(folder_with_results):
+
+    files = os.listdir(folder_with_results)
+    csv_files = [file for file in files if (file[-4:] == '.csv')]
+
+    plt.figure(figsize=(16, 8), dpi=80, facecolor='w', edgecolor='k')
+    how_many = len(csv_files)
+    mid_val = how_many / 2
+    x_fake = np.asarray([0, 2, 4, 6])
+
+    ax = plt.subplot(121)
+    for i in range(how_many):
+
+        cur_file_rel_path = csv_files[i]
+        cur_path = os.path.join(folder_with_results, cur_file_rel_path)
+        cur_func_res = np.loadtxt(cur_path)
+
+        ax.bar(x_fake+(0.2*(i-mid_val)), cur_func_res[:,0], width=0.2, label = cur_file_rel_path[6:-4])
+        plt.xticks(x_fake, src.categories)
+        plt.title("PERFETTO")
+        plt.legend()
+
+    ax = plt.subplot(122)
+    for i in range(how_many):
+
+        cur_file_rel_path = csv_files[i]
+        cur_path = os.path.join(folder_with_results, cur_file_rel_path)
+        cur_func_res = np.loadtxt(cur_path)
+        ax.bar(x_fake+(0.2*(i-mid_val)), cur_func_res[:,1], width=0.2, label = cur_file_rel_path[6:-4])
+        plt.xticks(x_fake, src.categories)
+        plt.title("GENERALE")
+        plt.legend()
