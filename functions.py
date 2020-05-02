@@ -255,11 +255,17 @@ def test_functions(functions_to_test, lista_su_cui_cercare, list_of_searches, ca
 
 def plot_figure(folder_with_results, categories):
 
+    if not os.path.exists(folder_with_results):
+        raise ValueError("La cartella non esiste! O qualcosa con le path e andato storto ;(. qui siamo in {cpwd}".format(os.getcwd()))
+
     files = os.listdir(folder_with_results)
     csv_files = [file for file in files if (file[-4:] == '.csv')]
+    if not csv_files:
+        raise ValueError("La cartella e vuota! Sicuro di aver messo quello gista? O meglio, non ci sono .csv file. \nLa cartella contiene {}".format(files))
 
     plt.figure(figsize=(16, 16), dpi=80, facecolor='w', edgecolor='k')
     how_many = len(csv_files)
+
     mid_val = how_many / 2
     x_fake = np.asarray([0, 2, 4, 6])
     x_fake_times = np.asarray([0])
