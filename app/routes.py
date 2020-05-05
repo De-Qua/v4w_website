@@ -1,18 +1,14 @@
-from flask import flash, render_template, request, send_from_directory
+from flask import render_template, request, send_from_directory
 from app import app
 from app.forms import FeedbackForm
 import os
-import sys
-import logging
 import git
 import hmac
 import hashlib
-import logging
 import time
 import json
-from app.src import libpy
 from app.src.libpy import pyAny_lib
-from app.src.libpy.library_coords import civico2coord_first_result, civico2coord_find_address
+from app.src.libpy.library_coords import civico2coord_find_address
 
 # Useful paths
 folder = os.getcwd()
@@ -93,10 +89,10 @@ def find_address():
                     f.write(form.feedback.data + "\n")
                     f.write('*****\n')
                 app.logger.info("feedback inviato")
-                return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=1)
+                return render_template('map_pa.html', start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
             else:
                 app.logger.info('errore nel feedback')
-                return render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
+                return render_template('map_pa.html', start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
     else:
         app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
         if da == '':
