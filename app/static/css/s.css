@@ -129,3 +129,21 @@ body, html {height: 100%}
 .mediumText {
 	font-size: 0.95rem;
 }
+.foundspan {
+    z-index: 2;
+    margin: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: blue;
+    color: white;
+    display: inline;
+}
+#trovato {
+    z-index: 3;
+    margin: auto;
+    width: 10%;
+    padding: 0.5rem;
+    text-align: center;
+    border-radius: 0.5rem;
+    background-color: blue;
+}

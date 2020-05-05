@@ -70,6 +70,14 @@
 				</div>
 			</a>
 		</div>
+
+		<!-- LA RICERCA EFFETTUATA -->
+		<div class="leaflet-top" id="trovato" style="display: none; align: center">
+			<div class="w3-animate-left leaflet-control w3-medium">
+				<p class="foundspan" id="whatWeFound"></p>
+			</div>
+		</div>
+
 		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO -->
 		<div class="leaflet-top leaflet-right onlyMap">
 			<a onclick="showHelpWindow()">
@@ -170,13 +178,38 @@
 	</div>
 
 <script>
-  closeHelpWindow();
-	closeFeedbackWindow();
-	toggleFeedbackWindowLayout();
-	if ({{start_coordx}} > 0) {
-    marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}]).addTo(mymap);
-    mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
-	}
+    closeHelpWindow();
+    closeFeedbackWindow();
+    toggleFeedbackWindowLayout();
+
+    if ({{start_coordx}} > 0) {
+        // Options for the marker
+        var markerOptions = {
+
+           title: "Abbiamo trovato {{start_name}}",
+           clickable: true,
+           // si alza all'hover - non va :(
+           riseOnHover: true
+        }
+
+        // coordinate
+        marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
+        var test = "{{start_name}}";
+        // Popup se uno clicca sul marker
+        marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
+        // aggiungi il marker sulla mappa
+        marker_arrivo.addTo(mymap);
+        mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+
+        // mostra la ricerca
+        //var marker = new L.marker([{{start_coordx}}, {{start_coordy}}], { opacity: 0.01 }); //opacity may be set to zero
+        //marker.bindTooltip("Abbiamo trovato {{start_name}}", {permanent: true, className: "my-label", offset: [0, 10] });
+        //marker.addTo(mymap);
+        //L.rectangle([[48.84, 2.34], [48.86, 2.36]]).bindTooltip("Trovato: {{start_name}}").addTo(map);
+        //document.getElementById("searchbar").style.display="none";
+        //document.getElementById("trovato").style.display="inline";
+        //document.getElementById("whatWeFound").innerHTML="{{start_name}}";
+    }
 </script>
 
 </body>
