@@ -74,4 +74,14 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
         print("lunghezza (in metri, contando 100 metri per ponte: ", length_path)
     except NetworkXNoPath:
         print("Non esiste un percorso tra i due nodi")
+        x_tot = []
+        length_path = 0
     return json.dumps(x_tot), length_path
+
+def save_graph_pickle(shp_file,pickle_name):
+    G = nt.read_shp(shp_file)
+    G_un = G.to_undirected()
+
+    with open(pickle_name, 'wb') as file:
+        pickle.dump(G_un, file)
+    return

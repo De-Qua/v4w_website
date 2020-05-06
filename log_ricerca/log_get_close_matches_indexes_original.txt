@@ -1,64 +1,85 @@
 ###############################################
 0 punti ottenuti per la ricerca di: (RIALTO)
 trovato: [('VIALE TRENTO', 0.5555555555555556), ('RIVETA', 0.5), ('RIVA DEL FERRO', 0.5)], volevamo che trovasse ['PONTE DE RIALTO', 'SOTOPORTEGO DE RIALTO', 'CAMPO RIALTO NOVO']
+ci ha messo 0.42303991317749023 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (RILATO)
 trovato: [('RIVETA', 0.5), ('RIELO', 0.7272727272727273), ('RIELO', 0.7272727272727273)], volevamo che trovasse ['PONTE DE RIALTO', 'SOTOPORTEGO DE RIALTO', 'CAMPO RIALTO NOVO']
+ci ha messo 0.2339000701904297 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (ACCADEMIA)
 trovato: [('SACCA DE LA TOLETTA', 0.5), ('RAMO CARMINATI', 0.5217391304347826), ('RAMO CARMINATI', 0.5217391304347826)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+ci ha messo 0.32290101051330566 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (ACADEMIA)
 trovato: [('SPADARIA', 0.5), ('SALIZADA SAN GEREMIA', 0.5), ('RAMO DELFINA', 0.5)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+ci ha messo 0.3005409240722656 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (ACAEDMIA)
 trovato: [('SPADARIA', 0.5), ('RAMO CARMINATI', 0.5454545454545454), ('RAMO CARMINATI', 0.5454545454545454)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+ci ha messo 0.29750895500183105 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (CAMPO DELL ACCADEMIA)
 trovato: [('SOTOPORTEGO DEL PARADISO', 0.5), ('SOTOPORTEGO DEL PARADISO', 0.5), ('SOTOPORTEGO DEL CAMERALE', 0.5)], volevamo che trovasse ["PONTE DE L'ACCADEMIA"]
+ci ha messo 0.4477088451385498 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (FTE NUOVE)
 trovato: [('STRADA NOVA', 0.5), ('RAMO CORTE NOVA', 0.5), ('PONTE NOVO', 0.631578947368421)], volevamo che trovasse ['FONDAMENTE NOVE']
+ci ha messo 0.23944568634033203 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (FONDAMENTE NUOVE)
 trovato: [("RAMO FONDAMENTA DE L'AGNELLA", 0.5909090909090909), ('RAMO DE LE CASE NOVE', 0.5), ('RAMO CORTE NOVA', 0.5161290322580645)], volevamo che trovasse ['FONDAMENTE NOVE']
+ci ha messo 0.3218197822570801 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (FONDMENTA NVE)
 trovato: [("RAMO FONDAMENTA DE L'AGNELLA", 0.5365853658536586), ('RAMO DE LA NAVE', 0.5), ('RAMO DE LA FONDAMENTA', 0.5294117647058824)], volevamo che trovasse ['FONDAMENTE NOVE']
+ci ha messo 0.3122899532318115 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (SANTA MARGHERITA)
 trovato: [('SPADARIA', 0.5), ('SECO MARINA', 0.5185185185185185), ('SANTA CROCE 999', 0.5161290322580645)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+ci ha messo 0.929541826248169 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (SANTA MARGHE)
 trovato: [('SANTA CROCE 999', 0.5925925925925926), ('SANTA CROCE 997', 0.5925925925925926), ('SANTA CROCE 996', 0.5925925925925926)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+ci ha messo 0.8821361064910889 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (SANTA MAZRGHERTA)
 trovato: [('SANTA CROCE 999', 0.5161290322580645), ('SANTA CROCE 997', 0.5161290322580645), ('SANTA CROCE 996', 0.5161290322580645)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+ci ha messo 0.5207211971282959 secondi
 ###############################################
 0.3 punti ottenuti per la ricerca di: (MARGHERITA)
 trovato: [('RIVETA', 0.5), ('PONTE SANTA MARGARITA', 0.5161290322580645), ('NARANZERIA', 0.6)], volevamo che trovasse ['CAMPO SANTA MARGARITA', 'PONTE SANTA MARGARITA']
+ci ha messo 0.3059220314025879 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (CANNAREGIO 3782/B)
 trovato: [('SANTA CROCE 398', 0.5), ('SANTA CROCE 397/A', 0.5294117647058824), ('SANTA CROCE 397', 0.5)], volevamo che trovasse ['CANNAREGIO 3782/B']
+ci ha messo 1.149202823638916 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (CANAREGGIO 3782/B)
 trovato: [('SANTA CROCE 398', 0.5), ('SANTA CROCE 397/A', 0.5294117647058824), ('SANTA CROCE 397', 0.5)], volevamo che trovasse ['CANNAREGIO 3782/B']
+ci ha messo 1.1646432876586914 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (CANAREIUOA 3782/B)
 trovato: [('SANTA CROCE 379', 0.5), ('SANTA CROCE 378', 0.5625), ('SANTA CROCE 377', 0.5)], volevamo che trovasse ['CANNAREGIO 3782/B']
+ci ha messo 1.3177249431610107 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (SANTA MARTA)
 trovato: [('SPADARIA', 0.5263157894736842), ('SECO MARINA', 0.5454545454545454), ('SANTA CROCE 999', 0.5384615384615384)], volevamo che trovasse ['PONTE NOVO DE SANTA MARTA', 'CALLE LARGA SANTA MARTA']
+ci ha messo 0.5533750057220459 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (SAN BASILIO)
 trovato: [('VIA GARIBALDI', 0.5), ('SAN POLO', 0.5263157894736842), ('SAN MARCO 999', 0.5)], volevamo che trovasse ['CAMPO DE SAN BASEGIO', 'FONDAMENTA DE SAN BASEGIO', 'PONTE DE SAN BASEGIO', 'SALIZADA SAN BASEGIO']
+ci ha messo 0.4498019218444824 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (GNECCA 8)
 trovato: [('GIUDECCA 99', 0.631578947368421), ('GIUDECCA 98', 0.7368421052631579), ('GIUDECCA 977', 0.6)], volevamo che trovasse ['GIUDECCA 8']
+ci ha messo 0.598273754119873 secondi
 ###############################################
 0 punti ottenuti per la ricerca di: (2054 SANTA MARTA)
 trovato: [('SANTA CROCE 89/A', 0.5), ('SANTA CROCE 88/A', 0.5), ('SANTA CROCE 86/A', 0.5)], volevamo che trovasse ['DORSODURO 2054']
-Il metodo get_close_matches_indexes_original riceve 0.3 punti
+ci ha messo 0.6276459693908691 secondi
+Il metodo get_close_matches_indexes_original riceve 0.8699072003364563 punti
+In media ci mette 0.5699072003364563 per ogni ricerca
 per la categoria ambiguo, 0.0 punti per la perfezione (solo il primo) e 0.0 punti per i matches in generale
 per la categoria errori, 0.0 punti per la perfezione (solo il primo) e 0.0 punti per i matches in generale
 per la categoria stopwords, 0.0 punti per la perfezione (solo il primo) e 0.3 punti per i matches in generale
