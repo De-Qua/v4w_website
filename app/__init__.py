@@ -4,11 +4,15 @@ import sys
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
+db = SQLAlchemy(app)
+migrate = Migrate(app=app,db=db)
 
-from app import routes, errors
+from app import routes, errors, models
 
 if not os.path.exists('logs'):
     os.mkdir('logs')

@@ -1,5 +1,13 @@
-from app import app
+from app import app, db
+from app.models import Location,Street,Neighborhood,Poi
 
+@app.shell_context_processor
+def make_shell_context():
+    return {"db": db,
+    "Location": Location,
+    "Street": Street,
+    "Neighborhood": Neighborhood,
+    "Poi": Poi}
 # from flask import Flask, render_template, request, send_from_directory
 # import os
 # import sys
