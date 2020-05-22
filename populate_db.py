@@ -145,7 +145,7 @@ TP_nome = np.asarray(TP_streets["TP_STR_NOM"])
 TP_geom = TP_streets["geometry"]
 TP_geom[1].centroid
 
-for n,poli in zip(nome, TP_geom):
+for n,poli in zip(TP_nome, TP_geom):
     matches=Street.query.filter_by(name=n).all()
     for m in matches:
         if m.neighborhood.shape.contains(poli.centroid).values[0]:
@@ -153,6 +153,9 @@ for n,poli in zip(nome, TP_geom):
 
 db.session.commit()
 
+noshape = Street.query.filter(Street.shape==None).all()
+len(noshape)
+print("Strade senza shape: {noshp}".format(noshp=len(noshape)), *noshape, sep="\n")
 #%% Un po' di print e info
 print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     ses=len(Neighborhood.query.all()),
