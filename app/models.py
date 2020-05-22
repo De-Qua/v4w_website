@@ -1,30 +1,15 @@
 from app import db
 from datetime import datetime
-from wtforms.validators import DataRequired
 
 class Location(db.Model):
     id = db.Column(db.Integer,primary_key=True)
-    latitude = db.Column(db.Float,index=True,validators=[DataRequired()])
-    longitude = db.Column(db.Float,index=True,validators=[DataRequired()])
+    latitude = db.Column(db.Float,index=True,nullable=False)
+    longitude = db.Column(db.Float,index=True,nullable=False)
     street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
     housenumber = db.Column(db.String(8),index=True)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
     def __repr__(self):
         return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhood)
-
-"""
-Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
-che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
-Esempio: Santa Marta, Baia del Re
-"""
-class Area(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(64), index=True, validators=[DataRequired()])
-    shape = db.Column(db.PickleType)
-    streets = db.relationship("Street",secondary=area_streets,
-        lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
-    def __repr__(self):
-        return "{name} ({neighborhoods}) {streets}".format(name=self.name,neighborhoods=self.neighborhood,streets=self.street)
 
 """
 Tabella per collegamento molti-a-molti Area-Street
@@ -33,6 +18,20 @@ area_streets = db.Table("area_streets",
     db.Column("area_id", db.Integer, db.ForeignKey("area.id"),primary_key=True),
     db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True)
     )
+
+"""
+Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
+che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
+Esempio: Santa Marta, Baia del Re
+"""
+class Area(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    name = db.Column(db.String(64), index=True, nullable=False)
+    shape = db.Column(db.PickleType)
+    streets = db.relationship("Street",secondary=area_streets,
+        lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
+    def __repr__(self):
+        return "{name} ({neighborhoods}) {streets}".format(name=self.name,neighborhoods=self.neighborhood,streets=self.street)
 """
 Strade intere (senza numeri)
 Hanno:
@@ -61,7 +60,7 @@ Sestieri:
 class Neighborhood(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(16),index=True)
-    zipcode = db.Column(db.Integer,validators=[DataRequired()])
+    zipcode = db.Column(db.Integer,nullable=False)
     streets = db.relationship("Street",backref="neighborhood",lazy="dynamic")
     def __repr__(self):
         return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)

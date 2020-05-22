@@ -38,7 +38,11 @@ list_sest_cap = [
    ("SAN MARCO",30124),
    ("SAN POLO",30125),
    ("SANTA CROCE",30135),
-   ("GIUDECCA",30133)
+   ("GIUDECCA",30133),
+   ("SANT'ELENA", 30122),
+   ("LIDO", 00000),
+   ("MURANO", 00000),
+   ("BURANO", 00000)
     ]
 for s,c in list_sest_cap:
     # aggiungi se non è già presente
@@ -52,6 +56,7 @@ print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     civ=len(Location.query.all()),
     file=len(civici_address)
     ))
+
 #%% Aggiungi civici e strade
 wrong_entries = []
 for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
