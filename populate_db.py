@@ -1,12 +1,16 @@
 #%% Imports
+import os,sys
+
 from app import app, db
-import os
+
 import pandas as pd
 from importlib import reload
-from app.models import Neighborhood, Street, Location
 
+from app.models import Neighborhood, Street, Location, Area
 import numpy as np
 import re
+import geopandas as gpd
+
 #%% Files
 # TODO leggere civico.shp invece che txt
 folder = os.getcwd()
@@ -29,27 +33,61 @@ file_civici_coords = "lista_coords_civici_only.txt"
 civici_address = np.loadtxt(os.path.join(folder_file,file_civici), delimiter = ";" , comments=",",dtype='str')
 civici_denominazioni = np.loadtxt(os.path.join(folder_file,file_civici_denominazioni), delimiter = ";" , comments=",",dtype='str')
 civici_coords = np.loadtxt(os.path.join(folder_file,file_civici_coords), delimiter = "," , dtype='float')
+#%%
+####### estrarre i poligoni dai sestieri per caricarli nel database
+sestieri =  gpd.read_file(os.path.join(folder_file,"Localita","Località.shp"))
+sestieri = sestieri.to_crs(epsg=4326)
+nomi_sestieri=sestieri['A_SCOM_NOM'].to_list()
 
+#%%
+match_dorsoduro = [i for i,x in enumerate(nomi_sestieri) if 'Dorsoduro'in x]
+match_sanpolo = [i for i,x in enumerate(nomi_sestieri) if 'San Polo'in x]
+match_san_marco = [i for i,x in enumerate(nomi_sestieri) if 'San Marco'in x]
+match_cannaregio = [i for i,x in enumerate(nomi_sestieri) if 'Cannaregio'in x]
+match_santacroce  = [i for i,x in enumerate(nomi_sestieri) if 'Santa Croce'in x]
+match_castello = [i for i,x in enumerate(nomi_sestieri) if 'Castello'in x]
+match_giudecca = [i for i,x in enumerate(nomi_sestieri) if 'Giudecca'in x]
+match_murano = [i for i,x in enumerate(nomi_sestieri) if 'Murano'in x]
+match_burano = [i for i,x in enumerate(nomi_sestieri) if 'Burano'in x]
+match_santelena = [i for i,x in enumerate(nomi_sestieri) if "Sant'Elena"in x]
+match_sacca = [i for i,x in enumerate(nomi_sestieri) if "Sacca Fisola"in x]
+match_lido = [i for i,x in enumerate(nomi_sestieri) if "Lido"in x]
+match_alberoni = [i for i,x in enumerate(nomi_sestieri) if "Alberoni"in x]
+match_malamocco = [i for i,x in enumerate(nomi_sestieri) if "Malamocco"in x]
+match_tronchetto= [i for i,x in enumerate(nomi_sestieri) if "Tronchetto"in x]
+match_sangiorgio= [i for i,x in enumerate(nomi_sestieri) if "San Giorgio"in x]
+match_saccabiagio= [i for i,x in enumerate(nomi_sestieri) if "Sacca San Biagio"in x]
 #%% Aggiungi sestieri
 list_sest_cap = [
-   ("CANNAREGIO",30121),
-   ("CASTELLO",30122),
-   ("DORSODURO",30123),
-   ("SAN MARCO",30124),
-   ("SAN POLO",30125),
-   ("SANTA CROCE",30135),
-   ("GIUDECCA",30133),
-   ("SANT'ELENA", 30122),
-   ("LIDO", 00000),
-   ("MURANO", 00000),
-   ("BURANO", 00000)
-    ]
-for s,c in list_sest_cap:
+   ("CANNAREGIO",30121,match_cannaregio),
+   ("CASTELLO",30122,match_castello),
+   ("DORSODURO",30123,match_dorsoduro),
+   ("SAN MARCO",30124,match_san_marco),
+   ("SAN POLO",30125,match_sanpolo),
+   ("SANTA CROCE",30135,match_santacroce),
+   ("GIUDECCA",30133,match_giudecca),
+   ("SACCA SAN BIAGIO",30133,match_saccabiagio),
+   ("SAN GIORGIO",30124,match_sangiorgio),
+   ("TRONCHETTO",30135,match_tronchetto),
+   ("MALAMOCCO",30126,match_malamocco),
+   ("ALBERONI",30126,match_alberoni),
+   ("LIDO",30126,match_lido),
+   ("SACCA FISOLA",30133,match_sacca),
+   ("SANT'ELENA",30122,match_santelena),
+   ("BURANO",30012,match_burano),
+   ("MURANO",30141,match_murano)
+   ]
+for s,c,idx in list_sest_cap:
     # aggiungi se non è già presente
-    if not Neighborhood.query.filter_by(name=s,zipcode=c).first():
-        n = Neighborhood(name=s,zipcode=c)
+    neig = Neighborhood.query.filter_by(name=s,zipcode=c).first()
+    if not neig:
+        n = Neighborhood(name=s,zipcode=c, shape=sestieri["geometry"][idx])
         db.session.add(n)
         db.session.commit()
+    elif neig.shape.empty:
+        neig.shape=sestieri["geometry"][idx]
+        db.session.commit()
+
 print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     ses=len(Neighborhood.query.all()),
     str=len(Street.query.all()),
@@ -59,6 +97,7 @@ print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
 
 #%% Aggiungi civici e strade
 wrong_entries = []
+err = [0,0,0]
 for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
     long,lat = coord
     num_found_add = re.search("\d+(/[A-Z])?",add)
@@ -66,10 +105,12 @@ for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
     if not num_found_add or not num_found_den:
         # il civico non ha il numero: passa al successivo
         wrong_entries.append((1,add,den,coord))
+        err[0] += 1
         continue
     if num_found_add.group(0) != num_found_den.group(0):
         # civico e denominazione hanno numeri diversi: passa al successivo
         wrong_entries.append((2,add,den,coord))
+        err[1] += 1
         continue
     num = num_found_add.group(0)
     sest = add[:-len(num)-1]
@@ -78,6 +119,7 @@ for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
     if not n:
         # il sestiere non esite: passa al successivo
         wrong_entries.append((3,add,den,coord))
+        err[2] += 1
         continue
     if not Street.query.filter_by(name=str,neighborhood=n).first():
         # la strada in quel sestiere non esiste: la aggiungo al db
@@ -88,7 +130,29 @@ for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
         db.session.add(Location(latitude=lat,longitude=long,street=s,housenumber=num))
 
 db.session.commit()
-print("Indirizzi non inseriti: {wr}".format(wr=len(wrong_entries)), *wrong_entries, sep="\n")
+print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+    ses=len(Neighborhood.query.all()),
+    str=len(Street.query.all()),
+    civ=len(Location.query.all()),
+    file=len(civici_address)
+    ))
+print("Indirizzi non inseriti: {wr}\nNumero mancante: {noNum}\nNumero diverso: {divNum}\nSestiere non esiste: {noSes}".format(wr=len(wrong_entries),noNum=err[0],divNum=err[1],noSes=err[2]), *wrong_entries, sep="\n")
+#%%
+####### estrarre i poligoni delle strade per caricarli nel database
+TP_streets =  gpd.read_file(os.path.join(folder_file,"TP_STR.shp"))
+TP_streets = TP_streets.to_crs(epsg=4326)
+TP_nome = np.asarray(TP_streets["TP_STR_NOM"])
+TP_geom = TP_streets["geometry"]
+TP_geom[1].centroid
+
+for n,poli in zip(nome, TP_geom):
+    matches=Street.query.filter_by(name=n).all()
+    for m in matches:
+        if m.neighborhood.shape.contains(poli.centroid).values[0]:
+            m.shape=poli
+
+db.session.commit()
+
 #%% Un po' di print e info
 print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     ses=len(Neighborhood.query.all()),
@@ -142,6 +206,32 @@ a = r[2].locations.all()
 wrong = r[4].locations.first()
 [wrong.latitude, wrong.longitude]
 
+#%%### Poi
+poi_path = os.path.join(folder,"app","static","files","lista_poi.txt")
+path_poi_types = os.path.join(folder,"app","static","files","poi_types.csv")
+poi_types = np.loadtxt(path_poi_types,delimiter = ",",dtype='str',skiprows=1)
+pois = np.loadtxt(poi_path,delimiter = "|",dtype='str',skiprows=1)
+
+"""
+TAGS
+name
+amenity
+shop
+wheelchair
+cuisine
+toilets::wheelchair
+tourism
+alt_name
+building
+opening_hours
+wikipedia
+atm
+outdoor_seating
+diet::vegetarian
+phone
+denomination
+sport
+"""
 #%% Get poi_types
 import geopy.distance
 file_poi_types = os.path.join(folder,"app","static","files","poi_types.csv")
