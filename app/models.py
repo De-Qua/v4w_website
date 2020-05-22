@@ -11,6 +11,15 @@ flask db upgrade
 from app import db
 from datetime import datetime
 
+# # TODO: FUTUREWARNING
+# .format is deprecated
+# dovremmo cambiare a
+#return _prepare_from_string(" ".join(pjargs))
+#
+# /opt/anaconda3/lib/python3.7/site-packages/pyproj/crs/crs.py:55: FutureWarning: '+init=<authority>:<code>' syntax is deprecated. '<authority>:<code>' is the preferred initialization method. When making the change, be mindful of axis order changes:
+# https://pyproj4.github.io/pyproj/stable/gotchas.html#axis-order-changes-in-proj-6
+# return _prepare_from_string(" ".join(pjargs))
+
 class Location(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     latitude = db.Column(db.Float,index=True,nullable=False)
@@ -19,6 +28,7 @@ class Location(db.Model):
     housenumber = db.Column(db.String(8),index=True)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
     def __repr__(self):
+
         return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhood)
 
 """
@@ -59,7 +69,7 @@ class Street(db.Model):
     shape = db.Column(db.PickleType) # db.Column(db.String(512)) #opzione 2 con una stringa json
     locations = db.relationship("Location",backref="street",lazy="dynamic")
     def __repr__(self):
-        return "{name} ({neighborhood})".format(name=self.name,neighborhood=self.neighborhood)
+        return self.name #return "{name} ({neighborhood})".format(name=self.name,neighborhood=self.neighborhood)
 
 """
 Sestieri:
@@ -74,7 +84,7 @@ class Neighborhood(db.Model):
     streets = db.relationship("Street",backref="neighborhood",lazy="dynamic")
     shape = db.Column(db.PickleType)
     def __repr__(self):
-        return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
+        return self.name #return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
 
 poi_types =  db.Table("poi_types",
     db.Column("poi_id",db.Integer,db.ForeignKey("poi.id"),primary_key=True),
