@@ -1,3 +1,13 @@
+"""
+Ogni volta che si cambia qualcosa da terminale
+flask db migrate
+flask db upgrade
+
+Se dà errori provare
+flask db stamp head
+flask db migrate
+flask db upgrade
+"""
 from app import db
 from datetime import datetime
 
@@ -62,6 +72,7 @@ class Neighborhood(db.Model):
     name = db.Column(db.String(16),index=True)
     zipcode = db.Column(db.Integer,nullable=False)
     streets = db.relationship("Street",backref="neighborhood",lazy="dynamic")
+    shape = db.Column(db.PickleType)
     def __repr__(self):
         return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
 
