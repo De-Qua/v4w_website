@@ -158,7 +158,7 @@ def find_address(text):
 
     # se non abbiamo trovato nulla, pazienza
     if not found_the_treasure:
-        return found_the_treasure, ""
+        return found_the_treasure, "", -1
 
     # se no, ritorniamo
     # address_type e attempt alla fine, quindi 0: sestiere, 1: strada, 2: poi
