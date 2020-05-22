@@ -8,6 +8,7 @@ from app.models import Neighborhood, Street, Location
 import numpy as np
 import re
 #%% Files
+# TODO leggere civico.shp invece che txt
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
 
@@ -45,21 +46,33 @@ for s,c in list_sest_cap:
         n = Neighborhood(name=s,zipcode=c)
         db.session.add(n)
         db.session.commit()
-
+print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+    ses=len(Neighborhood.query.all()),
+    str=len(Street.query.all()),
+    civ=len(Location.query.all()),
+    file=len(civici_address)
+    ))
 #%% Aggiungi civici e strade
-
+wrong_entries = []
 for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
     long,lat = coord
-    num_found = re.search("\d+(/[A-Z])?",add)
-    if not num_found:
+    num_found_add = re.search("\d+(/[A-Z])?",add)
+    num_found_den = re.search("\d+(/[A-Z])?",den)
+    if not num_found_add or not num_found_den:
         # il civico non ha il numero: passa al successivo
+        wrong_entries.append((1,add,den,coord))
         continue
-    num = num_found.group(0)
+    if num_found_add.group(0) != num_found_den.group(0):
+        # civico e denominazione hanno numeri diversi: passa al successivo
+        wrong_entries.append((2,add,den,coord))
+        continue
+    num = num_found_add.group(0)
     sest = add[:-len(num)-1]
     str = den[:-len(num)-1]
     n = Neighborhood.query.filter_by(name=sest).first()
     if not n:
         # il sestiere non esite: passa al successivo
+        wrong_entries.append((3,add,den,coord))
         continue
     if not Street.query.filter_by(name=str,neighborhood=n).first():
         # la strada in quel sestiere non esiste: la aggiungo al db
@@ -70,6 +83,7 @@ for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
         db.session.add(Location(latitude=lat,longitude=long,street=s,housenumber=num))
 
 db.session.commit()
+print("Indirizzi non inseriti: {wr}".format(wr=len(wrong_entries)), *wrong_entries, sep="\n")
 #%% Un po' di print e info
 print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     ses=len(Neighborhood.query.all()),
@@ -116,6 +130,28 @@ print("Tutte i civici vicini al numero 1 di San Polo:",
 
 print("Tutte le strade che contengono il nome Rialto:",
     *Street.query.filter(Street.name.contains("RIALTO")).all(), sep="\n")
+print("Tutte le strade che contengono il nome Forno:",
+    *Street.query.filter(Street.name.contains("CALLE DEL FORNO")).all(), sep="\n")
+r = Street.query.filter(Street.name.contains("RIALTO")).all()
+a = r[2].locations.all()
+wrong = r[4].locations.first()
+[wrong.latitude, wrong.longitude]
+
 #%% Get poi_types
+import geopy.distance
 file_poi_types = os.path.join(folder,"app","static","files","poi_types.csv")
 poi_types = np.loadtxt(file_poi_types,delimiter = ",",dtype='str',skiprows=1)
+zucca = [45.4408383, 12.3285187]
+closest = []
+distance = 100000
+
+for loc in Location.query.filter(db.and_(db.between(Location.longitude,zucca[1]-0.0003,zucca[1]+0.0003),
+        db.between(Location.latitude,zucca[0]-0.0003,zucca[0]+0.0003)
+        )).all():
+    dist = geopy.distance.distance((loc.latitude, loc.longitude),(zucca[0],zucca[1])).meters
+    if dist < distance:
+        distance = dist
+        closest = loc
+print("{} , {}".format(distance,closest))
+loc_zucca = Location.query.filter_by(housenumber=1762).join(Street).join(Neighborhood).filter_by(name="SANTA CROCE").first()
+print("{}".format(geopy.distance.distance((closest.latitude, closest.longitude),(loc_zucca.latitude,loc_zucca.longitude)).meters))
