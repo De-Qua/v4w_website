@@ -126,7 +126,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
 
     else:
         coords = [-1, -1]
-        geo_type = point
+        geo_type = -1
         polygon_shape = None
 
     return geo_type, coords, polygon_shape
