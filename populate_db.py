@@ -3,6 +3,7 @@ import os,sys
 
 from app import app, db
 
+
 import pandas as pd
 from importlib import reload
 from app.models import *
@@ -398,3 +399,36 @@ for row in poi_pd.values:
     db.session.add(p)
 print("Numero di POI: {poi}\nErrori: {err}".format(poi=len(Poi.query.all()),err=len(err_poi)))
 db.session.commit()
+
+#%%
+# CHECK DELLE SHAPES
+#%%
+# CHECK SESTIERI
+from app.models import Neighborhood, Street, Location, Area, Poi
+hoods = Neighborhood.query.all()
+hoods_with_empty_shapes = [hood for hood in hoods if not hood.shape]
+hoods_with_shapes = [hood for hood in hoods if hood.shape]
+hoods_with_polygon = [hood for hood in hoods_with_shapes if hood.shape.geom_type == "Polygon"]
+print("{} sestieri vuoti: \n{}".format(len(hoods_with_empty_shapes), hoods_with_empty_shapes))
+print("{} sestieri con poligoni: \n{}".format(len(hoods_with_polygon), hoods_with_polygon))
+#%%
+# CHECK STRADE
+streets_list = Street.query.all()
+streets_with_empty_shapes = [street for street in streets_list if not street.shape]
+streets_with_shapes = [street for street in streets_list if street.shape]
+streets_with_polygon = [street for street in streets_with_shapes if street.shape.geom_type == "Polygon"]
+print("{} strade vuote su {}: \n{}".format(len(streets_with_empty_shapes), len(streets_list), streets_with_empty_shapes))
+print("{} strade con poligoni su {}: \n{}".format(len(streets_with_polygon), len(streets_list), streets_with_polygon))
+other_streets = [street for street in streets_with_shapes if street.shape and not street.shape.geom_type == "Polygon"]
+print("{} strade con altre cose su {}: \n{}".format(len(other_streets), len(streets_list), other_streets))
+print("{}".format([street.shape.geom_type for street in other_streets]))
+#%%
+# CHECK POI
+poi_list = Poi.query.all()
+pois_with_empty_shapes = [cur_poi for cur_poi in poi_list if not cur_poi.shape]
+pois_with_shapes = [cur_poi for cur_poi in poi_list if cur_poi.shape]
+pois_with_polygon = [cur_poi for cur_poi in pois_with_shapes if cur_poi.shape.geom_type == "Polygon"]
+print("{} strade vuote su {}: \n{}".format(len(pois_with_empty_shapes), len(streets_list), pois_with_empty_shapes))
+print("{} strade con poligoni su {}: \n{}".format(len(pois_with_polygon), len(streets_list), pois_with_polygon))
+other_pois = [cur_poi for cur_poi in pois_with_shapes if cur_poi.shape and not cur_poi.shape.geom_type == "Polygon"]
+print("{} strade con altre cose su {}: \n{}".format(len(other_pois), len(streets_list), other_pois))
