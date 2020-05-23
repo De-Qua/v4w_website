@@ -70,6 +70,8 @@ def short_path():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
+    # usiamo questo per dirgli cosa disegnare!
+    geo_type = -2
     da = request.args.get('partenza', default='', type=str)
     form = FeedbackForm()
     form.searched_string.data = da
@@ -89,16 +91,16 @@ def find_address():
                     f.write(form.feedback.data + "\n")
                     f.write('*****\n')
                 app.logger.info("feedback inviato")
-                return render_template('map_pa.html', start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
+                return render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
             else:
                 app.logger.info('errore nel feedback')
-                return render_template('map_pa.html', start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
+                return render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
     else:
         app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
         if da == '':
             print('primo caricamento')
             app.logger.info('grazie per aver aperto find_address')
-            temp= render_template('map_pa.html', start_coordx=-1, form=form, feedbacksent=0)
+            temp= render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, form=form, feedbacksent=0)
             app.logger.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
             return temp
         else:
@@ -114,7 +116,9 @@ def find_address():
             form.found_string.data = start_name
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-            return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
+            return render_template('map_pa.html', geo_type=geo_type, polygon_shape=polygon_shape, searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
+
+            #return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
 
 
 @app.route('/degoogling', methods=['GET', 'POST'])

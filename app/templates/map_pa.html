@@ -123,7 +123,7 @@
 		</p>
 
 	</div>
-	<div class="feedbackwindowpopup" id="feedbackwindow">
+	<div class="feedbackwindowpopup" id="feedbackwindow" style="display: none">
 		<a onclick="changeFeedbackandClose()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
 		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
 		<div id="formid">
@@ -182,34 +182,52 @@
     closeFeedbackWindow();
     toggleFeedbackWindowLayout();
 
-    if ({{start_coordx}} > 0) {
-        // Options for the marker
-        var markerOptions = {
+		// OLD VERSION WITH start_coords - 1
+		//#if ({{start_coordx}} > 0)
+		// NEW VERSION with geo_type
+		// geo_type == -1 --> trovato nulla, pazienza
+		// geo_type == 0 --> marker
+		// geo_type == 1 --> poligono
+		// e facile aggiungere geo_type se vogliamo piu avanti
+		switch({{geo_type}}) {
+			case -2:
+				// do nothing - pagina senza ricerca_ind
+				break;
+		  case -1:
+		    // code block
+				alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
+		    break;
+		  case 0:
+		    // METTI UN MARKER
+				// Options for the marker
+				var markerOptions = {
 
-           title: "Abbiamo trovato {{start_name}}",
-           clickable: true,
-           // si alza all'hover - non va :(
-           riseOnHover: true
-        }
+					 title: "Abbiamo trovato {{start_name}}",
+					 clickable: true,
+					 // si alza all'hover - non va :(
+					 riseOnHover: true
+				}
 
-        // coordinate
-        marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
-        var test = "{{start_name}}";
-        // Popup se uno clicca sul marker
-        marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
-        // aggiungi il marker sulla mappa
-        marker_arrivo.addTo(mymap);
-        mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+				// coordinate
+				marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
+				var test = "{{start_name}}";
+				// Popup se uno clicca sul marker
+				marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
+				// aggiungi il marker sulla mappa
+				marker_arrivo.addTo(mymap);
+				mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+		    break;
+			case 1:
+				// DISEGNA POLIGONO
+				var polygon = L.polygon([
+				    {{polygon_shape}}
+				]).addTo(mymap);
+				break
+		  default:
+		    // do nothing
+				console.log("caso default. strano. guarda nello switch che valore ha geo_type");
+		}
 
-        // mostra la ricerca
-        //var marker = new L.marker([{{start_coordx}}, {{start_coordy}}], { opacity: 0.01 }); //opacity may be set to zero
-        //marker.bindTooltip("Abbiamo trovato {{start_name}}", {permanent: true, className: "my-label", offset: [0, 10] });
-        //marker.addTo(mymap);
-        //L.rectangle([[48.84, 2.34], [48.86, 2.36]]).bindTooltip("Trovato: {{start_name}}").addTo(map);
-        //document.getElementById("searchbar").style.display="none";
-        //document.getElementById("trovato").style.display="inline";
-        //document.getElementById("whatWeFound").innerHTML="{{start_name}}";
-    }
 </script>
 
 </body>
