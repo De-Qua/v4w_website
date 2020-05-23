@@ -49,7 +49,6 @@ def find_address_in_db(input_string):
     # dammi coordinate, del punto o del poligono
     geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
 
-
     return geo_type, coordinates, polygon_shape, actual_address
 
 
@@ -120,6 +119,8 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
 
             # prendiamo la shape!
             polygon_shape = actual_location.shape
+            xs, ys = polygon_shape.exterior.coords.xy
+            polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
             # coords va creato in modo che sia subscriptable
             coords = getCentroidSmartly(polygon_shape)
             #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
@@ -129,7 +130,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
         geo_type = -1
         polygon_shape = None
 
-    return geo_type, coords, polygon_shape
+    return geo_type, coords, polygon_shape_as_list
 
 """
 da gestire piu poligoni, piu centroidi, multipoligoni e alieni
