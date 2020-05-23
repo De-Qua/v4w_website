@@ -8,7 +8,7 @@ import hashlib
 import time
 import json
 from app.src.libpy import pyAny_lib
-from app.src.libpy.library_coords import civico2coord_find_address
+from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
 
 # Useful paths
 folder = os.getcwd()
@@ -104,7 +104,13 @@ def find_address():
         else:
             app.logger.debug('indirizzo: {}'.format(da))
             #a = request.form['arrivo']
-            start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+            #start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
+            ### RICERCA NEL database
+            # TODO: geo_type == 0 --> usa coords,  geo_type == 1 --> usa polygon_shape
+            geo_type, coords, polygon_shape, actual_address = find_address_in_db(da)
+            print("got {}, {}".format(coords, actual_address))
+            # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
+            start_coord, start_name = coords, actual_address
             form.found_string.data = start_name
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
