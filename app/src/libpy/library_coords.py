@@ -121,7 +121,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
             # prendiamo la shape!
             polygon_shape = actual_location.shape
             # coords va creato in modo che sia subscriptable
-            coords = [polygon_shape.centroid.x, polygon_shape.centroid.y]
+            coords = getCentroidSmartly(polygon_shape)
             #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
 
     else:
@@ -130,6 +130,25 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
         polygon_shape = None
 
     return geo_type, coords, polygon_shape
+
+"""
+da gestire piu poligoni, piu centroidi, multipoligoni e alieni
+"""
+def getCentroidSmartly(polygon_shape):
+
+    coord_x = 0
+    coord_y = 0
+    number_of_centroids = 0
+    for cur_centroid in polygon_shape.centroid:
+        coord_x += cur_centroid.x
+        coord_y += cur_centroid.y
+        number_of_centroids += 1
+
+    coord_x /= number_of_centroids
+    coord_y /= number_of_centroids
+    avg_coordinate = [coord_x, coord_y]
+    print("asdas", avg_coordinate)
+    return avg_coordinate
 
 """
 parte di una funzione di Ale presa dal codice dentro searchName in functions.py (riga 125 in questo momento).
