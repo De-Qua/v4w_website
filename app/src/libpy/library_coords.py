@@ -136,18 +136,20 @@ da gestire piu poligoni, piu centroidi, multipoligoni e alieni
 """
 def getCentroidSmartly(polygon_shape):
 
-    coord_x = 0
-    coord_y = 0
-    number_of_centroids = 0
-    for cur_centroid in polygon_shape.centroid:
-        coord_x += cur_centroid.x
-        coord_y += cur_centroid.y
-        number_of_centroids += 1
+    avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
 
-    coord_x /= number_of_centroids
-    coord_y /= number_of_centroids
-    avg_coordinate = [coord_x, coord_y]
-    print("asdas", avg_coordinate)
+    # coord_x = 0
+    # coord_y = 0
+    # number_of_centroids = 0
+    # for cur_centroid in polygon_shape.centroid:
+    #     coord_x += cur_centroid.x
+    #     coord_y += cur_centroid.y
+    #     number_of_centroids += 1
+    #
+    # coord_x /= number_of_centroids
+    # coord_y /= number_of_centroids
+    # avg_coordinate = [coord_x, coord_y]
+    print("Centroide: ", avg_coordinate)
     return avg_coordinate
 
 """
