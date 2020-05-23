@@ -100,13 +100,27 @@ Comprende bar, caffe, negozi, chiese, ecc.
 class Poi(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(128),index=True)
+    name_alt = db.Column(db.String(128),index=True)
     location_id = db.Column(db.Integer,db.ForeignKey("location.id"))
     categorytype_id = db.Column(db.Integer,db.ForeignKey("poi_category_type.id"))
     opening_hours = db.Column(db.String(256))
     wheelchair = db.Column(db.String(8))
+    toilets = db.Column(db.Boolean)
+    toilets_wheelchair = db.Column(db.Boolean)
+    wikipedia = db.Column(db.String(128))
+    atm = db.Column(db.Boolean)
+    phone = db.Column(db.String(32))
     last_change = db.Column(db.DateTime,default=datetime.utcnow)
     types = db.relationship("PoiCategoryType",secondary=poi_types,
-        lazy = "subquery", backref=db.backref("pois",lazy="dynamic"))
+        lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
+    def add_type(self,type):
+        if not self.is_type(type):
+            self.types.append(type)
+    def remove_type(self,type):
+        if self.is_type(type):
+            self.types.remove(type)
+    def is_type(self,type):
+        return self.types.filter(poi_types.c.type_id==type.id).count() > 0
     def __repr__(self):
         return "{name}\nAddress: {address})".format(
         name=self.name, address=self.location)
@@ -115,9 +129,15 @@ class PoiCategory(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(32),index=True,unique=True)
     types = db.relationship("PoiCategoryType",backref="category",lazy="dynamic")
+    def __repr__(self):
+        return "{name}".format(
+        name=self.name)
 
 class PoiCategoryType(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(32),index=True)
     category_id = db.Column(db.Integer,db.ForeignKey("poi_category.id"))
     subtype = db.Column(db.String(32),index=True)
+    def __repr__(self):
+        return "{name} ({category})".format(
+        name=self.name, category=self.category)

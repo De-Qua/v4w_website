@@ -5,23 +5,27 @@ from app import app, db
 
 import pandas as pd
 from importlib import reload
-
-from app.models import Neighborhood, Street, Location, Area
+from app.models import *
 import numpy as np
 import re
 import geopandas as gpd
-
 from descartes import PolygonPatch
 import matplotlib.pyplot as plt
+import geopy.distance
 #%% Files
 # TODO leggere civico.shp invece che txt
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
-
-file_civici = "lista_civici_only.txt"
-file_civici_denominazioni = "lista_denominazioni_csv.txt"
-file_civici_coords = "lista_coords_civici_only.txt"
-
+# Nomi dei file
+name_file_civici = "lista_civici_only.txt"
+name_file_civici_denominazioni = "lista_denominazioni_csv.txt"
+name_file_civici_coords = "lista_coords_civici_only.txt"
+name_file_poi = "POI_venezia_completo.csv"
+# path dei file
+file_civici = os.path.join(folder_file, name_file_civici)
+file_civici_denominazioni = os.path.join(folder_file, name_file_civici_denominazioni)
+file_civici_coords = os.path.join(folder_file, name_file_civici_coords)
+file_poi = os.path.join(folder_file, name_file_poi)
 #%% Load files
 # Import with pandas
 # civici_address = pd.read_csv(os.path.join(folder_file,file_civici),header=None,names=["civico","empty"])
@@ -32,9 +36,10 @@ file_civici_coords = "lista_coords_civici_only.txt"
 # civici = pd.concat([civici_address,civici_denominazioni,civici_coords],axis=1)
 
 # Import with numpy
-civici_address = np.loadtxt(os.path.join(folder_file,file_civici), delimiter = ";" , comments=",",dtype='str')
-civici_denominazioni = np.loadtxt(os.path.join(folder_file,file_civici_denominazioni), delimiter = ";" , comments=",",dtype='str')
-civici_coords = np.loadtxt(os.path.join(folder_file,file_civici_coords), delimiter = "," , dtype='float')
+civici_address = np.loadtxt(file_civici, delimiter = ";" , comments=",",dtype='str')
+civici_denominazioni = np.loadtxt(file_civici_denominazioni, delimiter = ";" , comments=",",dtype='str')
+civici_coords = np.loadtxt(file_civici_coords, delimiter = "," , dtype='float')
+poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
 #%%
 ####### estrarre i poligoni dai sestieri per caricarli nel database
 sestieri =  gpd.read_file(os.path.join(folder_file,"Localita","Località.shp"))
@@ -44,11 +49,11 @@ sestieri = sestieri.to_crs(epsg=4326)
 # if sestieri[sestieri["A_SCOM_NOM"]=="SANT'ELENA".title()]["geometry"].empty:
 #     print('ok')
 #%%
-# elimina tutto
-Neighborhood.query.delete()
-Street.query.delete()
-Location.query.delete()
-db.session.commit()
+# # elimina tutto
+# Neighborhood.query.delete()
+# Street.query.delete()
+# Location.query.delete()
+# db.session.commit()
 #%% Aggiungi sestieri
 list_sest_cap = [
    ("CANNAREGIO",30121),
@@ -245,11 +250,6 @@ wrong = r[4].locations.first()
 [wrong.latitude, wrong.longitude]
 
 #%%### Poi
-poi_path = os.path.join(folder,"app","static","files","lista_poi.txt")
-path_poi_types = os.path.join(folder,"app","static","files","poi_types.csv")
-poi_types = np.loadtxt(path_poi_types,delimiter = ",",dtype='str',skiprows=1)
-pois = np.loadtxt(poi_path,delimiter = "|",dtype='str',skiprows=1)
-
 """
 TAGS
 name
@@ -257,7 +257,7 @@ amenity
 shop
 wheelchair
 cuisine
-toilets::wheelchair
+toilets:wheelchair
 tourism
 alt_name
 building
@@ -265,26 +265,136 @@ opening_hours
 wikipedia
 atm
 outdoor_seating
-diet::vegetarian
+diet:vegetarian
 phone
 denomination
 sport
 """
-#%% Get poi_types
-import geopy.distance
-file_poi_types = os.path.join(folder,"app","static","files","poi_types.csv")
-poi_types = np.loadtxt(file_poi_types,delimiter = ",",dtype='str',skiprows=1)
-zucca = [45.4408383, 12.3285187]
-closest = []
-distance = 100000
+poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+list_category = [
+    "amenity",
+    "shop",
+    "cuisine",
+    "tourism",
+    "building",
+    "sport"
+    ]
+#%%
+# crea le category e i type (se non esistono già)
+for c in list_category:
+    if not PoiCategory.query.filter_by(name=c).first():
+        db.session.add(PoiCategory(name=c))
+    cat = PoiCategory.query.filter_by(name=c).first()
+    for types in poi_pd[c].unique():
+        if pd.isna(types):
+            continue
+        all_types = types.split(";")
+        for t in all_types:
+            if not PoiCategoryType.query.filter_by(name=t.strip(),category=cat).first():
+                db.session.add(PoiCategoryType(name=t.strip(),category=cat))
+db.session.commit()
+print("Numero di Category: {cat}\nNumero totale di Type: {typ}".format(
+    cat=len(PoiCategory.query.all()),
+    typ=len(PoiCategoryType.query.all())
+    ))
+print("Tutti i tipi",*PoiCategoryType.query.all(),sep="\n")
 
-for loc in Location.query.filter(db.and_(db.between(Location.longitude,zucca[1]-0.0003,zucca[1]+0.0003),
-        db.between(Location.latitude,zucca[0]-0.0003,zucca[0]+0.0003)
-        )).all():
-    dist = geopy.distance.distance((loc.latitude, loc.longitude),(zucca[0],zucca[1])).meters
-    if dist < distance:
-        distance = dist
-        closest = loc
-print("{} , {}".format(distance,closest))
-loc_zucca = Location.query.filter_by(housenumber=1762).join(Street).join(Neighborhood).filter_by(name="SANTA CROCE").first()
-print("{}".format(geopy.distance.distance((closest.latitude, closest.longitude),(loc_zucca.latitude,loc_zucca.longitude)).meters))
+#%% funzione per trovare il poi più vicino a una certa lat/lon
+def closest_poi(lat,lon,tolerance=0.0003):
+    closest = []
+    distance = np.inf
+    for loc in Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+            db.between(Location.latitude,lat-tolerance,lat+tolerance)
+            )).all():
+        dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
+        if dist < distance:
+            distance = dist
+            closest = loc
+    return closest,distance
+#%% Get poi_types
+# Lista di tipi di poi che non avranno una corrispondenza con un numero civico(ad esempio chiese o fontanelle)
+types_without_address={
+    "amenity":["drinking_water",
+            "place_of_worship",
+            "bus_station",
+            "ferry_terminal"],
+    "building":["church",
+                "kiosk",
+                "column"]
+}
+# crea un dataframe con solo i poi che non avranno un indirizzo
+poi_without_add = pd.DataFrame()
+for key in types_without_address.keys():
+    for val in types_without_address[key]:
+        p = poi_pd.loc[poi_pd[key]==val]
+        poi_without_add = pd.concat([poi_without_add,p])
+# malvagità per creare un dataframe differenza tra tutti - quelli che non avranno indirizzo
+poi_with_add = poi_pd[~poi_pd.apply(tuple,1).isin(poi_without_add.apply(tuple,1))]
+
+# loop in per aggiungere tutti i poi
+err_poi = []
+r = np.where(pd.isna(poi_pd.values[0]), None, poi_pd.values[0])
+
+for row in poi_pd.values:
+    # sostituisci nan con None per evitare casini
+    r = np.where(pd.isna(row), None, row)
+    # Trova la location esistente più vicina alle coordinate
+    lat, lon = r[2:4]
+    closest,dist = closest_poi(lat,lon)
+    if not closest:
+        err_poi.append(row)
+        continue
+    # Controlla se il poi deve essere aggiunto con o senza indirizzo
+    if row in poi_without_add.values:
+        # non deve essere aggiunto con indirizzo
+        # crea una nuova location (barbatrucco: usa la strada del poi più vicino)
+        l = Location(latitude=lat,longitude=lon,street=closest.street)
+    elif row in poi_with_add.values:
+        # considera come location quella trovata
+        l = closest
+    else:
+        err_poi.append(row)
+        continue
+    # controlla che non esista già un poi nella medesima location
+    if Poi.query.filter_by(location=l).first():
+        continue
+    # crea poi con informazioni di base
+    p = Poi(location=l)
+    p.name = r[poi_pd.columns.get_loc('name')]
+    p.name_alt = r[poi_pd.columns.get_loc('alt_name')]
+    p.opening_hours = r[poi_pd.columns.get_loc('opening_hours')]
+    p.wheelchair = r[poi_pd.columns.get_loc('wheelchair')]
+    if r[poi_pd.columns.get_loc('toilets')] == "yes":
+        p.toilets = True
+    elif r[poi_pd.columns.get_loc('toilets')] == "no":
+        p.toilets = False
+    if r[poi_pd.columns.get_loc('toilets:wheelchair')]=="yes":
+        p.toilets_wheelchair = True
+    elif r[poi_pd.columns.get_loc('toilets:wheelchair')]=="no":
+        p.toilets_wheelchair = False
+    p.wikipedia = r[poi_pd.columns.get_loc('wikipedia')]
+    if r[poi_pd.columns.get_loc('atm')]=="yes":
+        p.atm = True
+    elif r[poi_pd.columns.get_loc('atm')]=="no":
+        p.atm = False
+    p.phone = r[poi_pd.columns.get_loc('phone')]
+    # aggiungi le informazioni sulle categorie dalla tabella type
+    for cat in list_category:
+        cat_type = r[poi_pd.columns.get_loc(cat)]
+        # se il valore è None vai al prossimo
+        if cat_type == None:
+            continue
+        # dividi con i punti e virgola per aggiungere tutti i tipi
+        all_types = cat_type.split(";")
+        for typ in all_types:
+            t = PoiCategoryType.query.filter_by(name=typ.strip()).first()
+            if not t:
+                err_poi.append(row)
+                continue
+            p.add_type(t)
+    # aggiungi al database
+    # magia: incredibilmente questo aggiunge anche la location nel caso non esistesse
+    db.session.add(p)
+print("Numero di POI: {poi}\nErrori: {err}".format(poi=len(Poi.query.all()),err=len(err_poi)))
+db.session.commit()
