@@ -119,28 +119,31 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
                 actual_location = Pois.query.filter_by(name=actual_address).first()
 
             # prendiamo la shape!
-            polygon_shape = actual_location.shape
-            if polygon_shape.geom_type == 'MultiPolygon':
-                # do multipolygon things.
-                polygon_shape_as_list = []
-                # loop su ogni poligono
-                for single_polygon in polygon_shape:
-                    # poligono
-                    xs, ys = single_polygon.exterior.coords.xy
-                    # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
-                    for i in range(len(xs)):
-                        polygon_shape_as_list.append([ys[i], xs[i]])
-            elif polygon_shape.geom_type == 'Polygon':
-                # do polygon things.
-                xs, ys = polygon_shape.exterior.coords.xy
-                polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
+            if actual_location.shape:
+                polygon_shape = actual_location.shape
+                if polygon_shape.geom_type == 'MultiPolygon':
+                    # do multipolygon things.
+                    polygon_shape_as_list = []
+                    # loop su ogni poligono
+                    for single_polygon in polygon_shape:
+                        # poligono
+                        xs, ys = single_polygon.exterior.coords.xy
+                        # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
+                        for i in range(len(xs)):
+                            polygon_shape_as_list.append([ys[i], xs[i]])
+                elif polygon_shape.geom_type == 'Polygon':
+                    # do polygon things.
+                    xs, ys = polygon_shape.exterior.coords.xy
+                    polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
+                else:
+                    raise IOError('Shape is not a polygon.')
+                # coords va creato in modo che sia subscriptable
+                coords = getCentroidSmartly(polygon_shape)
+                #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
             else:
-                raise IOError('Shape is not a polygon.')
-
-
-            # coords va creato in modo che sia subscriptable
-            coords = getCentroidSmartly(polygon_shape)
-            #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
+                coords = [actual_location.longitude, actual_location.latitude]
+                epsilon = 0.0001
+                polygon_shape_as_list = [coords-[epsilon, 0], coords-[0, epsilon], coords+[epsilon, 0], coords+[0, epsilon]]
 
     else:
         coords = [-1, -1]
