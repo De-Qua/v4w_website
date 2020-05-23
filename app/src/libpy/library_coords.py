@@ -3,6 +3,11 @@ import numpy as np
 import logging
 import time
 
+# IMPORT FOR THE DATABASE - db is the database object
+from app.models import Neighborhood, Street, Location, Area, Poi
+from app import app, db
+#Neighborhood.query.all()
+
 """
 da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
 """
@@ -26,6 +31,252 @@ def civico2coord(coord_list,civico_name,civico_list, civico_coord):
     idx = np.argmin(np.sum(tmp * tmp, axis=1))
     return (coordinate[idx][0], coordinate[idx][1])
 
+"""
+Cerca nel database
+Questo e solo un wrapper che chiama le funzioni, per maggiore leggibilita
+"""
+def find_address_in_db(input_string):
+
+    print("looking in the db")
+    # fetch parameters (puo tornare utile se i parametri saranno modificabili dal browser piu avanti)
+    search_parameters = get_parameters()
+    # pulisci la stringa col metodo di ale
+    clean_string = correct_name(input_string)
+    # dividi numero e dicci come e fatta
+    text, number, isThereaCivico = dividiEtImpera(clean_string)
+    # cerca nel database - qua dentro avviene la magia
+    found_something, actual_address, address_type = find_address(text)
+    # dammi coordinate, del punto o del poligono
+    geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
+
+
+    return geo_type, coordinates, polygon_shape, actual_address
+
+
+"""
+pulisce il nome.
+funzione di ale presa da functions.py
+"""
+def correct_name(name):
+    # prende la stringa in ingresso e fa delle sostituzioni
+    # 0. Eliminare spazi iniziali e finali
+    name = name.strip()
+    # 1. Sostituzione s.->san
+    name = name.replace("s.","san ")
+    # 2. Rimozione doppi spazi
+    name = name.replace("  "," ")
+    # Ritorna stringa corretta
+    return name.upper()
+
+"""
+la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
+"""
+def fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico):
+
+    if found_something:
+        print("we found", actual_address)
+        # prendi la coordinata relativa
+
+        # controlla i tentativi
+        assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
+        assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
+        # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
+        if isThereaCivico:
+            # geo type = 0 dice che usiamo un punto
+            geo_type = 0
+
+            if address_type == 0:
+                print("SESTIERE + NUMERO")
+                # se e sestiere, prendi sestiere + numero
+                actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
+            elif address_type == 1:
+                print("STRADA + NUMERO")
+                # se e strada, prendi strada + numero (+ sestiere?)
+                actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
+            elif address_type == 2:
+                print("POI + NUMERO")
+                # poi!
+                actual_location = Location.query.filter_by(housenumber=number).join(Pois).filter_by(name=actual_address).join(Neighborhood).first()
+
+            # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
+            coords = [actual_location.longitude, actual_location.latitude]
+            polygon_shape = None
+        else:
+            #geo type = 1 dice che usiamo un poligono
+            geo_type = 1
+
+            if address_type == 0:
+                print("SESTIERE senza NUMERO")
+                # se e sestiere, prendi sestiere + numero
+                actual_location = Neighborhood.query.filter_by(name=actual_address).first()
+            elif address_type == 1:
+                print("STRADA senza NUMERO")
+                # se e strada, prendi strada + numero (+ sestiere?)
+                actual_location = Street.query.filter_by(name=actual_address).first()
+            elif address_type == 2:
+                print("POI senza NUMERO")
+                # poi!
+                actual_location = Pois.query.filter_by(name=actual_address).first()
+
+            # prendiamo la shape!
+            polygon_shape = actual_location.shape
+            # coords va creato in modo che sia subscriptable
+            coords = getCentroidSmartly(polygon_shape)
+            #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
+
+    else:
+        coords = [-1, -1]
+        geo_type = -1
+        polygon_shape = None
+
+    return geo_type, coords, polygon_shape
+
+"""
+da gestire piu poligoni, piu centroidi, multipoligoni e alieni
+"""
+def getCentroidSmartly(polygon_shape):
+
+    coord_x = 0
+    coord_y = 0
+    number_of_centroids = 0
+    for cur_centroid in polygon_shape.centroid:
+        coord_x += cur_centroid.x
+        coord_y += cur_centroid.y
+        number_of_centroids += 1
+
+    coord_x /= number_of_centroids
+    coord_y /= number_of_centroids
+    avg_coordinate = [coord_x, coord_y]
+    print("asdas", avg_coordinate)
+    return avg_coordinate
+
+"""
+parte di una funzione di Ale presa dal codice dentro searchName in functions.py (riga 125 in questo momento).
+Divide testo e numero e ritorna se effettivamente c'era un numero
+"""
+def dividiEtImpera(clean_string):
+
+    # regular expressions
+    import re
+    # format del civico:
+    # 1. inizia con un numero (es. "2054 santa marta")
+    # 2. finisce con un numero (es. "san polo 1424")
+    # 3. finisce con un numero e una lettera (es. "santa croce 1062b" oppure "1062 b" oppure "1062/b")
+    # nb se il numero è seguito da una lettera ed è all'inizio del nome, la lettera viene riconosciuta solo se seguita da uno spazio
+    format_civico = re.compile("(^\d+([ |/]?\w )?)|(\d+[ |/]?\w?$)")
+    isThereaCivico = format_civico.search(clean_string)
+    if isThereaCivico:
+        # un po di caos qui
+        found_number = isThereaCivico.group(0)
+        # formatta il numero nel format in cui è salvato nel database
+        numero_cifra = re.findall(r'\d+',found_number)
+        numero_lettera = re.findall(r'[A-z]',found_number)
+        if numero_lettera:
+            number += '/' + numero_lettera[0]
+        else:
+            number = numero_cifra[0]
+        text = clean_string[:isThereaCivico.start()] + clean_string[isThereaCivico.end():]
+        text = text.strip() # elimina spazi che possono essersi creati togliendo il numero
+    else:
+        text = clean_string
+        number = -1
+
+    return text, number, isThereaCivico
+
+"""
+La stringa e pulita, ricerca nel DATABASE
+ 1. cerca nei sestieri
+ 2. cerca nelle Strade
+ 3. cerca nei poi
+"""
+def find_address(text):
+
+    # chi cerca trova
+    attempt = 0 # contatore
+    found_the_treasure = False
+    while not found_the_treasure and attempt < 3:
+        # la funzione di ricerca usa attempt come contatore - address_type e anche attempt verra usato uguale
+        found_the_treasure, actual_address, address_type = search_and_search_and_search(text, attempt)
+        if not found_the_treasure:
+            attempt += 1
+
+    # se non abbiamo trovato nulla, pazienza
+    if not found_the_treasure:
+        return found_the_treasure, "", -1
+
+    # se no, ritorniamo
+    # address_type e attempt alla fine, quindi 0: sestiere, 1: strada, 2: poi
+    return found_the_treasure, str(actual_address), address_type
+
+"""
+In questa funzione andiamo veramente ad accedere al database:
+attempt == 0 --> Sestieri
+attempt == 1 --> Strade
+attempt == 2 --> POI
+attempt < 0 or attempt > 2 --> ERRORE
+"""
+def search_and_search_and_search(text, attempt):
+
+    # controlla i tentativi
+    assert(attempt > -1),"tentativo negativo? - attempt:" + str(attempt)
+    assert(attempt < 3),"troppi tentativi! Errore nel ciclo while sopra! - attempt:" + str(attempt)
+    # delega
+    if attempt == 0:
+        found_something, actual_address = bad_neighbourhoods(text)
+    if attempt == 1:
+        found_something, actual_address = is_she_living_in_the_streets(text)
+    if attempt == 2:
+        found_something, actual_address = is_she_at_the_coffee_place(text)
+
+    return found_something, actual_address, attempt
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di un sestiere
+"""
+def bad_neighbourhoods(text):
+
+    neighborhoods = Neighborhood.query.all()
+    matching = [hood for hood in neighborhoods if text in (hood.name)]
+    if matching:
+        return True, matching[0]
+
+    return False, ""
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di una strada
+"""
+def is_she_living_in_the_streets(text):
+
+    streets = Street.query.all()
+    matching = [street for street in streets if (text in (street.name))] #or text in street.name_alt --> per ora name_alt e null
+    if matching:
+        return True, matching[0]
+
+    return False, ""
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di un POI
+"""
+def is_she_at_the_coffee_place(text):
+
+    POIs = Poi.query.all()
+    matching = [pdi for pdi in POIs if text in pdi]
+    if matching:
+        return True, matching[0]
+
+    return False, ""
+
+
+# finto, per ora non serve a nulla
+# teoricamente puo essere utile, ma magari anche no
+def get_parameters():
+
+    cutoff = 0.6
+    max_result = 5
+    return [cutoff, max_result]
 
 """
 Cerca la coordinata e la ritorna insieme al suo nome.
