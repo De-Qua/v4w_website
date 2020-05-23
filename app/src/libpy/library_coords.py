@@ -141,9 +141,9 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
                 coords = getCentroidSmartly(polygon_shape)
                 #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
             else:
-                coords = [actual_location.longitude, actual_location.latitude]
-                epsilon = 0.0001
-                polygon_shape_as_list = [coords-[epsilon, 0], coords-[0, epsilon], coords+[epsilon, 0], coords+[0, epsilon]]
+                coords = [-1, -1]
+                geo_type = -1
+                polygon_shape_as_list = None
 
     else:
         coords = [-1, -1]
