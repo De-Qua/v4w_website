@@ -7,7 +7,7 @@ import time
 from app.models import Neighborhood, Street, Location, Area, Poi
 from app import app, db
 #Neighborhood.query.all()
-
+from fuzzywuzzy import fuzz, process
 """
 da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
 """
@@ -45,7 +45,8 @@ def find_address_in_db(input_string):
     # dividi numero e dicci come e fatta
     text, number, isThereaCivico = dividiEtImpera(clean_string)
     # cerca nel database - qua dentro avviene la magia
-    found_something, actual_address, address_type = find_address(text)
+    #found_something, actual_address, address_type = find_address(text)
+    found_something, actual_address, address_type = fuzzy_exact_search(text)
     # dammi coordinate, del punto o del poligono
     geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
 
@@ -73,7 +74,7 @@ la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 def fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico):
 
     if found_something:
-        print("we found", actual_address)
+        print("we found", actual_address, type(actual_address))
         # prendi la coordinata relativa
 
         # controlla i tentativi
@@ -255,11 +256,11 @@ solo controlla se matcha 1 a 1 un nome di un sestiere
 """
 def bad_neighbourhoods(text):
 
-    neighborhoods = Neighborhood.query.all()
-    matching = [hood for hood in neighborhoods if text in (hood.name)]
+    #neighborhoods = Neighborhood.query.all()
+    matching=Neighborhood.query.filter(Neighborhood.name.contains(text)).all()
+    #matching = [hood for hood in neighborhoods if text in (hood.name)]
     if matching:
         return True, matching[0]
-
     return False, ""
 
 """
@@ -268,8 +269,7 @@ solo controlla se matcha 1 a 1 un nome di una strada
 """
 def is_she_living_in_the_streets(text):
 
-    streets = Street.query.all()
-    matching = [street for street in streets if (text in (street.name))] #or text in street.name_alt --> per ora name_alt e null
+    matching = Street.query.filter(Street.name.contains(text)).all()
     if matching:
         return True, matching[0]
 
@@ -281,13 +281,40 @@ solo controlla se matcha 1 a 1 un nome di un POI
 """
 def is_she_at_the_coffee_place(text):
 
-    POIs = Poi.query.all()
-    matching = [pdi for pdi in POIs if text in pdi]
+    matching = poi.query.filter(poi.name.contains(text)).all()
     if matching:
         return True, matching[0]
 
     return False, ""
 
+"""
+Sostituisce find_address.
+Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il match e la provenienza
+"""
+def takeSecond(elem):
+    return elem[1]
+def fuzzy_exact_search(word):
+    found,exact_match,exact_type = fuzzy_search(word)
+    return found,str(exact_match[0]),int(exact_type[0])
+
+def fuzzy_search(word):
+    n_limit = 5
+    score_cutoff = 50
+    final_matches = []
+    matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+    for m,s in matches_neigh:
+        final_matches.append((m,s,0))
+    if not any([match[1]>98 for match in final_matches]):
+        matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        for m,s in matches_street:
+            final_matches.append((m,s,1))
+    #if not any([match[1]>98 for match in final_matches]):
+        #matches_poi = process.extractBests(word,poi.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        #for m,s in matches_poi:
+        #    final_matches.append((m,s,2))
+    final_matches.sort(key=takeSecond, reverse=True)
+    print("match,score,type", final_matches)
+    return bool(final_matches), [match[0] for match in final_matches[0:n_limit]], [match[2] for match in final_matches[0:n_limit]]
 
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no
