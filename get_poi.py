@@ -11,27 +11,36 @@ import networkx as nt
 import time
 #%% path
 folder_file = os.path.join(os.getcwd(),"app","static","files")
-file_poi_nordest = "nord-est-latest.csv"
+file_poi_nordest = "POI_nordest_completo.csv"
 file_poi_types = "poi_types.csv"
 path_poi = os.path.join(folder_file,file_poi_nordest)
 path_poi_types = os.path.join(folder_file,file_poi_types)
 
-file_save_poi = "lista_poi.txt"
-file_save_coords = "lista_coords_poi.txt"
+file_save_poi = "POI_venezia_completo.csv"
+# file_save_coords = "lista_coords_poi.txt"
 path_save_poi = os.path.join(folder_file,file_save_poi)
-path_save_coords = os.path.join(folder_file,file_save_coords)
-
-file_civici = "lista_key.txt"
-file_civici_coords = "lista_coords.txt"
-path_civici = os.path.join(folder_file,file_civici)
-path_civici_coords = os.path.join(folder_file,file_civici_coords)
-
-pickle_graph = "grafo_pickle"
-path_graph = os.path.join(folder_file,pickle_graph)
+# path_save_coords = os.path.join(folder_file,file_save_coords)
+#
+# file_civici = "lista_key.txt"
+# file_civici_coords = "lista_coords.txt"
+# path_civici = os.path.join(folder_file,file_civici)
+# path_civici_coords = os.path.join(folder_file,file_civici_coords)
+#
+# pickle_graph = "grafo_pickle"
+# path_graph = os.path.join(folder_file,pickle_graph)
 #%% utilities
 latitude_ve = [45.420807, 45.45044]
 longitude_ve = [12.303462, 12.365979]
 
+#%% Crop files
+poi_ne = pd.read_csv(path_poi,sep="|",dtype='str')
+# convert lat and lon to float
+poi_ne[["lat","lon"]]=poi_ne[["lat","lon"]].apply(pd.to_numeric)
+print("POI total: {}".format(len(poi_ne)))
+poi_ve = poi_ne.loc[(poi_ne['lat']>=latitude_ve[0]) & (poi_ne['lat']<=latitude_ve[1]) & (poi_ne['lon']>=longitude_ve[0]) & (poi_ne['lon']<=longitude_ve[1])]
+print("POI in Venice: {}".format(len(poi_ve)))
+poi_ve.to_csv(path_save_poi,sep="|",index=False)
+print("POI saved in {}".format(path_save_poi))
 #%% Load files
 poi_types = pd.read_csv(path_poi_types)
 poi_ne = pd.read_csv(path_poi,sep="|",
