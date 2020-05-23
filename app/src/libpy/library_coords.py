@@ -46,14 +46,11 @@ def find_address_in_db(input_string):
     text, number, isThereaCivico = dividiEtImpera(clean_string)
     # cerca nel database - qua dentro avviene la magia
     found_something, actual_address, address_type = find_address(text)
-    if found_something:
-        print("we found", actual_address)
-        # prendi la coordinata relativa
-        coordinates = fetch_coordinates(actual_address, address_type, number, isThereaCivico)
-    else:
-        coordinates = [-1, -1]
+    # dammi coordinate, del punto o del poligono
+    geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
 
-    return coordinates, actual_address
+
+    return geo_type, coordinates, polygon_shape, actual_address
 
 
 """
@@ -74,37 +71,65 @@ def correct_name(name):
 """
 la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 """
-def fetch_coordinates(actual_address, address_type, number, isThereaCivico):
+def fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico):
 
-    if isThereaCivico:
-        if address_type == 0:
-            print("SESTIERE + NUMERO")
-            # se e sestiere, prendi sestiere + numero
-            actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
-        elif address_type == 1:
-            print("STRADA + NUMERO")
-            # se e strada, prendi strada + numero (+ sestiere?)
-            actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
-        elif address_type == 2:
-            print("POI + NUMERO")
-            # poi!
-            actual_location = Location.query.filter_by(housenumber=number).join(Pois).filter_by(name=actual_address).join(Neighborhood).first()
+    if found_something:
+        print("we found", actual_address)
+        # prendi la coordinata relativa
+
+        # controlla i tentativi
+        assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
+        assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
+        # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
+        if isThereaCivico:
+            # geo type = 0 dice che usiamo un punto
+            geo_type = 0
+
+            if address_type == 0:
+                print("SESTIERE + NUMERO")
+                # se e sestiere, prendi sestiere + numero
+                actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
+            elif address_type == 1:
+                print("STRADA + NUMERO")
+                # se e strada, prendi strada + numero (+ sestiere?)
+                actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
+            elif address_type == 2:
+                print("POI + NUMERO")
+                # poi!
+                actual_location = Location.query.filter_by(housenumber=number).join(Pois).filter_by(name=actual_address).join(Neighborhood).first()
+
+            # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
+            coords = [actual_location.longitude, actual_location.latitude]
+            polygon_shape = None
+        else:
+            #geo type = 1 dice che usiamo un poligono
+            geo_type = 1
+
+            if address_type == 0:
+                print("SESTIERE senza NUMERO")
+                # se e sestiere, prendi sestiere + numero
+                actual_location = Neighborhood.query.filter_by(name=actual_address).first()
+            elif address_type == 1:
+                print("STRADA senza NUMERO")
+                # se e strada, prendi strada + numero (+ sestiere?)
+                actual_location = Street.query.filter_by(name=actual_address).first()
+            elif address_type == 2:
+                print("POI senza NUMERO")
+                # poi!
+                actual_location = Pois.query.filter_by(name=actual_address).first()
+
+            # prendiamo la shape!
+            polygon_shape = actual_location.shape
+            # coords va creato in modo che sia subscriptable
+            coords = [polygon_shape.centroid.x, polygon_shape.centroid.y]
+            #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
+
     else:
-        if address_type == 0:
-            print("SESTIERE senza NUMERO")
-            # se e sestiere, prendi sestiere + numero
-            actual_location = Location.query.join(Street).join(Neighborhood).filter_by(name=actual_address).first()
-        elif address_type == 1:
-            print("STRADA senza NUMERO")
-            # se e strada, prendi strada + numero (+ sestiere?)
-            actual_location = Location.query.join(Street).filter_by(name=actual_address).join(Neighborhood).first()
-        elif address_type == 2:
-            print("POI senza NUMERO")
-            # poi!
-            actual_location = Location.query.join(Pois).filter_by(name=actual_address).join(Neighborhood).first()
+        coords = [-1, -1]
+        geo_type = point
+        polygon_shape = None
 
-    coords = [actual_location.longitude, actual_location.latitude]
-    return coords
+    return geo_type, coords, polygon_shape
 
 """
 parte di una funzione di Ale presa dal codice dentro searchName in functions.py (riga 125 in questo momento).
