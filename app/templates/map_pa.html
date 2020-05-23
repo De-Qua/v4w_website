@@ -219,9 +219,16 @@
 		    break;
 			case 1:
 				// DISEGNA POLIGONO
+				var polygonOptions = {
+
+					 title: "Evidenziato {{start_name}}",
+					 clickable: true,
+					 // si alza all'hover - non va :(
+					 riseOnHover: true
+				}
 				var polygon = L.polygon([
 				    {{polygon_shape}}
-				]).addTo(mymap);
+				], polygonOptions).addTo(mymap);
 				break
 		  default:
 		    // do nothing
