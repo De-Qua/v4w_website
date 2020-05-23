@@ -100,7 +100,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
 
             # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
             coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape = None
+            polygon_shape_as_list = None
         else:
             #geo type = 1 dice che usiamo un poligono
             geo_type = 1
