@@ -11,6 +11,8 @@ import numpy as np
 import re
 import geopandas as gpd
 
+from descartes import PolygonPatch
+import matplotlib.pyplot as plt
 #%% Files
 # TODO leggere civico.shp invece che txt
 folder = os.getcwd()
@@ -37,58 +39,54 @@ civici_coords = np.loadtxt(os.path.join(folder_file,file_civici_coords), delimit
 ####### estrarre i poligoni dai sestieri per caricarli nel database
 sestieri =  gpd.read_file(os.path.join(folder_file,"Localita","Località.shp"))
 sestieri = sestieri.to_crs(epsg=4326)
-nomi_sestieri=sestieri['A_SCOM_NOM'].to_list()
-
+#nomi_sestieri=sestieri['A_SCOM_NOM'].to_list()
+# nomi_sestieri[24]
+# if sestieri[sestieri["A_SCOM_NOM"]=="SANT'ELENA".title()]["geometry"].empty:
+#     print('ok')
 #%%
-match_dorsoduro = [i for i,x in enumerate(nomi_sestieri) if 'Dorsoduro'in x]
-match_sanpolo = [i for i,x in enumerate(nomi_sestieri) if 'San Polo'in x]
-match_san_marco = [i for i,x in enumerate(nomi_sestieri) if 'San Marco'in x]
-match_cannaregio = [i for i,x in enumerate(nomi_sestieri) if 'Cannaregio'in x]
-match_santacroce  = [i for i,x in enumerate(nomi_sestieri) if 'Santa Croce'in x]
-match_castello = [i for i,x in enumerate(nomi_sestieri) if 'Castello'in x]
-match_giudecca = [i for i,x in enumerate(nomi_sestieri) if 'Giudecca'in x]
-match_murano = [i for i,x in enumerate(nomi_sestieri) if 'Murano'in x]
-match_burano = [i for i,x in enumerate(nomi_sestieri) if 'Burano'in x]
-match_santelena = [i for i,x in enumerate(nomi_sestieri) if "Sant'Elena"in x]
-match_sacca = [i for i,x in enumerate(nomi_sestieri) if "Sacca Fisola"in x]
-match_lido = [i for i,x in enumerate(nomi_sestieri) if "Lido"in x]
-match_alberoni = [i for i,x in enumerate(nomi_sestieri) if "Alberoni"in x]
-match_malamocco = [i for i,x in enumerate(nomi_sestieri) if "Malamocco"in x]
-match_tronchetto= [i for i,x in enumerate(nomi_sestieri) if "Tronchetto"in x]
-match_sangiorgio= [i for i,x in enumerate(nomi_sestieri) if "San Giorgio"in x]
-match_saccabiagio= [i for i,x in enumerate(nomi_sestieri) if "Sacca San Biagio"in x]
+# elimina tutto
+Neighborhood.query.delete()
+Street.query.delete()
+Location.query.delete()
+db.session.commit()
 #%% Aggiungi sestieri
 list_sest_cap = [
-   ("CANNAREGIO",30121,match_cannaregio),
-   ("CASTELLO",30122,match_castello),
-   ("DORSODURO",30123,match_dorsoduro),
-   ("SAN MARCO",30124,match_san_marco),
-   ("SAN POLO",30125,match_sanpolo),
-   ("SANTA CROCE",30135,match_santacroce),
-   ("GIUDECCA",30133,match_giudecca),
-   ("SACCA SAN BIAGIO",30133,match_saccabiagio),
-   ("SAN GIORGIO",30124,match_sangiorgio),
-   ("TRONCHETTO",30135,match_tronchetto),
-   ("MALAMOCCO",30126,match_malamocco),
-   ("ALBERONI",30126,match_alberoni),
-   ("LIDO",30126,match_lido),
-   ("SACCA FISOLA",30133,match_sacca),
-   ("SANT'ELENA",30122,match_santelena),
-   ("BURANO",30012,match_burano),
-   ("MURANO",30141,match_murano)
+   ("CANNAREGIO",30121),
+   ("CASTELLO",30122),
+   ("DORSODURO",30123),
+   ("SAN MARCO",30124),
+   ("SAN POLO",30125),
+   ("SANTA CROCE",30135),
+   ("GIUDECCA",30133),
+   ("SACCA SAN BIAGIO",30133),
+   ("ISOLA SAN GIORGIO",30124),
+   ("TRONCHETTO",30135),
+   ("MALAMOCCO",30126),
+   ("ALBERONI",30126),
+   ("LIDO",30126),
+   ("SACCA FISOLA",30133),
+   ("SANT'ELENA",30122),
+   ("BURANO",30012),
+   ("MURANO",30141)
    ]
-for s,c,idx in list_sest_cap:
+err_neighb = []
+for s,c in list_sest_cap:
     # aggiungi se non è già presente
     neig = Neighborhood.query.filter_by(name=s,zipcode=c).first()
-    if not neig:
-        n = Neighborhood(name=s,zipcode=c, shape=sestieri["geometry"][idx])
-        db.session.add(n)
-        db.session.commit()
-    elif neig.shape.empty:
-        neig.shape=sestieri["geometry"][idx]
-        db.session.commit()
+    geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
+    if geom.empty:
+        err_neighb.append((s,c))
+    else:
+        geom = geom.iloc[0]
+        if not neig:
+            n = Neighborhood(name=s,zipcode=c, shape=geom)
+            db.session.add(n)
+        elif neig.shape.empty:
+            neig.shape=geom
 
-print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+db.session.commit()
+print("Error: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+    err=len(err_neighb),
     ses=len(Neighborhood.query.all()),
     str=len(Street.query.all()),
     civ=len(Location.query.all()),
@@ -145,17 +143,54 @@ TP_nome = np.asarray(TP_streets["TP_STR_NOM"])
 TP_geom = TP_streets["geometry"]
 TP_geom[1].centroid
 
+err_shp = []
 for n,poli in zip(TP_nome, TP_geom):
     matches=Street.query.filter_by(name=n).all()
     for m in matches:
-        if m.neighborhood.shape.contains(poli.centroid).values[0]:
+        if m.neighborhood.shape.contains(poli.centroid):
             m.shape=poli
-
+        else:
+            err_shp.append((m,poli))
 db.session.commit()
 
-noshape = Street.query.filter(Street.shape==None).all()
-len(noshape)
-print("Strade senza shape: {noshp}".format(noshp=len(noshape)), *noshape, sep="\n")
+print("Strade con shape: {con}\nStrade senza shape: {sen}".format(
+    con = len(Street.query.filter(Street.shape.isnot(None)).all()),
+    sen = len(Street.query.filter_by(shape=None).all())
+    ), *Street.query.filter_by(shape=None).all(), sep="\n")
+#%%
+import shapely
+sm = Neighborhood.query.filter_by(name="SAN POLO").first()
+shapes = Street.query.filter_by(neighborhood=sm).filter(Street.shape.isnot(None)).all()
+n1 = err_shp[0][0]
+n1_geom = err_shp[0][1]
+y1 = shapes[0]
+err_shp[0]
+
+# Plot del sestiere
+fig, axs = plt.subplots()
+xsm, ysm = sm.shape.exterior.xy
+axs.fill(xsm,ysm, alpha=0.5, fc='b', ec='none')
+# Plot della strada trovata
+if type(y1.shape)==shapely.geometry.polygon.Polygon:
+    x_y, y_y = y1.shape.exterior.xy
+    axs.fill(x_y, y_y, alpha=1, fc='r', ec='none')
+elif type(y1.shape)==shapely.geometry.polygon.MultiPolygon:
+    for geom in y1.shape.geoms:
+        xg, yg = geom.exterior.xy
+        axs.fill(xg, yg, alpha=1, fc='r', ec='none')
+# Plot della strada non trovata
+if type(n1_geom)==shapely.geometry.polygon.Polygon:
+    x_n, y_n = n1_geom.exterior.xy
+    axs.fill(x_n, y_n, alpha=1, fc='g', ec='none')
+elif type(n1_geom)==shapely.geometry.polygon.MultiPolygon:
+    for geom in n1_geom.geoms:
+        xg, yg = geom.exterior.xy
+        axs.fill(xg, yg, alpha=1, fc='g', ec='none')
+x_n
+plt.show()
+
+
+
 #%% Un po' di print e info
 print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
     ses=len(Neighborhood.query.all()),
