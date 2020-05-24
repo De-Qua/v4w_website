@@ -30,9 +30,12 @@
 	<div id="mapid">
 		<script>
 			var whichmap = "osm";
-			var mymap = L.map('mapid').setView([45.43, 12.33], 13);
-			var OpenStreetMap_DE = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			maxZoom: 20,
+			var mymap = L.map('mapid');
+			var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			minZoom: 12,
+	    maxZoom: 19,
+	    minNativeZoom: 12,
+	    maxNativeZoom: 19,
 			zoomControl: false,
 			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(mymap);
@@ -192,6 +195,7 @@
 		switch({{geo_type}}) {
 			case -2:
 				// do nothing - pagina senza ricerca_ind
+				mymap.setView([45.43, 12.33], 13);
 				break;
 		  case -1:
 		    // code block
@@ -215,7 +219,9 @@
 				marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
 				// aggiungi il marker sulla mappa
 				marker_arrivo.addTo(mymap);
-				mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+				var group = new L.featureGroup([marker_arrivo]);
+				mymap.fitBounds(group.getBounds());
+				//mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
 		    break;
 			case 1:
 				// DISEGNA POLIGONO
@@ -229,6 +235,9 @@
 				var polygon = L.polygon([
 				    {{polygon_shape}}
 				], polygonOptions).addTo(mymap);
+				var group = new L.featureGroup([polygon]);
+				mymap.fitBounds(group.getBounds());
+				//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
 				break
 		  default:
 		    // do nothing
