@@ -12,6 +12,8 @@ import geopandas as gpd
 from descartes import PolygonPatch
 import matplotlib.pyplot as plt
 import geopy.distance
+import shapefile
+from fuzzywuzzy import process
 #%% Files
 # TODO leggere civico.shp invece che txt
 folder = os.getcwd()
@@ -40,14 +42,26 @@ civici_address = np.loadtxt(file_civici, delimiter = ";" , comments=",",dtype='s
 civici_denominazioni = np.loadtxt(file_civici_denominazioni, delimiter = ";" , comments=",",dtype='str')
 civici_coords = np.loadtxt(file_civici_coords, delimiter = "," , dtype='float')
 poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
+poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
 #%%
 ####### estrarre i poligoni dai sestieri per caricarli nel database
 sestieri =  gpd.read_file(os.path.join(folder_file,"Localita","Località.shp"))
 sestieri = sestieri.to_crs(epsg=4326)
-#nomi_sestieri=sestieri['A_SCOM_NOM'].to_list()
-# nomi_sestieri[24]
-# if sestieri[sestieri["A_SCOM_NOM"]=="SANT'ELENA".title()]["geometry"].empty:
-#     print('ok')
+streets =  gpd.read_file(os.path.join(folder_file,"TP_STR.shp"))
+streets = streets.to_crs(epsg=4326)
+civici =  gpd.read_file(os.path.join(folder_file,"CIVICO.shp"))
+# rimuovo righe senza geometria che danno problemi
+empty_civici = civici.loc[pd.isna(civici["geometry"])]
+civici = civici.loc[~pd.isna(civici["geometry"])]
+civici = civici.to_crs(epsg=4326)
+print("*Aggiunti*\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\n*Rimossi*\nCivici: {civ_rim}".format(
+    ses=len(sestieri),
+    str=len(streets),
+    civ=len(civici),
+    civ_rim=len(empty_civici)
+    ))
+
 #%%
 # # elimina tutto
 # Neighborhood.query.delete()
@@ -74,126 +88,290 @@ list_sest_cap = [
    ("BURANO",30012),
    ("MURANO",30141)
    ]
+
 err_neighb = []
+add_neighb = 0
 for s,c in list_sest_cap:
-    # aggiungi se non è già presente
-    neig = Neighborhood.query.filter_by(name=s,zipcode=c).first()
+    # controlla geometria
     geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
     if geom.empty:
         err_neighb.append((s,c))
-    else:
-        geom = geom.iloc[0]
-        if not neig:
-            n = Neighborhood(name=s,zipcode=c, shape=geom)
-            db.session.add(n)
-        elif neig.shape.empty:
-            neig.shape=geom
+        continue
+    geom = geom.iloc[0]
+    # aggiungi se non è già presente
+    neig = Neighborhood.query.filter_by(shape=geom).first()
+    if not neig:
+        n = Neighborhood(name=s,zipcode=c, shape=geom)
+        add_neighb += 1
+        db.session.add(n)
 
 db.session.commit()
-print("Error: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+
+print("Errori: {err}\nSestieri: {ses}\nNuovi: {new}".format(
     err=len(err_neighb),
     ses=len(Neighborhood.query.all()),
-    str=len(Street.query.all()),
-    civ=len(Location.query.all()),
-    file=len(civici_address)
+    new=add_neighb
     ))
+# Plot dei sestieri
+plt.figure()
+for n in Neighborhood.query.all():
+    plt.plot(*n.shape.exterior.xy)
+plt.show()
+#%% Aggiungi Strade
 
-#%% Aggiungi civici e strade
-wrong_entries = []
-err = [0,0,0]
-for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
-    long,lat = coord
-    num_found_add = re.search("\d+(/[A-Z])?",add)
-    num_found_den = re.search("\d+(/[A-Z])?",den)
-    if not num_found_add or not num_found_den:
-        # il civico non ha il numero: passa al successivo
-        wrong_entries.append((1,add,den,coord))
-        err[0] += 1
+err_streets = []
+add_streets = 0
+for name, name_spe, name_den, pol in streets[['TP_STR_NOM','CVE_TS_SPE','CVE_TS_DEN','geometry']].values:
+    if pd.isna(name):
+        err_streets.append((0,name,name_spe,name_den,pol))
+    sestieri = [n for n in Neighborhood.query.all() if n.shape.distance(pol)==0]
+    # se la strada non è contenuta in nessun sestiere passa al successivo
+    if len(sestieri)==0:
         continue
-    if num_found_add.group(0) != num_found_den.group(0):
-        # civico e denominazione hanno numeri diversi: passa al successivo
-        wrong_entries.append((2,add,den,coord))
-        err[1] += 1
-        continue
-    num = num_found_add.group(0)
-    sest = add[:-len(num)-1]
-    str = den[:-len(num)-1]
-    n = Neighborhood.query.filter_by(name=sest).first()
-    if not n:
-        # il sestiere non esite: passa al successivo
-        wrong_entries.append((3,add,den,coord))
-        err[2] += 1
-        continue
-    if not Street.query.filter_by(name=str,neighborhood=n).first():
-        # la strada in quel sestiere non esiste: la aggiungo al db
-        db.session.add(Street(name=str,neighborhood=n))
-    s = Street.query.filter_by(name=str,neighborhood=n).first()
-    if not Location.query.filter_by(latitude=lat,longitude=long,street=s,housenumber=num).first():
-        # il civico in quella strada non esiste: lo aggiungo al db
-        db.session.add(Location(latitude=lat,longitude=long,street=s,housenumber=num))
+    # elif len(sestieri)>1:
+    #     # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+    #     err_streets.append((1,name,name_spe,name_den,pol))
+    #     continue
+    if not Street.query.filter_by(shape=pol).first():
+        st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol)
+        db.session.add(st)
+        for sestiere in sestieri:
+            st.add_neighborhood(sestiere)
+        add_streets += 1
 
 db.session.commit()
-print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+
+print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nNuove: {new}".format(
+    err=len(err_streets),
+    ses=len(Neighborhood.query.all()),
+    str=len(Street.query.all()),
+    new=add_streets
+    ))
+err_streets
+#%% Aggiugi civici
+# print(civici.columns)
+#civici["DENOMINAZI"].unique()
+# n = civici.loc[pd.isna(civici["DENOMINAZI"])]
+# nn = n.loc[pd.isna(n["DENOMINA_1"])]
+# # print(sp)
+# # print(sp["CIVICO_SUB"])
+# # pol = sp["geometry"].values
+# civ = civici.iloc[0:5]
+# for num, sub, den, pol in civ[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","geometry"]].values:
+#     num_found_add = re.search("\d+(/[A-Z])?",den)
+#     den_num = num_found_add.group(0)
+#     den_str = den[:-len(den_num)-1]
+#     print(den_str)
+# print(pol.centroid)
+# lon=pol.centroid.x
+# a = "_"
+# a.isalpha()
+
+err_civ = []
+add_civ = 0
+
+for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
+    sestieri = [n for n in Neighborhood.query.all() if n.shape.contains(pol)]
+    # se il civico non è contenuto in nessun passa al successivo
+    if len(sestieri)==0:
+        continue
+    elif len(sestieri)>1:
+        # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+        err_civ.append((0,num, sub, den, den1, pol))
+        continue
+    # principalmente voglio usare DENOMINAZI, nel caso sia vuoto uso DENOMINA_1
+    # nel caso siano entrambi vuoti errore e continuo
+    if pd.isna(den) and pd.isna(den1):
+        err_civ.append((1,num, sub, den, den1, pol))
+        continue
+    elif not pd.isna(den):
+        denom = den
+    elif not pd.isna(den1):
+        denom = den1
+    else:
+        # questo non dovrebbe mai succedere
+        err_civ.append((2,num, sub, den, den1, pol))
+        continue
+    # estraggo strada e civico da denominazi
+    num_found_denom = re.search("\d+(/[A-Z])?$",denom)
+    if not num_found_denom:
+        found=False
+        # se non ha trovato nulla riprova usando den1 se non è vuota
+        if denom==den and not pd.isna(den1):
+            num_found_denom = re.search("\d+(/[A-Z])?$",den1)
+            if num_found_denom:
+                found = True
+                denom = den1
+        if not found:
+            # aggiungi agli errori e passa al successivo
+            err_civ.append((3,num, sub, den, den1, pol))
+            continue
+    den_num = num_found_denom.group(0)
+    den_str = denom[:-len(den_num)-1]
+    # estraggo numero ed eventuale lettera da CIVICO_NUM e CIVICO_SUB
+    housenumber = num
+    if sub.isalpha():
+        housenumber += '/'+sub.upper()
+    # controllo che il numero civico sia uguale a quello trovato prima
+    if housenumber != den_num:
+        found = False
+        # provo a vedere se per caso non è uguale a quello dei den1
+        if denom==den and not pd.isna(den1):
+            num_found_denom = re.search("\d+(/[A-Z])?$",den1)
+            if num_found_denom:
+                den1_num = num_found_denom.group(0)
+                if housenumber == den1_num:
+                    found = True
+        if not found:
+            # aggiungi agli errori e passa al successivo
+            err_civ.append((4,num, sub, den, den1, pol))
+            continue
+    # cerco tutte le strade che hanno il nome riportato nel civico
+    # o il cui nome non sia una sottostringa di quello riportato nel civico
+    streets = Street.query.filter(db.or_(
+                    Street.name==n,
+                    literal(n).contains(Street.name))).all()
+    if len(streets)==0:
+        # se non c'è una strada
+        found = False
+        # prova a vedere che non ci sia un typo
+        namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
+        if score >= 90:
+            streets = [s for s in Street.query.filter_by(name=namestr).all()]
+        else:
+            #aggiungi agli errori e passa al successivo
+            err_civ.append((5,num, sub, den, den1, pol))
+            continue
+    if len(streets)==1:
+        #c'è solo una strada, prendo quella
+        street = streets[0]
+    else:
+        # c'è più di una strada, cerco la più vicina
+        # (è un po' rischioso perché non faccio nessun check sulla distanza)
+        idx_closest = np.argmin([s.shape.distance(pol) for s in streets])
+        street = streets[idx_closest]
+    # estraggo latitude e longitudine dal punto rappresentativo
+    repr_point = pol.representative_point()
+    lat = repr_point.y
+    lon = repr_point.x
+    # Se la location non esiste già la aggiungo
+    if not Location.query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street).first():
+        loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street)
+        add_civ += 1
+        db.session.add(loc)
+
+db.session.commit()
+
+print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nNuovi: {new}".format(
+    err=len(err_civ),
     ses=len(Neighborhood.query.all()),
     str=len(Street.query.all()),
     civ=len(Location.query.all()),
-    file=len(civici_address)
+    new=add_civ
     ))
-print("Indirizzi non inseriti: {wr}\nNumero mancante: {noNum}\nNumero diverso: {divNum}\nSestiere non esiste: {noSes}".format(wr=len(wrong_entries),noNum=err[0],divNum=err[1],noSes=err[2]), *wrong_entries, sep="\n")
+
+err_type = [[], [], [], [], [], []]
+for err in err_civ:
+    err_type[err[0]].append(err)
+print([len(err) for err in err_type])
+
+#%% Aggiungi civici e strade
+# wrong_entries = []
+# err = [0,0,0]
+# for add,den,coord in zip(civici_address, civici_denominazioni, civici_coords):
+#     long,lat = coord
+#     num_found_add = re.search("\d+(/[A-Z])?",add)
+#     num_found_den = re.search("\d+(/[A-Z])?",den)
+#     if not num_found_add or not num_found_den:
+#         # il civico non ha il numero: passa al successivo
+#         wrong_entries.append((1,add,den,coord))
+#         err[0] += 1
+#         continue
+#     if num_found_add.group(0) != num_found_den.group(0):
+#         # civico e denominazione hanno numeri diversi: passa al successivo
+#         wrong_entries.append((2,add,den,coord))
+#         err[1] += 1
+#         continue
+#     num = num_found_add.group(0)
+#     sest = add[:-len(num)-1]
+#     str = den[:-len(num)-1]
+#     n = Neighborhood.query.filter_by(name=sest).first()
+#     if not n:
+#         # il sestiere non esite: passa al successivo
+#         wrong_entries.append((3,add,den,coord))
+#         err[2] += 1
+#         continue
+#     if not Street.query.filter_by(name=str,neighborhood=n).first():
+#         # la strada in quel sestiere non esiste: la aggiungo al db
+#         db.session.add(Street(name=str,neighborhood=n))
+#     s = Street.query.filter_by(name=str,neighborhood=n).first()
+#     if not Location.query.filter_by(latitude=lat,longitude=long,street=s,housenumber=num).first():
+#         # il civico in quella strada non esiste: lo aggiungo al db
+#         db.session.add(Location(latitude=lat,longitude=long,street=s,housenumber=num))
+#
+# db.session.commit()
+# print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
+#     ses=len(Neighborhood.query.all()),
+#     str=len(Street.query.all()),
+#     civ=len(Location.query.all()),
+#     file=len(civici_address)
+#     ))
+# print("Indirizzi non inseriti: {wr}\nNumero mancante: {noNum}\nNumero diverso: {divNum}\nSestiere non esiste: {noSes}".format(wr=len(wrong_entries),noNum=err[0],divNum=err[1],noSes=err[2]), *wrong_entries, sep="\n")
 #%%
-####### estrarre i poligoni delle strade per caricarli nel database
-TP_streets =  gpd.read_file(os.path.join(folder_file,"TP_STR.shp"))
-TP_streets = TP_streets.to_crs(epsg=4326)
-TP_nome = np.asarray(TP_streets["TP_STR_NOM"])
-TP_geom = TP_streets["geometry"]
-TP_geom[1].centroid
+# ####### estrarre i poligoni delle strade per caricarli nel database
+# TP_streets =  gpd.read_file(os.path.join(folder_file,"TP_STR.shp"))
+# TP_streets = TP_streets.to_crs(epsg=4326)
+# TP_nome = np.asarray(TP_streets["TP_STR_NOM"])
+# TP_geom = TP_streets["geometry"]
+# TP_geom[1].centroid
+#
+# err_shp = []
+# for n,poli in zip(TP_nome, TP_geom):
+#     matches=Street.query.filter_by(name=n).all()
+#     for m in matches:
+#         if m.neighborhood.shape.contains(poli.centroid):
+#             m.shape=poli
+#         else:
+#             err_shp.append((m,poli))
+# db.session.commit()
+#
+# print("Strade con shape: {con}\nStrade senza shape: {sen}".format(
+#     con = len(Street.query.filter(Street.shape.isnot(None)).all()),
+#     sen = len(Street.query.filter_by(shape=None).all())
+#     ), *Street.query.filter_by(shape=None).all(), sep="\n")
 
-err_shp = []
-for n,poli in zip(TP_nome, TP_geom):
-    matches=Street.query.filter_by(name=n).all()
-    for m in matches:
-        if m.neighborhood.shape.contains(poli.centroid):
-            m.shape=poli
-        else:
-            err_shp.append((m,poli))
-db.session.commit()
-
-print("Strade con shape: {con}\nStrade senza shape: {sen}".format(
-    con = len(Street.query.filter(Street.shape.isnot(None)).all()),
-    sen = len(Street.query.filter_by(shape=None).all())
-    ), *Street.query.filter_by(shape=None).all(), sep="\n")
 #%%
-import shapely
-sm = Neighborhood.query.filter_by(name="SAN POLO").first()
-shapes = Street.query.filter_by(neighborhood=sm).filter(Street.shape.isnot(None)).all()
-n1 = err_shp[0][0]
-n1_geom = err_shp[0][1]
-y1 = shapes[0]
-err_shp[0]
-
-# Plot del sestiere
-fig, axs = plt.subplots()
-xsm, ysm = sm.shape.exterior.xy
-axs.fill(xsm,ysm, alpha=0.5, fc='b', ec='none')
-# Plot della strada trovata
-if type(y1.shape)==shapely.geometry.polygon.Polygon:
-    x_y, y_y = y1.shape.exterior.xy
-    axs.fill(x_y, y_y, alpha=1, fc='r', ec='none')
-elif type(y1.shape)==shapely.geometry.polygon.MultiPolygon:
-    for geom in y1.shape.geoms:
-        xg, yg = geom.exterior.xy
-        axs.fill(xg, yg, alpha=1, fc='r', ec='none')
-# Plot della strada non trovata
-if type(n1_geom)==shapely.geometry.polygon.Polygon:
-    x_n, y_n = n1_geom.exterior.xy
-    axs.fill(x_n, y_n, alpha=1, fc='g', ec='none')
-elif type(n1_geom)==shapely.geometry.polygon.MultiPolygon:
-    for geom in n1_geom.geoms:
-        xg, yg = geom.exterior.xy
-        axs.fill(xg, yg, alpha=1, fc='g', ec='none')
-x_n
-plt.show()
-
+# import shapely
+# sm = Neighborhood.query.filter_by(name="SAN POLO").first()
+# shapes = Street.query.filter_by(neighborhood=sm).filter(Street.shape.isnot(None)).all()
+# n1 = err_shp[0][0]
+# n1_geom = err_shp[0][1]
+# y1 = shapes[0]
+# err_shp[0]
+#
+# # Plot del sestiere
+# fig, axs = plt.subplots()
+# xsm, ysm = sm.shape.exterior.xy
+# axs.fill(xsm,ysm, alpha=0.5, fc='b', ec='none')
+# # Plot della strada trovata
+# if type(y1.shape)==shapely.geometry.polygon.Polygon:
+#     x_y, y_y = y1.shape.exterior.xy
+#     axs.fill(x_y, y_y, alpha=1, fc='r', ec='none')
+# elif type(y1.shape)==shapely.geometry.polygon.MultiPolygon:
+#     for geom in y1.shape.geoms:
+#         xg, yg = geom.exterior.xy
+#         axs.fill(xg, yg, alpha=1, fc='r', ec='none')
+# # Plot della strada non trovata
+# if type(n1_geom)==shapely.geometry.polygon.Polygon:
+#     x_n, y_n = n1_geom.exterior.xy
+#     axs.fill(x_n, y_n, alpha=1, fc='g', ec='none')
+# elif type(n1_geom)==shapely.geometry.polygon.MultiPolygon:
+#     for geom in n1_geom.geoms:
+#         xg, yg = geom.exterior.xy
+#         axs.fill(xg, yg, alpha=1, fc='g', ec='none')
+# x_n
+# plt.show()
+#
 
 
 #%% Un po' di print e info
@@ -270,8 +448,7 @@ phone
 denomination
 sport
 """
-poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
-poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+
 list_category = [
     "amenity",
     "shop",
@@ -301,7 +478,7 @@ print("Numero di Category: {cat}\nNumero totale di Type: {typ}".format(
 print("Tutti i tipi",*PoiCategoryType.query.all(),sep="\n")
 
 #%% funzione per trovare il poi più vicino a una certa lat/lon
-def closest_poi(lat,lon,tolerance=0.0003):
+def closest_location(lat,lon,tolerance=0.001):
     closest = []
     distance = np.inf
     for loc in Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
@@ -332,9 +509,10 @@ for key in types_without_address.keys():
 # malvagità per creare un dataframe differenza tra tutti - quelli che non avranno indirizzo
 poi_with_add = poi_pd[~poi_pd.apply(tuple,1).isin(poi_without_add.apply(tuple,1))]
 
-# loop in per aggiungere tutti i poi
+# loop per aggiungere tutti i poi
 err_poi = []
-r = np.where(pd.isna(poi_pd.values[0]), None, poi_pd.values[0])
+#massima distanza in metri per considerare una location
+max_dist = 50
 
 for row in poi_pd.values:
     # sostituisci nan con None per evitare casini
@@ -342,22 +520,28 @@ for row in poi_pd.values:
     # Trova la location esistente più vicina alle coordinate
     lat, lon = r[2:4]
     closest,dist = closest_poi(lat,lon)
+    # se non c'è nessuna location vicina
     if not closest:
-        err_poi.append(row)
+        err_poi.append((0,row))
+        continue
+
+    if dist > max_dist:
+        err_poi.append((1,row))
         continue
     # Controlla se il poi deve essere aggiunto con o senza indirizzo
     if row in poi_without_add.values:
         # non deve essere aggiunto con indirizzo
         # crea una nuova location (barbatrucco: usa la strada del poi più vicino)
+
         l = Location(latitude=lat,longitude=lon,street=closest.street)
     elif row in poi_with_add.values:
         # considera come location quella trovata
         l = closest
     else:
-        err_poi.append(row)
+        err_poi.append((2,row))
         continue
     # controlla che non esista già un poi nella medesima location
-    if Poi.query.filter_by(location=l).first():
+    if Poi.query.filter_by(location=l).count()>0:
         continue
     # crea poi con informazioni di base
     p = Poi(location=l)
@@ -390,11 +574,15 @@ for row in poi_pd.values:
         for typ in all_types:
             t = PoiCategoryType.query.filter_by(name=typ.strip()).first()
             if not t:
-                err_poi.append(row)
+                err_poi.append((2,row))
                 continue
             p.add_type(t)
     # aggiungi al database
     # magia: incredibilmente questo aggiunge anche la location nel caso non esistesse
     db.session.add(p)
 print("Numero di POI: {poi}\nErrori: {err}".format(poi=len(Poi.query.all()),err=len(err_poi)))
+
 db.session.commit()
+#%%
+lat,lon=err_poi[0][1][2:4]
+closest_poi(lat,lon,tolerance=0.01)
