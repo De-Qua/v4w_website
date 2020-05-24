@@ -56,7 +56,7 @@ class Location(db.Model):
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
     def __repr__(self):
 
-        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhood)
+        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhoods)
 
 
 """
