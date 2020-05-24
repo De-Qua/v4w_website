@@ -9,11 +9,11 @@ from app.models import *
 import numpy as np
 import re
 import geopandas as gpd
-from descartes import PolygonPatch
 import matplotlib.pyplot as plt
 import geopy.distance
-import shapefile
 from fuzzywuzzy import process
+from shapely.geometry import Point
+from sqlalchemy import literal
 #%% Files
 # TODO leggere civico.shp invece che txt
 folder = os.getcwd()
@@ -229,8 +229,8 @@ for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","
     # cerco tutte le strade che hanno il nome riportato nel civico
     # o il cui nome non sia una sottostringa di quello riportato nel civico
     streets = Street.query.filter(db.or_(
-                    Street.name==n,
-                    literal(n).contains(Street.name))).all()
+                    Street.name==den_str.strip(),
+                    literal(den_str.strip()).contains(Street.name))).all()
     if len(streets)==0:
         # se non c'è una strada
         found = False
@@ -478,12 +478,24 @@ print("Numero di Category: {cat}\nNumero totale di Type: {typ}".format(
 print("Tutti i tipi",*PoiCategoryType.query.all(),sep="\n")
 
 #%% funzione per trovare il poi più vicino a una certa lat/lon
-def closest_location(lat,lon,tolerance=0.001):
+def closest_location(lat,lon,tolerance=0.001,housenumber=None):
     closest = []
     distance = np.inf
-    for loc in Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-            db.between(Location.latitude,lat-tolerance,lat+tolerance)
-            )).all():
+    if housenumber == True:
+        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+                db.between(Location.latitude,lat-tolerance,lat+tolerance),
+                Location.housenumber != None
+                ))
+    elif housenumber == False:
+        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+                db.between(Location.latitude,lat-tolerance,lat+tolerance),
+                Location.housenumber == None
+                ))
+    else:
+        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+                db.between(Location.latitude,lat-tolerance,lat+tolerance)
+                ))
+    for loc in query.all():
         dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
         if dist < distance:
             distance = dist
@@ -511,58 +523,105 @@ poi_with_add = poi_pd[~poi_pd.apply(tuple,1).isin(poi_without_add.apply(tuple,1)
 
 # loop per aggiungere tutti i poi
 err_poi = []
+new_poi = 0
+new_loc = 0
+tot_val = [0,0,0,0,0,0,0]
 #massima distanza in metri per considerare una location
 max_dist = 50
 
 for row in poi_pd.values:
+
+    new_l = False
     # sostituisci nan con None per evitare casini
     r = np.where(pd.isna(row), None, row)
-    # Trova la location esistente più vicina alle coordinate
+    # Estrai le coordinate e trova la location più vicina
     lat, lon = r[2:4]
-    closest,dist = closest_poi(lat,lon)
-    # se non c'è nessuna location vicina
-    if not closest:
-        err_poi.append((0,row))
-        continue
-
-    if dist > max_dist:
-        err_poi.append((1,row))
-        continue
-    # Controlla se il poi deve essere aggiunto con o senza indirizzo
+    closest,dist = closest_location(lat,lon)
+    tot_val[0]+=1
     if row in poi_without_add.values:
-        # non deve essere aggiunto con indirizzo
-        # crea una nuova location (barbatrucco: usa la strada del poi più vicino)
-
-        l = Location(latitude=lat,longitude=lon,street=closest.street)
+        closest,dist = closest_location(lat,lon)
+        if not closest:
+            err_poi.append((0,row))
+            continue
+        # aggiungi la location usando come strada quella della location più vicina
+        l = Location(latitude=lat,longitude=lon)
+        new_l = True
     elif row in poi_with_add.values:
-        # considera come location quella trovata
+        # Cerca la location più vicina che abbia anche un numero civico
+        closest,dist = closest_location(lat,lon,housenumber=True)
+        if not closest:
+            err_poi.append((0,row))
+            continue
+        # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
+        elif dist > max_dist:
+            err_poi.append((2,row))
+            continue
         l = closest
     else:
-        err_poi.append((2,row))
+        # questo non dovrebbe mai succedere
+        err_poi.append((1,row))
         continue
-    # controlla che non esista già un poi nella medesima location
-    if Poi.query.filter_by(location=l).count()>0:
-        continue
-    # crea poi con informazioni di base
-    p = Poi(location=l)
-    p.name = r[poi_pd.columns.get_loc('name')]
-    p.name_alt = r[poi_pd.columns.get_loc('alt_name')]
-    p.opening_hours = r[poi_pd.columns.get_loc('opening_hours')]
-    p.wheelchair = r[poi_pd.columns.get_loc('wheelchair')]
+    tot_val[1]+=1
+    # crea informazioni di base
+    # (non creo già il poi perché visto che ha una relazione con location che fa
+    # già parte della db.session, allora lo aggiungerebbe automaticamente alla session)
+    location=l
+    name = r[poi_pd.columns.get_loc('name')]
+    name_alt = r[poi_pd.columns.get_loc('alt_name')]
+    opening_hours = r[poi_pd.columns.get_loc('opening_hours')]
+    wheelchair = r[poi_pd.columns.get_loc('wheelchair')]
     if r[poi_pd.columns.get_loc('toilets')] == "yes":
-        p.toilets = True
+        toilets = True
     elif r[poi_pd.columns.get_loc('toilets')] == "no":
-        p.toilets = False
+        toilets = False
+    else:
+        toilets = None
     if r[poi_pd.columns.get_loc('toilets:wheelchair')]=="yes":
-        p.toilets_wheelchair = True
+        toilets_wheelchair = True
     elif r[poi_pd.columns.get_loc('toilets:wheelchair')]=="no":
-        p.toilets_wheelchair = False
-    p.wikipedia = r[poi_pd.columns.get_loc('wikipedia')]
+        toilets_wheelchair = False
+    else:
+        toilets_wheelchair = None
+    wikipedia = r[poi_pd.columns.get_loc('wikipedia')]
     if r[poi_pd.columns.get_loc('atm')]=="yes":
-        p.atm = True
+        atm = True
     elif r[poi_pd.columns.get_loc('atm')]=="no":
-        p.atm = False
-    p.phone = r[poi_pd.columns.get_loc('phone')]
+        atm = False
+    else:
+        atm = None
+    phone = r[poi_pd.columns.get_loc('phone')]
+    tot_val[2]+=1
+    # controlla che non esista già lo stesso poi
+    if Poi.query.filter_by(name = name,
+                    name_alt = name_alt,
+                    opening_hours = opening_hours,
+                    wheelchair = wheelchair,
+                    toilets = toilets,
+                    toilets_wheelchair = toilets_wheelchair,
+                    wikipedia = wikipedia,
+                    atm = atm,
+                    phone = phone
+                    ).join(Location).filter_by(latitude=location.latitude,
+                                        longitude=location.longitude).first():
+        continue
+    tot_val[3]+=1
+    # se la location era nuova aggiungo la strada ora
+    # lo faccio ora perché prima aggiungendo la strada avrebbe creato la location
+    if new_l:
+        location.street = closest.street
+    # creo il poi
+    p = Poi(location=location,
+            name = name,
+            name_alt = name_alt,
+            opening_hours = opening_hours,
+            wheelchair = wheelchair,
+            toilets = toilets,
+            toilets_wheelchair = toilets_wheelchair,
+            wikipedia = wikipedia,
+            atm = atm,
+            phone = phone
+            )
+    tot_val[4]+=1
     # aggiungi le informazioni sulle categorie dalla tabella type
     for cat in list_category:
         cat_type = r[poi_pd.columns.get_loc(cat)]
@@ -574,15 +633,50 @@ for row in poi_pd.values:
         for typ in all_types:
             t = PoiCategoryType.query.filter_by(name=typ.strip()).first()
             if not t:
-                err_poi.append((2,row))
+                err_poi.append((3,row))
                 continue
             p.add_type(t)
+    tot_val[5]+=1
     # aggiungi al database
+    new_poi += 1
+    if new_l:
+        new_loc +=1
     # magia: incredibilmente questo aggiunge anche la location nel caso non esistesse
     db.session.add(p)
-print("Numero di POI: {poi}\nErrori: {err}".format(poi=len(Poi.query.all()),err=len(err_poi)))
 
-db.session.commit()
+print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}".format(
+        poi=len(Poi.query.all()),
+        err=len(err_poi),
+        new_p=new_poi,
+        new_l=new_loc))
+
+# db.session.rollback()
+#2907 154 43381
+#db.session.commit()
+err_type = [[],[],[],[]]
+for err in err_poi:
+    err_type[err[0]].append(err)
+print([len(err) for err in err_type])
+# Numero di POI: 2873
+# Errori: 139
+# Nuovi POI: 2873
+# Nuove Location: 779
+# [54, 0, 85, 0]
+# Location 43402
+print(len(Location.query.all()))
 #%%
-lat,lon=err_poi[0][1][2:4]
-closest_poi(lat,lon,tolerance=0.01)
+Poi.query.filter(Poi==p[0]).first()
+p[0]
+p[4].types.all()
+Poi.query.filter_by(
+        location=p[4].location,
+        name = p[4].name,
+        name_alt = p[4].name_alt,
+        opening_hours = p[4].opening_hours,
+        wheelchair = p[4].wheelchair,
+        toilets = p[4].toilets,
+        toilets_wheelchair = p[4].toilets_wheelchair,
+        wikipedia = p[4].wikipedia,
+        atm = p[4].atm,
+        phone = p[4].phone,
+        ).filter(Poi.types.is_(p[4].types)).first()
