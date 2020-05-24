@@ -49,9 +49,29 @@ def find_address_in_db(input_string):
     found_something, actual_address, address_type = fuzzy_exact_search(text)
     # dammi coordinate, del punto o del poligono
     geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
+    # correggi per Leaflet
+    coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
+    # full address
+    if isThereaCivico:
+        actual_address = actual_address + " " + number
 
     return geo_type, coordinates, polygon_shape, actual_address
 
+"""
+le nostre coordinate sono un po sfasate
+"""
+def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
+
+    shift = np.asarray([-0.000015, +0.000015])
+    corrected_coords = coordinates + shift
+    if geo_type > 0:
+        numpy_pol = np.asarray(polygon)
+        numpy_corrected_polygon = numpy_pol + shift
+        corrected_polygon = numpy_corrected_polygon.tolist()
+    else:
+        corrected_polygon = None
+
+    return corrected_coords, corrected_polygon
 
 """
 pulisce il nome.
@@ -98,9 +118,15 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
                 # poi!
                 actual_location = Location.query.filter_by(housenumber=number).join(Poi).filter_by(name=actual_address).join(Neighborhood).first()
 
-            # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
-            coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape_as_list = None
+            print(actual_location)
+            if actual_location:
+                # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
+                coords = [actual_location.longitude, actual_location.latitude]
+                polygon_shape_as_list = None
+            else:
+                # abbiamo trovato il sestiere, la strada o il poi, ma non il numero!
+                coords = [-1, -1]
+                polygon_shape_as_list = None
         else:
             #geo type = 1 dice che usiamo un poligono
             geo_type = 1
@@ -159,17 +185,6 @@ def getCentroidSmartly(polygon_shape):
 
     avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
 
-    # coord_x = 0
-    # coord_y = 0
-    # number_of_centroids = 0
-    # for cur_centroid in polygon_shape.centroid:
-    #     coord_x += cur_centroid.x
-    #     coord_y += cur_centroid.y
-    #     number_of_centroids += 1
-    #
-    # coord_x /= number_of_centroids
-    # coord_y /= number_of_centroids
-    # avg_coordinate = [coord_x, coord_y]
     print("Centroide: ", avg_coordinate)
     return avg_coordinate
 
@@ -190,10 +205,10 @@ def dividiEtImpera(clean_string):
     isThereaCivico = format_civico.search(clean_string)
     if isThereaCivico:
         # un po di caos qui
-        found_number = isThereaCivico.group(0)
+        number = isThereaCivico.group(0)
         # formatta il numero nel format in cui è salvato nel database
-        numero_cifra = re.findall(r'\d+',found_number)
-        numero_lettera = re.findall(r'[A-z]',found_number)
+        numero_cifra = re.findall(r'\d+',number)
+        numero_lettera = re.findall(r'[A-z]',number)
         if numero_lettera:
             number += '/' + numero_lettera[0]
         else:
