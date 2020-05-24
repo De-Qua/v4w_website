@@ -8,10 +8,11 @@ from app.models import Neighborhood, Street, Location, Area, Poi
 from app import app, db
 #Neighborhood.query.all()
 from fuzzywuzzy import fuzz, process
-"""
-da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
-"""
+
 def civico2coord(coord_list,civico_name,civico_list, civico_coord):
+    """
+    da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
+    """
     coordinate = np.asarray(coord_list)
     # removing one (or more) annoying none values
     #streets_corrected = [street if street else "" for street in streets_list]
@@ -31,12 +32,11 @@ def civico2coord(coord_list,civico_name,civico_list, civico_coord):
     idx = np.argmin(np.sum(tmp * tmp, axis=1))
     return (coordinate[idx][0], coordinate[idx][1])
 
-"""
-Cerca nel database
-Questo e solo un wrapper che chiama le funzioni, per maggiore leggibilita
-"""
-def find_address_in_db(input_string):
 
+def find_address_in_db(input_string):
+    """
+    Wrapper functions that looks for an address in the database.
+    """
     print("looking in the db")
     # fetch parameters (puo tornare utile se i parametri saranno modificabili dal browser piu avanti)
     search_parameters = get_parameters()
@@ -57,11 +57,11 @@ def find_address_in_db(input_string):
 
     return geo_type, coordinates, polygon_shape, actual_address
 
-"""
-le nostre coordinate sono un po sfasate
-"""
-def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
 
+def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
+    """
+    Corrects our coordinates with respect to OpenStreetMaps.
+    """
     shift = np.asarray([-0.000015, +0.000015])
     corrected_coords = coordinates + shift
     if geo_type > 0:
@@ -73,11 +73,11 @@ def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
 
     return corrected_coords, corrected_polygon
 
-"""
-pulisce il nome.
-funzione di ale presa da functions.py
-"""
+
 def correct_name(name):
+    """
+    Clean and correct the input name.
+    """
     # prende la stringa in ingresso e fa delle sostituzioni
     # 0. Eliminare spazi iniziali e finali
     name = name.strip()
