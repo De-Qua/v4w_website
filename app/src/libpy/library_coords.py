@@ -96,7 +96,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
             elif address_type == 2:
                 print("POI + NUMERO")
                 # poi!
-                actual_location = Location.query.filter_by(housenumber=number).join(Pois).filter_by(name=actual_address).join(Neighborhood).first()
+                actual_location = Location.query.filter_by(housenumber=number).join(Poi).filter_by(name=actual_address).join(Neighborhood).first()
 
             # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
             coords = [actual_location.longitude, actual_location.latitude]
@@ -116,7 +116,7 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
             elif address_type == 2:
                 print("POI senza NUMERO")
                 # poi!
-                actual_location = Pois.query.filter_by(name=actual_address).first()
+                actual_location = Poi.query.filter_by(name=actual_address).first()
 
             # prendiamo la shape!
             if actual_location.shape:
@@ -311,10 +311,10 @@ def fuzzy_search(word):
         matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_street:
             final_matches.append((m,s,1))
-    #if not any([match[1]>98 for match in final_matches]):
-        #matches_poi = process.extractBests(word,poi.query.all(),score_cutoff=score_cutoff,limit=n_limit)
-        #for m,s in matches_poi:
-        #    final_matches.append((m,s,2))
+    if not any([match[1]>98 for match in final_matches]):
+        matches_poi = process.extractBests(word,Poi.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        for m,s in matches_poi:
+            final_matches.append((m,s,2))
     final_matches.sort(key=takeSecond, reverse=True)
     print("match,score,type", final_matches)
     return bool(final_matches), [match[0] for match in final_matches[0:n_limit]], [match[2] for match in final_matches[0:n_limit]]
