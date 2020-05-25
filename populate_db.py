@@ -680,3 +680,17 @@ Poi.query.filter_by(
         atm = p[4].atm,
         phone = p[4].phone,
         ).filter(Poi.types.is_(p[4].types)).first()
+
+
+#%%
+# Idea di Palma
+# al momento non funzionera!!!
+# import library_database as lb
+#
+# lb.create_query_objects()
+# err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
+# err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
+# err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
+# err_poi = lb.update_POI(path_poi_file)
+# lb.tell_me_something_I_dont_know()
+# lb.check_db()
