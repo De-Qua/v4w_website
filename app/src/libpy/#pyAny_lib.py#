@@ -26,7 +26,7 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
     try:
         # Dijkstra algorithm, funzione peso lunghezza
         if flag_ponti == False:
-            path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
+            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
             length_path = 1
             # lista dei nodi attraversati
         # Dijkstra algorithm, funzione peso ponti
