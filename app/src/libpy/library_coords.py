@@ -91,82 +91,83 @@ def correct_name(name):
 """
 la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 """
-def fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico):
+def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
 
     if found_something:
-        print("we found", actual_address, type(actual_address))
-        # prendi la coordinata relativa
-
-        # controlla i tentativi
-        assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
-        assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
-        # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
+        print("we found", actual_location, type(location))
+    #     # prendi la coordinata relativa
+    #
+    #     # controlla i tentativi
+    #     assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
+    #     assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
+    #     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
         if isThereaCivico:
-            # geo type = 0 dice che usiamo un punto
+    #         # geo type = 0 dice che usiamo un punto
             geo_type = 0
+    #
+    #         if address_type == 0:
+    #             print("SESTIERE + NUMERO")
+    #             # se e sestiere, prendi sestiere + numero
+    #             actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
+    #         elif address_type == 1:
+    #             print("STRADA + NUMERO")
+    #             # se e strada, prendi strada + numero (+ sestiere?)
+    #             actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
+    #         elif address_type == 2:
+    #             print("POI + NUMERO")
+    #             # poi!
+    #             actual_location = Location.query.filter_by(housenumber=number).join(Poi).filter_by(name=actual_address).join(Neighborhood).first()
+    #
+    #         print(actual_location)
+    #         if actual_location:
+    #             # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
+            coords = [actual_location.longitude, actual_location.latitude]
+            polygon_shape_as_list = None
+    #         else:
+    #             # abbiamo trovato il sestiere, la strada o il poi, ma non il numero!
+    #             coords = [-1, -1]
+    #             polygon_shape_as_list = None
+    #     else:
+    #         #geo type = 1 dice che usiamo un poligono
+    #         geo_type = 1
+    #
+    #         if address_type == 0:
+    #             print("SESTIERE senza NUMERO")
+    #             # se e sestiere, prendi sestiere + numero
+    #             actual_location = Neighborhood.query.filter_by(name=actual_address).first()
+    #         elif address_type == 1:
+    #             print("STRADA senza NUMERO")
+    #             # se e strada, prendi strada + numero (+ sestiere?)
+    #             actual_location = Street.query.filter_by(name=actual_address).first()
+    #         elif address_type == 2:
+    #             print("POI senza NUMERO")
+    #             # poi!
+    #             actual_location = Poi.query.filter_by(name=actual_address).first()
 
-            if address_type == 0:
-                print("SESTIERE + NUMERO")
-                # se e sestiere, prendi sestiere + numero
-                actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
-            elif address_type == 1:
-                print("STRADA + NUMERO")
-                # se e strada, prendi strada + numero (+ sestiere?)
-                actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
-            elif address_type == 2:
-                print("POI + NUMERO")
-                # poi!
-                actual_location = Location.query.filter_by(housenumber=number).join(Poi).filter_by(name=actual_address).join(Neighborhood).first()
-
-            print(actual_location)
-            if actual_location:
-                # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
-                coords = [actual_location.longitude, actual_location.latitude]
-                polygon_shape_as_list = None
-            else:
-                # abbiamo trovato il sestiere, la strada o il poi, ma non il numero!
-                coords = [-1, -1]
-                polygon_shape_as_list = None
-        else:
-            #geo type = 1 dice che usiamo un poligono
+        # prendiamo la shape!
+        elif actual_location.shape:
             geo_type = 1
-
-            if address_type == 0:
-                print("SESTIERE senza NUMERO")
-                # se e sestiere, prendi sestiere + numero
-                actual_location = Neighborhood.query.filter_by(name=actual_address).first()
-            elif address_type == 1:
-                print("STRADA senza NUMERO")
-                # se e strada, prendi strada + numero (+ sestiere?)
-                actual_location = Street.query.filter_by(name=actual_address).first()
-            elif address_type == 2:
-                print("POI senza NUMERO")
-                # poi!
-                actual_location = Poi.query.filter_by(name=actual_address).first()
-
-            # prendiamo la shape!
-            if actual_location.shape:
-                polygon_shape = actual_location.shape
-                if polygon_shape.geom_type == 'MultiPolygon':
-                    # do multipolygon things.
-                    polygon_shape_as_list = []
-                    # loop su ogni poligono
-                    for single_polygon in polygon_shape:
-                        # poligono
-                        xs, ys = single_polygon.exterior.coords.xy
-                        # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
-                        for i in range(len(xs)):
-                            polygon_shape_as_list.append([ys[i], xs[i]])
-                elif polygon_shape.geom_type == 'Polygon':
-                    # do polygon things.
-                    xs, ys = polygon_shape.exterior.coords.xy
-                    polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
-                else:
-                    raise IOError('Shape is not a polygon.')
-                # coords va creato in modo che sia subscriptable
-                coords = getCentroidSmartly(polygon_shape)
-                #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
+            polygon_shape = actual_location.shape
+            if polygon_shape.geom_type == 'MultiPolygon':
+                # do multipolygon things.
+                polygon_shape_as_list = []
+                # loop su ogni poligono
+                for single_polygon in polygon_shape:
+                    # poligono
+                    xs, ys = single_polygon.exterior.coords.xy
+                    # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
+                    for i in range(len(xs)):
+                        polygon_shape_as_list.append([ys[i], xs[i]])
+            elif polygon_shape.geom_type == 'Polygon':
+                # do polygon things.
+                xs, ys = polygon_shape.exterior.coords.xy
+                polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
             else:
+                raise IOError('Shape is not a polygon.')
+            # coords va creato in modo che sia subscriptable
+            coords = getCentroidSmartly(polygon_shape) # polygon_shape potreebbe esser un multipoligono!
+            #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
+        else:
                 coords = [-1, -1]
                 geo_type = -1
                 polygon_shape_as_list = None
@@ -182,9 +183,8 @@ def fetch_coordinates(found_something, actual_address, address_type, number, isT
 da gestire piu poligoni, piu centroidi, multipoligoni e alieni
 """
 def getCentroidSmartly(polygon_shape):
-
-    avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
-
+    #avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
+    avg_coordinate = polygon_shape.representative_point
     print("Centroide: ", avg_coordinate)
     return avg_coordinate
 
