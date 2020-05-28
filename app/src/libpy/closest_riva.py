@@ -1,4 +1,4 @@
-from pyAny_lib import calculate_path
+from app.src.libpy.pyAny_lib import calculate_path
 import numpy as np
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
