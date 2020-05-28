@@ -7,20 +7,24 @@ import os,sys
 from app import app, db
 from app.models import Neighborhood, Street, Location, Area, Poi
 import random
+import geopandas as gpd
+
+global neigh_query, streets_query, location_query
 
 def create_query_objects():
     """
     Skyrocketing our performances with few lines of code (it creates the query objects to be used later).
     """
-    neighbourhoods_query = Neighborhood.query.all() #serve l'all?
-    streets_query = Street.query.all()
-    location_query = Location.query.all()
+    global neigh_query, streets_query, location_query
+    neigh_query = Neighborhood.query #serve l'all?
+    streets_query = Street.query
+    location_query = Location.query
 
 def update_sestieri(shp, showFig=False, explain=False):
     """
     Updates the neighborhood Table and returns the number of errors, so 0 is the desired output.
     """
-
+    global neigh_query, streets_query, location_query
     sestieri =  gpd.read_file(shp)
     if not (sestieri.crs.name == 'WGS 84'):
         if explain:
@@ -62,7 +66,7 @@ def update_sestieri(shp, showFig=False, explain=False):
             continue
         geom = geom.iloc[0]
         # aggiungi se non è già presente
-        neig = neighbourhoods_query.filter_by(shape=geom).first()
+        neig = neigh_query.filter_by(shape=geom).first()
         if not neig:
             # TODO: possiamo usare la query gia esistente qui?
             n = Neighborhood(name=s,zipcode=c, shape=geom)
@@ -75,14 +79,14 @@ def update_sestieri(shp, showFig=False, explain=False):
 
     print("Errori: {err}\nSestieri: {ses}\nNuovi: {new}".format(
         err=len(err_neighb),
-        ses=len(neighbourhoods_query),
+        ses=len(neigh_query.all()),
         new=add_neighb
         ))
     if showFig:
         # Plot dei sestieri
         plt.figure()
         plt.title("Neighborhood Shapes")
-        for n in neighbourhoods_query:
+        for n in neigh_query:
             plt.plot(*n.shape.exterior.xy)
         plt.show()
 
@@ -92,6 +96,7 @@ def update_streets(shp, showFig=False, explain=False):
     """
     Updates the Streets Table and returns the number of errors, so 0 is the desired output.
     """
+    global neigh_query, streets_query, location_query
 
     streets =  gpd.read_file(shp)
     if not (streets.crs.name == 'WGS 84'):
@@ -106,9 +111,9 @@ def update_streets(shp, showFig=False, explain=False):
     err_streets = []
     add_streets = 0
     for name, name_spe, name_den, pol in streets[['TP_STR_NOM','CVE_TS_SPE','CVE_TS_DEN','geometry']].values:
-        if pd.isna(name):
+        if name:
             err_streets.append((0,name,name_spe,name_den,pol))
-        sestieri = [n for n in neighbourhoods_query if n.shape.distance(pol)==0]
+        sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
         # se la strada non è contenuta in nessun sestiere passa al successivo
         if len(sestieri)==0:
             continue
@@ -129,8 +134,8 @@ def update_streets(shp, showFig=False, explain=False):
 
     print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nNuove: {new}".format(
         err=len(err_streets),
-        ses=len(neighbourhoods_query),
-        str=len(streets_query),
+        ses=len(neigh_query.all()),
+        str=len(streets_query.all()),
         new=add_streets
         ))
 
@@ -155,9 +160,11 @@ def update_locations(shp, showFig=False, explain=False):
     """
     Updates the Location Table and returns the number of errors, so 0 is the desired output.
     """
+    global neigh_query, streets_query, location_query
     civici =  gpd.read_file(shp)
     # rimuovo righe senza geometria che danno problemi
-    empty_civici = civici.loc[pd.isna(civici["geometry"])]
+    empty_civici = [civico_geom in civicogeom for civicogem in civici["geometry"] if civicogeom ]
+    #empty_civici = civici.loc[pd.isna(civici["geometry"])]
     civici = civici.loc[~pd.isna(civici["geometry"])]
     if not (civici.crs.name == 'WGS 84'):
         if explain:
@@ -172,7 +179,7 @@ def update_locations(shp, showFig=False, explain=False):
     if explain:
         print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(len(civici['CIVICO_NUM'])))
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
-        sestieri = [n for n in neighbourhoods_query if n.shape.contains(pol)]
+        sestieri = [n for n in neigh_query if n.shape.contains(pol)]
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri)==0:
             continue
@@ -182,12 +189,12 @@ def update_locations(shp, showFig=False, explain=False):
             continue
         # principalmente voglio usare DENOMINAZI, nel caso sia vuoto uso DENOMINA_1
         # nel caso siano entrambi vuoti errore e continuo
-        if pd.isna(den) and pd.isna(den1):
+        if den and den1:
             err_civ.append((1,num, sub, den, den1, pol))
             continue
-        elif not pd.isna(den):
+        elif not den:
             denom = den
-        elif not pd.isna(den1):
+        elif not den1:
             denom = den1
         else:
             # questo non dovrebbe mai succedere
@@ -217,7 +224,7 @@ def update_locations(shp, showFig=False, explain=False):
         if housenumber != den_num:
             found = False
             # provo a vedere se per caso non è uguale a quello dei den1
-            if denom==den and not pd.isna(den1):
+            if denom==den and not den1:
                 num_found_denom = re.search("\d+(/[A-Z])?$",den1)
                 if num_found_denom:
                     den1_num = num_found_denom.group(0)
@@ -238,7 +245,7 @@ def update_locations(shp, showFig=False, explain=False):
             # prova a vedere che non ci sia un typo
             namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
             if score >= 90:
-                streets = [s for s in Street.query.filter_by(name=namestr).all()]
+                streets = [s for s in streets_query.filter_by(name=namestr).all()]
             else:
                 #aggiungi agli errori e passa al successivo
                 err_civ.append((5,num, sub, den, den1, pol))
@@ -267,9 +274,9 @@ def update_locations(shp, showFig=False, explain=False):
 
     print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nNuovi: {new}".format(
         err=len(err_civ),
-        ses=len(neighbourhoods_query),
-        str=len(streets_query),
-        civ=len(location_query),
+        ses=len(neigh_query.all()),
+        str=len(streets_query.all()),
+        civ=len(location_query.all()),
         new=add_civ
         ))
 
@@ -301,6 +308,7 @@ def update_POI(file_poi):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
+    global neigh_query, streets_query, location_query
     poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
     poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
     poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
@@ -489,6 +497,7 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
     """
     It returns the closest POI with respect to the input coordinates.
     """
+    global neigh_query, streets_query, location_query
     closest = []
     distance = np.inf
     if housenumber == True:
@@ -516,6 +525,7 @@ def tell_me_something_I_dont_know():
     """
     It will tell you something from our database - Fun facts for shapefile nerds.
     """
+    global neigh_query, streets_query, location_query
     #%% Un po' di print e info
     print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
         ses=len(neighbourhoods_query),
@@ -576,7 +586,7 @@ def check_db():
     """
     A test on the status of the database, to check if everything is ok or fields are empty.
     """
-
+    global neigh_query, streets_query, location_query
     testPassed = True
     print("checking db: ", db)
     #%%

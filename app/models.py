@@ -56,10 +56,12 @@ class Location(db.Model):
     housenumber = db.Column(db.String(8),index=True)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
     def __repr__(self):
-
+        return self
+    # cosa ritorniamo da __str__
+    def __str__(self):
         return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhoods.all())
-
-
+    def get_description(self):
+        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhoods.all())
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
@@ -72,7 +74,11 @@ class Area(db.Model):
     streets = db.relationship("Street",secondary=area_streets,
         lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
     def __repr__(self):
-        return "{name} ({neighborhoods}) {streets}".format(name=self.name,neighborhoods=self.neighborhood,streets=self.street)
+        return self
+    def __str__(self):
+        return self.name
+    def get_description(self):
+        return self.name
 """
 Strade intere (senza numeri)
 Hanno:
@@ -104,7 +110,11 @@ class Street(db.Model):
     def belongs(self,neighborhood):
         return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
     def __repr__(self):
-        return self.name #return "{name} ({neighborhood})".format(name=self.name,neighborhood=self.neighborhood)
+        return self
+    def __str__(self):
+        return self.name
+    def get_description(self):
+        return "{name} ({neighborhood})".join(name=self.name,neighborhood=self.neighborhood)
 
 """
 Sestieri:
@@ -119,7 +129,11 @@ class Neighborhood(db.Model):
     shape = db.Column(db.PickleType,nullable=False)
     locations = db.relationship("Location",backref="neighborhood",lazy="dynamic")
     def __repr__(self):
-        return self.name #return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
+        return self
+    def __str__(self):
+        return self.name
+    def get_description(self):
+        return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
 
 """
 POI = Punti di Interesse
@@ -153,9 +167,13 @@ class Poi(db.Model):
             self.types.remove(type)
     def is_type(self,type):
         return self.types.filter(poi_types.c.type_id==type.id).count() > 0
-    def __repr__(self):
+    def get_description(self):
         return "{name}\nAddress: {address})".format(
         name=self.name, address=self.location)
+    def __repr__(self):
+        return self
+    def __str__(self):
+        return self.name
 
 class PoiCategory(db.Model):
     id = db.Column(db.Integer,primary_key=True)
