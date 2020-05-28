@@ -685,12 +685,21 @@ Poi.query.filter_by(
 #%%
 # Idea di Palma
 # al momento non funzionera!!!
-# import library_database as lb
-#
-# lb.create_query_objects()
-# err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
-# err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
-# err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
-# err_poi = lb.update_POI(path_poi_file)
-# lb.tell_me_something_I_dont_know()
-# lb.check_db()
+import geopandas as gpd
+import os#
+%load_ext autoreload
+%autoreload 2
+import library_database as lb
+folder = os.getcwd()
+folder_file = os.path.join(folder,"app","static","files")
+lb.create_query_objects()
+path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
+err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
+from app.models import Neighborhood, Street, Location, Area, Poi
+path_shp_streets = (os.path.join(folder_file,"TP_STR.shp"))
+err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
+err_streets
+err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
+err_poi = lb.update_POI(path_poi_file)
+lb.tell_me_something_I_dont_know()
+lb.check_db()
