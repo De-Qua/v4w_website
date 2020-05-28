@@ -163,7 +163,8 @@ def update_locations(shp, showFig=False, explain=False):
     global neigh_query, streets_query, location_query
     civici =  gpd.read_file(shp)
     # rimuovo righe senza geometria che danno problemi
-    empty_civici = civici.loc[civico_geom in civicogeom if civicogeom for civicogem in civici["geometry"]]
+    empty_civici = [civico_geom in civicogeom for civicogem in civici["geometry"] if civicogeom ]
+    #empty_civici = civici.loc[pd.isna(civici["geometry"])]
     civici = civici.loc[~pd.isna(civici["geometry"])]
     if not (civici.crs.name == 'WGS 84'):
         if explain:
