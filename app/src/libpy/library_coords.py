@@ -94,16 +94,16 @@ la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
 
     if found_something:
-         print("we found", actual_location, type(location))
+        print("we found", actual_location, type(location))
     #     # prendi la coordinata relativa
     #
     #     # controlla i tentativi
     #     assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
     #     assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
     #     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
-         if isThereaCivico:
+        if isThereaCivico:
     #         # geo type = 0 dice che usiamo un punto
-             geo_type = 0
+            geo_type = 0
     #
     #         if address_type == 0:
     #             print("SESTIERE + NUMERO")
@@ -121,8 +121,8 @@ def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
     #         print(actual_location)
     #         if actual_location:
     #             # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
-             coords = [actual_location.longitude, actual_location.latitude]
-             polygon_shape_as_list = None
+            coords = [actual_location.longitude, actual_location.latitude]
+            polygon_shape_as_list = None
     #         else:
     #             # abbiamo trovato il sestiere, la strada o il poi, ma non il numero!
     #             coords = [-1, -1]
@@ -144,7 +144,7 @@ def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
     #             # poi!
     #             actual_location = Poi.query.filter_by(name=actual_address).first()
 
-            # prendiamo la shape!
+        # prendiamo la shape!
         elif actual_location.shape:
             geo_type = 1
             polygon_shape = actual_location.shape
