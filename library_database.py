@@ -32,6 +32,8 @@ def create_query_objects():
     location_query = Location.query
     poi_query = Poi.query
     aree_query = Area.query
+    # Reset database if there were changes not committed
+    db.session.rollback()
 
 def progressbar(current_value,total_value,step=5,text='',progressSymbol='=',remainingSymbol=' ',currentSymbol=''):
     assert (100%step) == 0
@@ -53,14 +55,15 @@ def progressbar(current_value,total_value,step=5,text='',progressSymbol='=',rema
 
 
 def progressbar_pip_style(current,total,step=5,text=''):
-    assert (100%step) == 0
-    percentage = current / total * 100
-    progress = int(percentage/step)
-    remain = int(100/step-progress)
-    print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress+">",remain=" "*remain,perc=percentage,text=text),
-                                                    end="\r",flush=True)
-    if percentage == 100:
-        print("",end="\n",flush=True)
+    progressbar(current,total,step=step,text=text,currentSymbol='>')
+    # assert (100%step) == 0
+    # percentage = current / total * 100
+    # progress = int(percentage/step)
+    # remain = int(100/step-progress)
+    # print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress+">",remain=" "*remain,perc=percentage,text=text),
+    #                                                 end="\r",flush=True)
+    # if percentage == 100:
+    #     print("",end="\n",flush=True)
 
 def convert_SHP(shp_file, explain=False):
     """
@@ -617,16 +620,15 @@ def tell_me_something_I_dont_know():
     """
     global neigh_query, streets_query, location_query
     #%% Un po' di print e info
-    print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nFile: {file}".format(
-        ses=len(neighbourhoods_query),
-        str=len(streets_query),
-        civ=len(location_query),
-        file=len(civici_address)
+    print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}".format(
+        ses=len(neigh_query.all()),
+        str=len(streets_query.all()),
+        civ=len(location_query.all())
         ))
     # Gli elementi del db vengono printati secondo quanto definito nella classe al metodo __def__
-    rnd_n = random.randint(len(neighbourhoods_query))
-    rnd_s = random.randint(len(streets_query))
-    rnd_l = random.randint(len(location_query))
+    rnd_n = random.randint(len(neigh_query.all()))
+    rnd_s = random.randint(len(streets_query.all()))
+    rnd_l = random.randint(len(location_query.all()))
     print("Il {q} quartiere, la {s} strada e la {l} location del database all'indirizzo:\n{ses}\n{str}\n{loc}".format(
         q=rnd_n, s=rnd_s, l=rnd_l,
         ses=neighbourhoods_query.get(rnd_n),
@@ -634,13 +636,13 @@ def tell_me_something_I_dont_know():
         loc=location_query.get(rnd_l),
         ))
     # Si può facilmente accedere agli elementi di un singolo elemento
-    rnd_l2 = random.randint(len(location_query))
+    rnd_l2 = random.randint(len(location_query.all()))
     l = location_query.get(rnd_l2)
     print("Informazioni sulla una location che oggi ci piace molto:\nStrada: {str}\nCivico: {civ}\nSestiere: {ses}\nCAP: {cap}\nCoordinate: {lat},{lon}".format(
         str=l.street.name,
         civ=l.housenumber,
-        ses=l.street.neighborhood.name,
-        cap=l.street.neighborhood.zipcode,
+        ses=l.neighborhood.name,
+        cap=l.neighborhood.zipcode,
         lat=l.latitude,
         lon=l.longitude
         ))

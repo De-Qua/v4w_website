@@ -684,14 +684,14 @@ Poi.query.filter_by(
 
 #%%
 # Idea di Palma
-# al momento non funzionera!!!
+# al momento funzionano sestieri, strade e civici!!!
 import geopandas as gpd
 import os#
 %load_ext autoreload
 %autoreload 2
 import library_database as lb
+from app import db
 lb.create_query_objects()
-db.session.rollback()
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
 path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
@@ -701,9 +701,6 @@ path_shp_streets = (os.path.join(folder_file,"TP_STR.shp"))
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
 path_shp_locations = os.path.join(folder_file,"CIVICO.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
-import re
-den1=None
-print("{c:5.1f}".format(c=104.244))
 poi1, poi2 = read_POI(poi_file_path)
 err_poi = lb.update_POI(poi1, poi2)
 lb.tell_me_something_I_dont_know()
