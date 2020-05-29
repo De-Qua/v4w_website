@@ -33,15 +33,9 @@ def create_query_objects():
     poi_query = Poi.query
     aree_query = Area.query
 
-<<<<<<< HEAD
 def progressbar(current_value,total_value,step=5,text='',progressSymbol='=',remainingSymbol=' ',currentSymbol=''):
     assert (100%step) == 0
     percentage = current_value / total_value * 100
-=======
-def progressbar(current,total,step=5,text=''):
-    assert (100%step) == 0
-    percentage = current / total * 100
->>>>>>> 7286f09b91218352e8b03ede1009c265291bcaae
     progress = int(percentage/step)
     remain = int(100/step-progress)
     if len(currentSymbol)>0:
