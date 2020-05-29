@@ -34,11 +34,21 @@ def create_query_objects():
     aree_query = Area.query
 
 def progressbar(current,total,step=5,text=''):
-    assert (100%5) == 0
+    assert (100%step) == 0
     percentage = current / total * 100
     progress = int(percentage/step)
     remain = int(100/step-progress)
     print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress,remain=" "*remain,perc=percentage,text=text),
+                                                    end="\r",flush=True)
+    if percentage == 100:
+        print("",end="\n",flush=True)
+
+def progressbar_pip_style(current,total,step=5,text=''):
+    assert (100%step) == 0
+    percentage = current / total * 100
+    progress = int(percentage/step)
+    remain = int(100/step-progress)
+    print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress+">",remain=" "*remain,perc=percentage,text=text),
                                                     end="\r",flush=True)
     if percentage == 100:
         print("",end="\n",flush=True)
@@ -238,7 +248,7 @@ def update_locations(shp, showFig=False, explain=False):
         print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
-        progressbar(tot_civ_added,tot_civ_in_file)
+        progressbar_pip_style(tot_civ_added,tot_civ_in_file)
         sestieri = [n for n in neigh_query.all() if n.shape.contains(pol)]
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri)==0:
