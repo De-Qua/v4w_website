@@ -5,7 +5,7 @@ Module to update and check our database
 import os,sys
 # IMPORT FOR THE DATABASE - db is the database object
 from app import app, db
-from app.models import Neighborhood, Street, Location, Area, Poi
+from app.models import *
 import random
 import geopandas as gpd
 import pandas as pd
@@ -626,17 +626,17 @@ def tell_me_something_I_dont_know():
         civ=len(location_query.all())
         ))
     # Gli elementi del db vengono printati secondo quanto definito nella classe al metodo __def__
-    rnd_n = random.randint(len(neigh_query.all()))
-    rnd_s = random.randint(len(streets_query.all()))
-    rnd_l = random.randint(len(location_query.all()))
+    rnd_n = random.randint(1,len(neigh_query.all()))
+    rnd_s = random.randint(1,len(streets_query.all()))
+    rnd_l = random.randint(1,len(location_query.all()))
     print("Il {q} quartiere, la {s} strada e la {l} location del database all'indirizzo:\n{ses}\n{str}\n{loc}".format(
         q=rnd_n, s=rnd_s, l=rnd_l,
-        ses=neighbourhoods_query.get(rnd_n),
+        ses=neigh_query.get(rnd_n),
         str=streets_query.get(rnd_s),
         loc=location_query.get(rnd_l),
         ))
     # Si può facilmente accedere agli elementi di un singolo elemento
-    rnd_l2 = random.randint(len(location_query.all()))
+    rnd_l2 = random.randint(1,len(location_query.all()))
     l = location_query.get(rnd_l2)
     print("Informazioni sulla una location che oggi ci piace molto:\nStrada: {str}\nCivico: {civ}\nSestiere: {ses}\nCAP: {cap}\nCoordinate: {lat},{lon}".format(
         str=l.street.name,
@@ -654,7 +654,7 @@ def tell_me_something_I_dont_know():
         )
     # Le tabelle si possono unire per filtrare i risultati utilizzando gli attributi derivati
     print("Tutte le strade di San Polo:",
-        *streets_query.join(Neighborhood).filter_by(name="SAN POLO").all(), sep='\n'
+        *streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name="SAN POLO").all(), sep='\n'
         )
     print("Il numero 1 di San Polo:",
         *location_query.filter_by(housenumber=1).join(Street).join(Neighborhood).filter_by(name="SAN POLO").all(), sep='\n'
