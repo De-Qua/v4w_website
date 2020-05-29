@@ -8,6 +8,11 @@ def weight_bridge(x,y,dic):
     return dic["length"] + dic["ponte"]*100
     #weight = dic["length"] if dic["ponte"]==0 else None
  #   return weight
+def weight_time(x,y,dic):
+    # Ritorna il tempo di pecorrenza in minuti
+    # 4kmh in metri al minuto
+    speed = 4/3.6*60
+    return dic["length"]/speed
 
 # %% codecell
 def plot_shortest_path(path_nodes,map_shp):
