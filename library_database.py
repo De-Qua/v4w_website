@@ -8,6 +8,17 @@ from app import app, db
 from app.models import Neighborhood, Street, Location, Area, Poi
 import random
 import geopandas as gpd
+import pandas as pd
+import pyproj
+import numpy as np
+from distutils.version import StrictVersion
+import warnings
+import re
+from fuzzywuzzy import process
+from shapely.geometry import Point
+from sqlalchemy import literal
+import geopy.distance
+
 
 global neigh_query, streets_query, location_query
 
@@ -19,6 +30,39 @@ def create_query_objects():
     neigh_query = Neighborhood.query #serve l'all?
     streets_query = Street.query
     location_query = Location.query
+    poi_query = Poi.query
+    aree_query = Area.query
+
+def progressbar(current,total,step=5,text=''):
+    assert (100%5) == 0
+    percentage = current / total * 100
+    progress = int(percentage/step)
+    remain = int(100/step-progress)
+    print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress,remain=" "*remain,perc=percentage,text=text),
+                                                    end="\r",flush=True)
+    if percentage == 100:
+        print("",end="\n",flush=True)
+
+def convert_SHP(shp_file, explain=False):
+    """
+    If not already, convert the shapefile to WGS 84.
+    """
+
+    if StrictVersion(pyproj.__version__) >= StrictVersion("2.2"):
+        crs_attr = shp_file.crs.name
+    else:
+        warnings.warn("PyProj version should be at least 2.2\nSee why here, the crs field changed https://geopandas.readthedocs.io/en/latest/projections.html",
+                        category=FutureWarning)
+        crs_attr = shp_file.crs['init']
+
+    if not (crs_attr=='WGS 84'):
+        if explain:
+            print("the shp was in the format {}".format(shp_file.crs))
+        shp_file = shp_file.to_crs(epsg=4326)
+        if explain:
+            print("converted to {}".format(shp_file.crs))
+
+    return shp_file
 
 def update_sestieri(shp, showFig=False, explain=False):
     """
@@ -26,12 +70,7 @@ def update_sestieri(shp, showFig=False, explain=False):
     """
     global neigh_query, streets_query, location_query
     sestieri =  gpd.read_file(shp)
-    if not (sestieri.crs.name == 'WGS 84'):
-        if explain:
-            print("the shp was in the format {}".format(sestieri.crs))
-        sestieri = sestieri.to_crs(epsg=4326)
-        if explain:
-            print("converted to {}".format(sestieri.crs))
+    sestieri =  convert_SHP(sestieri,explain)
 
     #%% Aggiungi sestieri
     list_sest_cap = [
@@ -58,7 +97,11 @@ def update_sestieri(shp, showFig=False, explain=False):
 
     err_neighb = []
     add_neighb = 0
+    tot_neighb = 0
+    all_neighb = len(list_sest_cap)
     for s,c in list_sest_cap:
+        tot_neighb += 1
+        progressbar(tot_neighb,all_neighb)
         # controlla geometria
         geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
         if geom.empty:
@@ -75,7 +118,11 @@ def update_sestieri(shp, showFig=False, explain=False):
 
     if explain:
         print("committo nel database..")
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
 
     print("Errori: {err}\nSestieri: {ses}\nNuovi: {new}".format(
         err=len(err_neighb),
@@ -90,7 +137,7 @@ def update_sestieri(shp, showFig=False, explain=False):
             plt.plot(*n.shape.exterior.xy)
         plt.show()
 
-    return len(err_neighb)
+    return err_neighb
 
 def update_streets(shp, showFig=False, explain=False):
     """
@@ -98,21 +145,22 @@ def update_streets(shp, showFig=False, explain=False):
     """
     global neigh_query, streets_query, location_query
 
-    streets =  gpd.read_file(shp)
-    if not (streets.crs.name == 'WGS 84'):
-        if explain:
-            print("the shp was in the format {}".format(streets.crs))
-        streets = streets.to_crs(epsg=4326)
-        if explain:
-            print("converted to {}".format(streets.crs))
+    streets = gpd.read_file(shp)
+    streets = convert_SHP(streets)
 
     if explain:
         print("Aggiungiamo le strade, ne abbiamo {} in totale nel file.".format(len(streets['TP_STR_NOM'])))
     err_streets = []
     add_streets = 0
+    tot_street = 0
+    all_streets = len(streets['TP_STR_NOM'])
+    step = np.round(all_streets / 15).astype(int)
     for name, name_spe, name_den, pol in streets[['TP_STR_NOM','CVE_TS_SPE','CVE_TS_DEN','geometry']].values:
-        if name:
+        tot_street +=1
+        progressbar(tot_street,all_streets)
+        if not name:
             err_streets.append((0,name,name_spe,name_den,pol))
+            continue
         sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
         # se la strada non è contenuta in nessun sestiere passa al successivo
         if len(sestieri)==0:
@@ -121,16 +169,29 @@ def update_streets(shp, showFig=False, explain=False):
         #     # se c'è più di un sestiere aggiungi agli errori e passa al successivo
         #     err_streets.append((1,name,name_spe,name_den,pol))
         #     continue
-        if not Street.query.filter_by(shape=pol).first():
+        if not streets_query.filter_by(shape=pol).first():
+            #if explain:
+                #percentage = tot_street / len(streets['TP_STR_NOM']) * 10
+                #for j in range(np.round(percentage).astype(int)):
+                #    string_to_be_print.concat("=")
+                #print(string_to_be_print, end="", flush=True)
+                #percentage = np.round(tot_street / all_streets * 100).astype(int)
+                #print("{num:03d}: {tot}/ {tot2}: Aggiungo {str}                                            ".format(num=percentage, bar=string_to_be_print, ot=tot_street, tot2=len(streets['TP_STR_NOM']), str=name), end="\r", flush=True)
+
             st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol)
             db.session.add(st)
             for sestiere in sestieri:
                 st.add_neighborhood(sestiere)
             add_streets += 1
 
+
     if explain:
         print("committo nel database..")
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
 
     print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nNuove: {new}".format(
         err=len(err_streets),
@@ -154,32 +215,31 @@ def update_streets(shp, showFig=False, explain=False):
                 plt.plot(s[i].shape.exterior.xy)
         plt.show()
 
-    return len(err_streets)
+    return err_streets
 
 def update_locations(shp, showFig=False, explain=False):
     """
     Updates the Location Table and returns the number of errors, so 0 is the desired output.
     """
-    global neigh_query, streets_query, location_query
-    civici =  gpd.read_file(shp)
-    # rimuovo righe senza geometria che danno problemi
-    empty_civici = [civico_geom in civicogeom for civicogem in civici["geometry"] if civicogeom ]
-    #empty_civici = civici.loc[pd.isna(civici["geometry"])]
-    civici = civici.loc[~pd.isna(civici["geometry"])]
-    if not (civici.crs.name == 'WGS 84'):
-        if explain:
-            print("the shp was in the format {}".format(civici.crs))
-        civici = civici.to_crs(epsg=4326)
-        if explain:
-            print("converted to {}".format(civici.crs))
 
+    global neigh_query, streets_query, location_query
+    civici = gpd.read_file(shp)
+    # rimuovo righe senza geometria che danno problemi
+    civici = civici.loc[~pd.isna(civici["geometry"])]
+    civici = convert_SHP(civici)
 
     err_civ = []
     add_civ = 0
+    tot_civ_added = 0
+    tot_civ_in_file = len(civici['CIVICO_NUM'])
+    step_civ = np.round(tot_civ_in_file / 100)
+
     if explain:
-        print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(len(civici['CIVICO_NUM'])))
+        print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
-        sestieri = [n for n in neigh_query if n.shape.contains(pol)]
+        tot_civ_added += 1
+        progressbar(tot_civ_added,tot_civ_in_file)
+        sestieri = [n for n in neigh_query.all() if n.shape.contains(pol)]
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri)==0:
             continue
@@ -189,12 +249,12 @@ def update_locations(shp, showFig=False, explain=False):
             continue
         # principalmente voglio usare DENOMINAZI, nel caso sia vuoto uso DENOMINA_1
         # nel caso siano entrambi vuoti errore e continuo
-        if den and den1:
+        if not den and not den1:
             err_civ.append((1,num, sub, den, den1, pol))
             continue
-        elif not den:
+        elif den:
             denom = den
-        elif not den1:
+        elif den1:
             denom = den1
         else:
             # questo non dovrebbe mai succedere
@@ -224,7 +284,7 @@ def update_locations(shp, showFig=False, explain=False):
         if housenumber != den_num:
             found = False
             # provo a vedere se per caso non è uguale a quello dei den1
-            if denom==den and not den1:
+            if denom==den and den1:
                 num_found_denom = re.search("\d+(/[A-Z])?$",den1)
                 if num_found_denom:
                     den1_num = num_found_denom.group(0)
@@ -264,13 +324,20 @@ def update_locations(shp, showFig=False, explain=False):
         lon = repr_point.x
         # Se la location non esiste già la aggiungo
         if not location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street).first():
-            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street)
+            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0])
             add_civ += 1
+            #percentage = (tot_civ_added / tot_civ_in_file) * 100
+            #print("{perc:5.1f}% - {tot:5d}/{tot2}".format(perc=percentage, tot=tot_civ_added, tot2=tot_civ_in_file), end="\r", flush=True)
+
             db.session.add(loc)
 
     if explain:
         print("committo nel database..")
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
 
     print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nNuovi: {new}".format(
         err=len(err_civ),
@@ -302,16 +369,20 @@ def update_locations(shp, showFig=False, explain=False):
                 plt.plot(location_query[i].latitude, location_query[i].longitude)
         plt.show()
 
-    return len(err_civ)
+    return err_civ
 
-def update_POI(file_poi):
+def read_POI(poi_file_path):
+    poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
+    poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+    poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+
+    return poi_csv, poi_pd
+
+def update_POI(poi_cs, poi_pd):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
     global neigh_query, streets_query, location_query
-    poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
-    poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
-    poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
     #%%
     # crea le category e i type (se non esistono già)
     for c in list_category:
