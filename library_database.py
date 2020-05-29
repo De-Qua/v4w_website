@@ -33,9 +33,15 @@ def create_query_objects():
     poi_query = Poi.query
     aree_query = Area.query
 
+<<<<<<< HEAD
 def progressbar(current_value,total_value,step=5,text='',progressSymbol='=',remainingSymbol=' ',currentSymbol=''):
     assert (100%step) == 0
     percentage = current_value / total_value * 100
+=======
+def progressbar(current,total,step=5,text=''):
+    assert (100%step) == 0
+    percentage = current / total * 100
+>>>>>>> 7286f09b91218352e8b03ede1009c265291bcaae
     progress = int(percentage/step)
     remain = int(100/step-progress)
     if len(currentSymbol)>0:
@@ -51,6 +57,16 @@ def progressbar(current_value,total_value,step=5,text='',progressSymbol='=',rema
         print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress,remain=" "*remain,perc=percentage,text=text),
                                                         end="\n",flush=True)
 
+
+def progressbar_pip_style(current,total,step=5,text=''):
+    assert (100%step) == 0
+    percentage = current / total * 100
+    progress = int(percentage/step)
+    remain = int(100/step-progress)
+    print("[{progress}{remain}] {perc:5.1f}% {text}".format(progress="="*progress+">",remain=" "*remain,perc=percentage,text=text),
+                                                    end="\r",flush=True)
+    if percentage == 100:
+        print("",end="\n",flush=True)
 
 def convert_SHP(shp_file, explain=False):
     """
@@ -247,7 +263,7 @@ def update_locations(shp, showFig=False, explain=False):
         print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
-        progressbar(tot_civ_added,tot_civ_in_file)
+        progressbar_pip_style(tot_civ_added,tot_civ_in_file)
         sestieri = [n for n in neigh_query.all() if n.shape.contains(pol)]
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri)==0:

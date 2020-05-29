@@ -699,7 +699,6 @@ sestieri =  gpd.read_file(path_shp_sestieri)
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
 path_shp_streets = (os.path.join(folder_file,"TP_STR.shp"))
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
-
 path_shp_locations = os.path.join(folder_file,"CIVICO.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
 import re
