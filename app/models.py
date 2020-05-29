@@ -59,9 +59,10 @@ class Location(db.Model):
         return self
     # cosa ritorniamo da __str__
     def __str__(self):
-        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhoods.all())
+        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
     def get_description(self):
-        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.street.neighborhoods.all())
+        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
