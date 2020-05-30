@@ -86,6 +86,48 @@ def convert_SHP(shp_file, explain=False):
 
     return shp_file
 
+def delete_all_sestieri(explain=False):
+    """
+    Deletes all the entries from the neighborhood Table
+    """
+    global neigh_query
+    num_neigh = neigh_query.delete()
+    if explain:
+        print("Eliminati {num} sestieri\ncommitto nel database..".format(num=num_neigh))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+def delete_all_streets(explain=False):
+    """
+    Deletes all the entries from the street Table
+    """
+    global streets_query
+    num_streets = streets_query.delete()
+    if explain:
+        print("Eliminate {num} strade\ncommitto nel database..".format(num=num_streets))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+def delete_all_locations(explain=False):
+    """
+    Deletes all the entries from the location Table
+    """
+    global location_query
+    num_locations = location_query.delete()
+    if explain:
+        print("Eliminati {num} luoghi\ncommitto nel database..".format(num=num_locations))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
 def update_sestieri(shp, showFig=False, explain=False):
     """
     Updates the neighborhood Table and returns the number of errors, so 0 is the desired output.
@@ -345,8 +387,8 @@ def update_locations(shp, showFig=False, explain=False):
         lat = repr_point.y
         lon = repr_point.x
         # Se la location non esiste già la aggiungo
-        if not location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street).first():
-            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0])
+        if not location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol).first():
+            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol)
             add_civ += 1
             #percentage = (tot_civ_added / tot_civ_in_file) * 100
             #print("{perc:5.1f}% - {tot:5d}/{tot2}".format(perc=percentage, tot=tot_civ_added, tot2=tot_civ_in_file), end="\r", flush=True)
