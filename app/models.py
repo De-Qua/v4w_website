@@ -54,6 +54,7 @@ class Location(db.Model):
     street_id = db.Column(db.Integer,db.ForeignKey("street.id"),nullable=False)
     neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
     housenumber = db.Column(db.String(8),index=True)
+    shape = db.Column(db.PickleType,nullable=False)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
     def __repr__(self):
         return self

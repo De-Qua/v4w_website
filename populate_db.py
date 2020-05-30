@@ -694,13 +694,17 @@ from app import db
 lb.create_query_objects()
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
+# Sestieri
 path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
-sestieri =  gpd.read_file(path_shp_sestieri)
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
+# Strade
 path_shp_streets = (os.path.join(folder_file,"TP_STR.shp"))
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
+# Civici
+#lb.delete_all_locations(explain=True)
 path_shp_locations = os.path.join(folder_file,"CIVICO.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
+# POI
 poi1, poi2 = read_POI(poi_file_path)
 err_poi = lb.update_POI(poi1, poi2)
 lb.tell_me_something_I_dont_know()
