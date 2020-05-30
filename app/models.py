@@ -160,6 +160,7 @@ class Poi(db.Model):
     types = db.relationship("PoiCategoryType",secondary=poi_types,
         lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
     score = db.Column(db.Integer,nullable=False,default=0)
+    osm_id = db.Column(db.Integer,unique=True,nullable=True)
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
     def add_type(self,type):
         if not self.is_type(type):

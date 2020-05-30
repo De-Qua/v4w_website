@@ -705,6 +705,7 @@ err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
 path_shp_locations = os.path.join(folder_file,"CIVICO.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
 # POI
+
 poi1, poi2 = read_POI(poi_file_path)
 err_poi = lb.update_POI(poi1, poi2)
 lb.tell_me_something_I_dont_know()

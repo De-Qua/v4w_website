@@ -8,17 +8,36 @@ def download_data(bbox, filters, what='nodes'):
     overpass_url = "http://overpass-api.de/api/interpreter"
     overpass_query = """
     [out:json];
-    ("""
+    """
+    if type(bbox) is list:
+        overpass_query += """("""
+        # convert list in string without [ ]
+        bbox_query = str(bbox)[1:-1]
+    elif type(bbox is int):
+        overpass_query += "relation   ({rel}) -> .c ; \
+        .c map_to_area -> .myarea ; \
+        ( ".format(rel=bbox)
+        # set the new object as bbox
+        bbox_query = "area.myarea"
     if what == 'nodes':
         for filter in filters:
             overpass_query += "\n"
-            overpass_query += "node[{filter}]({b1}, {b2}, {b3}, {b4});".format(filter=filter, b1=bbox[0], b2=bbox[1], b3=bbox[2], b4=bbox[3]);
+            overpass_query += "node[{filter}]({bbox});".format(filter=filter, bbox=bbox_query);
+    elif what == 'ways':
+        for filter in filters:
+            overpass_query += "\n"
+            overpass_query += "way[{filter}]({bbox});".format(filter=filter, bbox=bbox_query);
+    elif what == 'relations':
+        for filter in filters:
+            overpass_query += "\n"
+            overpass_query += "relation[{filter}]({bbox});".format(filter=filter, bbox=bbox_query);
     elif what == 'all':
         for filter in filters:
             overpass_query += "\n"
-            overpass_query += """node[{filter}]({b1}, {b2}, {b3}, {b4});
-            way[{filter}](bbox[0], bbox[1], bbox[2], bbox[3]);
-            relation[{filter}](bbox[0], bbox[1], bbox[2], bbox[3]);""".format(filter=filter, b1=bbox[0], b2=bbox[1], b3=bbox[2], b4=bbox[3]);
+            overpass_query += "node[{filter}]({bbox}); \
+            way[{filter}]({bboox}); \
+            relation[{filter}]({bbox});".format(filter=filter, bbox=bbox_query);
+
     overpass_query += """
     );
     out center;
