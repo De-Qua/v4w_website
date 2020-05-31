@@ -46,16 +46,16 @@ def find_address_in_db(input_string):
     text, number, isThereaCivico = dividiEtImpera(clean_string)
     # cerca nel database - qua dentro avviene la magia
     #found_something, actual_address, address_type = find_address(text)
-    found_something, actual_address, address_type = fuzzy_exact_search(text)
+    found_something, actual_address = fuzzy_exact_search(text)
     # dammi coordinate, del punto o del poligono
-    geo_type, coordinates, polygon_shape =  fetch_coordinates(found_something, actual_address, address_type, number, isThereaCivico)
+    geo_type, coordinates, polygon_shape = fetch_coordinates(found_something, actual_address, number, isThereaCivico)
     # correggi per Leaflet
     coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
     # full address
     if isThereaCivico:
-        actual_address = actual_address + " " + number
+        actual_address = str(actual_address) + " " + number
 
-    return geo_type, coordinates, polygon_shape, actual_address
+    return geo_type, coordinates, polygon_shape, str(actual_address)
 
 
 def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
@@ -93,59 +93,23 @@ la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 """
 def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
 
+    # da correggere: se non trovo l'indirizzo nella strada, devo dirtelo, non mandare il poligono della strada. o meglio cercare nelle altre strade che corrispondevano alla ricerca!
     if found_something:
-        print("we found", actual_location, type(location))
-    #     # prendi la coordinata relativa
-    #
-    #     # controlla i tentativi
-    #     assert(address_type > -1),"tipo di indirizzo negativo! Qualcosa non torna - address_type:" + str(address_type)
-    #     assert(address_type < 3),"tipo di indirizzo troppo grande! Qualcosa non torna! Abbiamo aggiunto un tipo? - address_type:" + str(address_type)
+        print("we found", actual_location, type(actual_location))
     #     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
         if isThereaCivico:
     #         # geo type = 0 dice che usiamo un punto
             geo_type = 0
-    #
-    #         if address_type == 0:
-    #             print("SESTIERE + NUMERO")
-    #             # se e sestiere, prendi sestiere + numero
-    #             actual_location = Location.query.filter_by(housenumber=number).join(Street).join(Neighborhood).filter_by(name=actual_address).first()
-    #         elif address_type == 1:
-    #             print("STRADA + NUMERO")
-    #             # se e strada, prendi strada + numero (+ sestiere?)
-    #             actual_location = Location.query.filter_by(housenumber=number).join(Street).filter_by(name=actual_address).join(Neighborhood).first()
-    #         elif address_type == 2:
-    #             print("POI + NUMERO")
-    #             # poi!
-    #             actual_location = Location.query.filter_by(housenumber=number).join(Poi).filter_by(name=actual_address).join(Neighborhood).first()
-    #
-    #         print(actual_location)
-    #         if actual_location:
-    #             # qualunque cosa abbiamo trovato, actual_location e un punto in questo caso!
-            coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape_as_list = None
-    #         else:
-    #             # abbiamo trovato il sestiere, la strada o il poi, ma non il numero!
-    #             coords = [-1, -1]
-    #             polygon_shape_as_list = None
-    #     else:
-    #         #geo type = 1 dice che usiamo un poligono
-    #         geo_type = 1
-    #
-    #         if address_type == 0:
-    #             print("SESTIERE senza NUMERO")
-    #             # se e sestiere, prendi sestiere + numero
-    #             actual_location = Neighborhood.query.filter_by(name=actual_address).first()
-    #         elif address_type == 1:
-    #             print("STRADA senza NUMERO")
-    #             # se e strada, prendi strada + numero (+ sestiere?)
-    #             actual_location = Street.query.filter_by(name=actual_address).first()
-    #         elif address_type == 2:
-    #             print("POI senza NUMERO")
-    #             # poi!
-    #             actual_location = Poi.query.filter_by(name=actual_address).first()
-
+            #funziona sia per civico, che per strada, dubbi su POI
+            with_num=actual_location.locations.filter_by(housenumber=number).first()
+            if with_num:
+                actual_location=with_num
+                coords = [actual_location.longitude, actual_location.latitude]
+                polygon_shape_as_list = None
+                print("print del fetch", geo_type, coords, polygon_shape_as_list)
+                return geo_type, coords, polygon_shape_as_list
         # prendiamo la shape!
-        elif actual_location.shape:
+        if actual_location.shape:
             geo_type = 1
             polygon_shape = actual_location.shape
             if polygon_shape.geom_type == 'MultiPolygon':
@@ -168,15 +132,16 @@ def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
             coords = getCentroidSmartly(polygon_shape) # polygon_shape potreebbe esser un multipoligono!
             #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
         else:
-                coords = [-1, -1]
-                geo_type = -1
-                polygon_shape_as_list = None
+            coords = [-1, -1]
+            geo_type = -1
+            polygon_shape_as_list = None
 
     else:
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
 
+    print("print del fetch", geo_type, coords, polygon_shape_as_list)
     return geo_type, coords, polygon_shape_as_list
 
 """
@@ -184,7 +149,7 @@ da gestire piu poligoni, piu centroidi, multipoligoni e alieni
 """
 def getCentroidSmartly(polygon_shape):
     #avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
-    avg_coordinate = polygon_shape.representative_point
+    avg_coordinate = [polygon_shape.representative_point().x, polygon_shape.representative_point().y]
     print("Centroide: ", avg_coordinate)
     return avg_coordinate
 
@@ -312,8 +277,8 @@ Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il m
 def takeSecond(elem):
     return elem[1]
 def fuzzy_exact_search(word):
-    found,exact_match,exact_type = fuzzy_search(word)
-    return found,str(exact_match[0]),int(exact_type[0])
+    found,exact_match = fuzzy_search(word)
+    return found,exact_match[0]
 
 def fuzzy_search(word):
     n_limit = 5
@@ -331,8 +296,8 @@ def fuzzy_search(word):
         for m,s in matches_poi:
             final_matches.append((m,s,2))
     final_matches.sort(key=takeSecond, reverse=True)
-    print("match,score,type", *[(match.__str__(),score,type) for match,score,type in final_matches])
-    return bool(final_matches), [match[0] for match in final_matches[0:n_limit]], [match[2] for match in final_matches[0:n_limit]]
+#    print("match,score", [(match.__str__(),score) for match,score in final_matches])
+    return bool(final_matches), [match[0] for match in final_matches[0:n_limit]]
 
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no
