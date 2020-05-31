@@ -11,6 +11,7 @@ flask db upgrade
 from app import db
 from datetime import datetime
 from sqlalchemy import CheckConstraint
+
 # # TODO: FUTUREWARNING
 # .format is deprecated
 # dovremmo cambiare a
@@ -56,14 +57,19 @@ class Location(db.Model):
     housenumber = db.Column(db.String(8),index=True)
     shape = db.Column(db.PickleType,nullable=False)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
-    def __repr__(self):
-        return self
+    # def __repr__(self):
+    #     return "<Location(id=)>"
     # cosa ritorniamo da __str__
     def __str__(self):
-        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+        if self.housenumber:
+            return "{street} {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+        else:
+            return "{lat},{lon}".format(lat=self.latitude,lon=self.longitude)
     def get_description(self):
-        return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
-
+        if self.housenumber:
+            return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+        else:
+            return "{street} ({neighborhood})".format(street=self.street.name,neighborhood=self.neighborhood.name)
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
@@ -75,8 +81,8 @@ class Area(db.Model):
     shape = db.Column(db.PickleType)
     streets = db.relationship("Street",secondary=area_streets,
         lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
-    def __repr__(self):
-        return self
+    # def __repr__(self):
+    #     return self
     def __str__(self):
         return self.name
     def get_description(self):
@@ -111,8 +117,8 @@ class Street(db.Model):
             self.neighborhoods.remove(neighborhood)
     def belongs(self,neighborhood):
         return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
-    def __repr__(self):
-        return self
+    # def __repr__(self):
+    #     return self
     def __str__(self):
         return self.name
     def get_description(self):
@@ -130,8 +136,8 @@ class Neighborhood(db.Model):
     zipcode = db.Column(db.Integer,nullable=False)
     shape = db.Column(db.PickleType,nullable=False)
     locations = db.relationship("Location",backref="neighborhood",lazy="dynamic")
-    def __repr__(self):
-        return self
+    # def __repr__(self):
+    #     return self
     def __str__(self):
         return self.name
     def get_description(self):
@@ -173,8 +179,8 @@ class Poi(db.Model):
     def get_description(self):
         return "{name}\nAddress: {address})".format(
         name=self.name, address=self.location)
-    def __repr__(self):
-        return self
+    # def __repr__(self):
+    #     return self
     def __str__(self):
         return self.name
 
@@ -182,15 +188,17 @@ class PoiCategory(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(32),index=True,unique=True,nullable=False)
     types = db.relationship("PoiCategoryType",backref="category",lazy="dynamic")
-    def __repr__(self):
-        return "{name}".format(
-        name=self.name)
+    # def __repr__(self):
+    #     return "{name}".format(
+    #     name=self.name)
+    def __str__(self):
+        return self.name
 
 class PoiCategoryType(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(32),index=True,nullable=False)
     category_id = db.Column(db.Integer,db.ForeignKey("poi_category.id"),nullable=False)
     subtype = db.Column(db.String(32),index=True)
-    def __repr__(self):
+    def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
