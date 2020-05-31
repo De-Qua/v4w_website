@@ -204,13 +204,22 @@
 		    break;
 		  case 0:
 		    // METTI UN MARKER
+				var marker_icon = L.icon({
+					iconUrl: '/static/img/icon_marker_50.png',
+					iconRetinaUrl: '/static/img/icon_marker.png',
+					iconSize: [33, 50],
+					iconAnchor: [16, 49],
+					popupAnchor: [16, 16]
+				});
+
 				// Options for the marker
 				var markerOptions = {
 
 					 title: "Abbiamo trovato {{start_name}}",
 					 clickable: true,
 					 // si alza all'hover - non va :(
-					 riseOnHover: true
+					 riseOnHover: true,
+					 icon: marker_icon
 				}
 
 				// coordinate
