@@ -5,7 +5,7 @@ import poi.library_overpass as lib_over
 bbox_venezia = [45.36, 12.32, 45.47, 12.41]
 osm_id_venezia = 44741
 # doppie virgolette servono!
-filters = ["'amenity'='drinking_water'", "'amenity'='cafe'"]
+filters = ["'alt_name'"]
 #filters = ["'operator'='ACTV'"]
 what_we_get = lib_over.download_data(osm_id_venezia, filters, what='nodes')
 
@@ -19,7 +19,7 @@ data_as_list = lib_over.remove_headers_and_tolist(what_we_get)
 primo_nodo = data_as_list[0]
 print("il primo nodo e ",primo_nodo)
 print("con coppie (chiavi, valori)", primo_nodo.items())
-
+"ciao".split(";")
 # il nostro poi ha:
 # category|osm_id|lat|lon|name|amenity|shop|wheelchair|cuisine|toilets|toilets:wheelchair|tourism|alt_name|building|opening_hours|wikipedia|atm|outdoor_seeting|diet|diet:vegetarian|phone|denomination|transport|health|sport|accommo
 

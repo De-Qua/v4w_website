@@ -18,20 +18,23 @@ from fuzzywuzzy import process
 from shapely.geometry import Point
 from sqlalchemy import literal
 import geopy.distance
+from poi import library_overpass as op
+import sqlalchemy
 
-
-global neigh_query, streets_query, location_query
+global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
 def create_query_objects():
     """
     Skyrocketing our performances with few lines of code (it creates the query objects to be used later).
     """
-    global neigh_query, streets_query, location_query
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
     neigh_query = Neighborhood.query #serve l'all?
     streets_query = Street.query
     location_query = Location.query
     poi_query = Poi.query
     aree_query = Area.query
+    category_query = PoiCategory.query
+    type_query = PoiCategoryType.query
     # Reset database if there were changes not committed
     db.session.rollback()
 
@@ -435,40 +438,41 @@ def update_locations(shp, showFig=False, explain=False):
 
     return err_civ
 
-def read_POI(poi_file_path):
-    poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
-    poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
-    poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+def download_POI(categories,bbox=44741,explain=False):
+    """
+    Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
+    """
+    # poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
+    # poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+    # poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+    #
+    # return poi_csv, poi_pd
+    all_pois = []
+    ids_already_there = []
+    for category in categories:
+        if category[0] != "'":
+            category = "'"+category
+        if category[-1] != "'":
+            category = category + "'"
+        pois = op.download_data(bbox, [category], what='nodes')
+        pois_as_list = op.remove_headers_and_tolist(pois)
+        for poi in pois_as_list:
+            if poi['id'] not in ids_already_there:
+                ids_already_there.append(poi['id'])
+                all_pois.append(poi)
+    if explain:
+        print("aggiunti {} poi".format(len(all_pois)))
+    return all_pois
 
-    return poi_csv, poi_pd
 
-def update_POI(poi_cs, poi_pd):
+
+def update_POI(pois,explain=False):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
-    global neigh_query, streets_query, location_query
-    #%%
-    # crea le category e i type (se non esistono già)
-    for c in list_category:
-        if not PoiCategory.query.filter_by(name=c).first():
-            db.session.add(PoiCategory(name=c))
-        cat = PoiCategory.query.filter_by(name=c).first()
-        for types in poi_pd[c].unique():
-            if pd.isna(types):
-                continue
-            all_types = types.split(";")
-            for t in all_types:
-                if not PoiCategoryType.query.filter_by(name=t.strip(),category=cat).first():
-                    db.session.add(PoiCategoryType(name=t.strip(),category=cat))
-    db.session.commit()
-    print("Numero di Category: {cat}\nNumero totale di Type: {typ}".format(
-        cat=len(PoiCategory.query.all()),
-        typ=len(PoiCategoryType.query.all())
-        ))
-    print("Tutti i tipi",*PoiCategoryType.query.all(),sep="\n")
-
-
-    #%% Get poi_types
+    global neigh_query, streets_query, location_query, poi_query
+    category_query = PoiCategory.query
+    type_query = PoiCategoryType.query
     # Lista di tipi di poi che non avranno una corrispondenza con un numero civico(ad esempio chiese o fontanelle)
     types_without_address={
         "amenity":["drinking_water",
@@ -479,153 +483,168 @@ def update_POI(poi_cs, poi_pd):
                     "kiosk",
                     "column"]
     }
-    # crea un dataframe con solo i poi che non avranno un indirizzo
-    poi_without_add = pd.DataFrame()
-    for key in types_without_address.keys():
-        for val in types_without_address[key]:
-            p = poi_pd.loc[poi_pd[key]==val]
-            poi_without_add = pd.concat([poi_without_add,p])
-    # malvagità per creare un dataframe differenza tra tutti - quelli che non avranno indirizzo
-    poi_with_add = poi_pd[~poi_pd.apply(tuple,1).isin(poi_without_add.apply(tuple,1))]
 
+    # Corrispondenza colonne db - tags osm
+    col_tags = {
+        "name":"name",
+        "name_alt":"alt_name",
+        "opening_hours":"opening_hours",
+        "wheelchair":"wheelchair",
+        "toilets":"toilets",
+        "toilets_wheelchair":"toilets:wheelchair",
+        "wikipedia":"wikipedia",
+        "atm":"atm",
+        "phone":"phone"
+        }
+
+    # Corrispondenza category db - tags osm
+    cat_tags = {
+        "amenity":"amenity",
+        "shop":"shop",
+        "cuisine":"cuisine",
+        "tourism":"tourism",
+        "building":"building",
+        "sport":"sport"
+        }
     # loop per aggiungere tutti i poi
     err_poi = []
     new_poi = 0
     new_loc = 0
-    tot_val = [0,0,0,0,0,0,0]
+    new_cat = 0
+    new_typ = 0
     #massima distanza in metri per considerare una location
     max_dist = 50
 
-    for row in poi_pd.values:
+    poi_num = 0
+    poi_tot = len(pois)
 
-        new_l = False
-        # sostituisci nan con None per evitare casini
-        r = np.where(pd.isna(row), None, row)
-        # Estrai le coordinate e trova la location più vicina
-        lat, lon = r[2:4]
-        closest,dist = closest_location(lat,lon)
-        tot_val[0]+=1
-        if row in poi_without_add.values:
-            closest,dist = closest_location(lat,lon)
+    if explain:
+        print("Aggiungo i poi. In totale ne abbiamo {}".format(poi_tot))
+    for poi in pois:
+        # Disegna progressbar
+        poi_num += 1
+        progressbar_pip_style(poi_num,poi_tot)
+
+        # Estrai poi in base all'id di OSM
+        p = poi_query.filter_by(osm_id = poi['id']).one_or_none()
+
+        # osm_id è un campo unique quindi ritorna o un elemento se esiste il POI oppure None se non esiste
+        # caso in cui nel db esiste già il POI
+        if p:
+            # per ora skippo
+            # TODO: aggiornare il POI che è già presente se ci sono informazioni nuove
+            continue
+        # caso in cui nel db non esiste il POI
+        # controllo che il poi appartenga a uno dei neighborhood
+        poi_point = Point(poi['lon'],poi['lat'])
+        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        # se il poi non è contenuto in nessun passa al successivo
+        if len(neighborhoods)==0:
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_poi.append((0,poi))
+            continue
+
+        # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
+        without_address = False
+        for key in types_without_address.keys():
+            if key in poi['tags'].keys():
+                if poi['tags'][key] in types_without_address[key]:
+                    without_address = True
+                    # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
+                    break
+        if without_address:
+            # controllo che non esista già la location a quelle coordinate
+            loc = location_query.filter_by(latitude=poi['lat'],longitude=poi['lon']).first()
+            if not loc:
+                # trovo la strada a cui appartiene il POI
+                streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                if len(streets) == 0:
+                    err_poi.append((1,poi))
+                    continue
+                elif len(streets) > 1:
+                    err_poi.append((2,poi))
+                    continue
+                loc = Location(latitude=poi['lat'],longitude=poi['lon'],street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                db.session.add(loc)
+                new_loc += 1
+
+        else:
+            # il poi va aggiunto ad una location con indirizzo
+            # cerco la location più vicina
+            closest,dist = closest_location(poi['lat'],poi['lon'],housenumber=True)
             if not closest:
-                err_poi.append((0,row))
-                continue
-            # aggiungi la location usando come strada quella della location più vicina
-            l = Location(latitude=lat,longitude=lon)
-            new_l = True
-        elif row in poi_with_add.values:
-            # Cerca la location più vicina che abbia anche un numero civico
-            closest,dist = closest_location(lat,lon,housenumber=True)
-            if not closest:
-                err_poi.append((0,row))
+                err_poi.append((3,poi))
                 continue
             # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
             elif dist > max_dist:
-                err_poi.append((2,row))
+                err_poi.append((4,poi))
                 continue
-            l = closest
-        else:
-            # questo non dovrebbe mai succedere
-            err_poi.append((1,row))
-            continue
-        tot_val[1]+=1
-        # crea informazioni di base
-        # (non creo già il poi perché visto che ha una relazione con location che fa
-        # già parte della db.session, allora lo aggiungerebbe automaticamente alla session)
-        location=l
-        name = r[poi_pd.columns.get_loc('name')]
-        name_alt = r[poi_pd.columns.get_loc('alt_name')]
-        opening_hours = r[poi_pd.columns.get_loc('opening_hours')]
-        wheelchair = r[poi_pd.columns.get_loc('wheelchair')]
-        if r[poi_pd.columns.get_loc('toilets')] == "yes":
-            toilets = True
-        elif r[poi_pd.columns.get_loc('toilets')] == "no":
-            toilets = False
-        else:
-            toilets = None
-        if r[poi_pd.columns.get_loc('toilets:wheelchair')]=="yes":
-            toilets_wheelchair = True
-        elif r[poi_pd.columns.get_loc('toilets:wheelchair')]=="no":
-            toilets_wheelchair = False
-        else:
-            toilets_wheelchair = None
-        wikipedia = r[poi_pd.columns.get_loc('wikipedia')]
-        if r[poi_pd.columns.get_loc('atm')]=="yes":
-            atm = True
-        elif r[poi_pd.columns.get_loc('atm')]=="no":
-            atm = False
-        else:
-            atm = None
-        phone = r[poi_pd.columns.get_loc('phone')]
-        tot_val[2]+=1
-        # controlla che non esista già lo stesso poi
-        if Poi.query.filter_by(name = name,
-                        name_alt = name_alt,
-                        opening_hours = opening_hours,
-                        wheelchair = wheelchair,
-                        toilets = toilets,
-                        toilets_wheelchair = toilets_wheelchair,
-                        wikipedia = wikipedia,
-                        atm = atm,
-                        phone = phone
-                        ).join(Location).filter_by(latitude=location.latitude,
-                                            longitude=location.longitude).first():
-            continue
-        tot_val[3]+=1
-        # se la location era nuova aggiungo la strada ora
-        # lo faccio ora perché prima aggiungendo la strada avrebbe creato la location
-        if new_l:
-            location.street = closest.street
+            loc = closest
         # creo il poi
-        p = Poi(location=location,
-                name = name,
-                name_alt = name_alt,
-                opening_hours = opening_hours,
-                wheelchair = wheelchair,
-                toilets = toilets,
-                toilets_wheelchair = toilets_wheelchair,
-                wikipedia = wikipedia,
-                atm = atm,
-                phone = phone
-                )
-        tot_val[4]+=1
-        # aggiungi le informazioni sulle categorie dalla tabella type
-        for cat in list_category:
-            cat_type = r[poi_pd.columns.get_loc(cat)]
-            # se il valore è None vai al prossimo
-            if cat_type == None:
-                continue
-            # dividi con i punti e virgola per aggiungere tutti i tipi
-            all_types = cat_type.split(";")
-            for typ in all_types:
-                t = PoiCategoryType.query.filter_by(name=typ.strip()).first()
-                if not t:
-                    err_poi.append((3,row))
-                    continue
-                p.add_type(t)
-        tot_val[5]+=1
-        # aggiungi al database
-        new_poi += 1
-        if new_l:
-            new_loc +=1
-        # magia: incredibilmente questo aggiunge anche la location nel caso non esistesse
+        p = Poi(location=loc,osm_id=poi['id'])
+        # aggiungo i vari attributi del poi
+        for col_name,tag_name in col_tags.items():
+            if tag_name in poi['tags']:
+                value = None
+                # i nostri boolean su osm sono "yes"/"no"
+                if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
+                    if poi['tags'][tag_name] == "yes":
+                        value = True
+                    elif poi['tags'][tag_name] == "no":
+                        value = False
+                else:
+                    value = poi['tags'][tag_name]
+                setattr(p,col_name,value)
+        # aggiungo le categorie del poi
+        for cat_name,tag_name in cat_tags.items():
+            if tag_name in poi['tags']:
+                # estraggo o creo la categoria corrispondente
+                c = category_query.filter_by(name=cat_name).one_or_none()
+                if not c:
+                    c = PoiCategory(name=cat_name)
+                    db.session.add(c)
+                    new_cat += 1
+                # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
+                all_types = poi['tags'][tag_name]
+                all_types = all_types.split(";")
+                for typ in all_types:
+                    t = type_query.filter_by(name=typ.strip()).one_or_none()
+                    if not t:
+                        t = PoiCategoryType(name=typ,category=c)
+                        db.session.add(t)
+                        new_typ += 1
+                    # aggiungo all'oggetto poi
+                    p.add_type(t)
+        # aggiungo al database
         db.session.add(p)
+        new_poi += 1
 
-    print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}".format(
+    if explain:
+        print("committo nel database..")
+    try:
+        # in realtà probabilmente non serve, ma boh
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+    print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}\nNuove Categorie: {new_c}\nNuovi Tipi: {new_t}".format(
             poi=len(Poi.query.all()),
             err=len(err_poi),
             new_p=new_poi,
-            new_l=new_loc))
+            new_l=new_loc,
+            new_c=new_cat,
+            new_t=new_typ))
 
-    # db.session.rollback()
-    #2907 154 43381
-    #db.session.commit()
-    err_type = [[],[],[],[]]
-    for err in err_poi:
-        err_type[err[0]].append(err)
-    print([len(err) for err in err_type])
+    if explain:
+        err_type = [[],[],[],[],[]]
+        for err in err_poi:
+            err_type[err[0]].append(err)
+        print("Tipi di errori\n{}".format([len(err) for err in err_type]))
 
-    return len(err_poi)
+    return err_poi
 
 #%% funzione per trovare il poi più vicino a una certa lat/lon
 def closest_location(lat,lon,tolerance=0.001,housenumber=None):
