@@ -57,8 +57,13 @@ class Location(db.Model):
     housenumber = db.Column(db.String(8),index=True)
     shape = db.Column(db.PickleType,nullable=False)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
-    # def __repr__(self):
-    #     return "<Location(id=)>"
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          latitude=self.latitude,
+                          longitude=self.longitude,
+                          street=self.street.name,
+                          neighborhood=self.neighborhood.name,
+                          housenumber=self.housenumber)
     # cosa ritorniamo da __str__
     def __str__(self):
         if self.housenumber:
@@ -81,8 +86,9 @@ class Area(db.Model):
     shape = db.Column(db.PickleType)
     streets = db.relationship("Street",secondary=area_streets,
         lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
-    # def __repr__(self):
-    #     return self
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name)
     def __str__(self):
         return self.name
     def get_description(self):
@@ -117,8 +123,11 @@ class Street(db.Model):
             self.neighborhoods.remove(neighborhood)
     def belongs(self,neighborhood):
         return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
-    # def __repr__(self):
-    #     return self
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          neighborhood=[n.name for n in self.neighborhoods.all()]
+                          )
     def __str__(self):
         return self.name
     def get_description(self):
@@ -136,8 +145,11 @@ class Neighborhood(db.Model):
     zipcode = db.Column(db.Integer,nullable=False)
     shape = db.Column(db.PickleType,nullable=False)
     locations = db.relationship("Location",backref="neighborhood",lazy="dynamic")
-    # def __repr__(self):
-    #     return self
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          zipcode=self.zipcode
+                          )
     def __str__(self):
         return self.name
     def get_description(self):
@@ -179,18 +191,26 @@ class Poi(db.Model):
     def get_description(self):
         return "{name}\nAddress: {address})".format(
         name=self.name, address=self.location)
-    # def __repr__(self):
-    #     return self
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          types=[t.__str__() for t in self.types.all()]
+                          )
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        else:
+            return "No name for POI {}".format(self.id)
 
 class PoiCategory(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(32),index=True,unique=True,nullable=False)
     types = db.relationship("PoiCategoryType",backref="category",lazy="dynamic")
-    # def __repr__(self):
-    #     return "{name}".format(
-    #     name=self.name)
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          types=[t.name for t in self.types.all()]
+                          )
     def __str__(self):
         return self.name
 
@@ -199,6 +219,12 @@ class PoiCategoryType(db.Model):
     name = db.Column(db.String(32),index=True,nullable=False)
     category_id = db.Column(db.Integer,db.ForeignKey("poi_category.id"),nullable=False)
     subtype = db.Column(db.String(32),index=True)
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          subtype=self.subtype,
+                          category=self.category.name
+                          )
     def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
