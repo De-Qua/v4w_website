@@ -331,7 +331,7 @@ def fuzzy_search(word):
         for m,s in matches_poi:
             final_matches.append((m,s,2))
     final_matches.sort(key=takeSecond, reverse=True)
-    print("match,score,type", final_matches)
+    print("match,score,type", *[(match.__str__(),score,type) for match,score,type in final_matches])
     return bool(final_matches), [match[0] for match in final_matches[0:n_limit]], [match[2] for match in final_matches[0:n_limit]]
 
 # finto, per ora non serve a nulla
