@@ -108,6 +108,12 @@ def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
                 polygon_shape_as_list = None
                 print("print del fetch", geo_type, coords, polygon_shape_as_list)
                 return geo_type, coords, polygon_shape_as_list
+        elif type(actual_location)==Poi:
+            geo_type = 0
+            coords = [actual_location.location.longitude,actual_location.location.latitude]
+            polygon_shape_as_list = None
+            print("print del fetch", geo_type, coords, polygon_shape_as_list)
+            return geo_type, coords, polygon_shape_as_list
         # prendiamo la shape!
         if actual_location.shape:
             geo_type = 1
