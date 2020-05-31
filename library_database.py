@@ -679,27 +679,36 @@ def tell_me_something_I_dont_know():
     """
     It will tell you something from our database - Fun facts for shapefile nerds.
     """
-    global neigh_query, streets_query, location_query
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
     #%% Un po' di print e info
-    print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}".format(
+    print("Sestieri: {ses}\nStrade: {str}\nCivici: {civ}\nPoi: {poi}\nCategorie: {cat}\nTipi: {tip}".format(
         ses=len(neigh_query.all()),
         str=len(streets_query.all()),
-        civ=len(location_query.all())
+        civ=len(location_query.all()),
+        poi=len(poi_query.all()),
+        cat=len(category_query.all()),
+        tip=len(type_query.all())
         ))
     # Gli elementi del db vengono printati secondo quanto definito nella classe al metodo __def__
     rnd_n = random.randint(1,len(neigh_query.all()))
     rnd_s = random.randint(1,len(streets_query.all()))
     rnd_l = random.randint(1,len(location_query.all()))
-    print("Il {q} quartiere, la {s} strada e la {l} location del database all'indirizzo:\n{ses}\n{str}\n{loc}".format(
-        q=rnd_n, s=rnd_s, l=rnd_l,
+    rnd_p = random.randint(1,len(poi_query.all()))
+    rnd_c = random.randint(1,len(category_query.all()))
+    rnd_t = random.randint(1,len(type_query.all()))
+    print("Il {q}o quartiere, la {s}a strada, la {l}a location, il {p}o poi, la {c}a categoria e il {t}o tipo del database:\n{ses}\n{str}\n{loc}\n{poi}\n{cat}\n{tip}".format(
+        q=rnd_n, s=rnd_s, l=rnd_l, p=rnd_p, c=rnd_c, t=rnd_t,
         ses=neigh_query.get(rnd_n),
         str=streets_query.get(rnd_s),
         loc=location_query.get(rnd_l),
+        poi=poi_query.get(rnd_p),
+        cat=category_query.get(rnd_c),
+        tip=type_query.get(rnd_t)
         ))
     # Si può facilmente accedere agli elementi di un singolo elemento
     rnd_l2 = random.randint(1,len(location_query.all()))
     l = location_query.get(rnd_l2)
-    print("Informazioni sulla una location che oggi ci piace molto:\nStrada: {str}\nCivico: {civ}\nSestiere: {ses}\nCAP: {cap}\nCoordinate: {lat},{lon}".format(
+    print("Informazioni su una location che oggi ci piace molto:\nStrada: {str}\nCivico: {civ}\nSestiere: {ses}\nCAP: {cap}\nCoordinate: {lat},{lon}".format(
         str=l.street.name,
         civ=l.housenumber,
         ses=l.neighborhood.name,
@@ -707,6 +716,22 @@ def tell_me_something_I_dont_know():
         lat=l.latitude,
         lon=l.longitude
         ))
+    cafe = type_query.filter_by(name="cafe").one().pois.filter(Poi.name != None).all()
+    rnd_p2 = random.randint(1,len(cafe))
+    p = cafe[rnd_p2]
+    print("Oggi vi consigliamo questo bar:\nNome: {nom}\nStrada: {str}\nSestiere: {ses}\nCivico: {civ}\nOrari: {ora}\nCategorie: {cat}\nAccessibile per handicappati: {whe}\nDotato di bagni: {toi}\nBagni per handiccapati: {twh}\nATM: {atm}\nTel: {tel}".format(
+            nom=p.name,
+            str=p.location.street.name,
+            ses=p.location.neighborhood.name,
+            civ=p.location.housenumber,
+            ora=p.opening_hours,
+            cat=[t.__str__() for t in p.types.all()],
+            whe=p.wheelchair,
+            toi=p.toilets,
+            twh=p.toilets_wheelchair,
+            atm=p.atm,
+            tel=p.phone
+            ))
     # I risultati si possono filtrare in due modi
     # 1. filter_by: filtra semplicemente gli attributi di una riga (solo gli attributi diretti non quelli derivati)
     # 2. filter: permette filtri più complicati (ma non ho capito bene come si usa)

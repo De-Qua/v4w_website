@@ -3,9 +3,11 @@ from config import Config
 import sys
 import os
 import logging
+import typing
 from logging.handlers import RotatingFileHandler
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import Model,SQLAlchemy
 from flask_migrate import Migrate
+import sqlalchemy as sa
 from sqlalchemy import MetaData
 
 app = Flask(__name__)
@@ -18,7 +20,29 @@ naming_convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s"
 }
-db = SQLAlchemy(app,metadata=MetaData(naming_convention=naming_convention))
+# Crea un modello base per scrivere in modo più leggibile i repr delle classi
+class BaseModel(Model):
+    def __repr__(self) -> str:
+        return self._repr(id=self.id)
+
+    def _repr(self, **fields: typing.Dict[str, typing.Any]) -> str:
+        '''
+        Helper for __repr__
+        '''
+        field_strings = []
+        at_least_one_attached_attribute = False
+        for key, field in fields.items():
+            try:
+                field_strings.append(f'{key}={field!r}')
+            except sa.orm.exc.DetachedInstanceError:
+                field_strings.append(f'{key}=DetachedInstanceError')
+            else:
+                at_least_one_attached_attribute = True
+        if at_least_one_attached_attribute:
+            return f"<{self.__class__.__name__}({','.join(field_strings)})>"
+        return f"<{self.__class__.__name__} {id(self)}>"
+
+db = SQLAlchemy(app,metadata=MetaData(naming_convention=naming_convention),model_class=BaseModel)
 migrate = Migrate(app=app,db=db)
 #altre magie per sqlalchemy per sqlite
 with app.app_context():
