@@ -5,9 +5,11 @@ import poi.library_overpass as lib_over
 bbox_venezia = [45.36, 12.32, 45.47, 12.41]
 osm_id_venezia = 44741
 # doppie virgolette servono!
-filters = ["'alt_name'"]
+list_category = [
+    "'amenity'"
+    ]
 #filters = ["'operator'='ACTV'"]
-what_we_get = lib_over.download_data(osm_id_venezia, filters, what='nodes')
+what_we_get = lib_over.download_data(osm_id_venezia, filters, what='all')
 
 lib_over.draw_the_data(what_we_get, 'our search drawn on a map')
 lib_over.save_data_as(what_we_get, 'poi/poi_search.json')

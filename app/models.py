@@ -52,7 +52,7 @@ class Location(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     latitude = db.Column(db.Float,index=True,nullable=False)
     longitude = db.Column(db.Float,index=True,nullable=False)
-    street_id = db.Column(db.Integer,db.ForeignKey("street.id"),nullable=False)
+    street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
     neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
     housenumber = db.Column(db.String(8),index=True)
     shape = db.Column(db.PickleType,nullable=False)
@@ -178,7 +178,9 @@ class Poi(db.Model):
     types = db.relationship("PoiCategoryType",secondary=poi_types,
         lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
     score = db.Column(db.Integer,nullable=False,default=0)
-    osm_id = db.Column(db.Integer,unique=True,nullable=True)
+    osm_type = db.Column(db.String(8))
+    osm_id = db.Column(db.Integer,nullable=True)
+    osm_other_tags = db.Column(db.String)
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
     def add_type(self,type):
         if not self.is_type(type):

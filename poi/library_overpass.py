@@ -35,7 +35,7 @@ def download_data(bbox, filters, what='nodes'):
         for filter in filters:
             overpass_query += "\n"
             overpass_query += "node[{filter}]({bbox}); \
-            way[{filter}]({bboox}); \
+            way[{filter}]({bbox}); \
             relation[{filter}]({bbox});".format(filter=filter, bbox=bbox_query);
 
     overpass_query += """
