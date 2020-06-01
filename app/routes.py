@@ -10,6 +10,7 @@ import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
+from app.src.libpy.utils import find_closest_node
 
 # Useful paths
 folder = os.getcwd()
