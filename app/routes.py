@@ -7,13 +7,14 @@ import hmac
 import hashlib
 import time
 import json
+import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
 
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle = os.path.join(folder_db,"grafo_pickle")
+path_pickle = os.path.join(folder_db,"grafo_pickle_new")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
 path_civ = os.path.join(folder_db,"lista_key.txt")
@@ -21,7 +22,7 @@ path_coords = os.path.join(folder_db,"lista_coords.txt")
 
 # Load graph
 G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_tpn_path=path_civ, coords_path=path_coords)
-G_list = list(G_un.nodes)
+G_array = np.asarray(list(G_un.nodes))
 
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
@@ -73,6 +74,7 @@ def find_address():
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
     da = request.args.get('partenza', default='', type=str)
+    a = request.args.get('arrivo', default='', type=str)
     form = FeedbackForm()
     form.searched_string.data = da
     t0=time.perf_counter()
@@ -103,22 +105,34 @@ def find_address():
             temp= render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, form=form, feedbacksent=0)
             app.logger.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
             return temp
-        else:
+        elif a== '':
             app.logger.debug('indirizzo: {}'.format(da))
-            #a = request.form['arrivo']
-            #start_coord, start_name  = civico2coord_find_address(da, civici_tpn, coords)
-            ### RICERCA NEL database
-            # TODO: geo_type == 0 --> usa coords,  geo_type == 1 --> usa polygon_shape
-            geo_type, coords, polygon_shape, actual_address = find_address_in_db(da)
-            print("got {}, {}".format(coords, actual_address))
+            match_dict = find_address_in_db(da)
             # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
-            start_coord, start_name = coords, actual_address
-            form.found_string.data = start_name
+            #start_coord, start_name = coords, actual_address
+            #form.found_string.data = start_name
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-            #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-            return render_template('map_pa.html', geo_type=geo_type, polygon_shape=polygon_shape, searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
-
-            #return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0], form=form, feedbacksent=0)
+            # significa che stiamo ritornando un indirizzo singolo
+            modo = 0
+            final_dict={"modus operandi":modo,
+                        "searched_name":da,
+                        "partenza":match_dict}
+            print(final_dict)
+            return render_template('map_pa.html', form=form, results_dictionary=json.dumps(match_dict), feedbacksent=0)
+        else:
+            t0=time.perf_counter()
+            match_dict_da = find_address_in_db(da)
+            match_dict_a = find_address_in_db(a)
+            # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
+            start_coord, stop_coord = find_closest_node(match_dict_a[1].get("coordinate"), G_array)
+            app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+            if request.form.get('meno_ponti'):
+                f_ponti=True
+            else:
+                f_ponti=False
+            t2=time.perf_counter()
+            strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
+            app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
 
 
 @app.route('/degoogling', methods=['GET', 'POST'])

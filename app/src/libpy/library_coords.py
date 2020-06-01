@@ -46,16 +46,25 @@ def find_address_in_db(input_string):
     text, number, isThereaCivico = dividiEtImpera(clean_string)
     # cerca nel database - qua dentro avviene la magia
     #found_something, actual_address, address_type = find_address(text)
-    found_something, actual_address = fuzzy_exact_search(text)
+    address_list, score_list, exact = fuzzy_search(text, isThereaCivico)
+    result_dict = {}
     # dammi coordinate, del punto o del poligono
-    geo_type, coordinates, polygon_shape = fetch_coordinates(found_something, actual_address, number, isThereaCivico)
-    # correggi per Leaflet
-    coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
-    # full address
-    if isThereaCivico:
-        actual_address = str(actual_address) + " " + number
-
-    return geo_type, coordinates, polygon_shape, str(actual_address)
+    if not address_list:
+        coords = [-1, -1]
+        geo_type = -1
+        polygon_shape_as_list = None
+    else:
+        for i,address in enumerate(address_list):
+            print(address)
+            geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
+            # correggi per Leaflet
+            coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
+            result_dict[i]={"nome":str(address)+ " " + str(number),
+                                       "coordinate":coordinates,
+                                       "shape":polygon_shape,
+                                       "geotype":geo_type,
+                                       "score":score_list[i]}
+    return result_dict
 
 
 def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
@@ -71,7 +80,7 @@ def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
     else:
         corrected_polygon = None
 
-    return corrected_coords, corrected_polygon
+    return np.ndarray.tolist(corrected_coords), corrected_polygon
 
 
 def correct_name(name):
@@ -91,58 +100,53 @@ def correct_name(name):
 """
 la parte finale. Siamo sicuri che tutto funziona, solo prendiamo le coordinate
 """
-def fetch_coordinates(found_something, actual_location, number, isThereaCivico):
+def fetch_coordinates(actual_location, number, isThereaCivico):
 
-    # da correggere: se non trovo l'indirizzo nella strada, devo dirtelo, non mandare il poligono della strada. o meglio cercare nelle altre strade che corrispondevano alla ricerca!
-    if found_something:
-        print("we found", actual_location, type(actual_location))
-    #     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
-        if isThereaCivico:
-    #         # geo type = 0 dice che usiamo un punto
-            geo_type = 0
-            #funziona sia per civico, che per strada, dubbi su POI
-            with_num=actual_location.locations.filter_by(housenumber=number).first()
-            if with_num:
-                actual_location=with_num
-                coords = [actual_location.longitude, actual_location.latitude]
-                polygon_shape_as_list = None
-                print("print del fetch", geo_type, coords, polygon_shape_as_list)
-                return geo_type, coords, polygon_shape_as_list
-        elif type(actual_location)==Poi:
-            geo_type = 0
-            coords = [actual_location.location.longitude,actual_location.location.latitude]
+    # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
+    if isThereaCivico:
+#         # geo type = 0 dice che usiamo un punto
+        geo_type = 0
+        with_num=actual_location.locations.filter_by(housenumber=number).first()
+        if with_num:
+            actual_location=with_num
+            coords = [actual_location.longitude, actual_location.latitude]
             polygon_shape_as_list = None
-            print("print del fetch", geo_type, coords, polygon_shape_as_list)
-            return geo_type, coords, polygon_shape_as_list
-        # prendiamo la shape!
-        if actual_location.shape:
-            geo_type = 1
-            polygon_shape = actual_location.shape
-            if polygon_shape.geom_type == 'MultiPolygon':
-                # do multipolygon things.
-                polygon_shape_as_list = []
-                # loop su ogni poligono
-                for single_polygon in polygon_shape:
-                    # poligono
-                    xs, ys = single_polygon.exterior.coords.xy
-                    # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
-                    for i in range(len(xs)):
-                        polygon_shape_as_list.append([ys[i], xs[i]])
-            elif polygon_shape.geom_type == 'Polygon':
-                # do polygon things.
-                xs, ys = polygon_shape.exterior.coords.xy
-                polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
-            else:
-                raise IOError('Shape is not a polygon.')
-            # coords va creato in modo che sia subscriptable
-            coords = getCentroidSmartly(polygon_shape) # polygon_shape potreebbe esser un multipoligono!
-            #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
         else:
+            # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
             geo_type = -1
-            polygon_shape_as_list = None
-
+            polygon_shape_as_list = None                
+    # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto                 
+    elif type(actual_location)==Poi:
+        geo_type = 0
+        coords = [actual_location.location.longitude,actual_location.location.latitude]
+        polygon_shape_as_list = None
+    # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo                             
+    elif actual_location.shape:
+        geo_type = 1
+        polygon_shape = actual_location.shape
+        if polygon_shape.geom_type == 'MultiPolygon':
+            # do multipolygon things.
+            polygon_shape_as_list = []
+            # loop su ogni poligono
+            for single_polygon in polygon_shape:
+                # poligono
+                xs, ys = single_polygon.exterior.coords.xy
+                # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
+                for i in range(len(xs)):
+                    polygon_shape_as_list.append([ys[i], xs[i]])
+        elif polygon_shape.geom_type == 'Polygon':
+            # do polygon things.
+            xs, ys = polygon_shape.exterior.coords.xy
+            polygon_shape_as_list = [[ys[i],xs[i]] for i in range(len(xs))]
+        else:
+            raise IOError('Shape is not a polygon.')
+        # coords va creato in modo che sia subscriptable
+        coords = getCentroidSmartly(polygon_shape) # polygon_shape potreebbe esser un multipoligono!
+        #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
     else:
+        # in teoria questo caso non esiste per consistenza del db, lo lasciamo solo temporanemente con un print
+        print("ERRORE ASSURDO: l'oggetto trovato non è un indirizzo, non è un poi, e se è una strada o sestiere non ha geometria!", actual_location)
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
@@ -188,7 +192,7 @@ def dividiEtImpera(clean_string):
         text = text.strip() # elimina spazi che possono essersi creati togliendo il numero
     else:
         text = clean_string
-        number = -1
+        number = ""
 
     return text, number, isThereaCivico
 
@@ -286,24 +290,37 @@ def fuzzy_exact_search(word):
     found,exact_match = fuzzy_search(word)
     return found,exact_match[0]
 
-def fuzzy_search(word):
+def fuzzy_search(word, isThereaCivico):
+    exact = False
     n_limit = 5
     score_cutoff = 50
     final_matches = []
-    matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
-    for m,s in matches_neigh:
-        final_matches.append((m,s,0))
-    if not any([match[1]>98 for match in final_matches]):
-        matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
-        for m,s in matches_street:
-            final_matches.append((m,s,1))
-    if not any([match[1]>98 for match in final_matches]):
+    if isThereaCivico:
+        matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        for m,s in matches_neigh:
+            final_matches.append((m,s,0))
+        if not any([match[1]>98 for match in final_matches]):
+            matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+            for m,s in matches_street:
+                final_matches.append((m,s))
+    else:
+        # andrà implementata qui la ricerca nei poi, che fa un check delle corssipondenze con le keyword e fa la query invece di Poi.query.all() filtrando sui types di poi
         matches_poi = process.extractBests(word,Poi.query.all(),score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_poi:
-            final_matches.append((m,s,2))
+            final_matches.append((m,s))
+        if not any([match[1]>98 for match in final_matches]):
+            matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+            for m,s in matches_street:
+                final_matches.append((m,s))
+        if not any([match[1]>98 for match in final_matches]):
+            matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+            for m,s in matches_neigh:
+                final_matches.append((m,s))
     final_matches.sort(key=takeSecond, reverse=True)
-#    print("match,score", [(match.__str__(),score) for match,score in final_matches])
-    return bool(final_matches), [match[0] for match in final_matches[0:n_limit]]
+    if any([match[1]>98 for match in final_matches]):
+        exact=True
+        final_matches=[final_matches[0]]
+    return [match[0] for match in final_matches[0:n_limit]], [match[1] for match in final_matches[0:n_limit]], exact
 
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no
