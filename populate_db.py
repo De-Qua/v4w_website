@@ -694,6 +694,7 @@ from app import db
 lb.create_query_objects()
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
+#lb.delete_all(explain=True)
 # Sestieri
 path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)

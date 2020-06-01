@@ -20,6 +20,7 @@ from sqlalchemy import literal
 import geopy.distance
 from poi import library_overpass as op
 import sqlalchemy
+import time
 
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
@@ -89,7 +90,7 @@ def convert_SHP(shp_file, explain=False):
 
     return shp_file
 
-def delete_all_sestieri(explain=False):
+def delete_all_neighborhoods(explain=False):
     """
     Deletes all the entries from the neighborhood Table
     """
@@ -130,6 +131,59 @@ def delete_all_locations(explain=False):
     except:
         db.session.rollback()
         warnings.warn("Errore nel commit")
+
+def delete_all_categories(explain=False):
+    """
+    Deletes all the entries from the category Table
+    """
+    global category_query
+    num_categories = category_query.delete()
+    if explain:
+        print("Eliminate {num} categorie\ncommitto nel database..".format(num=num_categories))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+def delete_all_types(explain=False):
+    """
+    Deletes all the entries from the location Table
+    """
+    global type_query
+    num_types = type_query.delete()
+    if explain:
+        print("Eliminati {num} tipi\ncommitto nel database..".format(num=num_types))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+def delete_all_pois(explain=False):
+    """
+    Deletes all the entries from the poi Table
+    """
+    global poi_query
+    num_pois = poi_query.delete()
+    if explain:
+        print("Eliminati {num} poi\ncommitto nel database..".format(num=num_pois))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+def delete_all(explain=False):
+    """
+    Deletes all the entries from the database
+    """
+    delete_all_pois(explain)
+    delete_all_types(explain)
+    delete_all_categories(explain)
+    delete_all_locations(explain)
+    delete_all_streets(explain)
+    delete_all_neighborhoods(explain)
 
 def update_sestieri(shp, showFig=False, explain=False):
     """
@@ -224,7 +278,7 @@ def update_streets(shp, showFig=False, explain=False):
     step = np.round(all_streets / 15).astype(int)
     for name, name_spe, name_den, pol in streets[['TP_STR_NOM','CVE_TS_SPE','CVE_TS_DEN','geometry']].values:
         tot_street +=1
-        progressbar(tot_street,all_streets)
+        progressbar(tot_street,all_streets,currentSymbol='0123456789')
         if not name:
             err_streets.append((0,name,name_spe,name_den,pol))
             continue
@@ -236,7 +290,8 @@ def update_streets(shp, showFig=False, explain=False):
         #     # se c'è più di un sestiere aggiungi agli errori e passa al successivo
         #     err_streets.append((1,name,name_spe,name_den,pol))
         #     continue
-        if not streets_query.filter_by(shape=pol).first():
+        s = streets_query.filter_by(shape=pol).one_or_none()
+        if not s:
             #if explain:
                 #percentage = tot_street / len(streets['TP_STR_NOM']) * 10
                 #for j in range(np.round(percentage).astype(int)):
@@ -390,7 +445,8 @@ def update_locations(shp, showFig=False, explain=False):
         lat = repr_point.y
         lon = repr_point.x
         # Se la location non esiste già la aggiungo
-        if not location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol).first():
+        l = location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol).one_or_none()
+        if not l:
             loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol)
             add_civ += 1
             #percentage = (tot_civ_added / tot_civ_in_file) * 100
@@ -454,12 +510,14 @@ def download_POI(categories,bbox=44741,explain=False):
             category = "'"+category
         if category[-1] != "'":
             category = category + "'"
-        pois = op.download_data(bbox, [category], what='nodes')
+        pois = op.download_data(bbox, [category], what='all')
         pois_as_list = op.remove_headers_and_tolist(pois)
         for poi in pois_as_list:
-            if poi['id'] not in ids_already_there:
-                ids_already_there.append(poi['id'])
+            if (poi['type'],poi['id']) not in ids_already_there:
+                ids_already_there.append((poi['type'],poi['id']))
                 all_pois.append(poi)
+        time.sleep(5)
+
     if explain:
         print("aggiunti {} poi".format(len(all_pois)))
     return all_pois
@@ -470,35 +528,37 @@ def update_POI(pois,explain=False):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
-    global neigh_query, streets_query, location_query, poi_query
-    category_query = PoiCategory.query
-    type_query = PoiCategoryType.query
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
     # Lista di tipi di poi che non avranno una corrispondenza con un numero civico(ad esempio chiese o fontanelle)
     types_without_address={
         "amenity":["drinking_water",
                 "place_of_worship",
                 "bus_station",
-                "ferry_terminal"],
+                "ferry_terminal",
+                "bench",
+                "toilets",
+                "waste_basket",
+                "recycling"],
         "building":["church",
                     "kiosk",
                     "column"]
     }
 
-    # Corrispondenza colonne db - tags osm
-    col_tags = {
+    # Corrispondenza tags osm - colonne db
+    tags_col = {
         "name":"name",
-        "name_alt":"alt_name",
+        "alt_name":"name",
         "opening_hours":"opening_hours",
         "wheelchair":"wheelchair",
         "toilets":"toilets",
-        "toilets_wheelchair":"toilets:wheelchair",
+        "toilets:wheelchair":"toilets_wheelchair",
         "wikipedia":"wikipedia",
         "atm":"atm",
         "phone":"phone"
         }
 
-    # Corrispondenza category db - tags osm
-    cat_tags = {
+    # Corrispondenza tags osm - category db
+    tags_cat = {
         "amenity":"amenity",
         "shop":"shop",
         "cuisine":"cuisine",
@@ -526,7 +586,7 @@ def update_POI(pois,explain=False):
         progressbar_pip_style(poi_num,poi_tot)
 
         # Estrai poi in base all'id di OSM
-        p = poi_query.filter_by(osm_id = poi['id']).one_or_none()
+        p = poi_query.filter_by(osm_type=poi['type'],osm_id = poi['id']).one_or_none()
 
         # osm_id è un campo unique quindi ritorna o un elemento se esiste il POI oppure None se non esiste
         # caso in cui nel db esiste già il POI
@@ -535,8 +595,15 @@ def update_POI(pois,explain=False):
             # TODO: aggiornare il POI che è già presente se ci sono informazioni nuove
             continue
         # caso in cui nel db non esiste il POI
+        # estrai coordinate
+        if poi['type'] == 'node':
+            lat = poi['lat']
+            lon = poi['lon']
+        else:
+            lat = poi['center']['lat']
+            lon = poi['center']['lon']
         # controllo che il poi appartenga a uno dei neighborhood
-        poi_point = Point(poi['lon'],poi['lat'])
+        poi_point = Point(lon,lat)
         neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
         # se il poi non è contenuto in nessun passa al successivo
         if len(neighborhoods)==0:
@@ -556,24 +623,28 @@ def update_POI(pois,explain=False):
                     break
         if without_address:
             # controllo che non esista già la location a quelle coordinate
-            loc = location_query.filter_by(latitude=poi['lat'],longitude=poi['lon']).first()
+            loc = location_query.filter_by(latitude=lat,longitude=lon).first()
             if not loc:
                 # trovo la strada a cui appartiene il POI
                 streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
                 if len(streets) == 0:
-                    err_poi.append((1,poi))
-                    continue
+                    # se non ho trovato nessuna strada cerco la location più vicina
+                    # closest,dist = closest_location(poi['lat'],poi['lon'])
+                    # if not closest or dist > max_dist:
+                    #     err_poi.append((1,poi))
+                    #     continue
+                    streets = [None]
                 elif len(streets) > 1:
                     err_poi.append((2,poi))
                     continue
-                loc = Location(latitude=poi['lat'],longitude=poi['lon'],street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
                 db.session.add(loc)
                 new_loc += 1
 
         else:
             # il poi va aggiunto ad una location con indirizzo
             # cerco la location più vicina
-            closest,dist = closest_location(poi['lat'],poi['lon'],housenumber=True)
+            closest,dist = closest_location(lat,lon,housenumber=True)
             if not closest:
                 err_poi.append((3,poi))
                 continue
@@ -584,9 +655,11 @@ def update_POI(pois,explain=False):
             loc = closest
         # creo il poi
         p = Poi(location=loc,osm_id=poi['id'])
-        # aggiungo i vari attributi del poi
-        for col_name,tag_name in col_tags.items():
-            if tag_name in poi['tags']:
+        # loop sui tag del poi
+        for tag_name in poi['tags']:
+            # aggiungo attributi al poi
+            if tag_name in tags_col.keys():
+                col_name = tags_col[tag_name]
                 value = None
                 # i nostri boolean su osm sono "yes"/"no"
                 if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
@@ -597,9 +670,9 @@ def update_POI(pois,explain=False):
                 else:
                     value = poi['tags'][tag_name]
                 setattr(p,col_name,value)
-        # aggiungo le categorie del poi
-        for cat_name,tag_name in cat_tags.items():
-            if tag_name in poi['tags']:
+            # aggiungo categorie al poi
+            elif tag_name in tags_cat.keys():
+                cat_name = tags_cat[tag_name]
                 # estraggo o creo la categoria corrispondente
                 c = category_query.filter_by(name=cat_name).one_or_none()
                 if not c:
@@ -617,6 +690,11 @@ def update_POI(pois,explain=False):
                         new_typ += 1
                     # aggiungo all'oggetto poi
                     p.add_type(t)
+            # aggiungo altri tag al poi
+            else:
+                if not p.osm_other_tags:
+                    p.osm_other_tags = ""
+                p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
         # aggiungo al database
         db.session.add(p)
         new_poi += 1
@@ -719,7 +797,7 @@ def tell_me_something_I_dont_know():
     cafe = type_query.filter_by(name="cafe").one().pois.filter(Poi.name != None).all()
     rnd_p2 = random.randint(1,len(cafe))
     p = cafe[rnd_p2]
-    print("Oggi vi consigliamo questo bar:\nNome: {nom}\nStrada: {str}\nSestiere: {ses}\nCivico: {civ}\nOrari: {ora}\nCategorie: {cat}\nAccessibile per handicappati: {whe}\nDotato di bagni: {toi}\nBagni per handiccapati: {twh}\nATM: {atm}\nTel: {tel}".format(
+    print("Oggi vi consigliamo questo bar:\nNome: {nom}\nStrada: {str}\nSestiere: {ses}\nCivico: {civ}\nOrari: {ora}\nCategorie: {cat}\nAccessibile per handicappati: {whe}\nDotato di bagni: {toi}\nBagni per handiccapati: {twh}\nATM: {atm}\nTel: {tel}\nAltro: {oth}".format(
             nom=p.name,
             str=p.location.street.name,
             ses=p.location.neighborhood.name,
@@ -730,7 +808,19 @@ def tell_me_something_I_dont_know():
             toi=p.toilets,
             twh=p.toilets_wheelchair,
             atm=p.atm,
-            tel=p.phone
+            tel=p.phone,
+            oth=p.osm_other_tags
+            ))
+    church = type_query.filter_by(name="church").one().pois.filter(Poi.name != None).all()
+    rnd_p3 = random.randint(1,len(church))
+    p = church[rnd_p3]
+    print("Avete mai visitato questa chiesa?\nNome: {nom}\nSestiere: {ses}\nCategorie: {cat}\nAccessibile per handicappati: {whe}\nWikipedia: {wik}\nAltro: {oth}".format(
+            nom=p.name,
+            ses=p.location.neighborhood.name,
+            cat=[t.__str__() for t in p.types.all()],
+            whe=p.wheelchair,
+            wik=p.wikipedia,
+            oth=p.osm_other_tags
             ))
     # I risultati si possono filtrare in due modi
     # 1. filter_by: filtra semplicemente gli attributi di una riga (solo gli attributi diretti non quelli derivati)
