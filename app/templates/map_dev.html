@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html>
-	<title>De Qua</title>
+	<title>De Qua - SELF-CONTAINED VERSION TO EDIT</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="/static/css/w3s.css">
-	<link rel="stylesheet" href="/static/css/s.css">
-	<link rel="icon" href="/static/img/dequa_logo_v1.png">
+	<link rel="stylesheet" href="../static/css/w3s.css">
+	<link rel="stylesheet" href="../static/css/s.css">
+	<link rel="stylesheet" href="../static/css/bootleaf.css">
+	<link rel="stylesheet" href="../static/leaflet-groupedlayercontrol/leaflet.groupedlayercontrol.css">
+	<link rel="icon" href="../static/img/dequa_logo_v1.png">
 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<!-- LEAFLET CSS -->
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
 		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
 		 crossorigin=""/>
@@ -20,11 +24,43 @@
 		 crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 	<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
-	<script src="/static/js/leaflet-providers.js"></script>
+	<script src="../static/js/leaflet-providers.js"></script>
 	<!-- Our own (little) javascript library. -->
-	<script src="/static/js/v4w.js"></script>
+	<script src="../static/js/v4w.js"></script>
 <body>
-
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+	<div class="navbar-header">
+		<div class="navbar-icon-container">
+			<a href="#" class="navbar-icon pull-right visible-xs" id="nav-btn"><i class="fa fa-bars fa-lg white"></i></a>
+			<a href="#" class="navbar-icon pull-right visible-xs" id="sidebar-toggle-btn"><i class="fa fa-search fa-lg white"></i></a>
+		</div>
+		<a class="navbar-brand" href="#"><img src="../static/img/dequa_logo_v1.png" height="120%" style="display: inline;">&nbsp; DeQua</a>
+	</div>
+	<div class="navbar-collapse collapse navbar-right">
+		<ul class="nav navbar-nav">
+			<li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" id="about-btn"><i class="fa fa-exclamation-triangle white"></i>&nbsp;&nbsp;Help</a></li>
+			<li class="dropdown">
+				<a id="toolsDrop" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-globe white"></i>&nbsp;&nbsp;Tools <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" id="full-extent-btn"><i class="fa fa-arrows-alt"></i>&nbsp;&nbsp;Zoom To Full Extent</a></li>
+					<li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" id="legend-btn"><i class="fa fa-picture-o"></i>&nbsp;&nbsp;Show Legend</a></li>
+					<li class="divider hidden-xs"></li>
+					<li><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" id="login-btn"><i class="fa fa-user"></i>&nbsp;&nbsp;Login</a></li>
+				</ul>
+			</li>
+			<li class="dropdown">
+					<a class="dropdown-toggle" id="downloadDrop" href="#" role="button" data-toggle="dropdown"><i class="fa fa-cloud-download white"></i>&nbsp;&nbsp;Download <b class="caret"></b></a>
+					<ul class="dropdown-menu">
+						<li><a href="data/boroughs.geojson" download="boroughs.geojson" target="_blank" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-download"></i>&nbsp;&nbsp;Boroughs</a></li>
+						<li><a href="data/subways.geojson" download="subways.geojson" target="_blank" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-download"></i>&nbsp;&nbsp;Subway Lines</a></li>
+						<li><a href="data/DOITT_THEATER_01_13SEPT2010.geojson" download="theaters.geojson" target="_blank" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-download"></i>&nbsp;&nbsp;Theaters</a></li>
+						<li><a href="data/DOITT_MUSEUM_01_13SEPT2010.geojson" download="museums.geojson" target="_blank" data-toggle="collapse" data-target=".navbar-collapse.in"><i class="fa fa-download"></i>&nbsp;&nbsp;Museums</a></li>
+					</ul>
+			</li>
+			<li class="pad-right"><a href="#" data-toggle="collapse" data-target=".navbar-collapse.in" id="about-btn"><i class="fa fa-question-circle white"></i>&nbsp;&nbsp;About</a></li>
+		</ul>
+	</div><!--/.navbar-collapse -->
+</div>
 
 	<!-- DIV CON LA MAPPA -->
 	<div id="mapid">
@@ -54,64 +90,54 @@
 		        title: "Show me where I am, yo!"
 		    }
 				}).addTo(mymap);
-			var feedbackjs = {{feedbacksent}};
+			var feedbackjs = 0;
 		</script>
 	</div>
-
-		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
-		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
-		<div class="leaflet-top leaflet-left" id="searchbar">
-			<div class="searchfield leaflet-control w3-medium">
-				<form id="ricerca_ind" action="" method="GET">
-					<input type="text"  placeholder="cerca.." name="partenza">
-					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-				
+	
+	<!-- BARRA DI RICERCA PRESA DA BOOTLEAF -->
+	
+	<!-- SPOSTATA CON TOP-LEFT in POSIZIONE ABSOLUTE sotto la BARRA -->
+	<div class="top-left" id="tlbar">
+		<form class="navbar-form navbar-below" role="search" id="ricerca_ind">
+			<div class="form-group has-feedback shadow">
+					<input id="searchbox_start" type="text" placeholder="Cerca.." class="form-control">
 			
-					<!-- inizialmente mostriamo il bottone -->
-					<a onclick="showSecondSearchbar()">
-						<div class="button-plus" id="add-searchfield">
-							<button type=button id="btn-plus" class="fa fa-plus btn v4wbtn pad-left"></button>
-						</div>
-					</a>
-					<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
-					<div class="container-search-field" id="second-search-field" style="display: none">
-							<div class="form-group has-feedback">
-								<input id="searchbox_end" type="text" name="arrivo" placeholder="fino a.." class="form-control">
-								<button type=button onclick="hideSecondSearchbar()" class="fa fa-close btn v4wbtn pad-left"></button>
-							</div>
-					</div><br>
-					<!-- Aggiungiamo un bottone per il percorso sotto -->
-					<div class="calculate-path-cointainer button-plus" id="calc-button" style="display: none">
-
-						<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
-
-					</div>
-				</form>
+					<button class="btn v4wbtn" type="submit" form="ricerca_ind" id="searchicon" class=" form-control-feedback"><i class="fa fa-search"></i></button>
 			</div>
-		</div>
-
-		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK-->
-		<div class="leaflet-top leaflet-right onlyMap">
-			<a onclick="showHelpWindow()">
-				<div class="leaflet-control w3-medium">
-					<button class="btn v4wbtn"><i class="fa fa-question"></i></button>
+		</form>
+			<!-- Questo va sotto la barra ed e un container con 2 cose: un bottone, e un secondo campo di ricerca -->
+			<div class="below-tlbar">
+				<!-- inizialmente mostriamo il bottone -->
+				<a onclick="showSecondSearchbar()">
+					<div class="button-plus" id="add-searchfield">
+						<button type=button id="btn-plus" class="fa fa-plus btn v4wbtn pad-left"></button>
+					</div>
+				</a>
+				<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
+				<div class="container-search-field" id="second-search-field" style="display: none">
+						<div class="form-group has-feedback">
+								<input id="searchbox_end" type="text" placeholder="fino a.." class="form-control">
+						</div>
+						<button type=button onclick="hideSecondSearchbar()" class="fa fa-plus btn v4wbtn pad-left"></button>
+				</div><br>
+				<!-- Aggiungiamo un bottone per il percorso sotto -->
+				<div class="calculate-path-cointainer button-plus" id="calc-button" style="display: none">
+					<button onclick="" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
 				</div>
-			</a>
-			<a onclick="showFeedbackWindow()">
-				<div class="leaflet-control w3-medium">
-					<button class="btn v4wbtn"><i class="fa fa-exclamation-triangle"></i></button>
-				</div>
-			</a>
-		</div>
+			</div>
+		
+	</div>
+	
 	
 		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 		<div class="leaflet-bottom leaflet-left onlyMap">
-			<a onclick="changeMap(whichmap)">
+			<a onclick="showSecondSearchbar()"> <!-- </a>changeMap(whichmap)"> -->
 				<div class="leaflet-control maptype w3-medium">
 					<button class="btn v4wbtn mapbtn"><i class="fa fa-map"></i></button>
 				</div>
 			</a>
 		</div>
+	
 		<!-- DIV IN BASSO A DESTRA - GEO-LOCALIZZZIONE
 		<div class="leaflet-bottom leaflet-right">
 			<a onclick="locateUser(mymap, marker, circle)">
@@ -122,7 +148,7 @@
 		</div>
 		-->
 
-	<div class="helpwindowpopup" id="helpwindow">
+	<div class="helpwindowpopup" id="helpwindow" style="display: none">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
 		<p class="w3-medium"><b>COSA POSSO FARE?</b></p><br>
 		<p class="w3-small">Cerca il tuo indirizzo, inserendo SESTIERE e NUMERO CIVICO.<br>
@@ -146,45 +172,8 @@
 		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
 		<div id="formid">
 		<form action="" method="post">
-			{{ form.hidden_tag() }}
 			<p>
-				{{ form.name.label }}
-				{{ form.name(size=32) }} <br>
-				{% for error in form.name.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.email.label }}
-				{{ form.email(size=32) }} <br>
-				{% for error in form.email.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.category.label }}
-				{{ form.category() }}
-				{% for error in form.category.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.searched_string.label }}
-				{{ form.searched_string(size=32) }}
-			</p>
-			<p>
-				{{ form.found_string.label }}
-				{{ form.found_string(size=32) }}
-			</p>
-			<p>
-		    {{ form.feedback.label }}<br>
-		    {{ form.feedback(cols=50, rows=4) }}<br>
-		    {% for error in form.feedback.errors %}
-		    <span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-		  </p>
-			<p>
-				{{ form.submit() }}
+				FORM WOULD BE HERE
 			</p>
 		</form>
 		</div>
@@ -194,10 +183,14 @@
 
 	</div>
 
+
+
+
+	
 <script>
-    closeHelpWindow();
-    closeFeedbackWindow();
-    toggleFeedbackWindowLayout();
+    //closeHelpWindow();
+    //closeFeedbackWindow();
+    //toggleFeedbackWindowLayout();
 
 		// OLD VERSION WITH start_coords - 1
 		//#if ({{start_coordx}} > 0)
@@ -207,7 +200,7 @@
 		// geo_type == 0 --> marker
 		// geo_type == 1 --> poligono
 		// e facile aggiungere geo_type se vogliamo piu avanti
-		switch({{geo_type}}) {
+		switch(0) {
 			case -2:
 				// do nothing - pagina senza ricerca_ind
 				mymap.setView([45.43, 12.33], 13);
@@ -219,8 +212,8 @@
 		  case 0:
 		    // METTI UN MARKER
 				var marker_icon = L.icon({
-					iconUrl: '/static/img/icon_marker_50.png',
-					iconRetinaUrl: '/static/img/icon_marker.png',
+					iconUrl: '../static/img/icon_marker_50.png',
+					iconRetinaUrl: '../static/img/icon_marker.png',
 					iconSize: [33, 50],
 					iconAnchor: [16, 49],
 					popupAnchor: [16, 16]
@@ -237,7 +230,7 @@
 				}
 
 				// coordinate
-				marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
+				marker_arrivo = L.marker([45.43, 12.33], markerOptions);
 				var test = "{{start_name}}";
 				// Popup se uno clicca sul marker
 				marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
@@ -257,7 +250,9 @@
 					 riseOnHover: true
 				}
 				var polygon = L.polygon([
-				    {{polygon_shape}}
+				   	[45.43, 12.33],
+						[45.43, 12.33],
+						[45.43, 12.33],
 				], polygonOptions).addTo(mymap);
 				var group = new L.featureGroup([polygon]);
 				mymap.fitBounds(group.getBounds());
@@ -269,7 +264,6 @@
 		}
 
 </script>
-
 
 </body>
 </html>
