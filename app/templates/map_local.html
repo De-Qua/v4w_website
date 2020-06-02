@@ -3,9 +3,9 @@
 	<title>De Qua</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="/static/css/w3s.css">
-	<link rel="stylesheet" href="/static/css/s.css">
-	<link rel="icon" href="/static/img/dequa_logo_v1.png">
+	<link rel="stylesheet" href="../static/css/w3s.css">
+	<link rel="stylesheet" href="../static/css/s.css">
+	<link rel="icon" href="../static/img/dequa_logo_v1.png">
 
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
 		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
@@ -20,9 +20,9 @@
 		 crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 	<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
-	<script src="/static/js/leaflet-providers.js"></script>
+	<script src="../static/js/leaflet-providers.js"></script>
 	<!-- Our own (little) javascript library. -->
-	<script src="/static/js/v4w.js"></script>
+	<script src="../static/js/v4w.js"></script>
 <body>
 
 
@@ -54,7 +54,7 @@
 		        title: "Show me where I am, yo!"
 		    }
 				}).addTo(mymap);
-			var feedbackjs = {{feedbacksent}};
+			var feedbackjs = 0;
 		</script>
 	</div>
 
@@ -90,7 +90,14 @@
 			</div>
 		</div>
 
-		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK-->
+		<!-- LA RICERCA EFFETTUATA -->
+		<div class="leaflet-top" id="trovato" style="display: none; align: center">
+			<div class="w3-animate-left leaflet-control w3-medium">
+				<p class="foundspan" id="whatWeFound"></p>
+			</div>
+		</div>
+
+		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO -->
 		<div class="leaflet-top leaflet-right onlyMap">
 			<a onclick="showHelpWindow()">
 				<div class="leaflet-control w3-medium">
@@ -103,7 +110,6 @@
 				</div>
 			</a>
 		</div>
-	
 		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 		<div class="leaflet-bottom leaflet-left onlyMap">
 			<a onclick="changeMap(whichmap)">
@@ -146,45 +152,7 @@
 		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
 		<div id="formid">
 		<form action="" method="post">
-			{{ form.hidden_tag() }}
-			<p>
-				{{ form.name.label }}
-				{{ form.name(size=32) }} <br>
-				{% for error in form.name.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.email.label }}
-				{{ form.email(size=32) }} <br>
-				{% for error in form.email.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.category.label }}
-				{{ form.category() }}
-				{% for error in form.category.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.searched_string.label }}
-				{{ form.searched_string(size=32) }}
-			</p>
-			<p>
-				{{ form.found_string.label }}
-				{{ form.found_string(size=32) }}
-			</p>
-			<p>
-		    {{ form.feedback.label }}<br>
-		    {{ form.feedback(cols=50, rows=4) }}<br>
-		    {% for error in form.feedback.errors %}
-		    <span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-		  </p>
-			<p>
-				{{ form.submit() }}
+			<p> CIAO
 			</p>
 		</form>
 		</div>
@@ -207,7 +175,7 @@
 		// geo_type == 0 --> marker
 		// geo_type == 1 --> poligono
 		// e facile aggiungere geo_type se vogliamo piu avanti
-		switch({{geo_type}}) {
+		switch(0) {
 			case -2:
 				// do nothing - pagina senza ricerca_ind
 				mymap.setView([45.43, 12.33], 13);
@@ -219,8 +187,8 @@
 		  case 0:
 		    // METTI UN MARKER
 				var marker_icon = L.icon({
-					iconUrl: '/static/img/icon_marker_50.png',
-					iconRetinaUrl: '/static/img/icon_marker.png',
+					iconUrl: '../static/img/icon_marker_50.png',
+					iconRetinaUrl: '../static/img/icon_marker.png',
 					iconSize: [33, 50],
 					iconAnchor: [16, 49],
 					popupAnchor: [16, 16]
@@ -237,7 +205,7 @@
 				}
 
 				// coordinate
-				marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
+				marker_arrivo = L.marker([45.43, 12.33], markerOptions);
 				var test = "{{start_name}}";
 				// Popup se uno clicca sul marker
 				marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
@@ -257,7 +225,7 @@
 					 riseOnHover: true
 				}
 				var polygon = L.polygon([
-				    {{polygon_shape}}
+				    45.43, 12.33
 				], polygonOptions).addTo(mymap);
 				var group = new L.featureGroup([polygon]);
 				mymap.fitBounds(group.getBounds());

@@ -123,3 +123,21 @@ function locateUser(map, marker, circle) {
 				alert("Location access denied.");
 		});
 	}
+
+/* Show the second search bar field - to calculate the path */
+function showSecondSearchbar() {
+	document.getElementById("searchbtn").style.display = "none";
+	document.getElementById("add-searchfield").style.display = "none";
+	document.getElementById("btn-plus").style.display = "none";
+	document.getElementById("second-search-field").style.display = "inline";
+	document.getElementById("calc-button").style.display = "inline";
+}
+
+function hideSecondSearchbar() {
+	document.getElementById("searchbtn").style.display = "inline";
+	document.getElementById("add-searchfield").style.display = "inline";
+	document.getElementById("btn-plus").style.display = "block";
+	document.getElementById("second-search-field").style.display = "none";
+	document.getElementById("calc-button").style.display = "none";
+	return false;
+}
