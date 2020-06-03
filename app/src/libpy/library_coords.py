@@ -60,11 +60,17 @@ def find_address_in_db(input_string):
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             # correggi per Leaflet
             coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
-            result_dict.append({"nome":str(address)+ " " + str(number),
-                                       "coordinate":coordinates,
-                                       "shape":polygon_shape,
-                                       "geotype":geo_type,
-                                       "score":score_list[i]})
+            if not geo_type<0:
+                nome=str(address)+ " " + str(number)
+            else:
+                nome=str(address)
+            result_dict.append({"nome":nome,
+                        "coordinate":coordinates,
+                        "shape":polygon_shape,
+                        "geotype":geo_type,
+                        "score":score_list[i],
+                        "exact":exact})
+        result_dict=sort_results(result_dict)
     return result_dict
 
 
@@ -108,6 +114,8 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
 #         # geo type = 0 dice che usiamo un punto
         geo_type = 0
         with_num=actual_location.locations.filter_by(housenumber=number).first()
+        #if not with_num:
+        #    with_num=Location.query.filter_by(housenumber=number).join(Street).filter_by(name=str(actual_location)).first()
         if with_num:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
@@ -115,7 +123,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         else:
             # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
-            geo_type = -1
+            geo_type = -2
             polygon_shape_as_list = None                
     # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto                 
     elif type(actual_location)==Poi:
@@ -196,6 +204,21 @@ def dividiEtImpera(clean_string):
         number = ""
 
     return text, number, isThereaCivico
+
+
+def sort_results(res_list):
+    """ 
+    Sorts the results list to give as a first choice, not the best score matching, but something better. For the moment I put as last, the results with a negative geometry.
+    """
+    new_res_list=[]
+    wrong_list=[]
+    for res in res_list:
+        if res["geotype"]<0:
+            wrong_list.append(res)
+        else:
+            new_res_list.append(res)
+    new_res_list=new_res_list+wrong_list
+    return new_res_list
 
 """
 La stringa e pulita, ricerca nel DATABASE
@@ -287,13 +310,10 @@ Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il m
 """
 def takeSecond(elem):
     return elem[1]
-def fuzzy_exact_search(word):
-    found,exact_match = fuzzy_search(word)
-    return found,exact_match[0]
 
 def fuzzy_search(word, isThereaCivico):
     exact = False
-    n_limit = 5
+    n_limit = 15
     score_cutoff = 50
     final_matches = []
     if isThereaCivico:
@@ -320,8 +340,12 @@ def fuzzy_search(word, isThereaCivico):
     final_matches.sort(key=takeSecond, reverse=True)
     if any([match[1]>98 for match in final_matches]):
         exact=True
-        final_matches=[final_matches[0]]
-    return [match[0] for match in final_matches[0:n_limit]], [match[1] for match in final_matches[0:n_limit]], exact
+        final_matches=[match for match in final_matches if match[1]>98]
+    # se i risultati sono esatti non voglio escludere nessuna soluzione!
+    if not exact:
+        final_matches = final_matches[0:4]        
+        
+    return [match[0] for match in final_matches], [match[1] for match in final_matches], exact
 
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no
