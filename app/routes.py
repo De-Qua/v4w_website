@@ -10,13 +10,13 @@ from flask import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
-from app.src.libpy.utils import find_closest_node
+from app.src.libpy.utils import find_closest_nodes
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
 
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle = os.path.join(folder_db,"grafo_pickle_new")
+path_pickle = os.path.join(folder_db,"grafo_pickle")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
 path_civ = os.path.join(folder_db,"lista_key.txt")
@@ -111,16 +111,9 @@ def find_address():
             app.logger.debug('indirizzo: {}'.format(da))
             match_dict = find_address_in_db(da)
             # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
-            #start_coord, start_name = coords, actual_address
-            #form.found_string.data = start_name
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-            # significa che stiamo ritornando un indirizzo singolo
-            modo = 0
-            #final_dict={"modus operandi":modo,
-            #            "searched_name":da,
-            #            "partenza":match_dict}
-
-            final_dict = prepare_our_message_to_javascript(modo, match_dict, da) # aggiunge da solo "no_path" e "no_end"
+            # 0 significa che stiamo ritornando un indirizzo singolo
+            final_dict = prepare_our_message_to_javascript(0, da, match_dict) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             #dict_test = {"test":"ma va", "geotype":"0"}
             return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
@@ -129,7 +122,8 @@ def find_address():
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
             # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-            start_coord, stop_coord = find_closest_node(match_dict_a[1].get("coordinate"), G_array)
+            print(match_dict_a[0].get("coordinate"))
+            [start_coord, stop_coord] = find_closest_nodes([match_dict_a[0].get("coordinate"),match_dict_da[0].get("coordinate") ], G_array)
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             if request.form.get('meno_ponti'):
                 f_ponti=True
@@ -138,7 +132,10 @@ def find_address():
             t2=time.perf_counter()
             strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
-
+            # 1 significa che stiamo ritornando un percorso da plottare
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], strada, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            print(final_dict)
+            return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():

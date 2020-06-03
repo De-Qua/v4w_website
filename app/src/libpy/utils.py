@@ -1,13 +1,18 @@
 import numpy as np
 
-def find_closest_node(G_array):
-    tmp = np.subtract(np.ones((coordinate.shape)) * coord, G_array)
-    # indice del nodo piu vicino
-    idx = np.argmin(np.sum(tmp * tmp, axis=1))
-    return (coordinate[idx][0], coordinate[idx][1])
+def find_closest_nodes(coordinate_list,G_array):
+    """
+    Returns list of nodes in G_array closest to coordinate_list (euclidean distance) 
+    """
+    nodes_list=[]
+    for coordinate in coordinate_list:
+        tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
+        # indice del nodo piu vicino
+        idx = np.argmin(np.sum(tmp * tmp, axis=1))
+        nodes_list.append((G_array[idx][0], G_array[idx][1]))
+    return nodes_list
 
 from app.src.libpy.pyAny_lib import calculate_path
-import numpy as np
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
     """

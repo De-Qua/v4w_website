@@ -26,15 +26,13 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
     try:
         # Dijkstra algorithm, funzione peso lunghezza
         if flag_ponti == False:
-            path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
-            length_path = 1
+            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
             # lista dei nodi attraversati
         # Dijkstra algorithm, funzione peso ponti
         elif flag_ponti == True:
             length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un, coords_start,coords_end, weight = weight_bridge)
                 # lista dei nodi attraversati
             #print(length_path)
-
         path_nodes = [n for n in path]
         # Converte la lista di nodi in file json
         shapes = []
@@ -68,10 +66,10 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
                 # print(x[0],"diversi", x_tot[-1])
                 x_tot+=x[::-1]
 
-        print("\n#########\n##TEST2##\n#########")
-        print("strada con meno ponti: ", len(path_nodes), " nodi!")
-        print(path_nodes)
-        print("lunghezza (in metri, contando 100 metri per ponte: ", length_path)
+        #print("\n#########\n##TEST2##\n#########")
+        #print("strada con meno ponti: ", len(path_nodes), " nodi!")
+        #print(path_nodes)
+        #print("lunghezza (in metri, contando 100 metri per ponte: ", length_path)
     except NetworkXNoPath:
         print("Non esiste un percorso tra i due nodi")
         x_tot = []
