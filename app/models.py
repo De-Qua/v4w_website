@@ -61,12 +61,11 @@ class Location(db.Model):
         return self._repr(id=self.id,
                           latitude=self.latitude,
                           longitude=self.longitude,
-                          street=self.street.name,
                           neighborhood=self.neighborhood.name,
                           housenumber=self.housenumber)
     # cosa ritorniamo da __str__
     def __str__(self):
-        if self.housenumber:
+        if self.housenumber and self.street:
             return "{street} {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
         else:
             return "{lat},{lon}".format(lat=self.latitude,lon=self.longitude)
