@@ -6,7 +6,7 @@ import git
 import hmac
 import hashlib
 import time
-import json
+from flask import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
@@ -119,7 +119,8 @@ def find_address():
                         "searched_name":da,
                         "partenza":match_dict}
             print(final_dict)
-            return render_template('map_pa.html', form=form, results_dictionary=json.dumps(match_dict), feedbacksent=0)
+            #dict_test = {"test":"ma va", "geotype":"0"}
+            return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
         else:
             t0=time.perf_counter()
             match_dict_da = find_address_in_db(da)
