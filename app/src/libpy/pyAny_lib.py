@@ -74,7 +74,7 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
         print("Non esiste un percorso tra i due nodi")
         x_tot = []
         length_path = 0
-    return json.dumps(x_tot), length_path
+    return x_tot, length_path #json.dumps(x_tot), length_path
 
 def save_graph_pickle(shp_file,pickle_name):
     G = nt.read_shp(shp_file)
