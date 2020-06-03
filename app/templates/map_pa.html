@@ -204,6 +204,25 @@
 			mymap.setView([45.43, 12.33], 13);
 		}
 		else {
+
+			// options for all markers
+			var marker_icon = L.icon({
+				iconUrl: '/static/img/icon_marker_50.png',
+				iconRetinaUrl: '/static/img/icon_marker.png',
+				iconSize: [33, 50],
+				iconAnchor: [16, 49],
+				popupAnchor: [16, 16]
+			});
+
+			// Options for the marker
+			var markerOptions = {
+				 title: "Abbiamo trovato {{start_name}}",
+				 clickable: true,
+				 // si alza all'hover - non va :(
+				 riseOnHover: true,
+				 icon: marker_icon
+			}
+
 			var modus_operandi = dict_in_JS.modus_operandi;
 			console.log("siamo in modus_operandi: " + modus_operandi);
 			var geo_type = dict_in_JS.partenza[0].geotype;
@@ -225,28 +244,12 @@
 							// do nothing - pagina senza ricerca_ind
 							mymap.setView([45.43, 12.33], 13);
 							break;
-					  case -1:
-					    // code block
+						case -1:
+							// code block
 							alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
-					    break;
-					  case 0:
-					    // METTI UN MARKER
-							var marker_icon = L.icon({
-								iconUrl: '/static/img/icon_marker_50.png',
-								iconRetinaUrl: '/static/img/icon_marker.png',
-								iconSize: [33, 50],
-								iconAnchor: [16, 49],
-								popupAnchor: [16, 16]
-							});
+							break;
+						case 0:
 
-							// Options for the marker
-							var markerOptions = {
-								 title: "Abbiamo trovato {{start_name}}",
-								 clickable: true,
-								 // si alza all'hover - non va :(
-								 riseOnHover: true,
-								 icon: marker_icon
-							}
 
 							// coordinate
 							var coords_location = dict_in_JS.partenza[0].coordinate;
@@ -259,7 +262,7 @@
 							var group = new L.featureGroup([marker_location]);
 							mymap.fitBounds(group.getBounds());
 							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
-					    break;
+							break;
 						case 1:
 							// DISEGNA POLIGONO
 							var polygonOptions = {
@@ -270,24 +273,46 @@
 								 riseOnHover: true
 							}
 							var polygon = L.polygon([
-							    dict_in_JS.partenza[0].shape
+									dict_in_JS.partenza[0].shape
 							], polygonOptions).addTo(mymap);
 							var group = new L.featureGroup([polygon]);
 							mymap.fitBounds(group.getBounds());
 							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
 							break;
-					  default:
-					    // do nothing
+						default:
+							// do nothing
 							console.log("caso default. strano. guarda nello switch che valore ha geo_type");
 							break;
 						}
-						break;
-					case 1:
-					 // here all the stuff when we have path from A to B
-					 // TODO
-					 alert('YET TO BE DONE');
-					 break;
-			 }
+					break;
+				case 1:
+					// here all the stuff when we have path from A to B
+			    //var punto_di_partenza = L.point(stop_coordx, stop_coordy);
+			    //var prj = L.Projection.Mercator.unproject(pointM);
+					mymap.setView([45.43, 12.33], 13);
+			    var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).addTo(mymap);
+			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
+					// the list of points
+				 	var pointList = dict_in_JS.path;
+					// create a polyline that will be drawn
+					console.log("here");
+					var firstpolyline = new L.Polyline(pointList, {
+							color: 'red',
+							weight: 3,
+							opacity: 0.5,
+							smoothFactor: 2
+					});
+					//console.log("created polylione");
+					firstpolyline.addTo(mymap);
+					//console.log("added polylione");
+					//firstpolyline.addTo(mymap);
+					//console.log(pointList);
+					// set the view correctly - we use a group because getBounds on Polyline sembra non andare
+					//var group = new L.featureGroup([firstpolyline]);
+		     	//mymap.fitBounds(group.getBounds());
+					//alert('YET TO BE DONE');
+					break;
+		 	}//closing switch modus_operandi
 		}
 
 
