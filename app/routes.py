@@ -104,7 +104,7 @@ def find_address():
         if da == '':
             print('primo caricamento')
             app.logger.info('grazie per aver aperto find_address')
-            temp= render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, form=form, feedbacksent=0)
+            temp= render_template('map_pa.html',results_dictionary="None", form=form, feedbacksent=0)
             app.logger.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
             return temp
         elif a== '':
