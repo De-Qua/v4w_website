@@ -122,8 +122,7 @@ def find_address():
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
             # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-            print(match_dict_a[0].get("coordinate"))
-            [start_coord, stop_coord] = find_closest_nodes([match_dict_a[0].get("coordinate"),match_dict_da[0].get("coordinate") ], G_array)
+            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_array)
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             if request.form.get('meno_ponti'):
                 f_ponti=True

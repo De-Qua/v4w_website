@@ -1,11 +1,17 @@
 import numpy as np
 
-def find_closest_nodes(coordinate_list,G_array):
+def find_closest_nodes(dict_list,G_array):
     """
     Returns list of nodes in G_array closest to coordinate_list (euclidean distance) 
     """
+    coord_beg_end=[]
+    for d in dict_list:
+        if d.get("geo_type")==0:
+            coord_beg_end.append(d.get("shape")[0])
+        else:
+            coord_beg_end.append(d.get("coordinate"))
     nodes_list=[]
-    for coordinate in coordinate_list:
+    for coordinate in coord_beg_end:
         tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
         # indice del nodo piu vicino
         idx = np.argmin(np.sum(tmp * tmp, axis=1))
