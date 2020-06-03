@@ -46,8 +46,6 @@
 			//var marker = L.marker([45.43, 12.33]).addTo(mymap);
 			//var marker;
 			//var circle;
-			//var marker_arrivo;
-			//var lc =
 			L.control.locate({
 		    position: 'bottomright',
 		    strings: {
@@ -202,76 +200,89 @@
 		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
 		//var result = JSON.parse({{ results_dictionary | tojson }});
 		var dict_in_JS = {{results_dictionary | tojson}};
-		var geo_type = dict_in_JS.partenza[0].geotype
+		var geo_type = dict_in_JS.partenza[0].geotype;
 		console.log(geo_type);
-		// OLD VERSION WITH start_coords - 1
-		//#if ({{start_coordx}} > 0)
-		// NEW VERSION with geo_type
-		// geo_type == -2 --> pagina senza ricerca
-		// geo_type == -1 --> trovato nulla, pazienza
-		// geo_type == 0 --> marker
-		// geo_type == 1 --> poligono
-		// e facile aggiungere geo_type se vogliamo piu avanti
-		switch(geo_type) {
-			case -2:
-				// do nothing - pagina senza ricerca_ind
-				mymap.setView([45.43, 12.33], 13);
-				break;
-		  case -1:
-		    // code block
-				alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
-		    break;
-		  case 0:
-		    // METTI UN MARKER
-				var marker_icon = L.icon({
-					iconUrl: '/static/img/icon_marker_50.png',
-					iconRetinaUrl: '/static/img/icon_marker.png',
-					iconSize: [33, 50],
-					iconAnchor: [16, 49],
-					popupAnchor: [16, 16]
-				});
 
-				// Options for the marker
-				var markerOptions = {
+		// 03.06.2020
+		var modus_operandi = dict_in_JS.modus_operandi;
+		// we switch with modus_operandi
+		// modus == 0 --> indirizzo, o nulla?
+		// modus == 1 --> strada tra A e B
+		swtich(modus_operandi) {
+			case 0:
+				// here all the stuff we can do when only one address is searched
+				// NEW VERSION with geo_type
+				// geo_type == -2 --> pagina senza ricerca
+				// geo_type == -1 --> trovato nulla, pazienza
+				// geo_type == 0 --> marker
+				// geo_type == 1 --> poligono
+				// e facile aggiungere geo_type se vogliamo piu avanti
+				switch(geo_type) {
+					case -2:
+						// do nothing - pagina senza ricerca_ind
+						mymap.setView([45.43, 12.33], 13);
+						break;
+				  case -1:
+				    // code block
+						alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
+				    break;
+				  case 0:
+				    // METTI UN MARKER
+						var marker_icon = L.icon({
+							iconUrl: '/static/img/icon_marker_50.png',
+							iconRetinaUrl: '/static/img/icon_marker.png',
+							iconSize: [33, 50],
+							iconAnchor: [16, 49],
+							popupAnchor: [16, 16]
+						});
 
-					 title: "Abbiamo trovato {{start_name}}",
-					 clickable: true,
-					 // si alza all'hover - non va :(
-					 riseOnHover: true,
-					 icon: marker_icon
+						// Options for the marker
+						var markerOptions = {
+							 title: "Abbiamo trovato {{start_name}}",
+							 clickable: true,
+							 // si alza all'hover - non va :(
+							 riseOnHover: true,
+							 icon: marker_icon
+						}
+
+						// coordinate
+						var coords_location = dict_in_JS.partenza[0].coordinate;
+						marker_location = L.marker(coords_location, markerOptions);
+						var name_location = dict_in_JS.partenza[0].nome;
+						// Popup se uno clicca sul marker
+						marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
+						// aggiungi il marker sulla mappa
+						marker_location.addTo(mymap);
+						var group = new L.featureGroup([marker_location]);
+						mymap.fitBounds(group.getBounds());
+						//mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+				    break;
+					case 1:
+						// DISEGNA POLIGONO
+						var polygonOptions = {
+
+							 title: "Evidenziato " + name_location,
+							 clickable: true,
+							 // si alza all'hover - non va :(
+							 riseOnHover: true
+						}
+						var polygon = L.polygon([
+						    dict_in_JS.partenza[0].shape
+						], polygonOptions).addTo(mymap);
+						var group = new L.featureGroup([polygon]);
+						mymap.fitBounds(group.getBounds());
+						//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
+						break
+				  default:
+				    // do nothing
+						console.log("caso default. strano. guarda nello switch che valore ha geo_type");
 				}
-
-				// coordinate
-				marker_arrivo = L.marker([{{start_coordx}}, {{start_coordy}}], markerOptions);
-				var test = "{{start_name}}";
-				// Popup se uno clicca sul marker
-				marker_arrivo.bindPopup("Abbiamo trovato {{start_name}}").openPopup();
-				// aggiungi il marker sulla mappa
-				marker_arrivo.addTo(mymap);
-				var group = new L.featureGroup([marker_arrivo]);
-				mymap.fitBounds(group.getBounds());
-				//mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
-		    break;
-			case 1:
-				// DISEGNA POLIGONO
-				var polygonOptions = {
-
-					 title: "Evidenziato {{start_name}}",
-					 clickable: true,
-					 // si alza all'hover - non va :(
-					 riseOnHover: true
-				}
-				var polygon = L.polygon([
-				    {{polygon_shape}}
-				], polygonOptions).addTo(mymap);
-				var group = new L.featureGroup([polygon]);
-				mymap.fitBounds(group.getBounds());
-				//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
-				break
-		  default:
-		    // do nothing
-				console.log("caso default. strano. guarda nello switch che valore ha geo_type");
+				case 1:
+				 // here all the stuff when we have path from A to B
+				 // TODO
+				 alert('YET TO BE DONE')
 		}
+
 
 </script>
 

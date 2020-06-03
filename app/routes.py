@@ -11,6 +11,7 @@ import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
 from app.src.libpy.utils import find_closest_node
+from app.src.libpy.library_communication import prepare_our_message_to_javascript
 
 # Useful paths
 folder = os.getcwd()
@@ -115,9 +116,11 @@ def find_address():
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             # significa che stiamo ritornando un indirizzo singolo
             modo = 0
-            final_dict={"modus operandi":modo,
-                        "searched_name":da,
-                        "partenza":match_dict}
+            #final_dict={"modus operandi":modo,
+            #            "searched_name":da,
+            #            "partenza":match_dict}
+
+            final_dict = prepare_our_message_to_javascript(modo, match_dict, da) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             #dict_test = {"test":"ma va", "geotype":"0"}
             return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
