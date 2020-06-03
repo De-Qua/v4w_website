@@ -65,8 +65,8 @@
 				<form id="ricerca_ind" action="" method="GET">
 					<input type="text"  placeholder="cerca.." name="partenza">
 					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-				
-			
+
+
 					<!-- inizialmente mostriamo il bottone -->
 					<a onclick="showSecondSearchbar()">
 						<div class="button-plus" id="add-searchfield">
@@ -103,7 +103,7 @@
 				</div>
 			</a>
 		</div>
-	
+
 		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 		<div class="leaflet-bottom leaflet-left onlyMap">
 			<a onclick="changeMap(whichmap)">
@@ -199,6 +199,11 @@
     closeFeedbackWindow();
     toggleFeedbackWindowLayout();
 
+		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
+		//var result = JSON.parse({{ results_dictionary | tojson }});
+		var dict_in_JS = {{results_dictionary | tojson}};
+		var geo_type = dict_in_JS.partenza[0].geotype
+		console.log(geo_type);
 		// OLD VERSION WITH start_coords - 1
 		//#if ({{start_coordx}} > 0)
 		// NEW VERSION with geo_type
@@ -207,7 +212,7 @@
 		// geo_type == 0 --> marker
 		// geo_type == 1 --> poligono
 		// e facile aggiungere geo_type se vogliamo piu avanti
-		switch({{geo_type}}) {
+		switch(geo_type) {
 			case -2:
 				// do nothing - pagina senza ricerca_ind
 				mymap.setView([45.43, 12.33], 13);
