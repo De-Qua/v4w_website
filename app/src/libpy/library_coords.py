@@ -47,7 +47,8 @@ def find_address_in_db(input_string):
     # cerca nel database - qua dentro avviene la magia
     #found_something, actual_address, address_type = find_address(text)
     address_list, score_list, exact = fuzzy_search(text, isThereaCivico)
-    result_dict = {}
+    print(address_list, score_list)
+    result_dict = []
     # dammi coordinate, del punto o del poligono
     if not address_list:
         coords = [-1, -1]
@@ -59,11 +60,11 @@ def find_address_in_db(input_string):
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             # correggi per Leaflet
             coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
-            result_dict[i]={"nome":str(address)+ " " + str(number),
+            result_dict.append({"nome":str(address)+ " " + str(number),
                                        "coordinate":coordinates,
                                        "shape":polygon_shape,
                                        "geotype":geo_type,
-                                       "score":score_list[i]}
+                                       "score":score_list[i]})
     return result_dict
 
 
@@ -151,7 +152,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         geo_type = -1
         polygon_shape_as_list = None
 
-    print("print del fetch", geo_type, coords, polygon_shape_as_list)
+#    print("print del fetch", geo_type, coords, polygon_shape_as_list)
     return geo_type, coords, polygon_shape_as_list
 
 """
