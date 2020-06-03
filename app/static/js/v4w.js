@@ -56,7 +56,6 @@ function changeFeedbackandClose() {
 }
 
 function toggleFeedbackWindowLayout() {
-	console.log(feedbackjs);
 	if (feedbackjs == 0) {
 		document.getElementById("formid").style.display = "block";
 		document.getElementById("grazieid").style.display = "none";
