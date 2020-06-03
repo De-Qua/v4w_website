@@ -119,7 +119,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         if with_num:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape_as_list = None
+            polygon_shape_as_list = [actual_location.shape]
         else:
             # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
@@ -129,7 +129,10 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
     elif type(actual_location)==Poi:
         geo_type = 0
         coords = [actual_location.location.longitude,actual_location.location.latitude]
-        polygon_shape_as_list = None
+        try:
+            polygon_shape_as_list = [actual_location.shape]
+        except:
+            polygon_shape_as_list = None
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo                             
     elif actual_location.shape:
         geo_type = 1
