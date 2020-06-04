@@ -71,6 +71,7 @@ def find_address_in_db(input_string):
                         "score":score_list[i],
                         "exact":exact})
         result_dict=sort_results(result_dict)
+        print(result_dict)
     return result_dict
 
 
@@ -80,10 +81,12 @@ def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
     """
     shift = np.asarray([-0.000015, +0.000015])
     corrected_coords = coordinates + shift
-    if geo_type > 0:
+    if not geo_type < 0:
         numpy_pol = np.asarray(polygon)
         numpy_corrected_polygon = numpy_pol + shift
         corrected_polygon = numpy_corrected_polygon.tolist()
+        if geo_type==0:
+            corrected_polygon = [(coo[1],coo[0]) for coo in corrected_polygon]
     else:
         corrected_polygon = None
 
@@ -119,7 +122,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         if with_num:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape_as_list = [actual_location.shape]
+            polygon_shape_as_list = [coo for coo in actual_location.shape.coords]
         else:
             # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
@@ -130,7 +133,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         geo_type = 0
         coords = [actual_location.location.longitude,actual_location.location.latitude]
         try:
-            polygon_shape_as_list = [actual_location.shape]
+            polygon_shape_as_list = [coo for coo in actual_location.shape.coords]
         except:
             polygon_shape_as_list = None
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo                             

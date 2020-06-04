@@ -5,7 +5,7 @@ def weight_bridge(x,y,dic):
 #        w = 100
 #    else:
 #        w=0
-    return dic["length"] + dic["ponte"]*100
+    return dic["length"] + dic["ponte"]*100000
     #weight = dic["length"] if dic["ponte"]==0 else None
  #   return weight
 def weight_time(x,y,dic):

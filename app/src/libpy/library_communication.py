@@ -1,4 +1,4 @@
-def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path="no_path", end_location="no_end"):
+def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=["no_path",0], end_location="no_end"):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.
     """
@@ -17,7 +17,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
     msg["modus_operandi"] = mode
     msg["partenza"] = start_location
     msg["searched_name"] = string_input
-    msg["path"] = estimated_path
+    msg["path"] = estimated_path[0]
+    msg["length_path"] = estimated_path[1]
     msg["arrivo"] = end_location
 
     return msg
