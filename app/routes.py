@@ -10,13 +10,13 @@ from flask import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
-from app.src.libpy.utils import find_closest_nodes
+from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
 
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle = os.path.join(folder_db,"grafo_pickle")
+path_pickle = os.path.join(folder_db,"grafo_pickle_last")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
 path_civ = os.path.join(folder_db,"lista_key.txt")
@@ -130,9 +130,11 @@ def find_address():
                 f_ponti=False
             t2=time.perf_counter()
             strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
+            print("length", length)
+            strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0]) 
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
-            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], strada, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
 
@@ -149,13 +151,6 @@ def degoogle_us_please():
     else:
         app.logger.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
-
-
-@app.route('/download_path', methods=['GET', 'POST'])
-def download():
-    return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")
-
-
 
 # check webhook github signature
 def is_valid_signature(x_hub_signature, data, private_key):
