@@ -130,7 +130,7 @@ def find_address():
                 f_ponti=False
             t2=time.perf_counter()
             strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-            print("length", length)
+            #print("path, length", strada, length)
             strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0]) 
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare

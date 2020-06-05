@@ -44,14 +44,12 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
         # print(sha.coords.xy)
             x = []
             for i in range(len(sha.coords.xy[0])):
-                x.append((sha.coords.xy[1][i],sha.coords.xy[0][i]))
+                x.append((sha.coords.xy[0][i],sha.coords.xy[1][i]))
             # to be corrected with x_start
             if not x_tot:
-                x_tot+=x
-                coords_start_inv = (coords_start[1], coords_start[0])
-                if coords_start_inv == x[0]:
+                if coords_start == x[0]:
                     x_tot+=x
-                elif coords_start_inv == x[-1]:
+                elif coords_start == x[-1]:
                     x_tot+=x[::-1]
                 else:
                     logging.warning("Coordinata iniziale non trovata nel primo arco")

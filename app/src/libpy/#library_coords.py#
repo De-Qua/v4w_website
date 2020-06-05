@@ -58,8 +58,6 @@ def find_address_in_db(input_string):
         for i,address in enumerate(address_list):
             print(address)
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
-            # correggi per Leaflet
-            coordinates, polygon_shape = correct_coordinates_for_leaflet(coordinates, polygon_shape, geo_type)
             if not geo_type<0:
                 nome=str(address)+ " " + str(number)
             else:
@@ -73,24 +71,6 @@ def find_address_in_db(input_string):
         result_dict=sort_results(result_dict)
         print(result_dict)
     return result_dict
-
-
-def correct_coordinates_for_leaflet(coordinates, polygon, geo_type):
-    """
-    Corrects our coordinates with respect to OpenStreetMaps.
-    """
-    shift = np.asarray([-0.000015, +0.000015])
-    corrected_coords = coordinates + shift
-    if not geo_type < 0:
-        numpy_pol = np.asarray(polygon)
-        numpy_corrected_polygon = numpy_pol + shift
-        corrected_polygon = numpy_corrected_polygon.tolist()
-        if geo_type==0:
-            corrected_polygon = [(coo[0],coo[1]) for coo in corrected_polygon]
-    else:
-        corrected_polygon = None
-
-    return np.ndarray.tolist(corrected_coords), corrected_polygon
 
 
 def correct_name(name):

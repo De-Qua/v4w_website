@@ -6,17 +6,18 @@ def find_closest_nodes(dict_list,G_array):
     """
     coord_beg_end=[]
     for d in dict_list:
-        if d.get("geo_type")==0:
+        if d.get("geotype")==0:
             coord_beg_end.append(d.get("shape")[0])
             print("node start",d.get("shape")[0])
         else:
             coord_beg_end.append(d.get("coordinate"))
     nodes_list=[]
     for coordinate in coord_beg_end:
+        print(coordinate)
         tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
         # indice del nodo piu vicino
         idx = np.argmin(np.sum(tmp * tmp, axis=1))
-        print("distance to node", tmp[idx])
+        print("distance to node", tmp[idx]**2)
         print("node grafo",(G_array[idx][0], G_array[idx][1] ))
         nodes_list.append((G_array[idx][0], G_array[idx][1]))
     return nodes_list
@@ -44,14 +45,14 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     return shortest_path
 
 def add_from_strada_to_porta(path, da, a):
-    end_from=da["shape"][-1]
-    end_from_rev=da["shape"][::-1][-1]
-    #end_from_2=da["shape"][-2]
-    #end_from_rev_2=da["shape"][::-1][-2]
+
     print("first node path", path[0])
-    print("distanza, da-primo punto di path", (end_from[0]-path[0][0])**2+(end_from[1]-path[0][1])**2)
-    print("distanza, rev(da)-primo punto di path",(end_from_rev[0]-path[0][0])**2+(end_from_rev[1]-path[0][1])**2)
+    print("last node path", path[-1])
+    print("da",da["shape"])
+    print("a",a["shape"])
+    #print("distanza, da-primo punto di path", (end_from[0]-path[0][0])**2+(end_from[1]-path[0][1])**2)
+    #print("distanza, rev(da)-primo punto di path",(end_from_rev[0]-path[0][0])**2+(end_from_rev[1]-path[0][1])**2)
     #print("distanza, primo punto da- secondo punto da", (end_from[0]-end_from_2[0])**2+(end_from[1]- end_from_2[1])**2)
     #print("distanza, primo punto rev(da)-secondo punto rev(da)",(end_from_rev[0]-end_from_rev_2[0])**2+(end_from_rev[1]- end_from_rev_2[1])**2)
-    path=[da["shape"]+path+a["shape"][::-1]]
-    return path
+    path=[da["shape"][::-1]+[coo for coo in path]+a["shape"][::-1]]
+    return path[0]
