@@ -113,7 +113,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         geo_type = 0
         coords = [actual_location.location.longitude,actual_location.location.latitude]
         try:
-            polygon_shape_as_list = [coo for coo in actual_location.shape.coords]
+            polygon_shape_as_list = [coo for coo in actual_location.location.shape.coords]
         except:
             polygon_shape_as_list = None
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo                             
@@ -146,7 +146,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         geo_type = -1
         polygon_shape_as_list = None
 
-#    print("print del fetch", geo_type, coords, polygon_shape_as_list)
+#    print("print del fetch, geo_type, coords, polygon_shape_as_list)
     return geo_type, coords, polygon_shape_as_list
 
 """
