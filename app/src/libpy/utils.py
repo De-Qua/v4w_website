@@ -6,7 +6,7 @@ def find_closest_nodes(dict_list,G_array):
     """
     coord_beg_end=[]
     for d in dict_list:
-        if d.get("geotype")==0:
+        if d.get("geotype")==0 and d.get("shape"):
             coord_beg_end.append(d.get("shape")[0])
             print("node start",d.get("shape")[0])
         else:
@@ -54,5 +54,13 @@ def add_from_strada_to_porta(path, da, a):
     #print("distanza, rev(da)-primo punto di path",(end_from_rev[0]-path[0][0])**2+(end_from_rev[1]-path[0][1])**2)
     #print("distanza, primo punto da- secondo punto da", (end_from[0]-end_from_2[0])**2+(end_from[1]- end_from_2[1])**2)
     #print("distanza, primo punto rev(da)-secondo punto rev(da)",(end_from_rev[0]-end_from_rev_2[0])**2+(end_from_rev[1]- end_from_rev_2[1])**2)
-    path=[da["shape"][::-1]+[coo for coo in path]+a["shape"][::-1]]
+    fro=[]
+    to=[]
+    if da["geotype"]==0 and da["shape"]:
+        fro =da["shape"][::-1]
+        print("added fro")
+    if a["geotype"]==0 and a["shape"]:
+        to =a["shape"]
+        print("added to")
+    path=[fro+[coo for coo in path]+to]
     return path[0]
