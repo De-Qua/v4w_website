@@ -15,12 +15,13 @@ from distutils.version import StrictVersion
 import warnings
 import re
 from fuzzywuzzy import process
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from sqlalchemy import literal
 import geopy.distance
 from poi import library_overpass as op
 import sqlalchemy
 import time
+import json
 
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
@@ -723,6 +724,377 @@ def update_POI(pois,explain=False):
         print("Tipi di errori\n{}".format([len(err) for err in err_type]))
 
     return err_poi
+
+
+
+def upload_waterPOIS(json_posti, explain=False):
+    # read the json file
+    with open(json_posti, 'r') as json_file:
+        tutti_i_posti = json.load(json_file)
+
+    # create the variable divided by types
+    posti_unici = dict(taxi=[],traghetti=[],rive_consentite=[],spazi_tempo=[],vincoli=[],altro=[])
+    # id_posti_unici = dict(taxi=[],traghetti=[],rive_consentite=[],spazi_tempo=[],vincoli=[],altro=[])
+    skipped = dict(taxi=0,traghetti=0,rive_consentite=0,spazi_tempo=0,vincoli=0,altro=0)
+    i=0
+    if explain:
+        print("Scarico {num} posti".format(num=len(tutti_i_posti)))
+    for posto in tutti_i_posti:
+        i+=1
+        progressbar_pip_style(i,len(tutti_i_posti))
+        # controllo di che tipo fa parte
+        keys = posto['attributes'].keys()
+        if 'PK_ID' in keys:
+            if "ID_SPAZIO" in keys:
+                tipo = "spazi_tempo"
+            else:
+                tipo = "vincoli"
+            # id = "PK_ID"
+        elif 'OBJECTID_1' in keys:
+            if "traghetti" in posto['attributes']["DOC_TARIFFE"]:
+                tipo = "traghetti"
+            else:
+                tipo = "taxi"
+            # id = "OBJECTID"
+        elif "COD_RIVA" in keys:
+            tipo = "rive_consentite"
+            # id = "COD_RIVA"
+        else:
+            tipo = "altro"
+
+        # Se è già nella lista skippo
+        if posto in posti_unici[tipo]:
+            skipped[tipo] += 1
+            continue
+
+        # altrimenti aggiungo alla lista
+        posti_unici[tipo].append(posto)
+
+        # if tipo != "altro":
+        #     # se è già nella lista passo al prossimo
+        #     if posto['attributes'][id] in id_posti_unici[tipo]:
+        #         skipped[tipo] += 1
+        #         continue
+        #     # altrimenti:
+        #     #1. aggiungo l'id alla lista
+        #     id_posti_unici[tipo].append(posto['attributes'][id])
+        # #2. aggiungo il posto alla lista
+        # posti_unici[tipo].append(posto)
+
+    for key in posti_unici.keys():
+        print('{key} - Unici: {un}, Doppioni {do}'.format(key=str(key),un=len(posti_unici[key]),do=skipped[key]))
+
+    return posti_unici
+
+def update_waterPois(posti,type='all',explain=False):
+    """
+    Updates the DB by adding the water POIs, i.e. rive, traghetti, taxi, vincoli
+    """
+
+    if type == 'all':
+        keys = posti.keys()
+    else:
+        if type.__class__ is str:
+            type = [type]
+        elif type.__class__ is not list:
+            warnings.warn("Il tipo deve essere vuoto, una lista oppure una stringa")
+            return
+        keys = [t for t in type if t in posti.keys()]
+        wrong_keys = [t for t in type if t not in posti.keys()]
+        if explain:
+            print("Aggiungo i tipi: {}".format(', '.join(keys)))
+            if wrong_keys:
+                print("Non esistono i tipi: {}".format(', '.join(wrong_keys)))
+    i=0
+    err_poi = {}
+    for key in keys:
+        i+=1
+        print("Aggiungo {key} ({curr}/{tot})".format(key=key,curr=i,tot=len(keys)))
+        if key == "taxi":
+            err_poi['taxi'] = update_taxi(posti[key],explain)
+        elif key == "traghetti":
+            err_poi['traghetti'] = update_traghetti(posti[key],explain)
+        elif key == "rive_consentite":
+            err_poi['rive_consentite'] = update_rive(posti[key],explain)
+        elif key == "spazi_tempo":
+            err_poi["spazi_tempo"] = update_spazi(posti[key],explain)
+        elif key == "vincoli":
+            err_poi["vincoli"] = update_vincoli(posti[key],explain)
+        else:
+            print("Non so aggiungere {}".format(key))
+            continue
+    if explain:
+        print("committo nel database..")
+    try:
+        # in realtà probabilmente non serve, ma boh
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+        
+    return err_poi
+
+def update_taxi(posti,explain):
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    if explain:
+        print("Ci sono {num} taxi".format(num=len(posti)))
+    err_tax = []
+    num_tax = 0
+    i = 0
+    for posto in posti:
+        i+=1
+        progressbar_pip_style(i,len(posti))
+        poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
+        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        if len(neighborhoods)==0:
+            err_tax.append((0,posto))
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_tax.append((1,posto))
+            continue
+        # creo la location
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        if not loc:
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            db.session.add(loc)
+        # controllo che non sia già presente
+        p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
+        if p:
+            err_tax.append((2,posto))
+            continue
+        # aggiungo fermata taxi
+        p = Poi(name=posto['attributes']['DENOMINAZIONE'],location=loc)
+        # aggiungo categoria water_stop
+        cat_name = "water_stop"
+        typ_name = "taxi"
+        c = category_query.filter_by(name=cat_name).one_or_none()
+        if not c:
+            c = PoiCategory(name=cat_name)
+            db.session.add(c)
+        # aggiungo tipo taxi
+        t = type_query.filter_by(name=typ_name).one_or_none()
+        if not t:
+            t = PoiCategoryType(name=typ_name,category=c)
+            db.session.add(t)
+        p.add_type(t)
+        num_tax += 1
+    print("Aggiunti {num} taxi".format(num=num_tax))
+    return err_tax
+
+def update_traghetti(posti,explain):
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    if explain:
+        print("Ci sono {num} traghetti".format(num=len(posti)))
+    err_tra = []
+    num_tra = 0
+    i = 0
+    for posto in posti:
+        i+=1
+        progressbar_pip_style(i,len(posti))
+        poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
+        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        if len(neighborhoods)==0:
+            err_tra.append((0,posto))
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_tra.append((1,posto))
+            continue
+        # creo la location
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        if not loc:
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            db.session.add(loc)
+        # controllo che non sia già presente
+        p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
+        if p:
+            err_tra.append((2,posto))
+            continue
+        # aggiungo fermata taxi
+        p = Poi(name=posto['attributes']['DENOMINAZIONE'],location=loc)
+        # aggiungo categoria water_stop
+        cat_name = "water_stop"
+        typ_name = "traghetto"
+        c = category_query.filter_by(name=cat_name).one_or_none()
+        if not c:
+            c = PoiCategory(name=cat_name)
+            db.session.add(c)
+        # aggiungo tipo taxi
+        t = type_query.filter_by(name=typ_name).one_or_none()
+        if not t:
+            t = PoiCategoryType(name=typ_name,category=c)
+            db.session.add(t)
+        p.add_type(t)
+        num_tra += 1
+    print("Aggiunti {num} traghetti".format(num=num_tra))
+    return err_tra
+
+def update_rive(posti,explain):
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    if explain:
+        print("Ci sono {num} rive".format(num=len(posti)))
+    err_riv = []
+    num_riv = 0
+    i = 0
+    for posto in posti:
+        i+=1
+        progressbar_pip_style(i,len(posti))
+        poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
+        # cerco strada
+        str = posto['attributes']['UBICAZIONE'].split(sep="-")
+        streets=process.extract(str[0],[s for s in streets_query.all()])
+        if not streets:
+            err_riv.append((0,posto))
+            continue
+        distance = np.inf
+        closest = []
+        for street in streets:
+            dist = street[0].shape.distance(poi_point)
+            if dist < distance:
+                distance = dist
+                closest = street[0]
+        if distance == np.inf:
+            err_riv.append((1,posto))
+            continue
+
+        neighborhoods = closest.neighborhoods.all()
+        if len(neighborhoods)==0:
+            err_riv.append((2,posto))
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_riv.append((3,posto))
+            continue
+        # creo la location
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point).one_or_none()
+        if not loc:
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point)
+            db.session.add(loc)
+        # controllo che non sia già presente
+        p = poi_query.filter_by(name=posto['attributes']['UBICAZIONE'],location=loc).one_or_none()
+        if p:
+            continue
+        # aggiungo fermata taxi
+        p = Poi(name=posto['attributes']['UBICAZIONE'],location=loc)
+        p.opening_hours = posto['attributes']['MOD_USO']
+        # aggiungo categoria water_stop
+        cat_name = "riva"
+        typ_name = "riva_consentita"
+        typ_subtype = posto['attributes']['RIVA1']
+        c = category_query.filter_by(name=cat_name).one_or_none()
+        if not c:
+            c = PoiCategory(name=cat_name)
+            db.session.add(c)
+        # aggiungo tipo riva con sottotipo 'V', 'G' o 'R'
+        t = type_query.filter_by(name=typ_name,subtype=typ_subtype).one_or_none()
+        if not t:
+            t = PoiCategoryType(name=typ_name,subtype=typ_subtype,category=c)
+            db.session.add(t)
+        p.add_type(t)
+        num_riv += 1
+    print("Aggiunte {num} rive".format(num=num_riv))
+    return err_riv
+
+def update_spazi(posti,explain):
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    if explain:
+        print("Ci sono {num} spazi".format(num=len(posti)))
+    # escludo tutti gli spazi che hanno una geometry ring invece che un punto (sono ripetuti)
+    posti = [p for p in posti if 'x' in p['geometry'].keys()]
+    if explain:
+        print("Ci sono {num} spazi con x e y (gli altri hanno un poligono)".format(num=len(posti)))
+    err_spa = []
+    num_spa = 0
+    i = 0
+    for posto in posti:
+        i+=1
+        progressbar_pip_style(i,len(posti))
+        poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
+        # cerco sestiere
+        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        if len(neighborhoods)==0:
+            err_spa.append((0,posto))
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_spa.append((1,posto))
+            continue
+        # creo la location
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        if not loc:
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            db.session.add(loc)
+        # controllo che non sia già presente
+        p = poi_query.filter_by(name=posto['attributes']['ID_SPAZIO'],location=loc).one_or_none()
+        if p:
+            continue
+        # creo poi
+        p = Poi(name=posto['attributes']['ID_SPAZIO'],location=loc)
+        # aggiungo categoria
+        cat_name = "riva"
+        typ_name = "spazi_tempo"
+        c = category_query.filter_by(name=cat_name).one_or_none()
+        if not c:
+            c = PoiCategory(name=cat_name)
+            db.session.add(c)
+        # aggiungo tipo riva con sottotipo 'V', 'G' o 'R'
+        t = type_query.filter_by(name=typ_name).one_or_none()
+        if not t:
+            t = PoiCategoryType(name=typ_name,category=c)
+            db.session.add(t)
+        p.add_type(t)
+        num_spa += 1
+    print("Aggiunti {num} spazi".format(num=num_spa))
+    return err_spa
+
+def update_vincoli(posti,explain):
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    if explain:
+        print("Ci sono {num} vincoli".format(num=len(posti)))
+    err_vin = []
+    num_vin = 0
+    i = 0
+    for posto in posti:
+        i+=1
+        progressbar_pip_style(i,len(posti))
+        poi_polygon = Polygon(posto['geometry']['rings'][0])
+        # cerco sestiere
+        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_polygon)]
+        if len(neighborhoods)==0:
+            err_vin.append((0,posto))
+            continue
+        elif len(neighborhoods)>1:
+            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+            err_vin.append((1,posto))
+            continue
+        # creo la location
+        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon).one_or_none()
+        if not loc:
+            loc = Location(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon)
+            db.session.add(loc)
+        # controllo che non sia già presente
+        p = poi_query.filter_by(name=posto['attributes']['PK_ID'],location=loc).one_or_none()
+        if p:
+            continue
+        # creo poi
+        p = Poi(name=posto['attributes']['PK_ID'],location=loc)
+        # aggiungo categoria water_stop
+        cat_name = "vincolo"
+        typ_name = posto['attributes']['TIPO']
+        c = category_query.filter_by(name=cat_name).one_or_none()
+        if not c:
+            c = PoiCategory(name=cat_name)
+            db.session.add(c)
+        # aggiungo tipo
+        t = type_query.filter_by(name=typ_name).one_or_none()
+        if not t:
+            t = PoiCategoryType(name=typ_name,category=c)
+            db.session.add(t)
+        p.add_type(t)
+        num_vin += 1
+    print("Aggiunti {num} vincoli".format(num=num_vin))
+    return err_vin
 
 #%% funzione per trovare il poi più vicino a una certa lat/lon
 def closest_location(lat,lon,tolerance=0.001,housenumber=None):

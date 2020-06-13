@@ -716,5 +716,11 @@ list_category = [
     ]
 all_pois = lb.download_POI(list_category,explain=True)
 err_poi = lb.update_POI(all_pois,explain=True)
+# Posti acquei
+path_posti_acquei = "mille_mila_posti_barca.json"
+posti = lb.upload_waterPOIS(path_posti_acquei,explain=True)
+err_poi = lb.update_waterPois(posti,explain=True)
+
 lb.tell_me_something_I_dont_know()
 lb.check_db()
+#%%
