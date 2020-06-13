@@ -16,7 +16,7 @@ from app.src.libpy.library_communication import prepare_our_message_to_javascrip
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle = os.path.join(folder_db,"grafo_pickle_last")
+path_pickle = os.path.join(folder_db,"grafo_acqueo")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
 path_civ = os.path.join(folder_db,"lista_key.txt")
@@ -131,7 +131,7 @@ def find_address():
             t2=time.perf_counter()
             strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
             #print("path, length", strada, length)
-            strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0]) 
+            strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"

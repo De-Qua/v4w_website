@@ -11,6 +11,7 @@ import pickle
 from shapely.geometry import shape
 import json
 import logging
+import shapely, shapely.wkt
 
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
@@ -73,6 +74,60 @@ def calculate_path(G_un, coords_start, coords_end, flag_ponti=False):
         x_tot = []
         length_path = 0
     return x_tot, length_path #json.dumps(x_tot), length_path
+
+def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
+
+    try:
+        # Dijkstra algorithm, funzione peso lunghezza
+        if flag_ponti == False:
+            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
+            # lista dei nodi attraversati
+        # Dijkstra algorithm, funzione peso ponti
+        elif flag_ponti == True:
+            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un, coords_start,coords_end, weight = weight_bridge)
+                # lista dei nodi attraversati
+            #print(length_path)
+        path_nodes = [n for n in path]
+        # Converte la lista di nodi in file json
+        shapes = []
+        for i in range(len(path_nodes)-1):
+            shapes.append(shapely.wkt.loads(G_un[path_nodes[i] ][path_nodes[i+1] ]['Wkt']))
+
+        x_tot = []
+        for sha in shapes:
+        # print(sha.coords.xy)
+            x = []
+            for i in range(len(sha.coords.xy[0])):
+                x.append((sha.coords.xy[0][i],sha.coords.xy[1][i]))
+            # to be corrected with x_start
+            if not x_tot:
+                if coords_start == x[0]:
+                    x_tot+=x
+                elif coords_start == x[-1]:
+                    x_tot+=x[::-1]
+                else:
+                    logging.warning("Coordinata iniziale non trovata nel primo arco")
+                    logging.warning(coords_start)
+                    logging.warning(x[0])
+                    logging.warning(x[-1])
+                    x_tot+=x
+            elif x[0] == x_tot[-1]:
+                # print(x[0], "uguali",x_tot[-1])
+                x_tot+=x
+            else:
+                # print(x[0],"diversi", x_tot[-1])
+                x_tot+=x[::-1]
+
+        #print("\n#########\n##TEST2##\n#########")
+        #print("strada con meno ponti: ", len(path_nodes), " nodi!")
+        #print(path_nodes)
+        #print("lunghezza (in metri, contando 100 metri per ponte: ", length_path)
+    except NetworkXNoPath:
+        print("Non esiste un percorso tra i due nodi")
+        x_tot = []
+        length_path = 0
+    return x_tot, length_path #json.dumps(x_tot), length_path
+
 
 def save_graph_pickle(shp_file,pickle_name):
     G = nt.read_shp(shp_file)

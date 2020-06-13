@@ -1,8 +1,33 @@
 import numpy as np
+import shapely, shapely.wkt, shapely.geometry
+
+def find_closest_edge(list_of_node_coordinates, graph):
+    """
+    Return the two nodes that belongs to the closes edge in the graph.
+    """
+    outcome_list = []
+    for node_coordinates in list_of_node_coordinates:
+        edges = [edge for edge in graph.edges]
+        shapely_canali = [shapely.wkt.loads(graph[cur_edge[0]][cur_edge[1]]['Wkt']) for cur_edge in edges]
+        shape_riva = shapely.geometry.Point([node_coordinates[0], node_coordinates[1]])
+        distances_riva_canale = [shape_riva.distance(canale) for canale in shapely_canali]
+        distanza_piu_corta_index = np.argmin(distances_riva_canale)
+        assert (len(distances_riva_canale) == len(edges))
+        start_node, end_node = edges[distanza_piu_corta_index]
+        start_dist = shape_riva.distance(shapely.geometry.Point([start_node[0], start_node[1]]))
+        end_dist = shape_riva.distance(shapely.geometry.Point([end_node[0], end_node[1]]))
+        dict_for_a_node = {}
+        dict_for_a_node["first_node"] = start_node
+        dict_for_a_node["second_node"] = end_node
+        dict_for_a_node["first_dist"] = start_dist
+        dict_for_a_node["second_dist"] = end_dist
+        outcome_list.append(dict_for_a_node)
+
+    return outcome_list
 
 def find_closest_nodes(dict_list,G_array):
     """
-    Returns list of nodes in G_array closest to coordinate_list (euclidean distance) 
+    Returns list of nodes in G_array closest to coordinate_list (euclidean distance).
     """
     coord_beg_end=[]
     for d in dict_list:
