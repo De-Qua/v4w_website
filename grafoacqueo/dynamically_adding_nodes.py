@@ -120,3 +120,5 @@ G_un.remove_edge(first_edge_first_node, coord_riva_start)
 G_un.remove_edge(first_edge_second_node, coord_riva_start)
 G_un.remove_edge(second_edge_first_node, coord_riva_end)
 G_un.remove_edge(second_edge_second_node, coord_riva_end)
+
+#%%

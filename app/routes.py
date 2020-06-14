@@ -10,21 +10,24 @@ from flask import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
-from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta
+from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, find_closest_edge
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
 
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle = os.path.join(folder_db,"grafo_acqueo")
+path_pickle_terra = os.path.join(folder_db,"grafo_pickle_last")
+path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_1106")
 #path_civ = folder_db + "lista_civici_csv.txt"
 #path_coords = folder_db + "lista_coords.txt"
 path_civ = os.path.join(folder_db,"lista_key.txt")
 path_coords = os.path.join(folder_db,"lista_coords.txt")
 
 # Load graph
-G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_tpn_path=path_civ, coords_path=path_coords)
-G_array = np.asarray(list(G_un.nodes))
+#G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
+G_terra, G_acqua = pyAny_lib.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
+G_terra_array = np.asarray(list(G_terra.nodes))
+G_acqua_array = np.asarray(list(G_acqua.nodes))
 
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
@@ -122,14 +125,14 @@ def find_address():
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
             # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_array)
+            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             if request.form.get('meno_ponti'):
                 f_ponti=True
             else:
                 f_ponti=False
             t2=time.perf_counter()
-            strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
+            strada, length = pyAny_lib.calculate_path(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
             #print("path, length", strada, length)
             strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
@@ -137,6 +140,84 @@ def find_address():
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
+
+@app.route('/acqueo', methods=['GET', 'POST'])
+def find_water_path():
+    html_water_file = 'map_acqua.html'
+    # usiamo questo per dirgli cosa disegnare!
+    geo_type = -2
+    da = request.args.get('partenza', default='', type=str)
+    a = request.args.get('arrivo', default='', type=str)
+    form = FeedbackForm()
+    form.searched_string.data = da
+    t0=time.perf_counter()
+    if request.method == 'POST':
+        if form.is_submitted():
+            if form.validate_on_submit():
+                with open(file_feedback,'a') as f:
+                    f.write('*****\n')
+                    f.write(time.asctime( time.localtime(time.time()))+"\n")
+                    categoria = dict(form.category.choices).get(form.category.data)
+                    f.write(categoria+'\n')
+                    f.write(form.name.data+'\n')
+                    f.write(form.email.data+'\n')
+                    f.write(form.searched_string.data+'\n')
+                    f.write(form.found_string.data+'\n')
+                    f.write(form.feedback.data + "\n")
+                    f.write('*****\n')
+                app.logger.info("feedback inviato")
+                return render_template(html_water_file, geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
+            else:
+                app.logger.info('errore nel feedback')
+                return render_template(html_water_file, geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
+    else:
+        app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
+        if da == '':
+            print('primo caricamento')
+            app.logger.info('grazie per aver aperto find_address')
+            temp= render_template(html_water_file,results_dictionary="None", form=form, feedbacksent=0)
+            app.logger.info('ci ho messo {tot} a caricare la prima volta'.format(tot=time.perf_counter() - t0))
+            return temp
+        elif a== '':
+            app.logger.debug('indirizzo: {}'.format(da))
+            match_dict = find_address_in_db(da)
+            # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
+            app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+            # 0 significa che stiamo ritornando un indirizzo singolo
+            final_dict = prepare_our_message_to_javascript(0, da, match_dict) # aggiunge da solo "no_path" e "no_end"
+            print(final_dict)
+            #dict_test = {"test":"ma va", "geotype":"0"}
+            return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
+        else:
+            t0=time.perf_counter()
+            match_dict_da = find_address_in_db(da)
+            match_dict_a = find_address_in_db(a)
+            app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
+            if request.form.get('meno_ponti'):
+                f_ponti=True
+            else:
+                f_ponti=False
+            t2=time.perf_counter()
+            # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
+            #[start_coord, stop_coord] # old version
+            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_acqua_array)
+            list_coord_rive = [start_coord, stop_coord]
+            # lista degli archi
+            list_of_edges_node_with_their_distance = find_closest_edge(list_coord_rive, G_acqua)
+            # aggiungere gli archi!
+            list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, list_coord_rive)
+            # trova la strada
+            strada, length = pyAny_lib.calculate_path_wkt(G_acqua, start_coord, stop_coord, flag_ponti=f_ponti)
+            # togli gli archi
+            pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
+            #print("path, length", strada, length)
+            strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
+            app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
+            # 1 significa che stiamo ritornando un percorso da plottare
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            print(final_dict)
+            return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
+
 
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
