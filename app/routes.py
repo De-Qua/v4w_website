@@ -200,14 +200,16 @@ def find_water_path():
             t2=time.perf_counter()
             # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
             #[start_coord, stop_coord] # old version
-            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_acqua_array)
-            list_coord_rive = [start_coord, stop_coord]
+
+            list_coord_rive = [match_dict_da[0].get("shape")[0], match_dict_a[0].get("shape")[0]]
+            print(list_coord_rive)
             # lista degli archi
             list_of_edges_node_with_their_distance = find_closest_edge(list_coord_rive, G_acqua)
             # aggiungere gli archi!
             list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, list_coord_rive)
+            print(list_of_added_edges)
             # trova la strada
-            strada, length = pyAny_lib.calculate_path_wkt(G_acqua, start_coord, stop_coord, flag_ponti=f_ponti)
+            strada, length = pyAny_lib.calculate_path_wkt(G_acqua, list_coord_rive[0], list_coord_rive[1], flag_ponti=f_ponti)
             # togli gli archi
             pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
             #print("path, length", strada, length)
