@@ -1,5 +1,5 @@
 from flask import render_template, request, send_from_directory
-from app import app
+from app import app, db
 from app.forms import FeedbackForm
 import os
 import git
@@ -10,8 +10,10 @@ from flask import json
 import numpy as np
 from app.src.libpy import pyAny_lib
 from app.src.libpy.library_coords import civico2coord_find_address, find_address_in_db
-from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, find_closest_edge
+from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, find_closest_edge, find_path_to_closest_riva
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
+from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
+from sqlalchemy import and_
 
 # Useful paths
 folder = os.getcwd()
@@ -143,6 +145,7 @@ def find_address():
 
 @app.route('/acqueo', methods=['GET', 'POST'])
 def find_water_path():
+    proximity = [0.001,0.001]
     html_water_file = 'map_acqua.html'
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
@@ -192,6 +195,27 @@ def find_water_path():
             t0=time.perf_counter()
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
+            [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
+            
+            #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
+            #per tutti gli accessi all'acqua
+            rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-proximity[0],start_coord[0]+proximity[0]),db.between(Location.latitude,start_coord[1]-proximity[1],start_coord[1]+proximity[1]))).all()
+            print("rive vicine alla partenza", len(rive_vicine))
+            rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine]
+            rive_start_nodes_list = find_closest_nodes(rive_start_list, G_terra_array)
+            start_path=find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
+            print("start path", start_path)
+            riva_start = start_path[-1]
+            print("riva start", riva_start)
+            # per le rive vere e prorie
+#            PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-0.003,stop_coord[0]+0.003),db.between(Location.latitude,stop_coord[1]-0.03,stop_coord[1]+0.03))).all()
+            rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
+            print("rive vicine all'arrivo",len(rive_vicine_stop))
+            rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
+            rive_stop_nodes_list = find_closest_nodes(rive_stop_list, G_terra_array)
+            stop_path=find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
+            riva_stop = stop_path[-1]
+            print("riva stop", riva_stop)
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             if request.form.get('meno_ponti'):
                 f_ponti=True
@@ -199,24 +223,22 @@ def find_water_path():
                 f_ponti=False
             t2=time.perf_counter()
             # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-            #[start_coord, stop_coord] # old version
-
-            list_coord_rive = [match_dict_da[0].get("shape")[0], match_dict_a[0].get("shape")[0]]
-            print(list_coord_rive)
             # lista degli archi
-            list_of_edges_node_with_their_distance = find_closest_edge(list_coord_rive, G_acqua)
+            list_of_edges_node_with_their_distance = find_closest_edge([riva_start, riva_stop], G_acqua)
             # aggiungere gli archi!
-            list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, list_coord_rive)
+            list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
             print(list_of_added_edges)
             # trova la strada
-            strada, length = pyAny_lib.calculate_path_wkt(G_acqua, list_coord_rive[0], list_coord_rive[1], flag_ponti=f_ponti)
+            strada, length = pyAny_lib.calculate_path_wkt(G_acqua, riva_start, riva_stop, flag_ponti=f_ponti)
             # togli gli archi
             pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
             #print("path, length", strada, length)
-            strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
+            #trada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
-            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            strada_totale = start_path+strada+stop_path[::-1]
+            strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada_totale,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 

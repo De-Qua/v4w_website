@@ -164,7 +164,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
             length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un, coords_start,coords_end, weight = weight_bridge)
                 # lista dei nodi attraversati
             #print(length_path)
-        print(path)
+        print("strada---------------------------",path)
         path_nodes = [n for n in path]
         # Converte la lista di nodi in file json
         shapes = []
