@@ -286,6 +286,7 @@
 						}
 					break;
 				case 1:
+					console.log("drawing the streets!")
 					// here all the stuff when we have path from A to B
 			    //var punto_di_partenza = L.point(stop_coordx, stop_coordy);
 			    //var prj = L.Projection.Mercator.unproject(pointM);
@@ -293,20 +294,30 @@
 			    var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).addTo(mymap);
 			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
 					// the pahts: they are more than one
-					var streets = dict_in_JS.path_list;
-					colors = ('red', 'blue');
+					var streets = dict_in_JS.path;
+					var colors = ["red", "blue"];
 					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
-					for (street in streets) {
+					var path_coords;
+					var path_type;
+					var linecolor;
+					console.log("steets: " + streets);
+					for (i in streets) {
+						street = streets[i];
+						console.log("street: " + street);
 						path_coords = street.strada;
 						path_type = street.tipo;
 						// diamo in pasto alla polyline l'ennesimo colore
 						// create a polyline that will be drawn
-						console.log("Drawing the street");
+						console.log("path_cordds: " + path_coords);
+						console.log("path_type: " + path_type);
+						linecolor = colors[path_type];
+						console.log("colors:" + colors);
+						console.log("disegniamo in " + linecolor);
 						var current_polyline = new L.Polyline(path_coords, {
-								color: colors(path_type),
+								color: colors[path_type],
 								weight: 3,
 								opacity: 0.5,
-								smoothFactor: 2
+								smoothFactor: 4
 						});
 						console.log("created polyline");
 						current_polyline.addTo(mymap);
@@ -321,6 +332,7 @@
 					mymap.fitBounds(group.getBounds());
 					//alert('YET TO BE DONE');
 					break;
+				break;
 		 	}//closing switch modus_operandi
 		}
 
