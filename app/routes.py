@@ -112,7 +112,7 @@ def find_address():
 
 @app.route('/acqueo', methods=['GET', 'POST'])
 def find_water_path():
-    proximity = [0.0005,0.0005]
+    proximity = [0.001,0.001]
     html_water_file = 'map_acqua.html'
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
@@ -279,7 +279,7 @@ def webhook():
             print('Deploy payload is empty: {payload}'.format(
                 payload=payload))
             abort(abort_code)
-            
+
         if payload['ref'] != 'refs/heads/master':
             return json.dumps({'msg': 'Not master; ignoring'})
 
