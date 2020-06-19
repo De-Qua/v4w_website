@@ -140,3 +140,15 @@ function hideSecondSearchbar() {
 	document.getElementById("calc-button").style.display = "none";
 	return false;
 }
+
+function drawPreLoader() {
+	console.log("set opacity..")
+	document.getElementById("mapid").style.opacity = 0.3;
+	console.log("visualizing div..")
+	document.getElementById("loading").style.display = "inline";
+	console.log("drawing preloader..")
+	document.getElementById("loading_gif").src = "/static/assets/loading.gif";
+	console.log("done!")
+	setTimeout(console.log("now, ok"), 1000);
+	return true;
+}

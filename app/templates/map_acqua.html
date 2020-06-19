@@ -25,6 +25,9 @@
 	<script src="/static/js/v4w.js"></script>
 <body>
 
+	<div class="loader" style="display:none;" id="loading">
+		<img id="loading_gif">
+	</div>
 
 	<!-- DIV CON LA MAPPA -->
 	<div id="mapid">
@@ -60,7 +63,7 @@
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 		<div class="leaflet-top leaflet-left" id="searchbar">
 			<div class="searchfield leaflet-control w3-medium">
-				<form id="ricerca_ind" action="" method="GET">
+				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
 					<input type="text"  placeholder="cerca.." name="partenza">
 					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
 
@@ -191,6 +194,7 @@
 		</div>
 
 	</div>
+
 
 <script>
     closeHelpWindow();
