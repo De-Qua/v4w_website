@@ -114,7 +114,7 @@ def find_address():
 
 @app.route('/acqueo', methods=['GET', 'POST'])
 def find_water_path():
-    proximity = [0.001,0.001]
+    proximity = [0.005,0.005]
     html_water_file = html_file
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
