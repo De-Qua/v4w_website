@@ -40,7 +40,7 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
     msg["partenza"] = start_location
     msg["searched_name"] = string_input
     msg["path"] = estimated_path
-    msg["length_path"] = estimated_path[1]
+    #msg["length_path"] = estimated_path[1]
     msg["arrivo"] = end_location
 
     return msg

@@ -203,17 +203,9 @@ def find_water_path():
             #trada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
-<<<<<<< HEAD
             #strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
             path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
-=======
-            strada_totale = start_path+strada+stop_path[::-1]
-            strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
-
-            # ritorneremo una lista di dizionari con strada, tipo e lunghezza
-            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada_totale,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
->>>>>>> 9d253b5c13f94d2726a9168df113bc57cda9416d
             print(final_dict)
             return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 
