@@ -20,10 +20,6 @@ folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
 path_pickle_terra = os.path.join(folder_db,"grafo_pickle_last")
 path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_1106")
-#path_civ = folder_db + "lista_civici_csv.txt"
-#path_coords = folder_db + "lista_coords.txt"
-path_civ = os.path.join(folder_db,"lista_key.txt")
-path_coords = os.path.join(folder_db,"lista_coords.txt")
 
 # Load graph
 #G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
@@ -46,35 +42,6 @@ def index():
     app.logger.log(10,'Prova log debug')
     app.logger.log(20,'Prova log info')
     return render_template('index.html')
-
-@app.route('/direzione', methods=['GET', 'POST'])
-def short_path():
-
-    app.logger.info('grazie per aver aperto short_path')
-    t1=time.perf_counter()
-    if request.method == 'POST':
-        da = request.form['partenza']
-        a = request.form['arrivo']
-        t0=time.perf_counter()
-        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords, G_list)
-        stop_coord, stop_name =  civico2coord_find_address(a, civici_tpn, coords, G_list)
-        #logging.info('ci ho messo {t11} e {t12} per trovare la stringa'.format(t11=timing[0], t12=timing1[0]))
-        #logging.info('ci ho messo {t21} e {t22} per trovare il nodo'.format(t21=timing[1], t22=timing1[1]))
-        #logging.info('ci ho messo {t31} e {t32} per trovare l\'indice'.format(t31=timing[2], t32=timing1[2]))
-        app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
-        if request.form.get('meno_ponti'):
-            f_ponti=True
-        else:
-            f_ponti=False
-
-        t2=time.perf_counter()
-        strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-        app.logger.info('ci ho messo {tot} a processare la richiesta'.format(tot=time.perf_counter() - t1))
-        app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
-        return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
-    else:
-        app.logger.info('ci ho messo {tot} a processare la richiesta senza ricerca di indirizzo'.format(tot=time.perf_counter() - t1))
-        return render_template('find_path.html')
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
@@ -196,7 +163,7 @@ def find_water_path():
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
             [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
-            
+
             #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
             #per tutti gli accessi all'acqua
             rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-proximity[0],start_coord[0]+proximity[0]),db.between(Location.latitude,start_coord[1]-proximity[1],start_coord[1]+proximity[1]))).all()
@@ -238,6 +205,8 @@ def find_water_path():
             # 1 significa che stiamo ritornando un percorso da plottare
             strada_totale = start_path+strada+stop_path[::-1]
             strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
+
+            # ritorneremo una lista di dizionari con strada, tipo e lunghezza
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada_totale,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
