@@ -139,13 +139,13 @@ def find_address():
             strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
-            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [{"strada":strada,"lunghezza":length,"tipo":0}], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
 
 @app.route('/acqueo', methods=['GET', 'POST'])
 def find_water_path():
-    proximity = [0.001,0.001]
+    proximity = [0.0005,0.0005]
     html_water_file = 'map_acqua.html'
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
@@ -196,7 +196,7 @@ def find_water_path():
             match_dict_da = find_address_in_db(da)
             match_dict_a = find_address_in_db(a)
             [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
-            
+
             #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
             #per tutti gli accessi all'acqua
             rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-proximity[0],start_coord[0]+proximity[0]),db.between(Location.latitude,start_coord[1]-proximity[1],start_coord[1]+proximity[1]))).all()
@@ -204,9 +204,9 @@ def find_water_path():
             rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine]
             rive_start_nodes_list = find_closest_nodes(rive_start_list, G_terra_array)
             start_path=find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
-            print("start path", start_path)
+            #print("start path", start_path)
             riva_start = start_path[-1]
-            print("riva start", riva_start)
+            #print("riva start", riva_start)
             # per le rive vere e prorie
 #            PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-0.003,stop_coord[0]+0.003),db.between(Location.latitude,stop_coord[1]-0.03,stop_coord[1]+0.03))).all()
             rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
@@ -215,7 +215,7 @@ def find_water_path():
             rive_stop_nodes_list = find_closest_nodes(rive_stop_list, G_terra_array)
             stop_path=find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
             riva_stop = stop_path[-1]
-            print("riva stop", riva_stop)
+            #print("riva stop", riva_stop)
             app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
             if request.form.get('meno_ponti'):
                 f_ponti=True
@@ -236,9 +236,9 @@ def find_water_path():
             #trada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             # 1 significa che stiamo ritornando un percorso da plottare
-            strada_totale = start_path+strada+stop_path[::-1]
-            strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
-            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [strada_totale,length], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+            #strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
+            path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             return render_template(html_water_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 

@@ -1,10 +1,9 @@
 import numpy as np
 
-def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=["no_path",0], end_location="no_end"):
+def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"strada":"no_path","lunghezza":0, "tipo":-1}], end_location="no_end"):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.
     """
-    
     # leaflet vuole le coordinate invertite (x e y). Per le path lo facciamo già in calculate_path
     for start in start_location:
         # introduci shift per Leaflet
@@ -29,17 +28,18 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
                     xy.append([coo[1],coo[0]])
                 end["shape"]=xy
 
-    if not estimated_path==["no_path",0]:
-        xy=[]
-        for coo in estimated_path[0]:
-            xy.append((coo[1],coo[0]))
-        estimated_path[0]=xy
+    for path in estimated_path:
+        if not path["strada"]=="no_path":
+            xy=[]
+            for coo in path["strada"]:
+                xy.append((coo[1],coo[0]))
+            path["strada"]=xy
 
     msg = dict()
     msg["modus_operandi"] = mode
     msg["partenza"] = start_location
     msg["searched_name"] = string_input
-    msg["path"] = estimated_path[0]
+    msg["path"] = estimated_path
     msg["length_path"] = estimated_path[1]
     msg["arrivo"] = end_location
 
