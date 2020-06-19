@@ -23,3 +23,15 @@ list_of_searches = [
     ]
 
 categories = ['ambiguo', 'errori', 'stopwords', 'delirio']
+
+from app.src.libpy.library_coords import fuzzy_search
+from fuzzywuzzy import fuzz
+scorer_processor = [(fuzz.ratio,lambda x: x.__str__()),
+                    (fuzz.partial_ratio,lambda x: x.__str__())
+                    (fuzz.QRatio,)
+                    (fuzz.WRatio,)
+                    (fuzz.token_set_ratio,)
+                    (fuzz.token_sort_ratio,)]
+for search in list_of_searches:
+    for scorer,processor in scorer_processor:
+        clean_string = correct_name(input_string)

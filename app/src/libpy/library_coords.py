@@ -8,12 +8,39 @@ from app.models import Neighborhood, Street, Location, Area, Poi
 from app import app, db
 #Neighborhood.query.all()
 from fuzzywuzzy import fuzz, process
+import fuzzywuzzy
+
+def civico2coord(coord_list,civico_name,civico_list, civico_coord):
+    """
+    da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
+    """
+    coordinate = np.asarray(coord_list)
+    # removing one (or more) annoying none values
+    #streets_corrected = [street if street else "" for street in streets_list]
+    option_number = 3 #rimetto 3 per adesso, poi cambiamo
+    matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
+    streets_founds = []
+    if civico_list[matches[0]] == civico_name.upper():
+        which_one = 0
+    else:
+        for i in range(len(matches)):
+            streets_founds.append(civico_list[matches[i]])
+            print("Trovato: {}:{}".format(i, streets_founds[i]))
+        which_one = int(input("Quale intendi? Scrivi il numero\n"))
+
+    coord = civico_coord[matches[which_one]]
+    tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
+    idx = np.argmin(np.sum(tmp * tmp, axis=1))
+    return (coordinate[idx][0], coordinate[idx][1])
+
 
 def find_address_in_db(input_string):
     """
     Wrapper functions that looks for an address in the database.
     """
     print("looking in the db")
+    # fetch parameters (puo tornare utile se i parametri saranno modificabili dal browser piu avanti)
+    search_parameters = get_parameters()
     # pulisci la stringa col metodo di ale
     clean_string = correct_name(input_string)
     # dividi numero e dicci come e fatta
@@ -165,7 +192,7 @@ def dividiEtImpera(clean_string):
 
     return text, number, isThereaCivico
 
-# qua aggiungere magheggi per ordinare i risultati come vogliamo!
+
 def sort_results(res_list):
     """
     Sorts the results list to give as a first choice, not the best score matching, but something better. For the moment I put as last, the results with a negative geometry.
@@ -181,50 +208,242 @@ def sort_results(res_list):
     return new_res_list
 
 """
+La stringa e pulita, ricerca nel DATABASE
+ 1. cerca nei sestieri
+ 2. cerca nelle Strade
+ 3. cerca nei poi
+"""
+def find_address(text):
+
+    # chi cerca trova
+    attempt = 0 # contatore
+    found_the_treasure = False
+    while not found_the_treasure and attempt < 3:
+        # la funzione di ricerca usa attempt come contatore - address_type e anche attempt verra usato uguale
+        found_the_treasure, actual_address, address_type = search_and_search_and_search(text, attempt)
+        if not found_the_treasure:
+            attempt += 1
+
+    # se non abbiamo trovato nulla, pazienza
+    if not found_the_treasure:
+        return found_the_treasure, "", -1
+
+    # se no, ritorniamo
+    # address_type e attempt alla fine, quindi 0: sestiere, 1: strada, 2: poi
+    return found_the_treasure, str(actual_address), address_type
+
+"""
+In questa funzione andiamo veramente ad accedere al database:
+attempt == 0 --> Sestieri
+attempt == 1 --> Strade
+attempt == 2 --> POI
+attempt < 0 or attempt > 2 --> ERRORE
+"""
+def search_and_search_and_search(text, attempt):
+
+    # controlla i tentativi
+    assert(attempt > -1),"tentativo negativo? - attempt:" + str(attempt)
+    assert(attempt < 3),"troppi tentativi! Errore nel ciclo while sopra! - attempt:" + str(attempt)
+    # delega
+    if attempt == 0:
+        found_something, actual_address = bad_neighbourhoods(text)
+    if attempt == 1:
+        found_something, actual_address = is_she_living_in_the_streets(text)
+    if attempt == 2:
+        found_something, actual_address = is_she_at_the_coffee_place(text)
+
+    return found_something, actual_address, attempt
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di un sestiere
+"""
+def bad_neighbourhoods(text):
+
+    #neighborhoods = Neighborhood.query.all()
+    matching=Neighborhood.query.filter(Neighborhood.name.contains(text)).all()
+    #matching = [hood for hood in neighborhoods if text in (hood.name)]
+    if matching:
+        return True, matching[0]
+    return False, ""
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di una strada
+"""
+def is_she_living_in_the_streets(text):
+
+    matching = Street.query.filter(Street.name.contains(text)).all()
+    if matching:
+        return True, matching[0]
+
+    return False, ""
+
+"""
+versione super semplice
+solo controlla se matcha 1 a 1 un nome di un POI
+"""
+def is_she_at_the_coffee_place(text):
+
+    matching = poi.query.filter(poi.name.contains(text)).all()
+    if matching:
+        return True, matching[0]
+
+    return False, ""
+
+"""
 Sostituisce find_address.
 Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il match e la provenienza
 """
-def fuzzy_search(word, isThereaCivico):
+def takeSecond(elem):
+    return elem[1]
+
+
+def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process):
     exact = False
-    # massimo numero di risultati
     n_limit = 15
-    # non ritorna risultati minori di cutoff
     score_cutoff = 50
-    # siamo certi! serve per stoppare la ricerca prima per evitare di cercare per nulla
-    quasi_cento = 98
     final_matches = []
-    # FORSE: facciamo un metodo qua che evita di avere mille righe uguali?
-    # se ce un civico, vogliamo guardare prima in Neighborhood e poi in Street
     if isThereaCivico:
-        matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_neigh:
             final_matches.append((m,s,0))
-        # stoppiamo se abbiamo trovato un match perfetto
-        if not any([match[1]>quasi_cento for match in final_matches]):
-            matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        if not any([match[1]>98 for match in final_matches]):
+            matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_street:
                 final_matches.append((m,s))
-    # se non ce un civico, vogliamo guardare prima nei poi, poi in Street, poi nei Sestieri
     else:
         # andrà implementata qui la ricerca nei poi, che fa un check delle corssipondenze con le keyword e fa la query invece di Poi.query.all() filtrando sui types di poi
-        matches_poi = process.extractBests(word,Poi.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        matches_poi = process.extractBests(word,Poi.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_poi:
             final_matches.append((m,s))
-        if not any([match[1]>quasi_cento for match in final_matches]):
-            matches_street = process.extractBests(word,Street.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        if not any([match[1]>98 for match in final_matches]):
+            matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_street:
                 final_matches.append((m,s))
-        if not any([match[1]>quasi_cento for match in final_matches]):
-            matches_neigh = process.extractBests(word,Neighborhood.query.all(),score_cutoff=score_cutoff,limit=n_limit)
+        if not any([match[1]>98 for match in final_matches]):
+            matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_neigh:
                 final_matches.append((m,s))
-    # lambda e usato per definire una funzione che prende il secondo elemento
-    final_matches.sort(key=lambda x:x[1], reverse=True)
-    if any([match[1]>quasi_cento for match in final_matches]):
+    final_matches.sort(key=takeSecond, reverse=True)
+    if any([match[1]>98 for match in final_matches]):
         exact=True
-        final_matches=[match for match in final_matches if match[1]>quasi_cento]
+        final_matches=[match for match in final_matches if match[1]>98]
     # se i risultati sono esatti non voglio escludere nessuna soluzione!
     if not exact:
-        final_matches = final_matches[:5]
+        final_matches = final_matches[0:4]
 
     return [match[0] for match in final_matches], [match[1] for match in final_matches], exact
+
+# finto, per ora non serve a nulla
+# teoricamente puo essere utile, ma magari anche no
+def get_parameters():
+
+    cutoff = 0.6
+    max_result = 5
+    return [cutoff, max_result]
+
+"""
+Cerca la coordinata e la ritorna insieme al suo nome.
+
+Ha 3 parametri obbligatori e uno opzionale.
+Se gli viene data la lista di coordinate del grafo, cerca anch il nodo piu vicino
+e ritorna quelle coordinate. Altrimenti ritorna il nome e le coordinate esatte
+dallo shapefile
+
+
+@param:
+    - civico_name: il nome da trovare tra quelli in civico_list
+    - civico_list: lista dei civici DALLO SHAPEFILE
+    - civico_coord: le coordinate dei civici relativi alla lista civico_list SHAPEFILE
+    - coord_list: lista di coordinate DEI NODI DEL GRAFO (opzionale)
+
+@return:
+    - coordinata: tupla (x,y) - relativa alle coordinate del GRAFO
+    - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
+"""
+def civico2coord_find_address(civico_name, civico_list, civico_coord, coord_list=None):
+
+    # solo il match migliore!
+    option_number = 1 #rimetto 3 per adesso, poi cambiamo
+    # trova il nome piu vicino
+    matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
+    logging.info("c2c: Trovato all'indice {ind}".format(ind=matches))
+    # estrae la sua coordinata
+    #if not matches:
+    #    indice_lista_civico = 0
+    #elif matches[0] < 0 or matches[0] > len(civico_coord):
+    #    indice_lista_civico = 0
+    #else:
+    #    indice_lista_civico = matches[0]
+    if matches < 0:
+        indice_lista_civico = 0
+    else:
+        indice_lista_civico = matches
+    coord = civico_coord[indice_lista_civico]
+    # nome del civico/toponimo piu vicino
+    name_chosen = civico_list[indice_lista_civico]
+    if coord_list==None:
+        return (coord[0], coord[1]), name_chosen[:-1]
+    else:
+        # numpy array delle coordinate
+        coordinate = np.asarray(coord_list)
+        tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
+        # indice del nodo piu vicino
+        idx = np.argmin(np.sum(tmp * tmp, axis=1))
+        return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1]
+
+
+"""
+AL MOMENTO NON VIENE UTILIZZATO
+
+Cerca la coordinata e ritorna senza nessuna interazione:
+Piu in dettaglio,
+1 - cerchiamo il civico nella lista,
+2 - estraiamo la sua coordinata,
+3 - cerchiamo il nodo piu vicino NEL GRAFO
+4 - ritorniamo le sue coordinate
+
+@param:
+    - coord_list: lista di coordinate DEI NODI DEL GRAFO
+    - civico_name: il nome da trovare tra quelli in civico_list
+    - civico_list: lista dei civici DALLO SHAPEFILE
+    - civico_coord: le coordinate dei civici relativi alla lista civico_list SHAPEFILE
+
+@return:
+    - coordinata: tupla (x,y) - relativa alle coordinate del GRAFO
+    - nome scelto - relativo alla lista dei civici ottenuta dallo SHAPEFILE
+"""
+def civico2coord_first_result(coord_list, civico_name, civico_list, civico_coord):
+
+    # numpy array delle coordinate
+    coordinate = np.asarray(coord_list)
+    # solo il match migliore!
+    option_number = 1 #rimetto 3 per adesso, poi cambiamo
+    # trova il nome piu vicino
+    t1=time.perf_counter()
+    matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
+    t11 = time.perf_counter() - t1
+    logging.info('c2c: ci ho messo {tot} a trovare il match'.format(tot=time.perf_counter() - t1))
+    # estrae la sua coordinata
+    if not matches:
+        indice_lista_civico = 0
+    elif matches[0] < 0 or matches[0] > len(civico_coord):
+        indice_lista_civico = 0
+    else:
+        indice_lista_civico = matches[0]
+    coord = civico_coord[indice_lista_civico]
+    # nome del civico/toponimo piu vicino
+    name_chosen = civico_list[indice_lista_civico]
+    # cerca il nodo piu vicino
+    t2 = time.perf_counter()
+    tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
+    t21 = time.perf_counter() - t2
+    logging.info('c2c: ci ho messo {tot} a trovare il risultato piu vicino'.format(tot=time.perf_counter() - t2))
+    t3 = time.perf_counter()
+    # indice del nodo piu vicino
+    idx = np.argmin(np.sum(tmp * tmp, axis=1))
+    t31 = time.perf_counter() - t3
+    logging.info('c2c: ci ho messo {tot} trovare l indice'.format(tot=time.perf_counter() - t3))
+
+    return (coordinate[idx][0], coordinate[idx][1]), name_chosen[:-1], (t11, t21, t31)
