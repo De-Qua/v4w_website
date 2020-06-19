@@ -292,30 +292,62 @@
 					mymap.setView([45.43, 12.33], 13);
 			    var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).addTo(mymap);
 			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
-					// the list of points
-				 	var pointList = dict_in_JS.path;
-					// create a polyline that will be drawn
-					console.log("here");
-					var firstpolyline = new L.Polyline(pointList, {
-							color: 'red',
-							weight: 3,
-							opacity: 0.5,
-							smoothFactor: 2
-					});
-					//console.log("created polylione");
-					firstpolyline.addTo(mymap);
-					//console.log("added polylione");
-					//firstpolyline.addTo(mymap);
-					//console.log(pointList);
-					// set the view correctly - we use a group because getBounds on Polyline sembra non andare
-					//var group = new L.featureGroup([firstpolyline]);
-		     	//mymap.fitBounds(group.getBounds());
+					// the pahts: they are more than one
+					var streets = dict_in_JS.path_list;
+					colors = ('red', 'blue');
+					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
+					for (street in streets) {
+						path_coords = street.strada;
+						path_type = street.tipo;
+						// diamo in pasto alla polyline l'ennesimo colore
+						// create a polyline that will be drawn
+						console.log("Drawing the street");
+						var current_polyline = new L.Polyline(path_coords, {
+								color: colors(path_type),
+								weight: 3,
+								opacity: 0.5,
+								smoothFactor: 2
+						});
+						console.log("created polyline");
+						current_polyline.addTo(mymap);
+						console.log("added polyline to map");
+
+						// set the view correctly - we use a group because getBounds on Polyline sembra non andare
+						current_polyline.addTo(group)
+
+					}
+					// javascript way to call a method in the for loop
+					//streets.forEach(drawStreet());
+					mymap.fitBounds(group.getBounds());
 					//alert('YET TO BE DONE');
 					break;
 		 	}//closing switch modus_operandi
 		}
 
+		/*
+		function drawStreet(item, index) {
 
+			path_coords = item.strada;
+			path_type = item.tipo;
+			// diamo in pasto alla polyline l'ennesimo colore
+			colors = ('red', 'blue');
+			// create a polyline that will be drawn
+			console.log("Drawing the street");
+			var current_polyline = new L.Polyline(path_coords, {
+					color: colors{path_type},
+					weight: 3,
+					opacity: 0.5,
+					smoothFactor: 2
+			});
+			console.log("created polyline");
+			current_polyline.addTo(mymap);
+			console.log("added polyline to map");
+
+			// set the view correctly - we use a group because getBounds on Polyline sembra non andare
+			var group = new L.featureGroup([current_polyline]);
+			mymap.fitBounds(group.getBounds());
+		}
+		*/
 </script>
 
 
