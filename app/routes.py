@@ -29,6 +29,7 @@ G_acqua_array = np.asarray(list(G_acqua.nodes))
 
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
+html_file = 'map_acqua.html'
 # Logging
 app.logger.info("Carico i nodi")
 
@@ -45,6 +46,7 @@ def index():
 
 @app.route('/indirizzo', methods=['GET', 'POST'])
 def find_address():
+    html_land_file = html_file
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
     da = request.args.get('partenza', default='', type=str)
@@ -67,10 +69,10 @@ def find_address():
                     f.write(form.feedback.data + "\n")
                     f.write('*****\n')
                 app.logger.info("feedback inviato")
-                return render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
+                return render_template(html_land_file, geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, feedbacksent=1)
             else:
                 app.logger.info('errore nel feedback')
-                return render_template('map_pa.html', geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
+                return render_template(html_land_file, geo_type=geo_type, start_coordx=-1, searched_name=da, start_name=start_name, form=form, feedbacksent=0)
     else:
         app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
         if da == '':
@@ -88,7 +90,7 @@ def find_address():
             final_dict = prepare_our_message_to_javascript(0, da, match_dict) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
             #dict_test = {"test":"ma va", "geotype":"0"}
-            return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
+            return render_template(html_land_file, form=form, results_dictionary=final_dict, feedbacksent=0)
         else:
             t0=time.perf_counter()
             match_dict_da = find_address_in_db(da)
@@ -108,12 +110,12 @@ def find_address():
             # 1 significa che stiamo ritornando un percorso da plottare
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [{"strada":strada,"lunghezza":length,"tipo":0}], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             print(final_dict)
-            return render_template('map_pa.html', form=form, results_dictionary=final_dict, feedbacksent=0)
+            return render_template(html_land_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 
 @app.route('/acqueo', methods=['GET', 'POST'])
 def find_water_path():
     proximity = [0.001,0.001]
-    html_water_file = 'map_acqua.html'
+    html_water_file = html_file
     # usiamo questo per dirgli cosa disegnare!
     geo_type = -2
     da = request.args.get('partenza', default='', type=str)
