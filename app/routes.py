@@ -169,6 +169,7 @@ def find_water_path():
             #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
             #per tutti gli accessi all'acqua
             rive_vicine=[]
+            print("cerco le rive vicine")
             while len(rive_vicine_stop)<10:
                 print("increasing proximity")
                 proximity += [0.005,0.005]
