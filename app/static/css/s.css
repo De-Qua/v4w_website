@@ -167,3 +167,17 @@ body, html {height: 100%}
 	margin-left: 1rem;
 	margin-bottom: 1rem;
 }
+.loader {
+	z-index: 100;
+  width: 20%;
+  height: 20%;
+  text-align: left;
+  position: fixed;
+  top: 40%;
+  left: 45%;
+  margin-left:-70px;
+  margin-top:-50px;
+}
+.transparent {
+	opacity: 0.3;
+}
