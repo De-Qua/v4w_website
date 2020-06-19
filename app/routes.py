@@ -169,12 +169,12 @@ def find_water_path():
             #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
             #per tutti gli accessi all'acqua
             rive_vicine=[]
-            app.logger.info("cerco le rive vicine")
-            while len(rive_vicine_stop)<10:
+            print("cerco le rive vicine")
+            while len(rive_vicine)<10:
                 app.logger.info("increasing proximity")
                 proximity += [0.005,0.005]
-                rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
-            app.logger.info("rive vicine alla partenza", len(rive_vicine))
+                rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-proximity[0],start_coord[0]+proximity[0]),db.between(Location.latitude,start_coord[1]-proximity[1],start_coord[1]+proximity[1]))).all()
+            print("rive vicine alla partenza", len(rive_vicine))
             rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine]
             rive_start_nodes_list = find_closest_nodes(rive_start_list, G_terra_array)
             start_path=find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
@@ -182,13 +182,13 @@ def find_water_path():
             riva_start = start_path[-1]
             #print("riva start", riva_start)
             # per le rive vere e prorie
-#            PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-0.003,stop_coord[0]+0.003),db.between(Location.latitude,stop_coord[1]-0.03,stop_coord[1]+0.03))).all()
+            # PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-0.003,stop_coord[0]+0.003),db.between(Location.latitude,stop_coord[1]-0.03,stop_coord[1]+0.03))).all()
             rive_vicine_stop=[]
             while len(rive_vicine_stop)<10:
-                app.logger.info("increasing proximity")
+                print("increasing proximity")
                 proximity += [0.005,0.005]
                 rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
-                app.logger.info("rive vicine all'arrivo",len(rive_vicine_stop))
+            print("rive vicine all'arrivo",len(rive_vicine_stop))
             rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
             rive_stop_nodes_list = find_closest_nodes(rive_stop_list, G_terra_array)
             stop_path=find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
