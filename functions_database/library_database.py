@@ -831,7 +831,7 @@ def update_waterPois(posti,type='all',explain=False):
     except:
         db.session.rollback()
         warnings.warn("Errore nel commit")
-        
+
     return err_poi
 
 def update_taxi(posti,explain):

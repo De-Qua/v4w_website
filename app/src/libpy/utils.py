@@ -1,5 +1,69 @@
 import numpy as np
 import shapely, shapely.wkt, shapely.geometry
+import time
+import pdb
+
+# SHOULD THIS BE HERE? Dovrebbe andare nella library_search?
+from app import app, db
+from sqlalchemy import and_
+from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
+def find_POI(N, coordinates, searchPoiType, searchPoiTypeCategory="", maxNumOfAttempts=10, searchTimeOut=2):
+    """
+    Finds at least N Pois of the given type close to the coordinate. Additional parameters controls stop criteria.
+    """
+    finished = False
+    tooManyAttempt = False
+    foundEnough = False
+    timeOutReached = False
+    app.logger.debug("Looking for at least {} POI of type {} ({}) close to {}".format(N, searchPoiType, searchPoiTypeCategory, coordinates))
+    proximity = np.asarray([0.0001, 0.0001])
+    step = np.asarray([0.0005, 0.0005])
+    app.logger.debug("Using a simple step strategy, increasing proximity by {} at each step".format(step))
+    attCnt = 0
+    c_latitude = coordinates[1]
+    c_longitude = coordinates[0]
+    timeStart = time.time()
+    while not finished:
+        #allPois = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).all()
+        #print(len(allPois))
+        #rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1]))).all()
+        #pdb.set_trace()
+        POI = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1]))).all()
+        if len(POI) < N:
+            app.logger.debug("we found only {} POIs, we increase proximity".format(len(POI)))
+            proximity += step
+        else:
+            foundEnough = True
+        attCnt += 1
+        if attCnt > maxNumOfAttempts:
+            app.logger.debug("tried enough ({} times, maximum was set to {}), time to stop..".format(attCnt, maxNumOfAttempts))
+            tooManyAttempt = True
+        cur_time = time.time() - timeStart
+        if (cur_time) > searchTimeOut:
+            app.logger.debug("timeout reached ({} passed, timeOut set to {}), time to stop..".format(cur_time, searchTimeOut))
+            timeOutReached = True
+        finished = foundEnough or tooManyAttempt or timeOutReached
+
+
+    if len(POI) == 0:
+        # bruteforce
+        POI = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).all()
+        foundEnough = True
+        app.logger.warning("we could not find close POIs, we just take them all! they are {}. Check out if this should happen!".format(len(POI)))
+
+    #pdb.set_trace()
+    if foundEnough:
+        coordinates_as_shapely_points = [shapely.geometry.Point(_poi.location.latitude, _poi.location.longitude) for _poi in POI]
+        distance_list = [poi_point.distance(shapely.geometry.Point(coordinates)) for poi_point in coordinates_as_shapely_points]
+        # ordino la lista basata sulle distanze
+        # --> https://stackoverflow.com/questions/6618515/sorting-list-based-on-values-from-another-list
+        ordered_POIS = [x for _,x in sorted(zip(distance_list, POI), key=lambda pair: pair[0])]
+        bestPOIS = ordered_POIS[:N]
+    else:
+        bestPOIS = POI
+
+    app.logger.info("Tried {} times, it took {} seconds and we found {} POIs, then we selected the {} best!".format(attCnt, time.time()-timeStart, len(POI), N))
+    return bestPOIS, len(bestPOIS)
 
 def find_closest_edge(list_of_node_coordinates, graph):
     """
@@ -23,6 +87,9 @@ def find_closest_edge(list_of_node_coordinates, graph):
         dict_for_a_node["second_dist"] = end_dist
         outcome_list.append(dict_for_a_node)
 
+    app.logger.info("Created list with the {} dictionary of edges!".format(len(outcome_list)))
+    app.logger.debug("Full List:\n {}".format(outcome_list))
+
     return outcome_list
 
 def find_closest_nodes(dict_list,G_array):
@@ -45,6 +112,7 @@ def find_closest_nodes(dict_list,G_array):
         #print("distance to node", tmp[idx]**2)
         #print("node grafo",(G_array[idx][0], G_array[idx][1] ))
         nodes_list.append((G_array[idx][0], G_array[idx][1]))
+
     return nodes_list
 
 from app.src.libpy.pyAny_lib import calculate_path
@@ -63,7 +131,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
             paths.append(path)
 
     # qua abbiamo la lista delle strade
-    print("quanto sono lunghe le strade?????????????????????", length_paths)
+    app.logger.debug("quanto sono lunghe le strade? {}".format(length_paths))
     np_lengths = np.asarray(length_paths)
     idx_shortest_path = np.argmin(np_lengths)
     shortest_path = paths[idx_shortest_path]
@@ -74,10 +142,10 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
 
 def add_from_strada_to_porta(path, da, a):
 
-    print("first node path", path[0])
-    print("last node path", path[-1])
-    print("da",da["shape"])
-    print("a",a["shape"])
+    app.logger.debug("first node path {}".format(path[0]))
+    app.logger.debug("last node path {}".format(path[-1]))
+    app.logger.debug("da {}".format(da["shape"]))
+    app.logger.debug("a {}".format(a["shape"]))
     #print("distanza, da-primo punto di path", (end_from[0]-path[0][0])**2+(end_from[1]-path[0][1])**2)
     #print("distanza, rev(da)-primo punto di path",(end_from_rev[0]-path[0][0])**2+(end_from_rev[1]-path[0][1])**2)
     #print("distanza, primo punto da- secondo punto da", (end_from[0]-end_from_2[0])**2+(end_from[1]- end_from_2[1])**2)
@@ -86,9 +154,9 @@ def add_from_strada_to_porta(path, da, a):
     to=[]
     if da["geotype"]==0 and da["shape"]:
         fro =da["shape"][::-1]
-        print("added fro")
+        app.logger.debug("added fro")
     if a["geotype"]==0 and a["shape"]:
         to =a["shape"]
-        print("added to")
+        app.logger.debug("added to")
     path=[fro+[coo for coo in path]+to]
     return path[0]

@@ -1,8 +1,11 @@
-/*!
+//import L from 'leaflet';
+//import Modal from '../../templates/index';
+ /*!
   * Venessia4Working Javascripts
-  * Copyright 2020
-  * Licensed under MIT
+  * Copyleft 2020
+  * Licensed under AGPLv3
   */
+
 
 /* Open a window visualizing a help message on how to make the correct search.
 	In the window a button to close it should be available, calling closeHelpWindow().
@@ -130,6 +133,7 @@ function showSecondSearchbar() {
 	document.getElementById("btn-plus").style.display = "none";
 	document.getElementById("second-search-field").style.display = "inline";
 	document.getElementById("calc-button").style.display = "inline";
+	document.getElementById("nav_buttons").style.display = "inline";
 }
 
 function hideSecondSearchbar() {
@@ -138,6 +142,7 @@ function hideSecondSearchbar() {
 	document.getElementById("btn-plus").style.display = "block";
 	document.getElementById("second-search-field").style.display = "none";
 	document.getElementById("calc-button").style.display = "none";
+	document.getElementById("nav_buttons").style.display = "none";
 	return false;
 }
 

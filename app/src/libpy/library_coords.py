@@ -38,7 +38,7 @@ def find_address_in_db(input_string):
     """
     Wrapper functions that looks for an address in the database.
     """
-    print("looking in the db")
+    app.logger.info("looking in the db")
     # fetch parameters (puo tornare utile se i parametri saranno modificabili dal browser piu avanti)
     search_parameters = get_parameters()
     # pulisci la stringa col metodo di ale
@@ -48,16 +48,16 @@ def find_address_in_db(input_string):
     # cerca nel database - qua dentro avviene la magia
     #found_something, actual_address, address_type = find_address(text)
     address_list, score_list, exact = fuzzy_search(text, isThereaCivico)
-    print(address_list, score_list)
+    app.logger.debug("Lista {}, scores {}".format(address_list, score_list))
     result_dict = []
     # dammi coordinate, del punto o del poligono
     if not address_list:
+        app.logger.warning("Non abbiamo trovato nulla!")
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
     else:
         for i,address in enumerate(address_list):
-            print(address)
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             if not geo_type<0:
                 nome=str(address)+ " " + str(number)
@@ -70,7 +70,7 @@ def find_address_in_db(input_string):
                         "score":score_list[i],
                         "exact":exact})
         result_dict=sort_results(result_dict)
-        print(result_dict)
+        app.logger.debug(result_dict)
     return result_dict
 
 
@@ -142,7 +142,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
     else:
         # in teoria questo caso non esiste per consistenza del db, lo lasciamo solo temporanemente con un print
-        print("ERRORE ASSURDO: l'oggetto trovato non è un indirizzo, non è un poi, e se è una strada o sestiere non ha geometria!", actual_location)
+        app.logger.info("ERRORE ASSURDO: l'oggetto trovato non è un indirizzo, non è un poi, e se è una strada o sestiere non ha geometria!", actual_location)
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
@@ -156,7 +156,7 @@ da gestire piu poligoni, piu centroidi, multipoligoni e alieni
 def getCentroidSmartly(polygon_shape):
     #avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
     avg_coordinate = [polygon_shape.representative_point().x, polygon_shape.representative_point().y]
-    print("Centroide: ", avg_coordinate)
+    app.logger.debug("Centroide: ", avg_coordinate)
     return avg_coordinate
 
 """
@@ -232,74 +232,17 @@ def find_address(text):
     # address_type e attempt alla fine, quindi 0: sestiere, 1: strada, 2: poi
     return found_the_treasure, str(actual_address), address_type
 
-"""
-In questa funzione andiamo veramente ad accedere al database:
-attempt == 0 --> Sestieri
-attempt == 1 --> Strade
-attempt == 2 --> POI
-attempt < 0 or attempt > 2 --> ERRORE
-"""
-def search_and_search_and_search(text, attempt):
 
-    # controlla i tentativi
-    assert(attempt > -1),"tentativo negativo? - attempt:" + str(attempt)
-    assert(attempt < 3),"troppi tentativi! Errore nel ciclo while sopra! - attempt:" + str(attempt)
-    # delega
-    if attempt == 0:
-        found_something, actual_address = bad_neighbourhoods(text)
-    if attempt == 1:
-        found_something, actual_address = is_she_living_in_the_streets(text)
-    if attempt == 2:
-        found_something, actual_address = is_she_at_the_coffee_place(text)
-
-    return found_something, actual_address, attempt
-
-"""
-versione super semplice
-solo controlla se matcha 1 a 1 un nome di un sestiere
-"""
-def bad_neighbourhoods(text):
-
-    #neighborhoods = Neighborhood.query.all()
-    matching=Neighborhood.query.filter(Neighborhood.name.contains(text)).all()
-    #matching = [hood for hood in neighborhoods if text in (hood.name)]
-    if matching:
-        return True, matching[0]
-    return False, ""
-
-"""
-versione super semplice
-solo controlla se matcha 1 a 1 un nome di una strada
-"""
-def is_she_living_in_the_streets(text):
-
-    matching = Street.query.filter(Street.name.contains(text)).all()
-    if matching:
-        return True, matching[0]
-
-    return False, ""
-
-"""
-versione super semplice
-solo controlla se matcha 1 a 1 un nome di un POI
-"""
-def is_she_at_the_coffee_place(text):
-
-    matching = poi.query.filter(poi.name.contains(text)).all()
-    if matching:
-        return True, matching[0]
-
-    return False, ""
-
-"""
-Sostituisce find_address.
-Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il match e la provenienza
-"""
 def takeSecond(elem):
     return elem[1]
 
 
 def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process):
+    """
+    Search the input string using the fuzzy library, returns the best matches.
+
+    Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il match e la provenienza
+    """
     exact = False
     n_limit = 15
     score_cutoff = 50

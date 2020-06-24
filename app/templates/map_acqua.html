@@ -66,32 +66,43 @@
 				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
 					<input type="text"  placeholder="cerca.." name="partenza">
 					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-
+					<div id="nav_buttons" style="display: none">
+						<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
+						<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
+					</div>
 
 					<!-- inizialmente mostriamo il bottone -->
 					<a onclick="showSecondSearchbar()">
 						<div class="button-plus" id="add-searchfield">
-							<button type=button id="btn-plus" class="fa fa-plus btn v4wbtn pad-left"></button>
+							<button type=button id="btn-plus" class="btn v4wbtn pad-left"><i class="fa fa-plus"></i></button>
 						</div>
 					</a>
 					<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
 					<div class="container-search-field" id="second-search-field" style="display: none">
 							<div class="form-group has-feedback">
 								<input id="searchbox_end" type="text" name="arrivo" placeholder="fino a.." class="form-control">
-								<button type=button onclick="hideSecondSearchbar()" class="fa fa-close btn v4wbtn pad-left"></button>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting"><i class="fa fa-line-chart"></i></input></span>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting"><i class="fa fa-ambulance"></i></input></span>
 							</div>
 					</div><br>
 					<!-- Aggiungiamo un bottone per il percorso sotto -->
 					<div class="calculate-path-cointainer button-plus" id="calc-button" style="display: none">
 
 						<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+						<button type=button onclick="hideSecondSearchbar()" class="btn srcbtn v4wbtn pad-left"><i class="fa fa-close"></i></button>
 
 					</div>
 				</form>
 			</div>
 		</div>
 
-		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK-->
+		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK
+		<div class="leaflet-top leaflet-right onlyMap">
+			<div class="modal-div">
+				<span class="topcoat-button open-modal"><img src="/static/img/dequa_logo_v1.png" width=25></span><br>
+			</div>
+		</div>
+	-->
 		<div class="leaflet-top leaflet-right onlyMap">
 			<a onclick="showHelpWindow()">
 				<div class="leaflet-control w3-medium">
@@ -113,6 +124,7 @@
 				</div>
 			</a>
 		</div>
+
 		<!-- DIV IN BASSO A DESTRA - GEO-LOCALIZZZIONE
 		<div class="leaflet-bottom leaflet-right">
 			<a onclick="locateUser(mymap, marker, circle)">
@@ -122,6 +134,28 @@
 			</a>
 		</div>
 		-->
+
+<!--
+		 SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal
+		<div class="settings_window" id="nav_setting_window">
+			<div class="w3-row-padding setting_icon">
+				<div class="w3-col s6">
+					<i class="fa fa-wheelchair"></i>
+				</div>
+				<div class="w3-col s6">
+					<i class="fa fa-wrench"></i>
+				</div>
+			</div>
+			<div class="w3-row-padding setting_icon">
+				<div class="w3-col s6">
+					<i class="fa fa-map"></i>
+				</div>
+				<div class="w3-col s6">
+					<i class="fa fa-wheelchair"></i>
+				</div>
+			</div>
+		</div>
+-->
 
 	<div class="helpwindowpopup" id="helpwindow">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
