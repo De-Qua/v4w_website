@@ -261,6 +261,15 @@
 				 icon: marker_icon
 			}
 
+			var popup = L.popup();
+			function onMapClick(e) {
+				popup
+						.setLatLng(e.latlng)
+						.setContent("Posizione: " + e.latlng.toString())
+						.openOn(mymap);
+			}
+			mymap.on('click', onMapClick);
+
 			var modus_operandi = dict_in_JS.modus_operandi;
 			console.log("siamo in modus_operandi: " + modus_operandi);
 			var geo_type = dict_in_JS.partenza[0].geotype;
@@ -370,6 +379,7 @@
 					break;
 				break;
 		 	}//closing switch modus_operandi
+
 		}
 
 
