@@ -14,7 +14,6 @@ from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, fi
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from sqlalchemy import and_
-import pdb
 
 
 # Useful paths
@@ -304,15 +303,9 @@ def navigation():
                 min_number_of_rive = 10
                 name_of_rive_as_poi = "vincolo"
                 [start_coord, stop_coord] = find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
-                #rive_vicine=PoiCategoryType.query.filter_by(name="Riva").one().pois.join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-0.0003,start_coord[0]+0.0003),db.between(Location.latitude,start_coord[1]-0.003,start_coord[1]+0.003))).all()
                 #per tutti gli accessi all'acqua
                 rive_vicine=[]
-                #app.logger.info("cerco le rive vicine")
                 rive_vicine_start, how_many_start = find_POI(min_number_of_rive, start_coord, name_of_rive_as_poi)
-                #while len(rive_vicine)<10:
-                #    app.logger.info("increasing proximity")
-                #    proximity += [0.005,0.005]
-                #    rive_vicine=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,start_coord[0]-proximity[0],start_coord[0]+proximity[0]),db.between(Location.latitude,start_coord[1]-proximity[1],start_coord[1]+proximity[1]))).all()
                 app.logger.info("rive vicine alla partenza: {}".format(how_many_start))
                 rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
                 rive_start_nodes_list = find_closest_nodes(rive_start_list, G_terra_array)
@@ -334,7 +327,8 @@ def navigation():
                 # aggiungere gli archi!
                 list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
                 # trova la strada
-                strada, length = pyAny_lib.calculate_path_wkt(G_acqua, riva_start, riva_stop, flag_ponti=False)
+                path_nodes, length, streets_info, strada = pyAny_lib.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
+                print(streets_info)
                 # togli gli archi
                 pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
                 #print("path, length", strada, length)
@@ -343,10 +337,9 @@ def navigation():
                 # 1 significa che stiamo ritornando un percorso da plottare
                 #strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
                 path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
-                final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+                #final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
                 #print(final_dict)
-                return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
-
+                #return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 
             else: # cerchiamo per terra
                 app.logger.info("andiamo a piedi..")
@@ -358,14 +351,20 @@ def navigation():
                     f_ponti = True
                     app.logger.info("con meno ponti possibile!")
                 t2=time.perf_counter()
-                strada, length = pyAny_lib.calculate_path(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
+                path_nodes, length, streets_info, strada = pyAny_lib.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=False)
+                print(streets_info)
                 #print("path, length", strada, length)
-                strada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
+                strada = add_from_strada_to_porta(strada, match_dict_da[0], match_dict_a[0])
                 app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
                 # 1 significa che stiamo ritornando un percorso da plottare
-                final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [{"strada":strada,"lunghezza":length,"tipo":0}], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
+                path_list_of_dictionaries=[{"strada":strada,"lunghezza":length,"tipo":0}]
+                #final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], [{"strada":strada,"lunghezza":length,"tipo":0}], [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
                 #print(final_dict)
-                return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
+
+            #path_details = go_again_through_the_street(path)
+            # aggiungi a final dict path details
+            final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]])
+            return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 
 
 

@@ -7,15 +7,16 @@ import pdb
 from app import app, db
 from sqlalchemy import and_
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
-def find_POI(N, coordinates, searchPoiType, searchPoiTypeCategory="", maxNumOfAttempts=10, searchTimeOut=2):
+def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", maxNumOfAttempts=10, searchTimeOut=2):
     """
-    Finds at least N Pois of the given type close to the coordinate. Additional parameters controls stop criteria.
+    Finds at least N Pois of the given type close to the coordinate. Additional parameters control the stop criteria.
+    coordinates: (longitude, latitude)
     """
     finished = False
     tooManyAttempt = False
     foundEnough = False
     timeOutReached = False
-    app.logger.debug("Looking for at least {} POI of type {} ({}) close to {}".format(N, searchPoiType, searchPoiTypeCategory, coordinates))
+    app.logger.debug("Looking for at least {} POI of type {} ({}) close to {}".format(N, searchPoiCategory, searchPoiCategoryType, coordinates))
     proximity = np.asarray([0.0001, 0.0001])
     step = np.asarray([0.0005, 0.0005])
     app.logger.debug("Using a simple step strategy, increasing proximity by {} at each step".format(step))
@@ -23,12 +24,23 @@ def find_POI(N, coordinates, searchPoiType, searchPoiTypeCategory="", maxNumOfAt
     c_latitude = coordinates[1]
     c_longitude = coordinates[0]
     timeStart = time.time()
+    # define query
+    query = Poi.query.join(poi_types).join(PoiCategoryType)
+    if searchPoiCategoryType:
+        app.logger.debug("we use poi category type")
+        query = query.filter_by(name=searchPoiCategoryType)
+    query = query.join(PoiCategory)
+    if searchPoiCategory:
+        app.logger.debug("we use poi category")
+        query = query.filter_by(name=searchPoiCategory)
+    # loop
     while not finished:
-        #allPois = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).all()
-        #print(len(allPois))
-        #rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1]))).all()
-        #pdb.set_trace()
-        POI = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1]))).all()
+        #POI = Poi.query.join(poi_types).join(PoiCategoryType).filter_by(name=searchPoiCategoryType).join(PoiCategory).filter_by(name=searchPoiCategory).join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1]))).all()
+        current_query = query.join(Location).filter(and_(db.between(Location.longitude,c_longitude-proximity[0],c_longitude+proximity[0]),db.between(Location.latitude,c_latitude-proximity[1],c_latitude+proximity[1])))
+        app.logger.debug('raggio in cui sto cercando: (longitude, latitude)\n {},{},{},{}'.format(c_longitude-proximity[0],c_longitude+proximity[0],c_latitude-proximity[1],c_latitude+proximity[1]))
+        #app.logger.debug('query trovata {}'.format(current_query))
+        POI = current_query.all()
+        app.logger.debug('POI trovati {}'.format(POI))
         if len(POI) < N:
             app.logger.debug("we found only {} POIs, we increase proximity".format(len(POI)))
             proximity += step
@@ -45,9 +57,9 @@ def find_POI(N, coordinates, searchPoiType, searchPoiTypeCategory="", maxNumOfAt
         finished = foundEnough or tooManyAttempt or timeOutReached
 
 
-    if len(POI) == 0:
+    if len(POI) < 1:
         # bruteforce
-        POI = Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name=searchPoiType).join(Location).all()
+        POI = query.join(Location).all()
         foundEnough = True
         app.logger.warning("we could not find close POIs, we just take them all! they are {}. Check out if this should happen!".format(len(POI)))
 
