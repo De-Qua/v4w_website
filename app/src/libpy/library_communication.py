@@ -19,7 +19,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
                 xy.append([coo[1],coo[0]])
             start["shape"]=xy
         if start['geojson']:
-            start['geojson'] = json.dumps(start['geojson'])
+            #start['geojson'] = json.dumps(start['geojson'])
+            start['geojson'] = start['geojson']
     if end_location is not "no_end":
         for end in end_location:
             end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end)
@@ -32,7 +33,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
                     xy.append([coo[1],coo[0]])
                 end["shape"]=xy
             if end['geojson']:
-                end['geojson'] = json.dumps(end['geojson'])
+                #end['geojson'] = json.dumps(end['geojson'])
+                end['geojson'] = end['geojson']
     for path in estimated_path:
         if not path["strada"]=="no_path":
             xy=[]

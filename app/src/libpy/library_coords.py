@@ -65,8 +65,10 @@ def find_address_in_db(input_string):
                 nome=str(address)+ " " + str(number)
             else:
                 nome=str(address)
+
+            # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
             # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
-            shape = transform(lambda x,y:(y,x), shape)
+            # shape = transform(lambda x,y:(y,x), shape)
             geojson = {
             "type": "Feature",
             "geometry": dict(mapping(shape))
