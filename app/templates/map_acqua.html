@@ -320,6 +320,10 @@
 									dict_in_JS.partenza[0].shape
 							], polygonOptions).addTo(mymap);
 							var group = new L.featureGroup([polygon]);
+
+							console.log("geojson: "+ dict_in_JS.partenza[0].geojson)
+							// Per qualche motivo dice che il geojson è fatto male
+							// L.geoJSON(dict_in_JS.partenza[0].geojson).addTo(mymap)
 							mymap.fitBounds(group.getBounds());
 							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
 							break;

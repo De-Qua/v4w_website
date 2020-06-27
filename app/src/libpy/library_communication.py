@@ -1,4 +1,6 @@
 import numpy as np
+import pdb
+import json
 
 def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"strada":"no_path","lunghezza":0, "tipo":-1}], end_location="no_end"):
     """
@@ -16,6 +18,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
             for coo in start['shape']:
                 xy.append([coo[1],coo[0]])
             start["shape"]=xy
+        if start['geojson']:
+            start['geojson'] = json.dumps(start['geojson'])
     if end_location is not "no_end":
         for end in end_location:
             end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end)
@@ -27,7 +31,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
                 for coo in end['shape']:
                     xy.append([coo[1],coo[0]])
                 end["shape"]=xy
-
+            if end['geojson']:
+                end['geojson'] = json.dumps(end['geojson'])
     for path in estimated_path:
         if not path["strada"]=="no_path":
             xy=[]
@@ -42,7 +47,6 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
     msg["path"] = estimated_path
     #msg["length_path"] = estimated_path[1]
     msg["arrivo"] = end_location
-
     return msg
 
 def correct_coordinates_for_leaflet(dic):

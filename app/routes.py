@@ -14,6 +14,7 @@ from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, fi
 from app.src.libpy.library_communication import prepare_our_message_to_javascript
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from sqlalchemy import and_
+import pdb
 
 
 # Useful paths
@@ -33,7 +34,7 @@ G_acqua_array = np.asarray(list(G_acqua.nodes))
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
 html_file = 'map_acqua.html'
-app.logger.setLevel(15)
+app.logger.setLevel(1)
 app.logger.info("ready to go!")
 
 

@@ -9,6 +9,8 @@ from app import app, db
 #Neighborhood.query.all()
 from fuzzywuzzy import fuzz, process
 import fuzzywuzzy
+from shapely.geometry import mapping
+from shapely.ops import transform
 
 def civico2coord(coord_list,civico_name,civico_list, civico_coord):
     """
@@ -58,17 +60,27 @@ def find_address_in_db(input_string):
         polygon_shape_as_list = None
     else:
         for i,address in enumerate(address_list):
-            geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
+            geo_type, coordinates, polygon_shape, shape = fetch_coordinates(address, number, isThereaCivico)
             if not geo_type<0:
                 nome=str(address)+ " " + str(number)
             else:
                 nome=str(address)
+            # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
+            shape = transform(lambda x,y:(y,x), shape)
+            geojson = {
+            "type": "Feature",
+            "geometry": dict(mapping(shape))
+            }
             result_dict.append({"nome":nome,
                         "coordinate":coordinates,
                         "shape":polygon_shape,
                         "geotype":geo_type,
                         "score":score_list[i],
-                        "exact":exact})
+                        "exact":exact,
+                        "geojson":geojson
+                        })
+
+
         result_dict=sort_results(result_dict)
         app.logger.debug(result_dict)
     return result_dict
@@ -115,10 +127,13 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         coords = [actual_location.location.longitude,actual_location.location.latitude]
         try:
             polygon_shape_as_list = [coo for coo in actual_location.location.shape.coords]
+            shape = actual_location.location.shape
         except:
             polygon_shape_as_list = None
+            shape = None
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo
     elif actual_location.shape:
+        shape = actual_location.shape
         geo_type = 1
         polygon_shape = actual_location.shape
         if polygon_shape.geom_type == 'MultiPolygon':
@@ -146,9 +161,10 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
+        shape = None
 
 #    print("print del fetch, geo_type, coords, polygon_shape_as_list)
-    return geo_type, coords, polygon_shape_as_list
+    return geo_type, coords, polygon_shape_as_list, shape
 
 """
 da gestire piu poligoni, piu centroidi, multipoligoni e alieni

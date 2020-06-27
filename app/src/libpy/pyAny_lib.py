@@ -169,7 +169,7 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=5, w
     if path_nodes:
         streets_info = go_again_through_the_street(G,path_nodes,speed,water_flag)
         street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
-
+        pdb.set_trace()
     return path_nodes, length, streets_info, street
 
 def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
