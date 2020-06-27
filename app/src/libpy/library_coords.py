@@ -12,28 +12,7 @@ import fuzzywuzzy
 from shapely.geometry import mapping
 from shapely.ops import transform
 
-def civico2coord(coord_list,civico_name,civico_list, civico_coord):
-    """
-    da civico, ritorna una coordinata (x,y), che e anche la stringa di accesso a un nodo
-    """
-    coordinate = np.asarray(coord_list)
-    # removing one (or more) annoying none values
-    #streets_corrected = [street if street else "" for street in streets_list]
-    option_number = 3 #rimetto 3 per adesso, poi cambiamo
-    matches = get_close_matches_indexes(civico_name.upper(), civico_list, option_number)
-    streets_founds = []
-    if civico_list[matches[0]] == civico_name.upper():
-        which_one = 0
-    else:
-        for i in range(len(matches)):
-            streets_founds.append(civico_list[matches[i]])
-            print("Trovato: {}:{}".format(i, streets_founds[i]))
-        which_one = int(input("Quale intendi? Scrivi il numero\n"))
 
-    coord = civico_coord[matches[which_one]]
-    tmp = np.subtract(np.ones((coordinate.shape)) * coord, coordinate)
-    idx = np.argmin(np.sum(tmp * tmp, axis=1))
-    return (coordinate[idx][0], coordinate[idx][1])
 
 
 def find_address_in_db(input_string):
@@ -117,12 +96,14 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         if with_num:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
+            shape = actual_location.shape
             polygon_shape_as_list = [coo for coo in actual_location.shape.coords]
         else:
             # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
             geo_type = -2
             polygon_shape_as_list = None
+            shape=None
     # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto
     elif type(actual_location)==Poi:
         geo_type = 0
@@ -165,7 +146,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         polygon_shape_as_list = None
         shape = None
 
-#    print("print del fetch, geo_type, coords, polygon_shape_as_list)
+    print("print del fetch", geo_type, coords, shape)
     return geo_type, coords, polygon_shape_as_list, shape
 
 """

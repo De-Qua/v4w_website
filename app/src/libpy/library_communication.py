@@ -2,11 +2,11 @@ import numpy as np
 import pdb
 import json
 
-def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"strada":"no_path","lunghezza":0, "tipo":-1}], end_location="no_end"):
+def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"shape_list":"no_path", "tipo":-1}], end_location="no_end"):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.
     """
-    # leaflet vuole le coordinate invertite (x e y). Per le path lo facciamo già in calculate_path
+    # leaflet vuole le coordinate invertite (x e y).
     for start in start_location:
         # introduci shift per Leaflet
         start['coordinate'], start['shape'] = correct_coordinates_for_leaflet(start)
@@ -32,15 +32,12 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
                 for coo in end['shape']:
                     xy.append([coo[1],coo[0]])
                 end["shape"]=xy
-            if end['geojson']:
-                #end['geojson'] = json.dumps(end['geojson'])
-                end['geojson'] = end['geojson']
-    for path in estimated_path:
-        if not path["strada"]=="no_path":
-            xy=[]
-            for coo in path["strada"]:
-                xy.append((coo[1],coo[0]))
-            path["strada"]=xy
+    #for path in estimated_path:
+     #   if not path["strada"]=="no_path":
+      #      xy=[]
+       #     for coo in path["strada"]:
+        #        xy.append((coo[1],coo[0]))
+         #   path["strada"]=xy
 
     msg = dict()
     msg["modus_operandi"] = mode

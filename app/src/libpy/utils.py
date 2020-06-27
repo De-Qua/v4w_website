@@ -7,6 +7,9 @@ import pdb
 from app import app, db
 from sqlalchemy import and_
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
+from shapely.geometry import mapping
+
+
 def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", maxNumOfAttempts=10, searchTimeOut=2):
     """
     Finds at least N Pois of the given type close to the coordinate. Additional parameters control the stop criteria.
@@ -127,7 +130,7 @@ def find_closest_nodes(dict_list,G_array):
 
     return nodes_list
 
-from app.src.libpy.pyAny_lib import calculate_path
+from app.src.libpy.pyAny_lib import calculate_path_wkt
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
     """
@@ -136,7 +139,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     length_paths=[]
     paths=[]
     for riva in rive_list:
-        path, length = calculate_path(G_un, coords_start, riva, flag_ponti=True)
+        path, length = calculate_path_wkt(G_un, coords_start, riva, flag_ponti=True)
 #        print("percorso calcolato per questa riva: ", bool(path) )
         if path:
             length_paths.append(length)
@@ -152,23 +155,12 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     # closest_riva = shortest_path[-1]
     return shortest_path
 
-def add_from_strada_to_porta(path, da, a):
+import pdb
 
-    app.logger.debug("first node path {}".format(path[0]))
-    app.logger.debug("last node path {}".format(path[-1]))
-    app.logger.debug("da {}".format(da["shape"]))
-    app.logger.debug("a {}".format(a["shape"]))
-    #print("distanza, da-primo punto di path", (end_from[0]-path[0][0])**2+(end_from[1]-path[0][1])**2)
-    #print("distanza, rev(da)-primo punto di path",(end_from_rev[0]-path[0][0])**2+(end_from_rev[1]-path[0][1])**2)
-    #print("distanza, primo punto da- secondo punto da", (end_from[0]-end_from_2[0])**2+(end_from[1]- end_from_2[1])**2)
-    #print("distanza, primo punto rev(da)-secondo punto rev(da)",(end_from_rev[0]-end_from_rev_2[0])**2+(end_from_rev[1]- end_from_rev_2[1])**2)
-    fro=[]
-    to=[]
-    if da["geotype"]==0 and da["shape"]:
-        fro =da["shape"][::-1]
-        app.logger.debug("added fro")
-    if a["geotype"]==0 and a["shape"]:
-        to =a["shape"]
-        app.logger.debug("added to")
-    path=[fro+[coo for coo in path]+to]
-    return path[0]
+def add_from_strada_to_porta(path, da, a):
+    """
+    It adds address linestring to connect doors with streets
+    """
+    path['shape_list'].insert(0,da['geojson'])
+    path['shape_list'].append(a['geojson'])
+    return path
