@@ -34,7 +34,7 @@ G_acqua_array = np.asarray(list(G_acqua.nodes))
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
 html_file = 'map_acqua.html'
-app.logger.setLevel(1)
+app.logger.setLevel(15)
 app.logger.info("ready to go!")
 
 
@@ -242,16 +242,15 @@ def navigation():
                 app.logger.info("rive vicine alla partenza: {}".format(how_many_start))
                 rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
                 rive_start_nodes_list = find_closest_nodes(rive_start_list, G_terra_array)
-                start_path=find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
-                riva_start = start_path[-1]
-
+                # ritorna la strada con properties e la riva scelta!
+                geojson_path_from_land_to_water, riva_start = find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
                 #    rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
                 rive_vicine_stop, how_many_stop = find_POI(min_number_of_rive, stop_coord, name_of_rive_as_poi)
                 app.logger.info("rive vicine all'arrivo: {}".format(how_many_stop))
                 rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
                 rive_stop_nodes_list = find_closest_nodes(rive_stop_list, G_terra_array)
-                stop_path=find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
-                riva_stop = stop_path[-1]
+                # ritorna la strada con properties e la riva scelta!
+                geojson_path_from_water_to_land, riva_stop = find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
                 #print("riva stop", riva_stop)
                 t2=time.perf_counter()
                 # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
@@ -260,8 +259,8 @@ def navigation():
                 # aggiungere gli archi!
                 list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
                 # trova la strada
-                path_nodes, length, streets_info, strada = pyAny_lib.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
-                print(streets_info)
+                water_streets_info = pyAny_lib.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
+                app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
                 # togli gli archi
                 pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
                 #print("path, length", strada, length)
@@ -269,7 +268,9 @@ def navigation():
                 app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
                 # 1 significa che stiamo ritornando un percorso da plottare
                 #strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
-                path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
+                # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
+                path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
+                #path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
                 #final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
                 #print(final_dict)
                 #return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
@@ -284,14 +285,18 @@ def navigation():
                     f_ponti = True
                     app.logger.info("con meno ponti possibile!")
                 t2=time.perf_counter()
-                streets_info = pyAny_lib.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=False)
-                print(streets_info)
+                streets_info = pyAny_lib.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
+                app.logger.debug(streets_info)
                 #print("path, length", strada, length)
                 streets_info = add_from_strada_to_porta(streets_info, match_dict_da[0], match_dict_a[0])
                 app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
                 streets_info['tipo']=0
+                # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
                 path_list_of_dictionaries=[streets_info]
 
+
+
+            # prepara il messaggio da mandare a javascript
             final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]])
             return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
 

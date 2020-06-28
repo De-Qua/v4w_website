@@ -130,11 +130,11 @@ def find_closest_nodes(dict_list,G_array):
 
     return nodes_list
 
-from app.src.libpy.pyAny_lib import calculate_path_wkt
+from app.src.libpy.pyAny_lib import calculate_path_wkt, give_me_the_street
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
     """
-    It finds the path to the closest riva with respect to the starting coordinates. coords_start and rive_list are nodes of G_un
+    It finds the path to the closest riva with respect to the starting coordinates. It prepares the geojson and returns the chosen riva.
     """
     length_paths=[]
     paths=[]
@@ -150,16 +150,20 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     np_lengths = np.asarray(length_paths)
     idx_shortest_path = np.argmin(np_lengths)
     shortest_path = paths[idx_shortest_path]
+    chosen_riva = shortest_path[-1]
+    app.logger.debug("la piu corta e la strada con indice {} e il punto d'arrivo e' {}".format(idx_shortest_path,chosen_riva))
+    app.logger.debug("ora ricalcolo per il dizionario con le info")
+    path_info = give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti=True)
 
     # la riva sara l'ultimo nodo della strada
     # closest_riva = shortest_path[-1]
-    return shortest_path
+    return path_info, chosen_riva
 
 import pdb
 
 def add_from_strada_to_porta(path, da, a):
     """
-    It adds address linestring to connect doors with streets
+    It adds address linestring to connect doors with streets.
     """
     path['shape_list'].insert(0,da['geojson'])
     path['shape_list'].append(a['geojson'])

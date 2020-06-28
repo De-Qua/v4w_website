@@ -48,9 +48,13 @@ def find_address_in_db(input_string):
             # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
             # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
             # shape = transform(lambda x,y:(y,x), shape)
+            edge_info_dict = {}
+            edge_info_dict['street_type'] = 'calle'
+            edge_info_dict['bridge'] = 0
             geojson = {
-            "type": "Feature",
-            "geometry": dict(mapping(shape))
+                "type": "Feature",
+                "properties": edge_info_dict,
+                "geometry": dict(mapping(shape))
             }
             result_dict.append({"nome":nome,
                         "coordinate":coordinates,

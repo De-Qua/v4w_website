@@ -107,9 +107,16 @@ def dynamically_remove_edges(G,list_of_edges):
     return
 
 def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=5, water_flag=False):
+    """
+    A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
+    """
     path_nodes = []
     streets_info = {}
     path_nodes, length = calculate_path_wkt(G, coords_start, coords_end, flag_ponti)
+    # non volevamo avere gli errori?
+    # if not path_nodes:
+    #   raise Exception("No street found between {} and {}".format(coords_start, coords_end))
+    # else:
     if path_nodes:
         streets_info = go_again_through_the_street(G,path_nodes,speed,water_flag)
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
@@ -163,6 +170,7 @@ def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
         edge_info_dict = {}
         if water_flag:
+            edge_info_dict['street_type'] = 'canale'
             #print(edge_attuale)
             #edge_info_dict['']
             speed = np.minimum(speed, edge_attuale['vel_max'])
@@ -170,12 +178,18 @@ def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
             edge_info_dict['solo_remi'] = edge_attuale['solo_remi']
             # prendiamo informazioni sulle ordinanze in modo da creare un warning
         else:
+
             isBridge = edge_attuale['ponte']
+            if isBridge:
+                edge_info_dict['street_type'] = 'ponte'
+            else:
+                edge_info_dict['street_type'] = 'calle'
+                
             edge_info_dict['bridge'] = isBridge
             if isBridge:
                 n_ponti += 1
         time += how_long_does_it_take_from_a_to_b(edge_attuale['length'], speed, isBridge)
-        
+
         geojson = {
             "type": "Feature",
             "properties": edge_info_dict,

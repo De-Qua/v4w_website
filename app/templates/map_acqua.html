@@ -321,10 +321,10 @@
 							// ], polygonOptions).addTo(mymap);
 							// var group = new L.featureGroup([polygon]);
 
-							console.log("geojson: "+ dict_in_JS.partenza[0].geojson)
+							console.log("geojson: "+ dict_in_JS.partenza[0].geojson);
 							// Per qualche motivo dice che il geojson è fatto male
-var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson)
-							polygon.addTo(mymap)
+							var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson);
+							polygon.addTo(mymap);
 							mymap.fitBounds(polygon.getBounds());
 							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
 							break;
@@ -354,23 +354,20 @@ var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson)
 						street = streets[i];
 						console.log("street: " + street);
 						path_shapes = street.shape_list;
-						path_type = street.tipo;
-						// diamo in pasto alla polyline l'ennesimo colore
-						// create a polyline that will be drawn
-						console.log("path_cordds: " + path_shapes);
-						console.log("path_type: " + path_type);
-						linecolor = colors[path_type];
-						console.log("colors:" + colors);
-console.log("disegniamo in " + linecolor);
-var stile ={
-color: colors[path_type],
-weight: 3,
-opacity: 0.5,
-smoothFactor: 4//});
-}
-var linestrings = L.geoJSON(path_shapes, {'style':stile});
-linestrings.addTo(mymap);
-mymap.fitBounds(linestrings.getBounds());
+							//var linestrings = L.geoJSON(path_shapes, {'style':stile});
+						var linestrings = L.geoJSON(path_shapes, {
+						    style: function(feature) {
+						        switch (feature.properties.street_type) {
+						            case 'canale': return {color: "#0000ff"};
+						            case 'ponte':  return {color: "#ffff00"};
+												case 'calle':  return {color: "#ff0000"};
+						        }
+						    }
+						}).addTo(mymap);
+						console.log("strada: " + path_shapes);
+						linestrings.addTo(mymap);
+						linestrings.addTo(group);
+						mymap.fitBounds(group.getBounds());
 
 						//var current_polyline = new L.Polyline(path_coords, {
 						//		color: colors[path_type],
