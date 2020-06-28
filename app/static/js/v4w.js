@@ -12,6 +12,7 @@
 	The actual happening is just making the element with id "helpwindow" visible.
 */
 function showHelpWindow() {
+	hideSettingsWindow();
 	document.getElementById("helpwindow").style.display = "block";
 	document.getElementById("searchbar").style.display = "none";
 	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
@@ -24,6 +25,7 @@ function showHelpWindow() {
 	The actual happening is just making the element with id "helpwindow" invisible.
 */
 function closeHelpWindow() {
+	document.getElementById("mapid").style.opacity = 1.0;
 	document.getElementById("helpwindow").style.display = "none";
 	document.getElementById("searchbar").style.display = "block";
 	var thingstoBeShown = document.getElementsByClassName("onlyMap");
@@ -37,6 +39,7 @@ function closeHelpWindow() {
 	The actual happening is just making the element with id "helpwindow" visible.
 */
 function showFeedbackWindow() {
+	hideSettingsWindow();
 	document.getElementById("feedbackwindow").style.display = "block";
 	document.getElementById("searchbar").style.display = "none";
 	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
@@ -71,6 +74,7 @@ function toggleFeedbackWindowLayout() {
 }
 
 function closeFeedbackWindow() {
+	document.getElementById("mapid").style.opacity = 1.0;
 	document.getElementById("feedbackwindow").style.display = "none";
 	document.getElementById("searchbar").style.display = "block";
 	var thingstoBeShown = document.getElementsByClassName("onlyMap");
@@ -156,4 +160,14 @@ function drawPreLoader() {
 	console.log("done!")
 	setTimeout(console.log("now, ok"), 1000);
 	return true;
+}
+
+function showSettingsWindow() {
+	document.getElementById("mapid").style.opacity = 0.3;
+	document.getElementById("dequa_setting_window").style.display = "inline";
+}
+
+function hideSettingsWindow() {
+	document.getElementById("mapid").style.opacity = 1.0;
+	document.getElementById("dequa_setting_window").style.display = "none";
 }

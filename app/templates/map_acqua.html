@@ -102,7 +102,8 @@
 				<span class="topcoat-button open-modal"><img src="/static/img/dequa_logo_v1.png" width=25></span><br>
 			</div>
 		</div>
-	-->
+
+		commentato e sostituito con il logo dequa
 		<div class="leaflet-top leaflet-right onlyMap">
 			<a onclick="showHelpWindow()">
 				<div class="leaflet-control w3-medium">
@@ -115,7 +116,7 @@
 				</div>
 			</a>
 		</div>
-
+		-->
 		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 		<div class="leaflet-bottom leaflet-left onlyMap">
 			<a onclick="changeMap(whichmap)">
@@ -135,27 +136,35 @@
 		</div>
 		-->
 
-<!--
-		 SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal
-		<div class="settings_window" id="nav_setting_window">
-			<div class="w3-row-padding setting_icon">
-				<div class="w3-col s6">
-					<i class="fa fa-wheelchair"></i>
+
+			<div class="leaflet-top leaflet-right onlyMap">
+				<a onclick="showSettingsWindow()">
+					<div class="leaflet-control maptype pointer_div">
+						<img src="/static/img/dequa_logo_v1.png" class="top-right-icon-img pointer_div">
+					</div>
+				</a>
+			</div>
+		 	<!--SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal-->
+			<div class="settings_window w3-animate-left" id="dequa_setting_window" style="display: none">
+				<span class="right"><a onclick="hideSettingsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
+				<div class="w3-row-padding setting_icon">
+					<div class="w3-col s6">
+						<button class="fa fa-question dequa_area" onclick="showHelpWindow()">
+					</div>
+					<div class="w3-col s6">
+						<button class="fa fa-exclamation-triangle dequa_area" onclick="showFeedbackWindow()">
+					</div>
 				</div>
-				<div class="w3-col s6">
-					<i class="fa fa-wrench"></i>
+				<div class="w3-row-padding setting_icon">
+					<div class="w3-col s6 not-allowed">
+						<button class="fa fa-wrench dequa_area not-allowed">
+					</div>
+					<div class="w3-col s6">
+						<button class="fa fa-github dequa_area" onclick="window.location.href='https://github.com/Lychfindel/v4w_website'">
+					</div>
 				</div>
 			</div>
-			<div class="w3-row-padding setting_icon">
-				<div class="w3-col s6">
-					<i class="fa fa-map"></i>
-				</div>
-				<div class="w3-col s6">
-					<i class="fa fa-wheelchair"></i>
-				</div>
-			</div>
-		</div>
--->
+
 
 	<div class="helpwindowpopup" id="helpwindow">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
@@ -288,7 +297,7 @@
 					switch(geo_type) {
 						case -2:
 							// do nothing - pagina senza ricerca_ind
-							mymap.setView([45.43, 12.33], 13);
+							mymap.setView([45.43, 12.33], 15);
 							break;
 						case -1:
 							// code block
@@ -344,11 +353,7 @@
 			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
 					// the pahts: they are more than one
 					var streets = dict_in_JS.path;
-					var colors = ["red", "blue"];
 					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
-					var path_coords;
-					var path_type;
-					var linecolor;
 					//console.log("steets: " + streets);
 					for (i in streets) {
 						street = streets[i];
@@ -371,13 +376,6 @@
 							console.log("strada: " + path_shapes);
 							//linestrings.addTo(mymap);
 							linestrings.addTo(group);
-
-							//var current_polyline = new L.Polyline(path_coords, {
-							//		color: colors[path_type],
-							//		weight: 3,
-							//		opacity: 0.5,
-							//		smoothFactor: 4//});
-
 					}
 					mymap.fitBounds(group.getBounds());
 					// javascript way to call a method in the for loop

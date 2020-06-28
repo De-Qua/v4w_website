@@ -201,3 +201,27 @@ body, html {height: 100%}
 .pressed {
 	background: blue;
 }
+
+.dequa_area {
+	padding: 2rem;
+	min-height: 5rem;
+	font-size: 20px;
+	border-radius: 0.75rem;
+	background-color: #eee;
+}
+.dequa_area:hover {
+	background-color: #aaa;
+}
+
+.top-right-icon-img {
+	max-width: 10rem;
+	max-height: 10rem;
+	width: 5rem;
+	height: 5rem;
+}
+
+.right {
+	text-align: right;
+}
+.pointer_div {cursor: pointer;}
+.not-allowed {cursor: not-allowed;}
