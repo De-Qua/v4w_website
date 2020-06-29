@@ -9,7 +9,7 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
     # leaflet vuole le coordinate invertite (x e y).
     for start in start_location:
         # introduci shift per Leaflet
-        start['coordinate'], start['shape'] = correct_coordinates_for_leaflet(start)
+        start['coordinate'], start['shape'] = correct_coordinates_for_leaflet(start,shift_xy=[0,0])
         xy =start['coordinate'][:]
         start['coordinate'][0]=xy[1]
         start['coordinate'][1]=xy[0]
@@ -23,7 +23,7 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
             start['geojson'] = start['geojson']
     if end_location is not "no_end":
         for end in end_location:
-            end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end)
+            end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end,shift_xy=[0,0])
             xy =end['coordinate'][:]
             end['coordinate'][0]=xy[1]
             end['coordinate'][1]=xy[0]
@@ -48,14 +48,14 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
     msg["arrivo"] = end_location
     return msg
 
-def correct_coordinates_for_leaflet(dic):
+def correct_coordinates_for_leaflet(dic,shift_xy = [-0.000015, +0.000015]):
     """
     Corrects our coordinates with respect to OpenStreetMaps.
     """
     coordinates=dic['coordinate']
     polygon=dic['shape']
     geo_type=dic['geotype']
-    shift = np.asarray([-0.000015, +0.000015])
+    shift = np.asarray(shift_xy)
     corrected_coords = coordinates + shift
     try:
         if not geo_type < 0:

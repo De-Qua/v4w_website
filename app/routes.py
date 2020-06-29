@@ -15,8 +15,8 @@ from app.src.libpy import pyAny_lib
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle_terra = os.path.join(folder_db,"grafo_pickle_last")
-path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_1106")
+path_pickle_terra = os.path.join(folder_db,"grafo_pickle_4326VE")
+path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_4326VE")
 
 # Logging
 app.logger.info("loading the graphs..")
@@ -28,7 +28,7 @@ G_objects = {'land_graph':G_terra, 'water_graph':G_acqua}
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
 html_file = 'map_acqua.html'
-app.logger.setLevel(15)
+app.logger.setLevel(1)
 app.logger.info("ready to go!")
 
 
