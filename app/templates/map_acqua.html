@@ -55,6 +55,7 @@
 		        title: "Show me where I am, yo!"
 		    }
 				}).addTo(mymap);
+			var scale = L.control.scale().addTo(mymap);
 			var feedbackjs = {{feedbacksent}};
 		</script>
 	</div>
@@ -256,7 +257,7 @@
 		//var result = JSON.parse({{ results_dictionary | tojson }});
 		var dict_in_JS = {{results_dictionary | tojson}};
 		if (dict_in_JS == "None") {
-			mymap.setView([45.43, 12.33], 13);
+			mymap.setView([45.435, 12.333], 14);
 		}
 		else {
 
