@@ -137,14 +137,15 @@
 		</div>
 		-->
 
-
+			<!-- IN ALTO A DESTRA LOGO -->
 			<div class="leaflet-top leaflet-right onlyMap">
 				<a onclick="showSettingsWindow()">
 					<div class="leaflet-control maptype pointer_div">
-						<img src="/static/img/dequa_logo_v1.png" class="top-right-icon-img pointer_div">
+						<button class="btn v4wbtn mapbtn"><img src="/static/img/dequa_logo_v1.png" class="top-right-icon-img pointer_div"></button>
 					</div>
 				</a>
 			</div>
+
 		 	<!--SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal-->
 			<div class="settings_window w3-animate-left" id="dequa_setting_window" style="display: none">
 				<span class="right"><a onclick="hideSettingsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
@@ -166,6 +167,44 @@
 				</div>
 			</div>
 
+
+			<div class="leaflet-left w3-animate-left results_window" id="results_search" style="display: none">
+				<span class="right"><a onclick="closeResultsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
+						<!-- PERCORSO -->
+						<div class="result_div" id="percorso">
+							<p class="results_title">PERCORSO:</p>
+							<p class="results_text">
+								DA:<br>
+								<span id="da_text"></span><br>
+								A:<br>
+								<span id="a_text"></span><br>
+								LUNGHEZZA:<br>
+								<span id="length_text"></span><br>
+								TEMPO:<br>
+								<span id="time_text"></span><br>
+								PONTI:<br>
+								<span id="ponti_text"></span><br>
+						</div>
+						<!-- RICERCA SINGLE -->
+						<div class="result_div" id="single_address">
+							<p class="results_title">RICERCA:</p>
+							<p class="results_text">
+								TROVATO:<br>
+								<span id="found_text"></span><br>
+								TIPO:<br>
+								<span id="type_text"></span><br>
+						</div>
+						<!-- NON DOVREBBE APPARIRE -->
+						<div class="result_div" id="weird">
+							<p class="results_title">STRANO:</p>
+							<p class="results_text">
+								Non dovrebbe mai apparire.<br>
+								Probabilmente abbiamo sbagliato qualcosa.
+							</p>
+						</div>
+					</div>
+				</span>
+			</div>
 
 	<div class="helpwindowpopup" id="helpwindow">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
@@ -272,7 +311,7 @@
 
 			// Options for the marker
 			var markerOptions = {
-				 title: "Abbiamo trovato {{start_name}}",
+				 title: "Abbiamo trovato " + dict_in_JS.partenza[0].nome,
 				 clickable: true,
 				 // si alza all'hover - non va :(
 				 riseOnHover: true,
@@ -295,6 +334,9 @@
 					// geo_type == 0 --> marker
 					// geo_type == 1 --> poligono
 					// e facile aggiungere geo_type se vogliamo piu avanti
+					showResultsWindow('single_address');
+					var name_location = dict_in_JS.partenza[0].nome;
+					document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
 					switch(geo_type) {
 						case -2:
 							// do nothing - pagina senza ricerca_ind
@@ -308,7 +350,8 @@
 							// coordinate
 							var coords_location = dict_in_JS.partenza[0].coordinate;
 							marker_location = L.marker(coords_location, markerOptions);
-							var name_location = dict_in_JS.partenza[0].nome;
+
+							document.getElementById("type_text").innerHTML = "<i>indirizzo</i>";
 							// Popup se uno clicca sul marker
 							marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
 							// aggiungi il marker sulla mappa
@@ -330,7 +373,7 @@
 							// 		dict_in_JS.partenza[0].shape
 							// ], polygonOptions).addTo(mymap);
 							// var group = new L.featureGroup([polygon]);
-
+							document.getElementById("type_text").innerHTML = "<i>area</i>";
 							console.log("geojson: "+ dict_in_JS.partenza[0].geojson);
 							// Per qualche motivo dice che il geojson è fatto male
 							var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson);
@@ -345,7 +388,20 @@
 						}
 					break;
 				case 1:
+					console.log("Setting up results window!")
+					showResultsWindow('percorso');
+					var nome_partenza = dict_in_JS.partenza[0].nome;
+					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
+					var nome_arrivo = dict_in_JS.arrivo[0].nome;
+					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
+					//var path_length =
+					document.getElementById("length_text").innerHTML = "<i>X.yzw metri</i>";
+					//var est_time =
+					document.getElementById("time_text").innerHTML = "<i>ci metterei X minuti</i>";
+					//var num_of_bridges =
+					document.getElementById("ponti_text").innerHTML = "<i>strada con X ponti</i>";
 					console.log("drawing the streets!")
+
 					// here all the stuff when we have path from A to B
 			    //var punto_di_partenza = L.point(stop_coordx, stop_coordy);
 			    //var prj = L.Projection.Mercator.unproject(pointM);

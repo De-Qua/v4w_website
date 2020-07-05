@@ -171,3 +171,32 @@ function hideSettingsWindow() {
 	document.getElementById("mapid").style.opacity = 1.0;
 	document.getElementById("dequa_setting_window").style.display = "none";
 }
+
+function showResultsWindow(result_type) {
+	if (window.innerWidth > 1000) {
+		document.getElementById("results_search").style.display = "inline";
+		document.getElementById("weird").style.display = "none";
+		switch (result_type) {
+			case 'single_address':
+				document.getElementById("single_address").style.display = "inline";
+				document.getElementById("percorso").style.display = "none";
+				break;
+			case 'percorso':
+				document.getElementById("single_address").style.display = "none";
+				document.getElementById("percorso").style.display = "inline";
+				break;
+			default:
+				document.getElementById("single_address").style.display = "none";
+				document.getElementById("percorso").style.display = "none";
+				document.getElementById("weird").style.display = "inline";
+				break;
+		}
+	}
+}
+
+function closeResultsWindow() {
+	document.getElementById("results_search").style.display = "none";
+	document.getElementById("single_address").style.display = "none";
+	document.getElementById("percorso").style.display = "none";
+	document.getElementById("weird").style.display = "none";
+}
