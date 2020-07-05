@@ -394,10 +394,10 @@
 					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 					var nome_arrivo = dict_in_JS.arrivo[0].nome;
 					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
-					var path_length = dict_in_JS.path[0].lunghezza;
-					document.getElementById("length_text").innerHTML = "<i>"+path_length+" metri</i>";
-					var est_time = dict_in_JS.path[0].time;
-					document.getElementById("time_text").innerHTML = "<i>ci metterei "+est_time+" secondi</i>";
+					var path_length = dict_in_JS.path[0].human_readable_length;
+					document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
+					var time_description = dict_in_JS.path[0].human_readable_time;
+					document.getElementById("time_text").innerHTML = "<i>ci metterai "+time_description+"</i>";
 					var num_of_bridges = dict_in_JS.path[0].n_ponti;
 					document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" ponti</i>";
 					console.log("drawing the streets!")
@@ -434,7 +434,7 @@
 							//linestrings.addTo(mymap);
 							linestrings.addTo(group);
 					}
-					mymap.fitBounds(group.getBounds());
+					mymap.fitBounds(group.getBounds(), {padding: [5, 5]});
 					// javascript way to call a method in the for loop
 					//streets.forEach(drawStreet());
 					//alert('YET TO BE DONE');

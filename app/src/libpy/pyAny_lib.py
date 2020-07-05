@@ -106,7 +106,7 @@ def dynamically_remove_edges(G,list_of_edges):
 
     return
 
-def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=5, water_flag=False):
+def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False):
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
@@ -150,7 +150,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
 
     return path_nodes, length_path #json.dumps(x_tot), length_path
 
-def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
+def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
@@ -198,13 +198,37 @@ def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
         }
         shapes.append(geojson)
     streets_info['lunghezza'] = lunghezza
+    streets_info['human_readable_length'] = "{} metri".format(np.round(lunghezza).astype(int))
     streets_info['time'] = time
+    streets_info['human_readable_time'] = prettify_time(time)
     streets_info['n_ponti'] = n_ponti
     streets_info['shape_list'] = shapes
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
     return (length + length/5*isBridge)/speed
+
+def prettify_time(time):
+    """
+    It returns a string describing the amount of time.
+    """
+    if time < 60:
+        return "un batter d'occhio!"
+    #else:
+    minutes = np.round(time/60).astype(int)
+    range = 3
+    if minutes == 1:
+        return "un minuto"
+    if np.abs(minutes - 15) < range:
+        return "circa un quarto d'ora"
+    elif np.abs(minutes - 30) < range:
+        return "mezz'oretta"
+    elif np.abs(minutes - 60) < range:
+        return "un'oretta"
+    elif minutes > 60:
+        return "tantissimo. Dove stai andando?"
+    #
+    return "circa {} minuti.".format(minutes)
 
 def prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G_un, coords_start, path_nodes):
 
