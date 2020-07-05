@@ -394,12 +394,12 @@
 					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 					var nome_arrivo = dict_in_JS.arrivo[0].nome;
 					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
-					//var path_length =
-					document.getElementById("length_text").innerHTML = "<i>X.yzw metri</i>";
-					//var est_time =
-					document.getElementById("time_text").innerHTML = "<i>ci metterei X minuti</i>";
-					//var num_of_bridges =
-					document.getElementById("ponti_text").innerHTML = "<i>strada con X ponti</i>";
+					var path_length = dict_in_JS.path[0].lunghezza;
+					document.getElementById("length_text").innerHTML = "<i>"+path_length+" metri</i>";
+					var est_time = dict_in_JS.path[0].time;
+					document.getElementById("time_text").innerHTML = "<i>ci metterei "+est_time+" secondi</i>";
+					var num_of_bridges = dict_in_JS.path[0].n_ponti;
+					document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" ponti</i>";
 					console.log("drawing the streets!")
 
 					// here all the stuff when we have path from A to B

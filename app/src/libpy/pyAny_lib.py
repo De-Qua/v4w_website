@@ -164,6 +164,7 @@ def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
     edges_info = []
     shapes = []
     time=0
+    lunghezza = 0.0
     n_ponti=0
     for i in range(len(path_nodes)-1):
         isBridge = 0
@@ -184,18 +185,19 @@ def go_again_through_the_street(G, path_nodes, speed=5, water_flag=False):
                 edge_info_dict['street_type'] = 'ponte'
             else:
                 edge_info_dict['street_type'] = 'calle'
-                
+
             edge_info_dict['bridge'] = isBridge
             if isBridge:
                 n_ponti += 1
         time += how_long_does_it_take_from_a_to_b(edge_attuale['length'], speed, isBridge)
-
+        lunghezza += edge_attuale['length']
         geojson = {
             "type": "Feature",
             "properties": edge_info_dict,
             "geometry": dict(mapping(shapely.wkt.loads(edge_attuale['Wkt'])))
         }
         shapes.append(geojson)
+    streets_info['lunghezza'] = lunghezza
     streets_info['time'] = time
     streets_info['n_ponti'] = n_ponti
     streets_info['shape_list'] = shapes
