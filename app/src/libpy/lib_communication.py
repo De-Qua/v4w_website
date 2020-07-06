@@ -4,6 +4,7 @@ It handles the communication between python/flask on the server and HTML/CSS/Jav
 import numpy as np
 import pdb
 import json
+from app.src.libpy import lib_graph
 
 def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"shape_list":"no_path", "tipo":-1}], end_location="no_end"):
     """
@@ -72,3 +73,29 @@ def correct_coordinates_for_leaflet(dic,shift_xy = [-0.000015, +0.000015]):
     except:
         corrected_polygon = None
     return np.ndarray.tolist(corrected_coords), corrected_polygon
+
+def merged_path_list(path_list):
+    """
+    Merge a list of paths in one single dictionary
+    """
+    # define a new empty dict
+    merged_path = {
+        'lunghezza': 0,
+        'human_readable_length': '',
+        'time': 0,
+        'human_readable_time':'',
+        'n_ponti': 0,
+        'shape_list': []
+        }
+    # loop in the list retrieving data
+    for path in path_list:
+        merged_path['lunghezza'] += path['lunghezza']
+        merged_path['time'] += path['time']
+        merged_path['n_ponti'] += path['n_ponti']
+        merged_path['shape_list'] += path['shape_list']
+
+    # calculate new human readable data
+    merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
+    merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
+
+    return [merged_path]

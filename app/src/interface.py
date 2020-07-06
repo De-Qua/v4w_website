@@ -6,7 +6,7 @@ import time
 from app.src.libpy.lib_search import find_closest_nodes, add_from_strada_to_porta, find_closest_edge, find_path_to_closest_riva, find_POI, find_address_in_db
 from app.src.libpy.lib_communication import prepare_our_message_to_javascript
 import pdb
-from app.src.libpy import lib_graph
+from app.src.libpy import lib_graph, lib_communication
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from sqlalchemy import and_
 from app import app, db
@@ -149,6 +149,8 @@ def find_what_needs_to_be_found(params_research, G_objects):
             #strada_totale = add_from_strada_to_porta(strada_totale,match_dict_da[0], match_dict_a[0])
             # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
             path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
+            # comprimiamo la lista di dizionari in una lista con un unico dizionario
+            path_list_of_dictionaries = lib_communication.merged_path_list(path_list_of_dictionaries)
             #path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
             #final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
             #print(final_dict)
