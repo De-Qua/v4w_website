@@ -3,11 +3,10 @@ This class is an interface between routes.py (the main page where the routing ha
 and the libraries (in libpy), in order to maintain clean the routes page.
 """
 import time
-from app.src.libpy.utils import find_closest_nodes, add_from_strada_to_porta, find_closest_edge, find_path_to_closest_riva, find_POI
-from app.src.libpy.library_communication import prepare_our_message_to_javascript
-from app.src.libpy.library_coords import find_address_in_db
+from app.src.libpy.lib_search import find_closest_nodes, add_from_strada_to_porta, find_closest_edge, find_path_to_closest_riva, find_POI, find_address_in_db
+from app.src.libpy.lib_communication import prepare_our_message_to_javascript
 import pdb
-from app.src.libpy import pyAny_lib
+from app.src.libpy import lib_graph
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from sqlalchemy import and_
 from app import app, db
@@ -137,12 +136,12 @@ def find_what_needs_to_be_found(params_research, G_objects):
             # lista degli archi
             list_of_edges_node_with_their_distance = find_closest_edge([riva_start, riva_stop], G_acqua)
             # aggiungere gli archi!
-            list_of_added_edges = pyAny_lib.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
+            list_of_added_edges = lib_graph.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
             # trova la strada
-            water_streets_info = pyAny_lib.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
+            water_streets_info = lib_graph.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
             app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
             # togli gli archi
-            pyAny_lib.dynamically_remove_edges(G_acqua, list_of_added_edges)
+            lib_graph.dynamically_remove_edges(G_acqua, list_of_added_edges)
             #print("path, length", strada, length)
             #trada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
@@ -167,7 +166,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
             else:
                 f_ponti = False
             t2=time.perf_counter()
-            streets_info = pyAny_lib.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
+            streets_info = lib_graph.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
             app.logger.debug(streets_info)
             #print("path, length", strada, length)
             streets_info = add_from_strada_to_porta(streets_info, match_dict_da[0], match_dict_a[0])

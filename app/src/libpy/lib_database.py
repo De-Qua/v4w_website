@@ -1,5 +1,5 @@
 """
-Module to update and check our database
+Everything about databases, mostly sqlite at the moment. Queries like there is no tomorrow.
 """
 #%% Imports
 import os,sys

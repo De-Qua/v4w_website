@@ -1,3 +1,6 @@
+"""
+It handles the communication between python/flask on the server and HTML/CSS/JavaScript on the site.
+"""
 import numpy as np
 import pdb
 import json

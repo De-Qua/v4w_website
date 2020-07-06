@@ -10,7 +10,7 @@ from flask import json
 import numpy as np
 import pdb
 import app.src.interface as interface
-from app.src.libpy import pyAny_lib
+from app.src.libpy import lib_graph
 
 # Useful paths
 folder = os.getcwd()
@@ -21,18 +21,18 @@ path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_4326VE")
 # Logging
 app.logger.info("loading the graphs..")
 # Load graph
-#G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
-G_terra, G_acqua = pyAny_lib.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
+#G_un, civici_tpn, coords = lib_graph.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
+G_terra, G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
 G_objects = {'land_graph':G_terra, 'water_graph':G_acqua}
 
 file_feedback = os.path.join(folder,"file_feedback.txt")
 
-html_file = 'map_acqua.html'
+html_file = 'dequa_map.html'
 app.logger.setLevel(1)
 app.logger.info("ready to go!")
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/info', methods=['GET', 'POST'])
 def index():
     app.logger.info('Prova info')
     app.logger.error('Prova error')
@@ -43,7 +43,7 @@ def index():
     app.logger.log(20,'Prova log info')
     return render_template('index.html')
 
-@app.route('/ndemo', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def navigation():
 
     arguments_GET_request = request.args

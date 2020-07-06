@@ -1,12 +1,12 @@
+"""
+Here you can find everything to work on the city graph. Networkx, Shapely, Geopy and Dictionary geeks will love to sneak around.
+"""
 import numpy as np
 import networkx as nt
 from networkx.exception import NetworkXNoPath
 import sys
 import os
 import pdb
-#utility per coordinates
-from app.src.libpy.library_coords import civico2coord_first_result
-from app.src.libpy.weights_libs import weight_bridge, weight_time
 import pickle
 from shapely.geometry import shape
 import json
@@ -122,8 +122,26 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
     return streets_info
 
-def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
+def weight_bridge(x,y,dic, bridge_distance=10000):
+    """
+    It weights bridges different, so that dijkstra may find the optimal path as a path with less bridges.
+    """
+    return dic["length"] + dic["ponte"]*bridge_distance
 
+def weight_time(x,y,dic):
+    """
+    It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
+    """
+    # ma se spped e fisso, non ha senso no?
+    # 4kmh in metri al minuto
+    speed = 4/3.6*60
+    # speed = np.min(speed, dic["VEL_MAX"]) ?
+    return dic["length"]/speed
+
+def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
+    """
+    It calculates the path from coords_start to coords_end using the shape contained in the edges of the G_un graph.
+    """
     try:
         # Dijkstra algorithm, funzione peso lunghezza
         if flag_ponti == False:
@@ -154,7 +172,6 @@ def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
-
     # edges_info diventera un array di geojson - ogni edge e un geojson
     # ogni edge avra prpoperty che determinera come viene disegnato
     # link qua --> https://leafletjs.com/examples/geojson/
@@ -198,7 +215,7 @@ def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
         }
         shapes.append(geojson)
     streets_info['lunghezza'] = lunghezza
-    streets_info['human_readable_length'] = "{} metri".format(np.round(lunghezza).astype(int))
+    streets_info['human_readable_length'] = prettify_length(lunghezza)
     streets_info['time'] = time
     streets_info['human_readable_time'] = prettify_time(time)
     streets_info['n_ponti'] = n_ponti
@@ -207,6 +224,24 @@ def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
     return (length + length/5*isBridge)/speed
+
+def prettify_length(length):
+    """
+    It returns a string describing the amount of time.
+    """
+    range = 0.15
+    if length < (1000 - range*1000):
+        return "{} metri".format(np.round(length).astype(int))
+    #else:
+    # un chilometro?
+    if np.abs(length - 1000) < range:
+        return "circa 1 chilometro ({} metri)".format(np.round(length).astype(int))
+    # x chilometri?
+    km_length = length/1000
+    if np.round(km_length) - km_length < range:
+        return "circa {} chilometri ({} metri)".format(np.round(km_length).astype(int), np.round(length).astype(int))
+
+    return "{} metri".format(np.round(lunghezza).astype(int))
 
 def prettify_time(time):
     """
