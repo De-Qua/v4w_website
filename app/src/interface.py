@@ -175,7 +175,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
             app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
             streets_info['tipo']=0
             # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
-            path_list_of_dictionaries=[streets_info]
+            path_list_of_dictionaries=streets_info
 
             # prepara il messaggio da mandare a javascript
         final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]])

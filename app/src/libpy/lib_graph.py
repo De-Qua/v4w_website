@@ -241,7 +241,7 @@ def prettify_length(length):
     if np.round(km_length) - km_length < range:
         return "circa {} chilometri ({} metri)".format(np.round(km_length).astype(int), np.round(length).astype(int))
 
-    return "{} metri".format(np.round(lunghezza).astype(int))
+    return "{} metri".format(np.round(length).astype(int))
 
 def prettify_time(time):
     """

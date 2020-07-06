@@ -98,4 +98,4 @@ def merged_path_list(path_list):
     merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
     merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
 
-    return [merged_path]
+    return merged_path

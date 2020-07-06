@@ -395,11 +395,11 @@
 					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 					var nome_arrivo = dict_in_JS.arrivo[0].nome;
 					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
-					var path_length = dict_in_JS.path[0].human_readable_length;
+					var path_length = dict_in_JS.path.human_readable_length;
 					document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
-					var time_description = dict_in_JS.path[0].human_readable_time;
+					var time_description = dict_in_JS.path.human_readable_time;
 					document.getElementById("time_text").innerHTML = "<i>"+time_description+"</i>";
-					var num_of_bridges = dict_in_JS.path[0].n_ponti;
+					var num_of_bridges = dict_in_JS.path.n_ponti;
 					document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" ponti</i>";
 					console.log("also the search should be ready");
 					showSecondSearchbar();
@@ -414,32 +414,28 @@
 			    var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).addTo(mymap);
 			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
 					// the pahts: they are more than one
-					var streets = dict_in_JS.path;
+					var street = dict_in_JS.path;
 					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
 					//console.log("steets: " + streets);
-					for (i in streets) {
-						street = streets[i];
-						console.log("street: " + street);
-						path_shapes = street.shape_list;
-							//var linestrings = L.geoJSON(path_shapes, {'style':stile});
-						var linestrings = L.geoJSON(path_shapes, {
-								filter: function(feature) {
-									// draw only lines!
-									return feature.geometry.type == "LineString";
-								},
-						    style: function(feature) {
-						        switch (feature.properties.street_type) {
-						            case 'canale': return {color: "#0000ff"};
-						            case 'ponte':  return {color: "#ffff00"};
-												case 'calle':  return {color: "#ff0000"};
-						        }
-						    }
-							}).addTo(mymap);
-							console.log("strada: " + path_shapes);
-							//linestrings.addTo(mymap);
-							linestrings.addTo(group);
-					}
-					mymap.fitBounds(group.getBounds(), {padding: [5, 5]});
+					console.log("street: " + street);
+					path_shapes = street.shape_list;
+						//var linestrings = L.geoJSON(path_shapes, {'style':stile});
+					var linestrings = L.geoJSON(path_shapes, {
+							filter: function(feature) {
+								// draw only lines!
+								return feature.geometry.type == "LineString";
+							},
+					    style: function(feature) {
+					        switch (feature.properties.street_type) {
+					            case 'canale': return {color: "#0000ff"};
+					            case 'ponte':  return {color: "#ffff00"};
+											case 'calle':  return {color: "#ff0000"};
+					        }
+					    }
+					}).addTo(mymap);
+					console.log("strada: " + path_shapes);
+					linestrings.addTo(group);
+					mymap.fitBounds(group.getBounds(), {padding: [10, 10]});
 					// javascript way to call a method in the for loop
 					//streets.forEach(drawStreet());
 					//alert('YET TO BE DONE');
