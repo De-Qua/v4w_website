@@ -16,6 +16,9 @@ from shapely.geometry import mapping
 from shapely.ops import transform
 from sqlalchemy import and_
 
+# IMPORT OUR LIBRARIES
+from app.src.libpy import lib_graph, lib_communication, lib_database
+
 def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", maxNumOfAttempts=10, searchTimeOut=2):
     """
     Finds at least N Pois of the given type close to the coordinate. Additional parameters control the stop criteria.
@@ -147,7 +150,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     length_paths=[]
     paths=[]
     for riva in rive_list:
-        path, length = calculate_path_wkt(G_un, coords_start, riva, flag_ponti=True)
+        path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti=True)
 #        print("percorso calcolato per questa riva: ", bool(path) )
         if path:
             length_paths.append(length)
@@ -161,7 +164,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     chosen_riva = shortest_path[-1]
     app.logger.debug("la piu corta e la strada con indice {} e il punto d'arrivo e' {}".format(idx_shortest_path,chosen_riva))
     app.logger.debug("ora ricalcolo per il dizionario con le info")
-    path_info = give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti=True)
+    path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti=True)
 
     # la riva sara l'ultimo nodo della strada
     # closest_riva = shortest_path[-1]
