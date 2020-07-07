@@ -349,7 +349,7 @@ def dividiEtImpera(clean_string):
         numero_cifra = re.findall(r'\d+',number)
         numero_lettera = re.findall(r'[A-z]',number)
         if numero_lettera:
-            number += '/' + numero_lettera[0]
+            number = numero_cifra[0] + '/' + numero_lettera[0]
         else:
             number = numero_cifra[0]
         text = clean_string[:isThereaCivico.start()] + clean_string[isThereaCivico.end():]
