@@ -265,6 +265,14 @@ def prettify_time(time):
     #
     return "circa {} minuti.".format(minutes)
 
+def add_from_strada_to_porta(path, da, a):
+    """
+    It adds address linestring to connect doors with streets.
+    """
+    path['shape_list'].insert(0,da['geojson'])
+    path['shape_list'].append(a['geojson'])
+    return path
+
 def prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G_un, coords_start, path_nodes):
 
     epsilon = 1e-10

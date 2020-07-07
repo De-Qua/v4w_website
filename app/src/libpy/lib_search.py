@@ -15,6 +15,8 @@ import fuzzywuzzy
 from shapely.geometry import mapping
 from shapely.ops import transform
 from sqlalchemy import and_
+import re
+import geopy.distance
 
 # IMPORT OUR LIBRARIES
 from app.src.libpy import lib_graph, lib_communication, lib_database
@@ -123,25 +125,53 @@ def find_closest_nodes(dict_list,G_array):
     """
     Returns list of nodes in G_array closest to coordinate_list (euclidean distance).
     """
-    coord_beg_end=[]
-    for d in dict_list:
-        if d.get("geotype")==0 and d.get("shape"):
-            coord_beg_end.append(d.get("shape")[0])
-            #print("node start",d.get("shape")[0])
-        else:
-            coord_beg_end.append(d.get("coordinate"))
     nodes_list=[]
-    for coordinate in coord_beg_end:
-        #print(coordinate)
+    for d in dict_list:
+        coordinate = np.asarray(d.get("coordinate"))
         tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
-        # indice del nodo piu vicino
-        idx = np.argmin(np.sum(tmp * tmp, axis=1))
-        #print("distance to node", tmp[idx]**2)
-        #print("node grafo",(G_array[idx][0], G_array[idx][1] ))
-        nodes_list.append((G_array[idx][0], G_array[idx][1]))
+        dists = np.sum(np.sqrt(tmp * tmp), axis=1)
+        #dists=d.get("shape").distance(G_array)
+        closest_id=np.argmin(dists)
+        closest_dist = dists[closest_id]
+        app.logger.debug("il tuo nodo è distante {}".format(closest_dist))
+
+        # se la distanza e troppo grande, salutiamo i campagnoli
+        if closest_dist>1:
+            app.logger.error("Sei troppo distante da Venezia, povero campagnolo (il punto del grafo piu vicino dista {} gradi strani)".format(closest_dist))
+            continue
+        nodes_list.append((G_array[closest_id][0], G_array[closest_id][1]))
+
+
+    # nodes_list=[]
+    # dist_list = []
+    # for coordinate in coord_beg_end:
+    #
+    #     coordinate_as_shapely_point = shapely.geometry.Point(coordinate[0], coordinate[1])
+    #     coordinate.distance(G_array)
+    #     #print(coordinate)
+    #     tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
+    #     # tmp = degree2meters(tmp) devo convertire le differenze da gradi a metri, poi posso tranquillamente
+    #     # indice del nodo piu vicino
+    #     dist = np.sum(tmp * tmp, axis=1)
+    #     idx = np.argmin(dist)
+    #     #print("distance to node", tmp[idx]**2)
+    #     #print("node grafo",(G_array[idx][0], G_array[idx][1] ))
+    #     nodes_list.append((G_array[idx][0], G_array[idx][1]))
+    #     dist_list.append(np.sqrt(dist))
 
     return nodes_list
 
+
+def degree2meters(degree):
+
+    meters = degree2meters_approx(degree)
+
+    return meters
+
+
+def degree2meters_approx(degree):
+
+    return 111 * degree
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
     """
@@ -170,15 +200,66 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     # closest_riva = shortest_path[-1]
     return path_info, chosen_riva
 
-
-def add_from_strada_to_porta(path, da, a):
+def give_me_the_dictionary(input_string):
     """
-    It adds address linestring to connect doors with streets.
+    Wrapper of the wrapper that check if the user input is a coordinate or a string to be searched in the database.
     """
-    path['shape_list'].insert(0,da['geojson'])
-    path['shape_list'].append(a['geojson'])
-    return path
+    isACoordinate, coordinate_current_position = check_if_is_already_a_coordinate(input_string)
+    if isACoordinate:
+        app.logger.debug("Abbiamo ricevuto la coordianta! Nient'altro da fare a parte fingere di aver cercato!")
+        dict = create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_position)
+        app.logger.debug("Il dizionario fake è {}".format(dict))
+    else:
+        app.logger.debug("Abbiamo ricevuto una stringa vera, cerchiamo nel dizionario!")
+        dict = find_address_in_db(input_string)
 
+    return dict
+
+def create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_position):
+    """
+    Creates a well-formatted dictionary to pass as result also in the case we already have the coordinates as input.
+    """
+    # una lista con un dizionario
+    coordinate_as_shapely_point = shapely.geometry.Point(coordinate_current_position[0], coordinate_current_position[1])
+    edge_info_dict = {}
+    edge_info_dict['street_type'] = 'calle'
+    edge_info_dict['bridge'] = 0
+    geojson = {
+        "type": "Feature",
+        "properties": edge_info_dict,
+        "geometry": dict(mapping(coordinate_as_shapely_point))
+    }
+    fake_result_dict = [{"nome":"Lat {:2.8f}, Long {:2.8f}".format(coordinate_current_position[0], coordinate_current_position[1]),
+                "coordinate":coordinate_current_position,
+                "shape":coordinate_as_shapely_point,
+                "geotype":0, # marker
+                "score":100,
+                "exact":True, # is exact
+                "geojson":geojson
+                }]
+    return fake_result_dict
+
+def check_if_is_already_a_coordinate(input_string):
+    """
+    Function to check if the input string is a couple of coordinates of the type (12.45,45.32)
+    """
+    are_coordinates = False
+    lat = lon = 0
+    # regex: cerchiamo cifre.cifre+spazi, spazi+cifre.cifre
+    pattern_coordinates = re.compile('\d+.\d+')
+    coordinates = pattern_coordinates.findall(input_string)
+    if len(coordinates) == 2:
+        are_coordinates = True
+        lat = float(coordinates[0])
+        lon = float(coordinates[1])
+        # gestiamo il caso inverso, visto che nessuno sa l'ordine
+        if lat < 40:
+            tmp = lat
+            lat = lon
+            lon = tmp
+
+    coordinates = [lon, lat]
+    return are_coordinates, coordinates
 
 def find_address_in_db(input_string):
     """
@@ -187,6 +268,7 @@ def find_address_in_db(input_string):
     app.logger.info("looking in the db")
     # fetch parameters (puo tornare utile se i parametri saranno modificabili dal browser piu avanti)
     search_parameters = get_parameters()
+
     # pulisci la stringa col metodo di ale
     clean_string = correct_name(input_string)
     # dividi numero e dicci come e fatta
@@ -202,15 +284,17 @@ def find_address_in_db(input_string):
         coords = [-1, -1]
         geo_type = -1
         polygon_shape_as_list = None
+        polygon_shape = None
     else:
         for i,address in enumerate(address_list):
-            geo_type, coordinates, polygon_shape, shape = fetch_coordinates(address, number, isThereaCivico)
+            # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
+            geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             if not geo_type<0:
                 nome=str(address)+ " " + str(number)
             else:
                 nome=str(address)
 
-            # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
+            # INCREDIBILE: stampando il geojso n non serve invertire le coordinate!
             # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
             # shape = transform(lambda x,y:(y,x), shape)
             edge_info_dict = {}
@@ -219,10 +303,11 @@ def find_address_in_db(input_string):
             geojson = {
                 "type": "Feature",
                 "properties": edge_info_dict,
-                "geometry": dict(mapping(shape))
+                "geometry": dict(mapping(polygon_shape))
             }
             result_dict.append({"nome":nome,
                         "coordinate":coordinates,
+                        #"shape":polygon_shape_as_list,
                         "shape":polygon_shape,
                         "geotype":geo_type,
                         "score":score_list[i],
@@ -232,7 +317,7 @@ def find_address_in_db(input_string):
 
 
         result_dict=sort_results(result_dict)
-        app.logger.debug(result_dict)
+        app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
     return result_dict
 
 
@@ -265,45 +350,36 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         if with_num:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
-            shape = actual_location.shape
-            polygon_shape_as_list = [coo for coo in actual_location.shape.coords]
+            polygon_shape = actual_location.shape
         else:
             # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
             coords = [-1, -1]
             geo_type = -2
-            polygon_shape_as_list = None
-            shape=None
+            polygon_shape=None
     # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto
     elif type(actual_location)==Poi:
         geo_type = 0
         coords = [actual_location.location.longitude,actual_location.location.latitude]
-        try:
-            polygon_shape_as_list = [coo for coo in actual_location.location.shape.coords]
-            shape = actual_location.location.shape
-        except:
-            polygon_shape_as_list = None
-            shape = None
+        polygon_shape = actual_location.location.shape
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo
     elif actual_location.shape:
-        shape = actual_location.shape
         geo_type = 1
         polygon_shape = actual_location.shape
-        if polygon_shape.geom_type == 'MultiPolygon':
-            # do multipolygon things.
-            polygon_shape_as_list = []
-            # loop su ogni poligono
-            for single_polygon in polygon_shape:
-                # poligono
-                xs, ys = single_polygon.exterior.coords.xy
-                # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
-                for i in range(len(xs)):
-                    polygon_shape_as_list.append([xs[i], ys[i]])
-        elif polygon_shape.geom_type == 'Polygon':
-            # do polygon things.
-            xs, ys = polygon_shape.exterior.coords.xy
-            polygon_shape_as_list = [[xs[i],ys[i]] for i in range(len(xs))]
-        else:
-            raise IOError('Shape is not a polygon.')
+        # if polygon_shape.geom_type == 'MultiPolygon':
+        #     # do multipolygon things.
+        #     polygon_shape_as_list = []
+        #     # loop su ogni poligono
+        #     for single_polygon in polygon_shape:
+        #         # poligono
+        #         xs, ys = single_polygon.exterior.coords.xy
+        #         # for loop questa volta per evitare una lista di liste -- vogliamo una lista sola
+        #         for i in range(len(xs)):
+        #             polygon_shape_as_list.append([xs[i], ys[i]])
+        # elif polygon_shape.geom_type == 'Polygon':
+        #     # do polygon things.
+        #     xs, ys = polygon_shape.exterior.coords.xy
+        # else:
+        #     raise IOError('Shape is not a polygon.')
         # coords va creato in modo che sia subscriptable
         coords = getCentroidSmartly(polygon_shape) # polygon_shape potreebbe esser un multipoligono!
         #print("Polygon shape {}, coordinates {}".format(polygon_shape, coords))
@@ -312,11 +388,12 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         app.logger.info("ERRORE ASSURDO: l'oggetto trovato non è un indirizzo, non è un poi, e se è una strada o sestiere non ha geometria!", actual_location)
         coords = [-1, -1]
         geo_type = -1
-        polygon_shape_as_list = None
-        shape = None
+        #polygon_shape_as_list = None
+        polygon_shape = None
 
-    print("print del fetch", geo_type, coords, shape)
-    return geo_type, coords, polygon_shape_as_list, shape
+    print("print del fetch", geo_type, coords, polygon_shape)
+    # return geo_type, coords, polygon_shape_as_list, polygon_shape
+    return geo_type, coords, polygon_shape
 
 """
 da gestire piu poligoni, piu centroidi, multipoligoni e alieni

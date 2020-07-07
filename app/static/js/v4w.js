@@ -128,7 +128,7 @@ function locateUser(map, marker, circle) {
 				console.log(e);
 				alert("Location access denied.");
 		});
-	}
+}
 
 /* Show the second search bar field - to calculate the path */
 function showSecondSearchbar() {
@@ -138,6 +138,7 @@ function showSecondSearchbar() {
 	document.getElementById("second-search-field").style.display = "inline";
 	document.getElementById("calc-button").style.display = "inline";
 	document.getElementById("nav_buttons").style.display = "inline";
+	document.getElementById("start_from_my_location").style.display = "inline";
 }
 
 function hideSecondSearchbar() {
@@ -147,6 +148,8 @@ function hideSecondSearchbar() {
 	document.getElementById("second-search-field").style.display = "none";
 	document.getElementById("calc-button").style.display = "none";
 	document.getElementById("nav_buttons").style.display = "none";
+	document.getElementById("start_from_my_location").style.display = "none";
+	document.getElementById("search_field_2").value = "";
 	return false;
 }
 
@@ -199,4 +202,24 @@ function closeResultsWindow() {
 	document.getElementById("single_address").style.display = "none";
 	document.getElementById("percorso").style.display = "none";
 	document.getElementById("weird").style.display = "none";
+}
+
+function copyStartingPosition(address_string) {
+	document.getElementById('search_field_1').value = address_string
+}
+
+function copyEndingPosition(address_string) {
+	showSecondSearchbar();
+	document.getElementById('search_field_2').value = address_string
+}
+
+function copyMyPositionAsStart(map) {
+	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
+		.on('locationfound', function(e){
+				document.getElementById('search_field_1').value = e.latlng.toString();
+		})
+	 .on('locationerror', function(e){
+				console.log(e);
+				alert("Location access denied.");
+		});
 }

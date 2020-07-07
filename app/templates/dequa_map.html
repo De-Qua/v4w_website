@@ -67,11 +67,12 @@
 				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
 					<input type="text"  placeholder="cerca.." name="partenza" id="search_field_1">
 					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-					<div id="nav_buttons" style="display: none">
-						<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
-						<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
+					<div id="start_from_my_location" style="display: none">
+						<button class="btn srcbtn v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
+						<script>
+							document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
+						</script>
 					</div>
-
 					<!-- inizialmente mostriamo il bottone -->
 					<a onclick="showSecondSearchbar()">
 						<div class="button-plus" id="add-searchfield">
@@ -82,6 +83,10 @@
 					<div class="container-search-field" id="second-search-field" style="display: none">
 							<div class="form-group has-feedback">
 								<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
+							</div>
+							<div id="nav_buttons" style="display: none">
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
 								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting"><i class="fa fa-line-chart"></i></input></span>
 								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting"><i class="fa fa-ambulance"></i></input></span>
 							</div>
@@ -285,11 +290,50 @@
     toggleFeedbackWindowLayout();
 
 		var popup = L.popup();
+		// this.map.on('click', (e: any) => {
+		//   this.defineYourWaypointOnClick(e);
+		// });
+		//
+		// defineYourWaypointOnClick(e: any) {
+		//
+		// 	var choicePopUp = L.popup();
+		// 	var container = L.DomUtil.create('div');
+		// 	//////////////////////////////////////////////////////////////////////////////////////////////
+		// 	///////////modified here
+		// 	startBtn = this.createButton('Start from this location', container),
+		// 	destBtn = this.createButton('Go to this location', container);
+		// 	div.innerHTML = ''+startBtn+ '&nbsp;&nbsp;&nbsp;&nbsp;' + destBtn ;
+		// 	//////////////////////////////////////////////////////////////////////////////////////////////
+		//
+		// 	choicePopUp
+		// 	  .setLatLng(e.latlng)
+		// 	  .setContent('You clicked the map at ' + e.latlng.toString() + '<br>' + startBtn)
+		// 	  .openOn(this.map);
+		//
+		// 	L.DomEvent.on(startBtn, 'click', () => {
+		// 	  alert("toto");
+		// 	});
+		//
+		// 	L.DomEvent.on(destBtn, 'click', () => {
+		// 	  alert("tata");
+		// 	});
+		// }
+		//
+		// 	createButton(label: string, container: any) {
+		// 	var btn = L.DomUtil.create('button', '', container);
+		// 	btn.setAttribute('type', 'button');
+		// 	btn.innerHTML = label;
+		// 	return btn;
+		// }
+
 		function onMapClick(e) {
+			var address_string = e.latlng.toString();
 			popup
 					.setLatLng(e.latlng)
-					.setContent("Posizione: " + e.latlng.toString())
+					.setContent("Posizione: " + address_string + "<br><button id='btnStart'>DA QUA</button><button id='btnTo'>A</button><br>")
 					.openOn(mymap);
+			document.getElementById('btnStart').onclick = function() { copyStartingPosition(address_string); };
+			document.getElementById('btnTo').onclick = function() { copyEndingPosition(address_string); };
 		}
 		mymap.on('click', onMapClick);
 		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
@@ -331,7 +375,7 @@
 					// NEW VERSION with geo_type
 					// geo_type == -2 --> pagina senza ricerca
 					// geo_type == -1 --> trovato nulla, pazienza
-					// geo_type == 0 --> marker
+					// geo_type == 0 --> marker, un punto solo
 					// geo_type == 1 --> poligono
 					// e facile aggiungere geo_type se vogliamo piu avanti
 					showResultsWindow('single_address');
@@ -389,6 +433,7 @@
 						}
 					break;
 				case 1:
+					// geo type is not used
 					console.log("Setting up results window!")
 					showResultsWindow('percorso');
 					var nome_partenza = dict_in_JS.partenza[0].nome;
