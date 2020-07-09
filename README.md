@@ -1,5 +1,7 @@
 # DeQua 
-<img src="app/static/img/dequa_logo_v1.png" alt="dequa_logo" width="100">
+<div align="center">
+<img widht="256" height="256" src="app/static/img/dequa_logo_v1.png" alt="dequa_logo" >
+</div>
 
 This repository contains the source code for the DeQua Web Application.
 
