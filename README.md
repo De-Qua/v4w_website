@@ -1,5 +1,5 @@
 # DeQua 
-![](app/static/img/dequa_logo_v1.png =100x)
+<img src="app/static/img/dequa_logo_v1.png" alt="dequa_logo" width="100">
 
 This repository contains the source code for the DeQua Web Application.
 
