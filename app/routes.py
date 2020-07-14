@@ -45,32 +45,39 @@ def index():
 
 @app.route('/', methods=['GET', 'POST'])
 def navigation():
-
-    arguments_GET_request = request.args
-    params_research = interface.retrieve_parameters_from_GET(arguments_GET_request)
-
-    # usiamo questo per dirgli cosa disegnare!
-    # assumiamo nulla per ora
-    geo_type = -2
-    f_ponti = False
-
-    # se e stato inviato il form, scriviamo sul feedback file
-    # anche questo da spostare su un metodo
     form = FeedbackForm()
-    form.searched_string.data = params_research[0] # equivalente al precedente "da"
-    t0=time.perf_counter()
-    if request.method == 'POST':
-        feedbacksent = interface.take_care_of_the_feedback(form, file_feedback)
-        return render_template(html_file, geo_type=geo_type, start_coordx=-1,
-            searched_name=da, start_name=start_name,
-            form=form, feedbacksent=feedbacksent)
-            # non sono 100% sicuro che form vada ritornato sempre (nel caso precedente era ritornato solo in caso di 0)
-            # ma dovrebbe funzionare
-    # altrimenti, dobbiamo fare qualocsa
-    else:
-        dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research, G_objects)
-        return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
+    try:
+        arguments_GET_request = request.args
+        params_research = interface.retrieve_parameters_from_GET(arguments_GET_request)
 
+        # usiamo questo per dirgli cosa disegnare!
+        # assumiamo nulla per ora
+        geo_type = -2
+        f_ponti = False
+
+        # se e stato inviato il form, scriviamo sul feedback file
+        # anche questo da spostare su un metodo
+
+        form.searched_string.data = params_research[0] # equivalente al precedente "da"
+        t0=time.perf_counter()
+        if request.method == 'POST':
+            feedbacksent = interface.take_care_of_the_feedback(form, file_feedback)
+            return render_template(html_file, geo_type=geo_type, start_coordx=-1,
+                searched_name=da, start_name=start_name,
+                form=form, feedbacksent=feedbacksent)
+                # non sono 100% sicuro che form vada ritornato sempre (nel caso precedente era ritornato solo in caso di 0)
+                # ma dovrebbe funzionare
+        # altrimenti, dobbiamo fare qualocsa
+        else:
+            dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research, G_objects)
+            return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
+    except Exception as e:
+        dictionary_of_err = {"error": True,
+                            "repr": repr(e),
+                            "type": type(e).__name__,
+                            "msg": str(e)}
+        app.logger.info("error: {}".format(repr(e)))
+        return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
 
 
 @app.route('/degoogling', methods=['GET', 'POST'])

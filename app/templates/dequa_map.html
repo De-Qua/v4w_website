@@ -341,8 +341,11 @@
 		var dict_in_JS = {{results_dictionary | tojson}};
 		if (dict_in_JS == "None") {
 			mymap.setView([45.435, 12.333], 14);
-		}
-		else {
+		} else if ("error" in dict_in_JS) {
+			mymap.setView([45.435, 12.333], 14);
+			console.log("error: " + dict_in_JS.repr)
+			alert("ERROR!!!\nOps... this should not happen :(\n"+dict_in_JS.repr)
+		} else {
 
 			// options for all markers
 			var marker_icon = L.icon({
