@@ -369,6 +369,9 @@ def find_address_in_db(input_string):
                 app.logger.debug("in this one there was nothing")
                 nome=str(address)
 
+        if not result_dict:
+            app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
+            raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
         # once upon a time there was a sort_results! why? nobody knows
         app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
     return result_dict
