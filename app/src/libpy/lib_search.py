@@ -343,34 +343,33 @@ def find_address_in_db(input_string):
         for i,address in enumerate(address_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
-            if not geo_type<0:
+            if geo_type>=0:
                 nome=str(address)+ " " + str(number)
+                # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
+                # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
+                # shape = transform(lambda x,y:(y,x), shape)
+                edge_info_dict = {}
+                edge_info_dict['street_type'] = 'calle'
+                edge_info_dict['bridge'] = 0
+                geojson = {
+                    "type": "Feature",
+                    "properties": edge_info_dict,
+                    "geometry": dict(mapping(polygon_shape))
+                }
+                result_dict.append({"nome":nome,
+                            "coordinate":coordinates,
+                            #"shape":polygon_shape_as_list,
+                            "shape":polygon_shape,
+                            "geotype":geo_type,
+                            "score":score_list[i],
+                            "exact":exact,
+                            "geojson":geojson
+                            })
             else:
+                app.logger.debug("in this one there was nothing")
                 nome=str(address)
 
-            # INCREDIBILE: stampando il geojso n non serve invertire le coordinate!
-            # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
-            # shape = transform(lambda x,y:(y,x), shape)
-            edge_info_dict = {}
-            edge_info_dict['street_type'] = 'calle'
-            edge_info_dict['bridge'] = 0
-            geojson = {
-                "type": "Feature",
-                "properties": edge_info_dict,
-                "geometry": dict(mapping(polygon_shape))
-            }
-            result_dict.append({"nome":nome,
-                        "coordinate":coordinates,
-                        #"shape":polygon_shape_as_list,
-                        "shape":polygon_shape,
-                        "geotype":geo_type,
-                        "score":score_list[i],
-                        "exact":exact,
-                        "geojson":geojson
-                        })
-
-
-        result_dict=sort_results(result_dict)
+        # once upon a time there was a sort_results! why? nobody knows
         app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
     return result_dict
 
