@@ -1,0 +1,23 @@
+name: venezia
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - flask
+  - flask-migrate
+  - flask-wtf
+  - geopandas
+  - matplotlib
+  - networkx
+  - python-dotenv
+  - python-levenshtein
+  - wtforms=2.2.1
+  - git
+  - gitpython
+  - fuzzywuzzy
+  - geopy
+  - requests
+  - ipython
+  - pip:
+    - flask-shell-ipython

@@ -60,4 +60,4 @@ file_handler.setFormatter(logging.Formatter(
 file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 
-app.logger.info('Sito startup')
+app.logger.info('Setting up the website..')

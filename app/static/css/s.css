@@ -181,3 +181,103 @@ body, html {height: 100%}
 .transparent {
 	opacity: 0.3;
 }
+.settings_window {
+	position: fixed;
+	top: 35vh;
+	left: 35vw;
+	border-radius: 1rem;
+	border:1px solid;
+	background: #ddd;
+	min-width: 30vw;
+	min-height: 30vh;
+}
+
+.results_window {
+	position: fixed;
+	border:5px solid #ccc;
+	background: #ddd;
+	box-shadow: 2px 2px 5px black;
+}
+
+#results_search {
+	z-index: 5;
+	top: 28vh;
+	left: 0vw;
+	min-width: 15vw;
+	max-width: 20vw;
+	min-height: 30vh;
+	max-height: 40vh;
+}
+
+#possibilities_search {
+	z-index: 5;
+	top: 0vh;
+	left: 0vw;
+	min-width: 15vw;
+	max-width: 20vw;
+	min-height: 100vh;
+	max-height: 100vh;
+}
+
+#possibilitiesFather {
+	overflow: auto;
+	min-height: 100vh;
+	max-height: 100vh;
+}
+
+.possibilities_result {
+	border: 2px black solid;
+	font-color: red;
+	padding: 0.5rem;
+}
+
+.possibilities_result:hover ~ .sibling-marker {
+  box-shadow: 5px 5px 10px blue;
+}
+
+.possibilities_result:hover {
+	background: #bbb;
+	cursor: pointer;
+}
+
+.setting_icon {
+	padding: 2rem;
+	text-align: center;
+	font-size: 20px;
+}
+
+.pressed {
+	background: blue;
+}
+
+.dequa_area {
+	padding: 2rem;
+	min-height: 5rem;
+	font-size: 20px;
+	border-radius: 0.75rem;
+	background-color: #eee;
+}
+.dequa_area:hover {
+	background-color: #aaa;
+}
+
+.top-right-icon-img {
+	max-width: 10rem;
+	max-height: 10rem;
+	width: 2.5rem;
+	height: 2.5rem;
+}
+.results_title {
+	font-weight: 900;
+	font-size: 1.1rem;
+}
+
+.results_text{
+	font-size: 0.75rem;
+}
+
+.right {
+	text-align: right;
+}
+.pointer_div {cursor: pointer;}
+.not-allowed {cursor: not-allowed;}
