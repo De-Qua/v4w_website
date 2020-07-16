@@ -124,7 +124,7 @@
 		</div>
 		-->
 		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
-		<div class="leaflet-bottom leaflet-left onlyMap">
+		<div class="leaflet-bottom leaflet-left onlyMap" id="map_type_btn">
 			<a onclick="changeMap(whichmap)">
 				<div class="leaflet-control maptype w3-medium">
 					<button class="btn v4wbtn mapbtn"><i class="fa fa-map"></i></button>
@@ -215,6 +215,11 @@
 			<!-- POSSIBILITIES -->
 			<div class="leaflet-left w3-animate-left results_window" id="possibilities_search" style="display: none">
 				<div class="possibilities" id="possibilitiesFather">
+					<p class="results_title">
+						Mmm.. non siamo sicuri!<br>
+						Quale intendevi?<br>
+						Hai cercato: <span id="cercato"></span>
+					<p>
 				</div>
 			</div>
 
@@ -319,7 +324,7 @@
 			console.log("error: " + dict_in_JS.msg)
 			alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
 		} else {
-
+			mymap.setView([45.435, 12.333], 15);
 			// options for all markers
 			var marker_icon = L.icon({
 				iconUrl: '/static/img/icon_marker_50.png',
@@ -466,10 +471,16 @@
 				// MODUS OPERANDI == 2 --> Non siamo sicuri della soluzione
 				case 2:
 					console.log("Setting up possiblities window!")
+					var possibilities = "";
+					var what_we_know = "nothing";
+					var start_found = "";
+					var tmp_start = dict_in_JS.searched_start;
+					var tmp_end = dict_in_JS.searched_end;
 					// check which case we are
 					if (dict_in_JS.arrivo == "no_end") {
 						console.log("singola ricerca non percorso");
 						possibilities = dict_in_JS.partenza;
+						what_we_know = "address";
 					}
 					else {
 						console.log("percorso");
@@ -477,12 +488,15 @@
 						if (dict_in_JS.start_type == 'unique') {
 							//dict_in_JS.end_type == 'multiple'
 							possibilities = dict_in_JS.arrivo;
+							what_we_know = "choosing_end";
+							start_found = dict_in_JS.partenza[0];
 						}
 						else {
 							possibilities = dict_in_JS.partenza;
+							what_we_know = "choosing_start";
 						}
 					}
-					showPossibilitiesWindow(possibilities);
+					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
 					console.log("done here");
 					break;
 				break; // final default break

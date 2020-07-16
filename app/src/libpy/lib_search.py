@@ -147,8 +147,7 @@ def find_closest_nodes(dict_list,G_array, MIN_DIST_FOR_THE_CLOSEST_NODE=100):
         time2 = time.time()
         dists = distance_from_a_list_of_geo_coordinates(coordinate, G_array)
         time3 = time.time()
-        app.logger.debug("it took")
-        pdb.set_trace()
+        app.logger.debug("it took {} to calculate distances".format(time3-time2))
         #dists=d.get("shape").distance(G_array)
         closest_id = np.argmin(dists)
         closest_dist = dists[closest_id]
@@ -171,7 +170,8 @@ def distance_from_point_to_point(point1, point2):
 
 def distance_from_a_list_of_geo_coordinates(thePoint, coordinates_list):
     """
-    A python implementation from the answer here https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters, trying to use numpy.
+    A python implementation from the answer here https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters.
+    Calculate the distance in meters between 1 geographical point (longitude, latitude) and a list of geographical points (list of tuples) or between 2 geographical points passing through distance_from_point_to_point
     """
     # maybe we need to invert
     lat_index = 1
@@ -180,8 +180,8 @@ def distance_from_a_list_of_geo_coordinates(thePoint, coordinates_list):
     earth_radius = 6378.137; # Radius of earth in KM
     deg2rad = np.pi / 180
     # single point
-    lat1 = thePoint[:, lat_index] * deg2rad
-    lon1 = thePoint[:, lon_index] * deg2rad
+    lat1 = thePoint[lat_index] * deg2rad
+    lon1 = thePoint[lon_index] * deg2rad
     # test the whole list again the single point
     lat2 = coordinates_list[:,lat_index] * deg2rad
     lon2 = coordinates_list[:,lon_index] * deg2rad
@@ -408,7 +408,11 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         else:
             # non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro
             app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))
-            raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
+            geo_type = -2
+            coords = [-1, -1]
+            polygon_shape = None
+            # l'eccezione viene lanciata dal sort results successivo
+            #raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
     # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto
     elif type(actual_location)==Poi:
         geo_type = 0
@@ -496,13 +500,12 @@ def sort_results(res_list):
     Sorts the results list to give as a first choice, not the best score matching, but something better. For the moment I put as last, the results with a negative geometry.
     """
     new_res_list=[]
-    wrong_list=[]
     for res in res_list:
-        if res["geotype"]<0:
-            wrong_list.append(res)
-        else:
+        if res["geotype"]>=0:
             new_res_list.append(res)
-    new_res_list=new_res_list+wrong_list
+    if not new_res_list:
+        app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))
+        raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
     return new_res_list
 
 """

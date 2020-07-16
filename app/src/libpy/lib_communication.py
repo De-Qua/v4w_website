@@ -6,7 +6,7 @@ import pdb
 import json
 from app.src.libpy import lib_graph
 
-def prepare_our_message_to_javascript(mode, string_input, dict_of_start_locations_candidates, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
+def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locations_candidates, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.
     """
@@ -46,7 +46,8 @@ def prepare_our_message_to_javascript(mode, string_input, dict_of_start_location
     msg["modus_operandi"] = mode
     msg["partenza"] = dict_of_start_locations_candidates
     msg['start_type'] = start_type
-    msg["searched_name"] = string_input
+    msg["searched_start"] = strings_input[0]
+    msg['searched_end'] = strings_input[1]
     msg["path"] = estimated_path
     #msg["length_path"] = estimated_path[1]
     msg["arrivo"] = dict_of_end_locations_candidates

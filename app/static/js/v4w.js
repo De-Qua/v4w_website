@@ -203,14 +203,60 @@ function showResultsWindow(result_type) {
 	}
 }
 
-function showPossibilitiesWindow(possibilities) {
+function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
+	var cur_result_coords = '';
+	var div ='';
+	var cur_result_name = '';
 	for (i = 0; i < possibilities.length; i++) {
-		var div = document.createElement('div');
+		cur_result_name = possibilities[i].nome;
+		cur_result_coords = possibilities[i].coordinate;
+		div = document.createElement('div');
 		div.setAttribute('class', 'possibilities_result');
-		div.innerHTML = "<b>"+possibilities[i].nome+"</b><br>"+possibilities[i].coordinate;
+		div.setAttribute('coords',cur_result_coords)
+		div.coords = cur_result_coords;
+		div.innerHTML = "<b>"+cur_result_name+"</b><br>"+cur_result_coords; // repr
+		div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+		console.log(div);
 		document.getElementById("possibilitiesFather").appendChild(div);
+		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}
+	document.getElementById("searchbar").style.display = "none";
+	if (what_are_we_doing == "address") {
+		document.getElementById("cercato").innerHTML = searched_start;
+	}
+	if (what_are_we_doing == "choosing_start") {
+		document.getElementById("cercato").innerHTML = searched_start;
+	}
+	if (what_are_we_doing == "choosing_end") {
+		document.getElementById("cercato").innerHTML = searched_end;
+	}
+	document.getElementById("map_type_btn").style.display = "none";
 	document.getElementById("possibilities_search").style.display = 'inline';
+}
+
+function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
+	console.log("redirecting..");
+	console.log(divElement);
+	var clicked_coords = divElement.coords;
+	var clicked_coords2 = divElement.attributes.coords;
+	console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
+	if (what_are_we_doing == "address") {
+		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo=";
+		window.location = new_site_to_go;
+	}
+	else if (what_are_we_doing == "choosing_start") {
+		console.log("starting point was chosen!")
+		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end;
+		window.location = new_site_to_go;
+	}
+	else if (what_are_we_doing == "choosing_end") {
+		console.log("end point was chosen!")
+		console.log(start_found)
+
+		var strt_coords = start_found.coordinate;
+		var new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
+		window.location = new_site_to_go;
+	}
 }
 
 function closeResultsWindow() {

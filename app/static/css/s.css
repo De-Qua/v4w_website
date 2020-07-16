@@ -210,17 +210,29 @@ body, html {height: 100%}
 }
 
 #possibilities_search {
-	z-index: 1;
+	z-index: 5;
 	top: 0vh;
 	left: 0vw;
 	min-width: 15vw;
 	max-width: 20vw;
 	min-height: 100vh;
+	max-height: 100vh;
+	overflow: auto;
 }
 
 .possibilities_result {
 	border: 2px black solid;
 	font-color: red;
+	padding: 0.5rem;
+}
+
+.possibilities_result:hover ~ .sibling-marker {
+  box-shadow: 5px 5px 10px blue;
+}
+
+.possibilities_result:hover {
+	background: #bbb;
+	cursor: pointer;
 }
 
 .setting_icon {

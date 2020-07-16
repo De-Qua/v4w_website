@@ -11,6 +11,7 @@ import numpy as np
 import pdb
 import app.src.interface as interface
 from app.src.libpy import lib_graph
+import traceback
 
 # Useful paths
 folder = os.getcwd()
@@ -75,8 +76,9 @@ def navigation():
         dictionary_of_err = {"error": True,
                             "repr": repr(e),
                             "type": type(e).__name__,
-                            "msg": str(e)}
-        app.logger.info("error: {}".format(repr(e)))
+                            "msg": str(e),
+                            "traceback": traceback.format_exc()}
+        app.logger.info("error: {}".format(traceback.format_exc()))
         return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
 
 
