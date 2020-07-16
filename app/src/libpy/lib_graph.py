@@ -163,8 +163,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
     except NetworkXNoPath:
         # exeption --> raise exception
         app.logger.info("Non esiste un percorso tra i due nodi")
-        path_nodes = []
-        length_path = 0
+        raise Exception("Non esiste un percorso tra A e B. Devi forse andare in barca?")
 
     return path_nodes, length_path #json.dumps(x_tot), length_path
 

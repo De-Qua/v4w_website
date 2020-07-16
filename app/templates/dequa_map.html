@@ -173,6 +173,7 @@
 			</div>
 
 
+			<!-- SURE RESULTS WINDOW -->
 			<div class="leaflet-left w3-animate-left results_window" id="results_search" style="display: none">
 				<span class="right"><a onclick="closeResultsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
 						<!-- PERCORSO -->
@@ -209,6 +210,12 @@
 						</div>
 					</div>
 				</span>
+			</div>
+
+			<!-- POSSIBILITIES -->
+			<div class="leaflet-left w3-animate-left results_window" id="possibilities_search" style="display: none">
+				<div class="possibilities" id="possibilitiesFather">
+				</div>
 			</div>
 
 	<div class="helpwindowpopup" id="helpwindow">
@@ -288,43 +295,9 @@
     closeHelpWindow();
     closeFeedbackWindow();
     toggleFeedbackWindowLayout();
-
+</script>
+<script>
 		var popup = L.popup();
-		// this.map.on('click', (e: any) => {
-		//   this.defineYourWaypointOnClick(e);
-		// });
-		//
-		// defineYourWaypointOnClick(e: any) {
-		//
-		// 	var choicePopUp = L.popup();
-		// 	var container = L.DomUtil.create('div');
-		// 	//////////////////////////////////////////////////////////////////////////////////////////////
-		// 	///////////modified here
-		// 	startBtn = this.createButton('Start from this location', container),
-		// 	destBtn = this.createButton('Go to this location', container);
-		// 	div.innerHTML = ''+startBtn+ '&nbsp;&nbsp;&nbsp;&nbsp;' + destBtn ;
-		// 	//////////////////////////////////////////////////////////////////////////////////////////////
-		//
-		// 	choicePopUp
-		// 	  .setLatLng(e.latlng)
-		// 	  .setContent('You clicked the map at ' + e.latlng.toString() + '<br>' + startBtn)
-		// 	  .openOn(this.map);
-		//
-		// 	L.DomEvent.on(startBtn, 'click', () => {
-		// 	  alert("toto");
-		// 	});
-		//
-		// 	L.DomEvent.on(destBtn, 'click', () => {
-		// 	  alert("tata");
-		// 	});
-		// }
-		//
-		// 	createButton(label: string, container: any) {
-		// 	var btn = L.DomUtil.create('button', '', container);
-		// 	btn.setAttribute('type', 'button');
-		// 	btn.innerHTML = label;
-		// 	return btn;
-		// }
 
 		function onMapClick(e) {
 			var address_string = e.latlng.toString();
@@ -340,11 +313,11 @@
 		//var result = JSON.parse({{ results_dictionary | tojson }});
 		var dict_in_JS = {{results_dictionary | tojson}};
 		if (dict_in_JS == "None") {
-			mymap.setView([45.435, 12.333], 14);
+			mymap.setView([45.435, 12.333], 15);
 		} else if ("error" in dict_in_JS) {
-			mymap.setView([45.435, 12.333], 14);
-			console.log("error: " + dict_in_JS.repr)
-			alert("ERROR!!!\nOps... this should not happen :(\n"+dict_in_JS.repr)
+			mymap.setView([45.435, 12.333], 15);
+			console.log("error: " + dict_in_JS.msg)
+			alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
 		} else {
 
 			// options for all markers
@@ -382,6 +355,7 @@
 					// geo_type == 1 --> poligono
 					// e facile aggiungere geo_type se vogliamo piu avanti
 					showResultsWindow('single_address');
+					console.log("shown a single address result")
 					var name_location = dict_in_JS.partenza[0].nome;
 					document.getElementById('search_field_1').value = name_location
 					document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
@@ -390,7 +364,7 @@
 							// do nothing - pagina senza ricerca_ind
 							mymap.setView([45.43, 12.33], 15);
 							break;
-						case -1:
+						case -1: // in realta per ora non serve a nulla
 							// code block
 							alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
 							break;
@@ -435,6 +409,7 @@
 							break;
 						}
 					break;
+				// MODUS OPERANDI == 1 --> PERCORSO DA A a B
 				case 1:
 					// geo type is not used
 					console.log("Setting up results window!")
@@ -488,7 +463,29 @@
 					//streets.forEach(drawStreet());
 					//alert('YET TO BE DONE');
 					break;
-				break;
+				// MODUS OPERANDI == 2 --> Non siamo sicuri della soluzione
+				case 2:
+					console.log("Setting up possiblities window!")
+					// check which case we are
+					if (dict_in_JS.arrivo == "no_end") {
+						console.log("singola ricerca non percorso");
+						possibilities = dict_in_JS.partenza;
+					}
+					else {
+						console.log("percorso");
+						// we are looking for path
+						if (dict_in_JS.start_type == 'unique') {
+							//dict_in_JS.end_type == 'multiple'
+							possibilities = dict_in_JS.arrivo;
+						}
+						else {
+							possibilities = dict_in_JS.partenza;
+						}
+					}
+					showPossibilitiesWindow(possibilities);
+					console.log("done here");
+					break;
+				break; // final default break
 		 	}//closing switch modus_operandi
 
 		}

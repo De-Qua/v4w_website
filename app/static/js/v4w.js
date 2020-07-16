@@ -203,6 +203,16 @@ function showResultsWindow(result_type) {
 	}
 }
 
+function showPossibilitiesWindow(possibilities) {
+	for (i = 0; i < possibilities.length; i++) {
+		var div = document.createElement('div');
+		div.setAttribute('class', 'possibilities_result');
+		div.innerHTML = "<b>"+possibilities[i].nome+"</b><br>"+possibilities[i].coordinate;
+		document.getElementById("possibilitiesFather").appendChild(div);
+	}
+	document.getElementById("possibilities_search").style.display = 'inline';
+}
+
 function closeResultsWindow() {
 	document.getElementById("results_search").style.display = "none";
 	document.getElementById("single_address").style.display = "none";

@@ -194,15 +194,33 @@ body, html {height: 100%}
 
 .results_window {
 	position: fixed;
-	top: 28vh;
-	left: 1225vw;
 	border:5px solid #ccc;
 	background: #ddd;
+	box-shadow: 2px 2px 5px black;
+}
+
+#results_search {
+	z-index: 5;
+	top: 28vh;
+	left: 1225vw;
 	min-width: 15vw;
 	max-width: 20vw;
 	min-height: 30vh;
 	max-height: 40vh;
-	box-shadow: 2px 2px 5px black;
+}
+
+#possibilities_search {
+	z-index: 1;
+	top: 0vh;
+	left: 0vw;
+	min-width: 15vw;
+	max-width: 20vw;
+	min-height: 100vh;
+}
+
+.possibilities_result {
+	border: 2px black solid;
+	font-color: red;
 }
 
 .setting_icon {

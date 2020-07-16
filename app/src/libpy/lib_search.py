@@ -91,7 +91,20 @@ def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", max
     app.logger.info("Tried {} times, it took {} seconds and we found {} POIs, then we selected the {} best!".format(attCnt, time.time()-timeStart, len(POI), N))
     return bestPOIS, len(bestPOIS)
 
+def are_we_sure_of_the_results(match_dict):
+    """
+    Return true if the dictionary is one unique result or if there is only only one result that is exact.
+    """
+    if len(match_dict) == 1:
+        return True
 
+    exact_results = [match['exact'] for match in match_dict]
+    num_of_exact = sum(exact_results)
+
+    if num_of_exact == 1:
+        return True
+    else:
+        return False
 
 def find_closest_edge(list_of_node_coordinates, graph):
     """
@@ -121,57 +134,101 @@ def find_closest_edge(list_of_node_coordinates, graph):
     return outcome_list
 
 
-def find_closest_nodes(dict_list,G_array):
+def find_closest_nodes(dict_list,G_array, MIN_DIST_FOR_THE_CLOSEST_NODE=100):
     """
     Returns list of nodes in G_array closest to coordinate_list (euclidean distance).
     """
     nodes_list=[]
     for d in dict_list:
         coordinate = np.asarray(d.get("coordinate"))
-        tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
-        dists = np.sum(np.sqrt(tmp * tmp), axis=1)
+        #time1 = time.time()
+        #tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
+        #dists = np.sum(np.sqrt(tmp * tmp), axis=1)
+        time2 = time.time()
+        dists = distance_from_a_list_of_geo_coordinates(coordinate, G_array)
+        time3 = time.time()
+        app.logger.debug("it took")
+        pdb.set_trace()
         #dists=d.get("shape").distance(G_array)
-        closest_id=np.argmin(dists)
+        closest_id = np.argmin(dists)
         closest_dist = dists[closest_id]
         app.logger.debug("il tuo nodo è distante {}".format(closest_dist))
-
         # se la distanza e troppo grande, salutiamo i campagnoli
-        if closest_dist>1:
-            app.logger.error("Sei troppo distante da Venezia, povero campagnolo (il punto del grafo piu vicino dista {} gradi strani)".format(closest_dist))
-            continue
+        if closest_dist>MIN_DIST_FOR_THE_CLOSEST_NODE:
+            app.logger.error("Sei troppo distante da Venezia, povero campagnolo (il punto del grafo piu vicino dista {} metri)".format(closest_dist))
+            raise Exception("Non abbiamo trovato nulla qua - magari cercavi di andare fuori venezia?")
         nodes_list.append((G_array[closest_id][0], G_array[closest_id][1]))
 
+    return nodes_list#, dists
 
-    # nodes_list=[]
-    # dist_list = []
-    # for coordinate in coord_beg_end:
-    #
-    #     coordinate_as_shapely_point = shapely.geometry.Point(coordinate[0], coordinate[1])
-    #     coordinate.distance(G_array)
-    #     #print(coordinate)
-    #     tmp = np.subtract(np.ones(G_array.shape) * coordinate, G_array)
-    #     # tmp = degree2meters(tmp) devo convertire le differenze da gradi a metri, poi posso tranquillamente
-    #     # indice del nodo piu vicino
-    #     dist = np.sum(tmp * tmp, axis=1)
-    #     idx = np.argmin(dist)
-    #     #print("distance to node", tmp[idx]**2)
-    #     #print("node grafo",(G_array[idx][0], G_array[idx][1] ))
-    #     nodes_list.append((G_array[idx][0], G_array[idx][1]))
-    #     dist_list.append(np.sqrt(dist))
+def distance_from_point_to_point(point1, point2):
+    """
+    Distance between two points formatted as [lon,lat] or (lon,lat)
+    """
+    # to be done
+    dist2 = distance_from_a_list_of_geo_coordinates(np.asarray(point1),np.asarray([point2]))
+    return dist2
 
-    return nodes_list
+def distance_from_a_list_of_geo_coordinates(thePoint, coordinates_list):
+    """
+    A python implementation from the answer here https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters, trying to use numpy.
+    """
+    # maybe we need to invert
+    lat_index = 1
+    lon_index = 0
+    # parameters
+    earth_radius = 6378.137; # Radius of earth in KM
+    deg2rad = np.pi / 180
+    # single point
+    lat1 = thePoint[:, lat_index] * deg2rad
+    lon1 = thePoint[:, lon_index] * deg2rad
+    # test the whole list again the single point
+    lat2 = coordinates_list[:,lat_index] * deg2rad
+    lon2 = coordinates_list[:,lon_index] * deg2rad
+    dLat = lat2 - lat1
+    dLon = lon2 - lon1
+    a = np.sin(dLat/2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dLon/2) ** 2
+    c = 2 * np.arcsin(np.sqrt(a))
+    d = earth_radius * c
+    distances_in_meters = d * 1000
 
+    return distances_in_meters
 
-def degree2meters(degree):
+def haversine_np(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points on the earth (specified in decimal degrees).
 
-    meters = degree2meters_approx(degree)
+    All args must be of equal length.
+    From https://stackoverflow.com/questions/29545704/fast-haversine-approximation-python-pandas
+    """
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
-    return meters
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
 
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
 
-def degree2meters_approx(degree):
+    c = 2 * np.arcsin(np.sqrt(a))
+    km = 6367 * c
+    return km
 
-    return 111 * degree
+def degree2meters(lat, long):
+    """
+    It needs to be done.
+    """
+
+    distance_in_meters, coordinates_in_meters = degree2meters_approx(lat, long)
+
+    return distance_in_meters, coordinates_in_meters
+
+def degree2meters_approx(lat, long):
+    """
+    A temporary solution using an approximation.
+    """
+    meters_lat = 111.32 * lat
+    meters_long = 40075 * np.cos( latitude ) / 360 * long
+    distance_in_meters = np.sqrt(np.power(meters_lat, 2), np.power(meters_long, 2))
+    return distance_in_meters, [meters_lat, meters_long]
 
 def find_path_to_closest_riva(G_un, coords_start, rive_list):
     """
@@ -280,11 +337,8 @@ def find_address_in_db(input_string):
     result_dict = []
     # dammi coordinate, del punto o del poligono
     if not address_list:
-        app.logger.warning("Non abbiamo trovato nulla!")
-        coords = [-1, -1]
-        geo_type = -1
-        polygon_shape_as_list = None
-        polygon_shape = None
+        app.logger.warning("Non abbiamo trovato nulla nel database!")
+        raise Exception("Non abbiamo trovato nessuna corrispondenza con {} sicuro di aver scritto bene?".format(input_string))
     else:
         for i,address in enumerate(address_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
@@ -352,10 +406,9 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
             coords = [actual_location.longitude, actual_location.latitude]
             polygon_shape = actual_location.shape
         else:
-            # in questo caso l'errore per l'utente è lo stesso se - non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro - la strada/sestiere non ha una shape (questo caso si può eliminare se il database è consistente)
-            coords = [-1, -1]
-            geo_type = -2
-            polygon_shape=None
+            # non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro
+            app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))
+            raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
     # SE NON ABBIAMO UN CIVICO, FORSE E' UN POI! in quel caso estraiamo il punto
     elif type(actual_location)==Poi:
         geo_type = 0
@@ -401,7 +454,7 @@ da gestire piu poligoni, piu centroidi, multipoligoni e alieni
 def getCentroidSmartly(polygon_shape):
     #avg_coordinate = [polygon_shape.centroid.x, polygon_shape.centroid.y]
     avg_coordinate = [polygon_shape.representative_point().x, polygon_shape.representative_point().y]
-    app.logger.debug("Centroide: ", avg_coordinate)
+    app.logger.debug("Centroide: ".format(avg_coordinate))
     return avg_coordinate
 
 """

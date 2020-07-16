@@ -6,12 +6,12 @@ import pdb
 import json
 from app.src.libpy import lib_graph
 
-def prepare_our_message_to_javascript(mode,  string_input, start_location, estimated_path=[{"shape_list":"no_path", "tipo":-1}], end_location="no_end"):
+def prepare_our_message_to_javascript(mode, string_input, dict_of_start_locations_candidates, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.
     """
     # leaflet vuole le coordinate invertite (x e y).
-    for start in start_location:
+    for start in dict_of_start_locations_candidates:
         # introduci shift per Leaflet
         start['coordinate'], start['shape'] = correct_coordinates_for_leaflet(start,shift_xy=[0,0])
         xy =start['coordinate'][:]
@@ -25,8 +25,8 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
         if start['geojson']:
             #start['geojson'] = json.dumps(start['geojson'])
             start['geojson'] = start['geojson']
-    if end_location is not "no_end":
-        for end in end_location:
+    if dict_of_end_locations_candidates is not "no_end":
+        for end in dict_of_end_locations_candidates:
             end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end,shift_xy=[0,0])
             xy =end['coordinate'][:]
             end['coordinate'][0]=xy[1]
@@ -42,14 +42,15 @@ def prepare_our_message_to_javascript(mode,  string_input, start_location, estim
        #     for coo in path["strada"]:
         #        xy.append((coo[1],coo[0]))
          #   path["strada"]=xy
-
     msg = dict()
     msg["modus_operandi"] = mode
-    msg["partenza"] = start_location
+    msg["partenza"] = dict_of_start_locations_candidates
+    msg['start_type'] = start_type
     msg["searched_name"] = string_input
     msg["path"] = estimated_path
     #msg["length_path"] = estimated_path[1]
-    msg["arrivo"] = end_location
+    msg["arrivo"] = dict_of_end_locations_candidates
+    msg['end_type'] = end_type
     return msg
 
 def correct_coordinates_for_leaflet(dic,shift_xy = [-0.000015, +0.000015]):
