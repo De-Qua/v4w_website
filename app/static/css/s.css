@@ -199,10 +199,17 @@ body, html {height: 100%}
 	box-shadow: 2px 2px 5px black;
 }
 
+.results_window2 {
+	position: fixed;
+	border:5px solid #ccc;
+	background: #ddd;
+	box-shadow: 2px 2px 5px black;
+}
+
 #results_search {
 	z-index: 5;
 	top: 28vh;
-	left: 1225vw;
+	left: 50vw;
 	min-width: 15vw;
 	max-width: 20vw;
 	min-height: 30vh;

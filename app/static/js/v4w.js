@@ -259,6 +259,7 @@ function goToNextStep(divElement, what_are_we_doing, searched_start, searched_en
 }
 
 function closeResultsWindow() {
+	console.log("chiudo");
 	document.getElementById("results_search").style.display = "none";
 	document.getElementById("single_address").style.display = "none";
 	document.getElementById("percorso").style.display = "none";
