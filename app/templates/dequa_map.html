@@ -476,25 +476,17 @@
 					var start_found = "";
 					var tmp_start = dict_in_JS.searched_start;
 					var tmp_end = dict_in_JS.searched_end;
-					// check which case we are
-					if (dict_in_JS.arrivo == "no_end") {
-						console.log("singola ricerca non percorso");
-						possibilities = dict_in_JS.partenza;
-						what_we_know = "address";
+					console.log("Setting up possiblities window!")
+					// we are looking for path
+					if (dict_in_JS.start_type == 'unique') {
+						//dict_in_JS.end_type == 'multiple'
+						possibilities = dict_in_JS.arrivo;
+						what_we_know = "choosing_end";
+						start_found = dict_in_JS.partenza[0];
 					}
 					else {
-						console.log("percorso");
-						// we are looking for path
-						if (dict_in_JS.start_type == 'unique') {
-							//dict_in_JS.end_type == 'multiple'
-							possibilities = dict_in_JS.arrivo;
-							what_we_know = "choosing_end";
-							start_found = dict_in_JS.partenza[0];
-						}
-						else {
-							possibilities = dict_in_JS.partenza;
-							what_we_know = "choosing_start";
-						}
+						possibilities = dict_in_JS.partenza;
+						what_we_know = "choosing_start";
 					}
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
 					console.log("done here");

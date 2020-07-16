@@ -217,6 +217,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		div.innerHTML = "<b>"+cur_result_name+"</b><br>"+cur_result_coords; // repr
 		div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
 		console.log(div);
+		console.log("for this div we searcehd "+searched_end);
 		document.getElementById("possibilitiesFather").appendChild(div);
 		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}
@@ -239,19 +240,17 @@ function goToNextStep(divElement, what_are_we_doing, searched_start, searched_en
 	console.log(divElement);
 	var clicked_coords = divElement.coords;
 	var clicked_coords2 = divElement.attributes.coords;
+	console.log("cercato"+searched_end);
+	console.log("what are we doing:"+what_are_we_doing);
 	console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
-	if (what_are_we_doing == "address") {
-		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo=";
-		window.location = new_site_to_go;
-	}
-	else if (what_are_we_doing == "choosing_start") {
+	if (what_are_we_doing == "choosing_start") {
 		console.log("starting point was chosen!")
-		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end;
+		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
 		window.location = new_site_to_go;
 	}
 	else if (what_are_we_doing == "choosing_end") {
 		console.log("end point was chosen!")
-		console.log(start_found)
+		console.log("start"+start_found)
 
 		var strt_coords = start_found.coordinate;
 		var new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
