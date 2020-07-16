@@ -19,7 +19,7 @@ import re
 import geopy.distance
 
 # IMPORT OUR LIBRARIES
-from app.src.libpy import lib_graph, lib_communication, lib_database
+from app.src.libpy import lib_graph
 
 def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", maxNumOfAttempts=10, searchTimeOut=2):
     """
