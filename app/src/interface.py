@@ -165,7 +165,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 list_of_added_edges = lib_graph.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
                 # trova la strada
                 water_streets_info = lib_graph.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
-                app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
+                # app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
                 # togli gli archi
                 lib_graph.dynamically_remove_edges(G_acqua, list_of_added_edges)
                 #print("path, length", strada, length)
@@ -195,7 +195,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                     f_ponti = False
                 t2=time.perf_counter()
                 streets_info = lib_graph.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
-                app.logger.debug(streets_info)
+                #app.logger.debug(streets_info)
                 #print("path, length", strada, length)
                 streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dict_da[0], match_dict_a[0])
                 app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
