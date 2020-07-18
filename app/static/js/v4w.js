@@ -142,7 +142,6 @@ function showSecondSearchbar() {
 	document.getElementById("add-searchfield").style.display = "none";
 	document.getElementById("btn-plus").style.display = "none";
 	document.getElementById("second-search-field").style.display = "inline";
-	document.getElementById("calc-button").style.display = "inline";
 	document.getElementById("nav_buttons").style.display = "inline";
 	document.getElementById("start_from_my_location").style.display = "inline";
 }
@@ -152,7 +151,6 @@ function hideSecondSearchbar() {
 	document.getElementById("add-searchfield").style.display = "inline";
 	document.getElementById("btn-plus").style.display = "block";
 	document.getElementById("second-search-field").style.display = "none";
-	document.getElementById("calc-button").style.display = "none";
 	document.getElementById("nav_buttons").style.display = "none";
 	document.getElementById("start_from_my_location").style.display = "none";
 	document.getElementById("search_field_2").value = "";
@@ -202,7 +200,7 @@ function showResultsWindow(result_type) {
 		}
 	}
 }
-
+/* show possibilities window / differnet mobile and desktop */
 function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
 	var cur_result_coords = '';
 	var div ='';
@@ -212,12 +210,14 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		cur_result_coords = possibilities[i].coordinate;
 		div = document.createElement('div');
 		div.setAttribute('class', 'possibilities_result');
+		//div.setAttribute('class', '');
+		//dev.setAttribute('class', 'card');
 		div.setAttribute('coords',cur_result_coords)
 		div.coords = cur_result_coords;
 		div.innerHTML = "<b>"+cur_result_name+"</b><br>"+cur_result_coords; // repr
 		div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
 		console.log(div);
-		console.log("for this div we searcehd "+searched_end);
+		console.log("for this div we searched "+searched_end);
 		document.getElementById("possibilitiesFather").appendChild(div);
 		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}

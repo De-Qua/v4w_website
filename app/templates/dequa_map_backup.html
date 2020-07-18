@@ -3,9 +3,6 @@
 	<title>De Qua</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
-	<link rel="stylesheet" href="/static/css/owl.carousel.min.css">
-	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css">
 	<link rel="stylesheet" href="/static/css/w3s.css">
 	<link rel="stylesheet" href="/static/css/s.css">
 	<link rel="icon" href="/static/img/dequa_logo_v1.png">
@@ -17,7 +14,6 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
 
-
 	<!-- Make sure you put this AFTER Leaflet's CSS -->
 	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
 		 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
@@ -27,10 +23,6 @@
 	<script src="/static/js/leaflet-providers.js"></script>
 	<!-- Our own (little) javascript library. -->
 	<script src="/static/js/v4w.js"></script>
-	<!-- BOOTSTARP js
-	<script src="/static/js/bootstrap.min.js"> </script>-->
-	<script src="/static/js/jquery-3.5.1.min.js"></script>
-	<script src="/static/js/owl.carousel.min.js"></script>
 <body>
 
 	<div class="loader" style="display:none;" id="loading">
@@ -70,75 +62,45 @@
 
 		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
-
-		<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
-		<div class="leaflet-top col-lg-4" id="searchbar">
-			<!-- button works because of this -->
-			<div class="leaflet-control col-lg-12">
+		<div class="leaflet-top leaflet-left" id="searchbar">
+			<div class="searchfield leaflet-control w3-medium">
 				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
-					<!-- PRIMA RIGA: BARRA DI RICERCA -->
-					<div class="row">
-						<!-- A sinistra la barra di ricerca -->
-						<div class="col-10">
-							<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
-						</div>
-						<!-- A destra il pulsante per cercare -->
-						<div class="col-1">
-							<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-							<div id="start_from_my_location" style="display: none">
-								<button class="btn srcbtn v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
-								<script>
-									document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
-								</script>
-							</div>
-						</div>
+					<input type="text"  placeholder="cerca.." name="partenza" id="search_field_1">
+					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
+					<div id="start_from_my_location" style="display: none">
+						<button class="btn srcbtn v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
+						<script>
+							document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
+						</script>
 					</div>
-
-					<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
-					<div class="row">
-						<div class="col">
-							<!-- inizialmente mostriamo il bottone -->
-							<a onclick="showSecondSearchbar()">
-								<div class="button-plus" id="add-searchfield">
-									<button type=button id="btn-plus" class="btn v4wbtn"><i class="fa fa-plus"></i></button>
-								</div>
-							</a>
+					<!-- inizialmente mostriamo il bottone -->
+					<a onclick="showSecondSearchbar()">
+						<div class="button-plus" id="add-searchfield">
+							<button type=button id="btn-plus" class="btn v4wbtn pad-left"><i class="fa fa-plus"></i></button>
 						</div>
-					</div>
-
+					</a>
 					<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
 					<div class="container-search-field" id="second-search-field" style="display: none">
-						<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
-						<div class="row">
-							<div class="col-10">
+							<div class="form-group has-feedback">
 								<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
 							</div>
-							<div class="col-1">
-								<button type=button onclick="hideSecondSearchbar()" class="btn v4wbtn"><i class="fa fa-close"></i></button>
+							<div id="nav_buttons" style="display: none">
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting"><i class="fa fa-line-chart"></i></input></span>
+								<span class="btn srcbtn v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting"><i class="fa fa-ambulance"></i></input></span>
 							</div>
-						</div>
-						<!-- TERZA RIGA: BOTTONI -->
-						<div class="row space_above">
-							<div class="col-10">
-								<div id="nav_buttons" style="display: none">
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting"><i class="fa fa-line-chart"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting"><i class="fa fa-ambulance"></i></input></span>
-								</div>
-							</div>
-						</div>
-						<!-- QUARTA RIGA: TROVA LA STRADA -->
-						<div class="row space_above">
-							<div class="col-10">
-								<!-- Aggiungiamo un bottone per il percorso sotto -->
-								<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
-							</div>
-						</div>
-					</div> <!-- Chiudiamo seconde barre varie -->
+					</div><br>
+					<!-- Aggiungiamo un bottone per il percorso sotto -->
+					<div class="calculate-path-cointainer button-plus" id="calc-button" style="display: none">
+
+						<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+						<button type=button onclick="hideSecondSearchbar()" class="btn srcbtn v4wbtn pad-left"><i class="fa fa-close"></i></button>
+
+					</div>
 				</form>
-			</div><!-- chiudiamo leaflet control -->
-		</div><!-- chiude leaflet-top -->
+			</div>
+		</div>
 
 		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK
 		<div class="leaflet-top leaflet-right onlyMap">
@@ -259,7 +221,7 @@
 						Hai cercato: <span id="cercato"></span>
 					<p>
 				</div>
-				<div class="possibilities" id="possibilitiesFather"><!-- se vogliamo il carosello owl-carousel owl-theme -->
+				<div class="possibilities" id="possibilitiesFather">
 				</div>
 			</div>
 
@@ -529,9 +491,6 @@
 						what_we_know = "choosing_start";
 					}
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
-					/*$(document).ready(function(){
-					  $(".owl-carousel").owlCarousel();
-					});*/
 					console.log("done here");
 					break;
 				break; // final default break
@@ -539,7 +498,7 @@
 
 		}
 
-		
+
 </script>
 
 

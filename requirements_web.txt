@@ -1,0 +1,69 @@
+alembic==1.4.2
+appnope==0.1.0
+attrs==19.3.0
+backcall @ file:///home/conda/feedstock_root/build_artifacts/backcall_1592338393461/work
+brotlipy==0.7.0
+certifi==2020.6.20
+cffi==1.14.0
+chardet==3.0.4
+click==7.1.2
+click-plugins==1.1.1
+cligj==0.5.0
+cryptography==2.9.2
+cycler==0.10.0
+decorator==4.4.2
+Fiona==1.8.13
+Flask==1.1.2
+Flask-Migrate==2.4.0
+flask-shell-ipython==0.4.1
+Flask-SQLAlchemy @ file:///home/conda/feedstock_root/build_artifacts/flask-sqlalchemy_1590588246407/work
+Flask-WTF==0.14.3
+fuzzywuzzy==0.17.0
+GDAL==3.0.4
+geographiclib==1.50
+geopandas @ file:///home/conda/feedstock_root/build_artifacts/geopandas_1593010520528/work
+geopy @ file:///home/conda/feedstock_root/build_artifacts/geopy_1593296620954/work
+gitdb @ file:///home/conda/feedstock_root/build_artifacts/gitdb_1588651542737/work
+GitPython @ file:///home/conda/feedstock_root/build_artifacts/gitpython_1590897464411/work
+idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1593328102638/work
+ipython @ file:///Users/runner/miniforge3/conda-bld/ipython_1593235463433/work
+ipython-genutils==0.2.0
+itsdangerous==1.1.0
+jedi @ file:///Users/runner/miniforge3/conda-bld/jedi_1592619352011/work
+Jinja2==2.11.2
+kiwisolver==1.2.0
+Mako==1.1.0
+MarkupSafe==1.1.1
+matplotlib @ file:///Users/runner/miniforge3/conda-bld/matplotlib-base_1594091703837/work
+munch==2.5.0
+networkx==2.4
+numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1591485226984/work
+pandas @ file:///Users/runner/miniforge3/conda-bld/pandas_1592422000655/work
+parso==0.7.0
+pexpect==4.8.0
+pickleshare==0.7.5
+prompt-toolkit @ file:///home/conda/feedstock_root/build_artifacts/prompt-toolkit_1592500439797/work
+ptyprocess==0.6.0
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1593275161868/work
+Pygments==2.6.1
+pyOpenSSL==19.1.0
+pyparsing==2.4.7
+pyproj @ file:///Users/runner/miniforge3/conda-bld/pyproj_1588596073298/work
+PySocks==1.7.1
+python-dateutil==2.8.1
+python-dotenv @ file:///home/conda/feedstock_root/build_artifacts/python-dotenv_1593788306353/work
+python-editor==1.0.4
+python-Levenshtein==0.12.0
+pytz==2020.1
+requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1592425495151/work
+Rtree==0.9.4
+Shapely==1.7.0
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1590081179328/work
+smmap @ file:///home/conda/feedstock_root/build_artifacts/smmap_1588651577140/work
+SQLAlchemy @ file:///Users/runner/miniforge3/conda-bld/sqlalchemy_1593116377944/work
+tornado==6.0.4
+traitlets==4.3.3
+urllib3==1.25.9
+wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1592931742287/work
+Werkzeug==1.0.1
+WTForms==2.2.1
