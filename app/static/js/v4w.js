@@ -208,6 +208,20 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
+		card = document.createElement('div');
+		card.setAttribute('class', 'card possibilities_result');
+		card.coords = cur_result_coords;
+		card_header = document.createElement('div');
+		card_header.setAttribute('class','card-header');
+		card_header.innerHTML = '<h6 class="card-title"><strong>'+cur_result_name+'</strong></h6>'
+		card_body = document.createElement('div');
+		card_body.setAttribute('class','card-body');
+		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Coordinate:</h6>'
+													+ '<p class="card-text">'+cur_result_coords+'</p>';
+		card.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+		card.appendChild(card_header)
+		card.appendChild(card_body)
+		document.getElementById("possibilitiesFather").appendChild(card);
 		div = document.createElement('div');
 		div.setAttribute('class', 'possibilities_result');
 		//div.setAttribute('class', '');
@@ -218,7 +232,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
 		console.log(div);
 		console.log("for this div we searched "+searched_end);
-		document.getElementById("possibilitiesFather").appendChild(div);
+		//document.getElementById("possibilitiesFather").appendChild(div);
 		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}
 	document.getElementById("searchbar").style.display = "none";
@@ -284,4 +298,12 @@ function copyMyPositionAsStart(map) {
 				console.log(e);
 				alert("Location access denied.");
 		});
+}
+
+function animateSidebar() {
+  $("#sidebar").animate({
+    width: "toggle"
+  }, 350, function() {
+    document.getElementById("mapid").invalidateSize();
+  });
 }

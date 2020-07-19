@@ -33,12 +33,31 @@
 	<script src="/static/js/owl.carousel.min.js"></script>
 <body>
 
+	<!-- Container con sidebar e mappa -->
+<div id=container>
+	<div id="sidebar" style="display: block;">
+		<div class=sidebar-wrapper>
+			<div class="card" id="features">
+        <div id="result_title" class="card-header"><h3><b>Risultati</b>
+					<a onclick="animateSidebar()">
+          	<button type="button" class="btn btn-sm btn-outline-secondary pull-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
+					</a>
+				</div>
+			</div>
+			<div class="sidebar-table">
+				<div class="possibilities" id="possibilitiesFather"><!-- se vogliamo il carosello owl-carousel owl-theme -->
+			</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="loader" style="display:none;" id="loading">
 		<img id="loading_gif">
 	</div>
 
 	<!-- DIV CON LA MAPPA -->
-	<div id="mapid">
+	<div class="leaflet-container leaflet-retina leaflet-fade-anim" style="position:relative;height: 100%;width: auto;" tabindex="0">
+		<div id="mapid">
 		<script>
 			var whichmap = "osm";
 			var mymap = L.map('mapid');
@@ -67,7 +86,6 @@
 			var feedbackjs = {{feedbacksent}};
 		</script>
 	</div>
-
 		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 
@@ -212,46 +230,71 @@
 
 
 			<!-- SURE RESULTS WINDOW -->
+			<!--
 			<div class="leaflet-left w3-animate-left results_window" id="results_search" style="display: none">
+			-->
+			<div class="leaflet-left results_window" id="results_search" style="display:none;">
 				<span class="right"><a onclick="closeResultsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
 						<!-- PERCORSO -->
+						<!--
 						<div class="result_div" id="percorso">
 							<p class="results_title">PERCORSO:</p>
 							<p class="results_text">
-								DA:<br>
-								<span id="da_text"></span><br>
-								A:<br>
-								<span id="a_text"></span><br>
-								LUNGHEZZA:<br>
-								<span id="length_text"></span><br>
-								TEMPO:<br>
-								<span id="time_text"></span><br>
-								PONTI:<br>
-								<span id="ponti_text"></span><br>
+							<!-->
+						<div class="card" id="percorso">
+							<div class="card-header">
+								PERCORSO
+							</div>
+							<div class="card-body">
+									DA:<br>
+									<span id="da_text"></span><br>
+									A:<br>
+									<span id="a_text"></span><br>
+									LUNGHEZZA:<br>
+									<span id="length_text"></span><br>
+									TEMPO:<br>
+									<span id="time_text"></span><br>
+									PONTI:<br>
+									<span id="ponti_text"></span><br>
+							</div>
 						</div>
 						<!-- RICERCA SINGLE -->
+						<!--
 						<div class="result_div" id="single_address">
 							<p class="results_title">RICERCA:</p>
-							<p class="results_text">
-								TROVATO:<br>
-								<span id="found_text"></span><br>
-								TIPO:<br>
-								<span id="type_text"></span><br>
+						-->
+						<div class="card" id="single_address">
+							<div class="card-header">
+								RICERCA
+							</div>
+							<div class="card-body">
+								<p class="results_text">
+									TROVATO:<br>
+									<span id="found_text"></span><br>
+									TIPO:<br>
+									<span id="type_text"></span><br>
+							</div>
 						</div>
 						<!-- NON DOVREBBE APPARIRE -->
+						<!--
 						<div class="result_div" id="weird">
 							<p class="results_title">STRANO:</p>
-							<p class="results_text">
-								Non dovrebbe mai apparire.<br>
-								Probabilmente abbiamo sbagliato qualcosa.
-							</p>
+						-->
+						<div id="weird">
+							<div class="card-header">
+								STRANO
+							</div>
+							<div class="card-body">
+								<p class="results_text">
+									Non dovrebbe mai apparire.<br>
+									Probabilmente abbiamo sbagliato qualcosa.
+								</p>
 						</div>
-					</div>
-				</span>
 			</div>
 
 			<!-- POSSIBILITIES -->
-			<div class="leaflet-left w3-animate-left results_window" id="possibilities_search" style="display: none">
+
+			<!-- <div class="leaflet-left w3-animate-left results_window" id="possibilities_search" style="display: none">
 				<div class="possiblities" id="possiblitiesTitle">
 					<p class="results_title">
 						Mmm.. non siamo sicuri!<br>
@@ -259,9 +302,9 @@
 						Hai cercato: <span id="cercato"></span>
 					<p>
 				</div>
-				<div class="possibilities" id="possibilitiesFather"><!-- se vogliamo il carosello owl-carousel owl-theme -->
-				</div>
-			</div>
+				<div class="possibilities" id="possibilitiesFather"> <!-- se vogliamo il carosello owl-carousel owl-theme -->
+				<!--</div>
+			</div> -->
 
 	<div class="helpwindowpopup" id="helpwindow">
 		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
@@ -334,7 +377,8 @@
 		</div>
 
 	</div>
-
+</div>
+</div>
 
 <script>
     closeHelpWindow();
@@ -539,7 +583,7 @@
 
 		}
 
-		
+
 </script>
 
 
