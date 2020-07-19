@@ -348,14 +348,14 @@ function showSidebar(){
 }
 
 function shrinkMapForBottomBar(){
-	if (areWeUsingBottomBar){
+	if (areWeUsingBottomBar()){
 		console.log("Let's shrink the map size");
 		document.getElementById("mapcontainer").style.height = '75%';
 	}
 }
 
 function restoreMapForBottomBar(){
-	if (areWeUsingBottomBar){
+	if (areWeUsingBottomBar()){
 		console.log("Let's restore the map size");
 		document.getElementById("mapcontainer").style.height = '100%';
 	}
