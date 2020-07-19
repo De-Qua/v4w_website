@@ -202,28 +202,44 @@ function showResultsWindow(result_type) {
 		moveResultsToSidebar();
 	}
 }
+
 /* show possibilities window / differnet mobile and desktop */
 function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
 	var cur_result_coords = '';
 	var div ='';
 	var cur_result_name = '';
+	all_possibilities_div = document.createElement('div');
+	if (areWeUsingBottomBar()){
+		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
+	}
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
 		card = document.createElement('div');
-		card.setAttribute('class', 'card possibilities_result');
+		if (areWeUsingBottomBar()){
+			card.setAttribute('class', 'card possibilities_result col-6');
+		}else{
+			card.setAttribute('class', 'card possibilities_result');
+		}
 		card.coords = cur_result_coords;
+		card.setAttribute('coords',cur_result_coords);
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
-		card_header.innerHTML = '<h6 class="card-title"><strong>'+cur_result_name+'</strong></h6>'
+		card_header.innerHTML = '<div class="row">'
+														+'<div class="col-12 align-self-center"><h6 class="card-title"><strong>'+cur_result_name+'</strong></h6></div>'
+														//+'<div class="col-1 align-self-center " style="z-index: 10"><button class="btn btn-sm btn-light v4wbtn pull-right" onclick="showResultLocation()"><i class="fa fa-map-marker"></i></button></div>'
+														+'</div>';
+		card_header.onclick = function() {stopPropagation();};
 		card_body = document.createElement('div');
 		card_body.setAttribute('class','card-body');
 		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Coordinate:</h6>'
 													+ '<p class="card-text">'+cur_result_coords+'</p>';
-		card.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+		card.onclick = function() {goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+		card.onmouseover = function() {showHighlight(this)};
+		card.onmouseout = function () {clearHighlight();};
 		card.appendChild(card_header)
 		card.appendChild(card_body)
-		document.getElementById("possibilitiesFather").appendChild(card);
+		all_possibilities_div.appendChild(card);
 		// div = document.createElement('div');
 		// div.setAttribute('class', 'possibilities_result');
 		// //div.setAttribute('class', '');
@@ -237,6 +253,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		//document.getElementById("possibilitiesFather").appendChild(div);
 		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}
+	document.getElementById("possibilitiesFather").appendChild(all_possibilities_div);
 	//document.getElementById("searchbar").style.display = "none";
 	// if (what_are_we_doing == "address") {
 	// 	document.getElementById("cercato").innerHTML = searched_start;
@@ -368,22 +385,23 @@ function areWeUsingBottomBar(){
 		return false;
 	}
 }
-// //$("#single_address").draggable()
-// if ( !("ontouchstart" in window) ) {
-//   $(document).on("mouseover", ".possibilities_result", function(e) {
-//     highlight.clearLayers().addLayer(L.circleMarker([$(this).coords[1], $(this).coords[0]], highlightStyle));
-//   });
-// }
-//
-// $(document).on("mouseout", ".possibilities_result", clearHighlight);
-//
-// var highlight = L.geoJson(null);
-// var highlightStyle = {
-//   stroke: false,
-//   fillColor: "#00FFFF",
-//   fillOpacity: 0.7,
-//   radius: 10
-// };
-// function clearHighlight() {
-//   highlight.clearLayers();
-// }
+var highlight = L.geoJson(null);
+var highlightStyle = {
+  stroke: false,
+  fillColor: "#00FFFF",
+  fillOpacity: 0.7,
+  radius: 10
+};
+
+function showHighlight(card) {
+	var clicked_coords = card.coords;
+	var clicked_coords2 = card.attributes.coords;
+	console.log("sei sopra a: " + clicked_coords + ", " + clicked_coords2);
+	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
+	highlight.addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
+	console.log("highlight: "+ highlight);
+}
+
+function clearHighlight() {
+  highlight.clearLayers();
+}
