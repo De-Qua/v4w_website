@@ -263,7 +263,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		}
 	}
 
-	document.getElementById("sidebar").style.display = 'block';
+	showSidebar();
 }
 
 function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
@@ -336,12 +336,36 @@ function animateSidebar() {
 function hideSidebar(){
 	document.getElementById("sidebar").style.display = 'none';
 	document.getElementById("show-sidebar").style.display = 'block';
+	restoreMapForBottomBar();
 }
 
 function showSidebar(){
 	document.getElementById("sidebar").style.display = 'block';
 	document.getElementById("show-sidebar").style.display = 'none';
+	shrinkMapForBottomBar();
 	//animateSidebar();
+}
+
+function shrinkMapForBottomBar(){
+	if (areWeUsingBottomBar){
+		console.log("Let's shrink the map size");
+		document.getElementById("mapcontainer").style.height = '75%';
+	}
+}
+
+function restoreMapForBottomBar(){
+	if (areWeUsingBottomBar){
+		console.log("Let's restore the map size");
+		document.getElementById("mapcontainer").style.height = '100%';
+	}
+}
+
+function areWeUsingBottomBar(){
+	if (window.innerWidth < 812) {
+		return true;
+	} else{
+		return false;
+	}
 }
 // //$("#single_address").draggable()
 // if ( !("ontouchstart" in window) ) {
