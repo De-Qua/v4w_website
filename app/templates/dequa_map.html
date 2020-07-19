@@ -35,11 +35,11 @@
 
 	<!-- Container con sidebar e mappa -->
 <div id=container>
-	<div id="sidebar" style="display: block;">
+	<div id="sidebar" style="display: none;">
 		<div class=sidebar-wrapper>
 			<div class="card" id="features">
         <div id="result_title" class="card-header"><h3><b>Risultati</b>
-					<a onclick="animateSidebar()">
+					<a onclick="hideSidebar()">
           	<button type="button" class="btn btn-sm btn-outline-secondary pull-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
 					</a>
 				</div>
@@ -92,70 +92,171 @@
 		<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
 		<div class="leaflet-top col-lg-4" id="searchbar">
 			<!-- button works because of this -->
-			<div class="leaflet-control col-lg-12">
-				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
-					<!-- PRIMA RIGA: BARRA DI RICERCA -->
-					<div class="row">
-						<!-- A sinistra la barra di ricerca -->
-						<div class="col-10">
-							<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
-						</div>
-						<!-- A destra il pulsante per cercare -->
-						<div class="col-1">
-							<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
-							<div id="start_from_my_location" style="display: none">
-								<button class="btn srcbtn v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
-								<script>
-									document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
-								</script>
+			<div class="row">
+				<div class="leaflet-control col-lg-12">
+					<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
+						<!-- PRIMA RIGA: BARRA DI RICERCA -->
+						<div class="row">
+							<!-- A sinistra la barra di ricerca -->
+							<div class="col-10">
+								<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
+							</div>
+							<!-- A destra il pulsante per cercare -->
+							<div class="col-1 align-self-center">
+								<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
+								<div id="start_from_my_location" style="display: none">
+									<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
+									<script>
+										document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
+									</script>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
-					<div class="row">
-						<div class="col">
-							<!-- inizialmente mostriamo il bottone -->
-							<a onclick="showSecondSearchbar()">
+						<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
+						<div class="row">
+							<div class="col align-self-center">
+								<!-- inizialmente mostriamo il bottone -->
 								<div class="button-plus" id="add-searchfield">
-									<button type=button id="btn-plus" class="btn v4wbtn"><i class="fa fa-plus"></i></button>
+									<a onclick="showSecondSearchbar()">
+										<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-plus"></i></button>
+									</a>
 								</div>
+							</div>
+						</div>
+
+						<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
+						<div class="container-search-field" id="second-search-field" style="display: none">
+							<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
+							<div class="row">
+								<div class="col-10">
+									<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
+								</div>
+								<div class="col-1 align-self-center">
+									<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-close"></i></button>
+								</div>
+							</div>
+							<!-- TERZA RIGA: BOTTONI + trova la strada-->
+							<div class="row space_above">
+								<div class="col">
+									<div id="nav_buttons" style="display: none">
+										<span class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
+										<span class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
+										<span class="btn btn-sm btn-light v4wbtn" disabled><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><i class="fa fa-line-chart"></i></input></span>
+										<span class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><i class="fa fa-ambulance"></i></input></span>
+										<button type="submit" class="btn btn-sm btn-light v4wbtn">Vai! &nbsp; <i class="fa fa-search"></i></button>
+									</div>
+								</div>
+							</div>
+							<!-- QUARTA RIGA: TROVA LA STRADA -->
+							<!--
+							<div class="row space_above">
+								<div class="col-lg-4">
+									<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+								</div>
+							</div>
+						-->
+						</div> <!-- Chiudiamo seconde barre varie -->
+					</form>
+					<!-- Bottone per riaprire la sidebar -->
+					<div class="container-fluid" id="show-sidebar" style="display:none">
+						<div class="row space_above">
+							<a onclick="showSidebar()">
+								<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
 							</a>
 						</div>
 					</div>
+				</div>
+			</div>
 
-					<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
-					<div class="container-search-field" id="second-search-field" style="display: none">
-						<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
-						<div class="row">
-							<div class="col-10">
-								<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
-							</div>
-							<div class="col-1">
-								<button type=button onclick="hideSecondSearchbar()" class="btn v4wbtn"><i class="fa fa-close"></i></button>
-							</div>
-						</div>
-						<!-- TERZA RIGA: BOTTONI -->
-						<div class="row space_above">
-							<div class="col-10">
-								<div id="nav_buttons" style="display: none">
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting"><i class="fa fa-line-chart"></i></input></span>
-									<span class="btn v4wbtn"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting"><i class="fa fa-ambulance"></i></input></span>
+			<div class="row">
+					<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
+					<div class="leaflet-control col-lg-8">
+						<div class="container-fluid" id="results_search" style="display:none;">
+						<!-- PERCORSO -->
+						<!--
+						<div class="result_div" id="percorso">
+							<p class="results_title">PERCORSO:</p>
+							<p class="results_text">
+							<!-->
+						<div class="card" id="percorso">
+							<div class="card-header container-fluid">
+								<div class="row">
+									<div class="col-9 align-self-center">
+										PERCORSO
+									</div>
+									<div class="col-3 float-right">
+									<!--<a onclick="closeResultsWindow()">-->
+									<a onclick="moveResultsToSidebar()">
+										<button class="btn btn-sm btn-outline-secondary pull-right"><i class="fa fa-close"></i></button>
+									</a>
+									</div>
 								</div>
 							</div>
-						</div>
-						<!-- QUARTA RIGA: TROVA LA STRADA -->
-						<div class="row space_above">
-							<div class="col-10">
-								<!-- Aggiungiamo un bottone per il percorso sotto -->
-								<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+							<div class="card-body">
+									DA:<br>
+									<span id="da_text"></span><br>
+									A:<br>
+									<span id="a_text"></span><br>
+									LUNGHEZZA:<br>
+									<span id="length_text"></span><br>
+									TEMPO:<br>
+									<span id="time_text"></span><br>
+									PONTI:<br>
+									<span id="ponti_text"></span><br>
 							</div>
 						</div>
-					</div> <!-- Chiudiamo seconde barre varie -->
-				</form>
-			</div><!-- chiudiamo leaflet control -->
+						<!-- RICERCA SINGLE -->
+						<!--
+						<div class="result_div" id="single_address">
+							<p class="results_title">RICERCA:</p>
+						-->
+						<div class="card" id="single_address">
+							<div class="card-header container-fluid">
+								<div class="row">
+									<div class="col-9 align-self-center">
+										RICERCA
+									</div>
+									<div class="col-3 float-right">
+										<!-- <a onclick="closeResultsWindow()"> -->
+										<a onclick="moveResultsToSidebar()">
+											<button class="btn btn-sm btn-outline-secondary pull-right"><i class="fa fa-close"></i></button>
+										</a>
+									</div>
+								</div>
+							</div>
+							<div class="card-body">
+								<p class="results_text">
+									TROVATO:<br>
+									<span id="found_text"></span><br>
+									TIPO:<br>
+									<span id="type_text"></span><br>
+							</div>
+						</div>
+						<!-- NON DOVREBBE APPARIRE -->
+						<!--
+						<div class="result_div" id="weird">
+							<p class="results_title">STRANO:</p>
+						-->
+						<div class="card" id="weird">
+							<div class="card-header">
+								STRANO
+								<!-- <a onclick="closeResultsWindow()"> -->
+								<a onclick="moveResultsToSidebar()">
+									<button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button>
+								</a>
+							</div>
+							<div class="card-body">
+								<p class="results_text">
+									Non dovrebbe mai apparire.<br>
+									Probabilmente abbiamo sbagliato qualcosa.
+								</p>
+							</div>
+						</div>
+					</div>
+					</div>
+				</div>
+				<!--</div> chiudiamo leaflet control -->
 		</div><!-- chiude leaflet-top -->
 
 		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK
@@ -233,6 +334,7 @@
 			<!--
 			<div class="leaflet-left w3-animate-left results_window" id="results_search" style="display: none">
 			-->
+<!--
 			<div class="leaflet-left results_window" id="results_search" style="display:none;">
 				<span class="right"><a onclick="closeResultsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
 						<!-- PERCORSO -->
@@ -241,6 +343,7 @@
 							<p class="results_title">PERCORSO:</p>
 							<p class="results_text">
 							<!-->
+<!--
 						<div class="card" id="percorso">
 							<div class="card-header">
 								PERCORSO
@@ -263,6 +366,7 @@
 						<div class="result_div" id="single_address">
 							<p class="results_title">RICERCA:</p>
 						-->
+<!--
 						<div class="card" id="single_address">
 							<div class="card-header">
 								RICERCA
@@ -280,6 +384,7 @@
 						<div class="result_div" id="weird">
 							<p class="results_title">STRANO:</p>
 						-->
+<!--
 						<div id="weird">
 							<div class="card-header">
 								STRANO
@@ -291,7 +396,6 @@
 								</p>
 						</div>
 			</div>
-
 			<!-- POSSIBILITIES -->
 
 			<!-- <div class="leaflet-left w3-animate-left results_window" id="possibilities_search" style="display: none">
@@ -567,10 +671,12 @@
 						possibilities = dict_in_JS.arrivo;
 						what_we_know = "choosing_end";
 						start_found = dict_in_JS.partenza[0];
-					}
-					else {
+					} else if (tmp_end) {
 						possibilities = dict_in_JS.partenza;
 						what_we_know = "choosing_start";
+					} else { // tmp_end is empty
+						possibilities = dict_in_JS.partenza;
+						what_we_know = "address";
 					}
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
 					/*$(document).ready(function(){

@@ -180,7 +180,6 @@ function hideSettingsWindow() {
 }
 
 function showResultsWindow(result_type) {
-	if (window.innerWidth > 1000) {
 		document.getElementById("results_search").style.display = "inline";
 		document.getElementById("weird").style.display = "none";
 		switch (result_type) {
@@ -197,7 +196,9 @@ function showResultsWindow(result_type) {
 				document.getElementById("percorso").style.display = "none";
 				document.getElementById("weird").style.display = "inline";
 				break;
-		}
+	}
+	if (window.innerWidth < 812) {
+		moveResultsToSidebar();
 	}
 }
 /* show possibilities window / differnet mobile and desktop */
@@ -222,31 +223,47 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		card.appendChild(card_header)
 		card.appendChild(card_body)
 		document.getElementById("possibilitiesFather").appendChild(card);
-		div = document.createElement('div');
-		div.setAttribute('class', 'possibilities_result');
-		//div.setAttribute('class', '');
-		//dev.setAttribute('class', 'card');
-		div.setAttribute('coords',cur_result_coords)
-		div.coords = cur_result_coords;
-		div.innerHTML = "<b>"+cur_result_name+"</b><br>"+cur_result_coords; // repr
-		div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
-		console.log(div);
+		// div = document.createElement('div');
+		// div.setAttribute('class', 'possibilities_result');
+		// //div.setAttribute('class', '');
+		// //dev.setAttribute('class', 'card');
+		// div.setAttribute('coords',cur_result_coords)
+		// div.coords = cur_result_coords;
+		// div.innerHTML = "<b>"+cur_result_name+"</b><br>"+cur_result_coords; // repr
+		// div.onclick = function() { goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+		// console.log(div);
 		console.log("for this div we searched "+searched_end);
 		//document.getElementById("possibilitiesFather").appendChild(div);
 		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
 	}
-	document.getElementById("searchbar").style.display = "none";
+	//document.getElementById("searchbar").style.display = "none";
+	// if (what_are_we_doing == "address") {
+	// 	document.getElementById("cercato").innerHTML = searched_start;
+	// }
+	// if (what_are_we_doing == "choosing_start") {
+	// 	document.getElementById("cercato").innerHTML = searched_start;
+	// }
+	// if (what_are_we_doing == "choosing_end") {
+	// 	document.getElementById("cercato").innerHTML = searched_end;
+	// }
+	//document.getElementById("map_type_btn").style.display = "none";
+	//document.getElementById("possibilities_search").style.display = 'inline';
+	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
-		document.getElementById("cercato").innerHTML = searched_start;
+		document.getElementById("search_field_1").value = searched_start;
+		document.getElementById("search_field_1").style.backgroundColor = "red";
+	} else {
+		showSecondSearchbar();
+		document.getElementById("search_field_1").value = searched_start;
+		document.getElementById("search_field_2").value = searched_end;
+		if (what_are_we_doing == "choosing_start") {
+			document.getElementById("search_field_1").style.backgroundColor = "red";
+		} else if (what_are_we_doing == "choosing_end") {
+			document.getElementById("search_field_2").style.backgroundColor = "red";
+		}
 	}
-	if (what_are_we_doing == "choosing_start") {
-		document.getElementById("cercato").innerHTML = searched_start;
-	}
-	if (what_are_we_doing == "choosing_end") {
-		document.getElementById("cercato").innerHTML = searched_end;
-	}
-	document.getElementById("map_type_btn").style.display = "none";
-	document.getElementById("possibilities_search").style.display = 'inline';
+
+	document.getElementById("sidebar").style.display = 'block';
 }
 
 function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
@@ -257,7 +274,7 @@ function goToNextStep(divElement, what_are_we_doing, searched_start, searched_en
 	console.log("cercato"+searched_end);
 	console.log("what are we doing:"+what_are_we_doing);
 	console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
-	if (what_are_we_doing == "choosing_start") {
+	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
 		console.log("starting point was chosen!")
 		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
 		window.location = new_site_to_go;
@@ -278,6 +295,14 @@ function closeResultsWindow() {
 	document.getElementById("single_address").style.display = "none";
 	document.getElementById("percorso").style.display = "none";
 	document.getElementById("weird").style.display = "none";
+}
+function moveResultsToSidebar() {
+	console.log("sposto i risultati nella sidebar")
+	document.getElementById("results_search").style.display = "none";
+	document.getElementById("possibilitiesFather").appendChild(document.getElementById("percorso"));
+	document.getElementById("possibilitiesFather").appendChild(document.getElementById("single_address"));
+	document.getElementById("possibilitiesFather").appendChild(document.getElementById("weird"));
+	hideSidebar();
 }
 
 function copyStartingPosition(address_string) {
@@ -307,3 +332,33 @@ function animateSidebar() {
     document.getElementById("mapid").invalidateSize();
   });
 }
+
+function hideSidebar(){
+	document.getElementById("sidebar").style.display = 'none';
+	document.getElementById("show-sidebar").style.display = 'block';
+}
+
+function showSidebar(){
+	document.getElementById("sidebar").style.display = 'block';
+	document.getElementById("show-sidebar").style.display = 'none';
+	//animateSidebar();
+}
+// //$("#single_address").draggable()
+// if ( !("ontouchstart" in window) ) {
+//   $(document).on("mouseover", ".possibilities_result", function(e) {
+//     highlight.clearLayers().addLayer(L.circleMarker([$(this).coords[1], $(this).coords[0]], highlightStyle));
+//   });
+// }
+//
+// $(document).on("mouseout", ".possibilities_result", clearHighlight);
+//
+// var highlight = L.geoJson(null);
+// var highlightStyle = {
+//   stroke: false,
+//   fillColor: "#00FFFF",
+//   fillOpacity: 0.7,
+//   radius: 10
+// };
+// function clearHighlight() {
+//   highlight.clearLayers();
+// }
