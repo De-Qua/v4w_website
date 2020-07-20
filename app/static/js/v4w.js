@@ -6,7 +6,29 @@
   * Licensed under AGPLv3
   */
 
+/* Function to detect if a device is touch or not.
+*/
+function is_touch_device() {
 
+    var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+
+    var mq = function (query) {
+        return window.matchMedia(query).matches;
+    }
+
+    if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+        return true;
+    }
+
+    // include the 'heartz' as a way to have a non matching MQ to help terminate the join
+    // https://git.io/vznFH
+    var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+    return mq(query);
+
+}
+
+var isTouchDevice = is_touch_device();
+console.log("Is touch device? "+isTouchDevice);
 /* Open a window visualizing a help message on how to make the correct search.
 	In the window a button to close it should be available, calling closeHelpWindow().
 	The actual happening is just making the element with id "helpwindow" visible.
@@ -217,6 +239,7 @@ function showResultsWindow(result_type) {
 var activeCard = '';
 /* show possibilities window / differnet mobile and desktop */
 function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
+	console.log("At the beginning: ",markerOptions)
 	var cur_result_coords = '';
 	var div ='';
 	var cur_result_name = '';
@@ -246,7 +269,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		card_body.setAttribute('class','card-body');
 		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Coordinate:</h6>'
 													+ '<p class="card-text">'+cur_result_coords+'</p>';
-		if (areWeUsingBottomBar()){
+		if (isTouchDevice){
 			card.onclick = function () {
 				if (activeCard == this){
 					clearHighlight();
@@ -276,7 +299,24 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		// console.log(div);
 		console.log("for this div we searched "+searched_end);
 		//document.getElementById("possibilitiesFather").appendChild(div);
-		L.marker([cur_result_coords[0], cur_result_coords[1]], markerOptions).addTo(map);
+		console.log("General options: ",markerOptions)
+		var curMarkerOptions = markerOptions;
+		console.log("Current options: ",markerOptions)
+		curMarkerOptions["title"] = cur_result_name;
+		console.log("Current options after if: ",markerOptions)
+		console.log("cur_result_name: "+cur_result_name)
+		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
+		marker.coords = [cur_result_coords[0], cur_result_coords[1]];
+
+		var markerPopup = L.popup();
+		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
+		markerPopup.setContent("<div class='text-center'><b>"+cur_result_name+"</b></br><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='markerBtn'>Dequa!</button></div>");
+
+		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='possibilityMarkerBtn'>Dequa!</button></div>");
+		//marker.on('click', function(){
+		// 	goToNextStep(marker, what_we_know, tmp_start, tmp_end, start_found);
+		// });
+		possibilitiesLayer.addLayer(marker).addTo(map);
 	}
 	document.getElementById("possibilitiesFather").appendChild(all_possibilities_div);
 	//document.getElementById("searchbar").style.display = "none";
@@ -309,14 +349,20 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	showSidebar();
 }
 
+function getHandlerForFeature(marker) {  // A function...
+    return function(ev) {   // ...that returns a function...
+        goToNextStep(marker, what_we_know, tmp_start, tmp_end, start_found);  // ...that has a closure over the value.
+    }
+}
+
 function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
 	console.log("redirecting..");
 	console.log(divElement);
 	var clicked_coords = divElement.coords;
-	var clicked_coords2 = divElement.attributes.coords;
+	//var clicked_coords2 = divElement.attributes.coords;
 	console.log("cercato"+searched_end);
 	console.log("what are we doing:"+what_are_we_doing);
-	console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
+	//console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
 		console.log("starting point was chosen!")
 		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
@@ -380,12 +426,14 @@ function hideSidebar(){
 	document.getElementById("sidebar").style.display = 'none';
 	document.getElementById("show-sidebar").style.display = 'block';
 	restoreMapForBottomBar();
+	mymap.invalidateSize();
 }
 
 function showSidebar(){
 	document.getElementById("sidebar").style.display = 'block';
 	document.getElementById("show-sidebar").style.display = 'none';
 	shrinkMapForBottomBar();
+	mymap.invalidateSize();
 	//animateSidebar();
 }
 

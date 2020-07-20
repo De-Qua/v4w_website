@@ -89,6 +89,8 @@
 				layers: baseMaps[whichmap]
 			});
 
+			var possibilitiesLayer = L.featureGroup();
+
 			var highlight = L.geoJson(null).addTo(mymap);
 			var highlightStyle = {
 			  stroke: false,
@@ -552,10 +554,10 @@
 			var address_string = e.latlng.toString();
 			popup
 					.setLatLng(e.latlng)
-					.setContent("Posizione: " + address_string + "<br><button id='btnStart'>DA QUA</button><button id='btnTo'>A</button><br>")
+					.setContent("<div class='text-center'>Posizione: " + address_string + "<br><button  class='btn btn-sm btn-light v4wbtn mr-3' style='font-size: 0.8em;' id='btnMapStart'>DA QUA</button><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='btnMapTo'>A</button><br></div>")
 					.openOn(mymap);
-			document.getElementById('btnStart').onclick = function() { copyStartingPosition(address_string); };
-			document.getElementById('btnTo').onclick = function() { copyEndingPosition(address_string); };
+			document.getElementById('btnMapStart').onclick = function() { copyStartingPosition(address_string); };
+			document.getElementById('btnMapTo').onclick = function() { copyEndingPosition(address_string); };
 		}
 		mymap.on('click', onMapClick);
 		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
@@ -575,12 +577,11 @@
 				iconRetinaUrl: '/static/img/icon_marker.png',
 				iconSize: [33, 50],
 				iconAnchor: [16, 49],
-				popupAnchor: [16, 16]
+				popupAnchor: [0, -40]
 			});
 
 			// Options for the marker
 			var markerOptions = {
-				 title: "Abbiamo trovato " + dict_in_JS.partenza[0].nome,
 				 clickable: true,
 				 // si alza all'hover - non va :(
 				 riseOnHover: true,
@@ -734,7 +735,10 @@
 						possibilities = dict_in_JS.partenza;
 						what_we_know = "address";
 					}
+					console.log("We send this to js: ",markerOptions)
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
+					//possibilitiesLayer.addTo(mymap);
+					mymap.fitBounds(possibilitiesLayer.getBounds());
 					/*$(document).ready(function(){
 					  $(".owl-carousel").owlCarousel();
 					});*/
