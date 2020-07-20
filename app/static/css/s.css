@@ -378,3 +378,11 @@ body, html {height: 100%}
 .card-body{
 	background-color: rgb(255, 255, 255);
 }
+
+@keyframes fade {
+  from { opacity: 0.5; }
+}
+
+.blinking {
+  animation: fade 0.5s infinite alternate;
+}

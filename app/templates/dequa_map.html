@@ -89,6 +89,14 @@
 				layers: baseMaps[whichmap]
 			});
 
+			var highlight = L.geoJson(null).addTo(mymap);
+			var highlightStyle = {
+			  stroke: false,
+			  fillColor: "#ffb400",
+			  fillOpacity: 0.9,
+			  radius: 10,
+				className: 'blinking'
+			};
 			//L.control.layers(baseMaps).addTo(mymap);
 			// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			// minZoom: 12,

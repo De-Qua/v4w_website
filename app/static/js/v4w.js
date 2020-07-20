@@ -214,6 +214,7 @@ function showResultsWindow(result_type) {
 	}
 }
 
+var activeCard = '';
 /* show possibilities window / differnet mobile and desktop */
 function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
 	var cur_result_coords = '';
@@ -240,14 +241,27 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 														+'<div class="col-12 align-self-center"><h6 class="card-title"><strong>'+cur_result_name+'</strong></h6></div>'
 														//+'<div class="col-1 align-self-center " style="z-index: 10"><button class="btn btn-sm btn-light v4wbtn pull-right" onclick="showResultLocation()"><i class="fa fa-map-marker"></i></button></div>'
 														+'</div>';
-		card_header.onclick = function() {stopPropagation();};
+		//card_header.onclick = function() {stopPropagation();};
 		card_body = document.createElement('div');
 		card_body.setAttribute('class','card-body');
 		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Coordinate:</h6>'
 													+ '<p class="card-text">'+cur_result_coords+'</p>';
-		card.onclick = function() {goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
-		card.onmouseover = function() {showHighlight(this)};
-		card.onmouseout = function () {clearHighlight();};
+		if (areWeUsingBottomBar()){
+			card.onclick = function () {
+				if (activeCard == this){
+					clearHighlight();
+					goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found);
+				} else{
+					activeCard = this;
+					clearHighlight();
+					showHighlight(this);
+				};
+			};
+		} else {
+			card.onclick = function() {goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+			card.onmouseover = function() {showHighlight(this)};
+			card.onmouseout = function () {clearHighlight();};
+		}
 		card.appendChild(card_header)
 		card.appendChild(card_body)
 		all_possibilities_div.appendChild(card);
@@ -396,20 +410,14 @@ function areWeUsingBottomBar(){
 		return false;
 	}
 }
-var highlight = L.geoJson(null);
-var highlightStyle = {
-  stroke: false,
-  fillColor: "#00FFFF",
-  fillOpacity: 0.7,
-  radius: 10
-};
+
 
 function showHighlight(card) {
 	var clicked_coords = card.coords;
 	var clicked_coords2 = card.attributes.coords;
 	console.log("sei sopra a: " + clicked_coords + ", " + clicked_coords2);
-	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
-	highlight.addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
+	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
+	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
 	console.log("highlight: "+ highlight);
 }
 
