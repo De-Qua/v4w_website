@@ -274,7 +274,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			card.onclick = function () {
 				if (activeCard == this){
 					clearHighlight();
-					goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found);
+					goToNextStep(getNextStep(this, what_are_we_doing, searched_start, searched_end, start_found));
 				} else{
 					activeCard = this;
 					clearHighlight();
