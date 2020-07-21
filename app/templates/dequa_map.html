@@ -9,6 +9,8 @@
 	<link rel="stylesheet" href="/static/css/w3s.css">
 	<link rel="stylesheet" href="/static/css/s.css">
 	<link rel="stylesheet" href="/static/css/easy-button.css">
+	<link rel="stylesheet" href="/static/css/MarkerCluster.css">
+	<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
 	<link rel="icon" href="/static/img/dequa_logo_v1.png">
 
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
@@ -33,6 +35,7 @@
 	<script src="/static/js/jquery-3.5.1.min.js"></script>
 	<script src="/static/js/owl.carousel.min.js"></script>
 	<script src="/static/js/easy-button.js"></script>
+	<script src="/static/js/leaflet.markercluster.js"></script>
 <body>
 
 	<!-- Container con sidebar e mappa -->
@@ -89,7 +92,7 @@
 				layers: baseMaps[whichmap]
 			});
 
-			var possibilitiesLayer = L.featureGroup();
+			var possibilitiesLayer = L.markerClusterGroup();
 
 			var highlight = L.geoJson(null).addTo(mymap);
 			var highlightStyle = {

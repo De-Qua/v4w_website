@@ -256,7 +256,8 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		}else{
 			card.setAttribute('class', 'card possibilities_result');
 		}
-		card.coords = cur_result_coords;
+		card.lat = cur_result_coords[0];
+		card.lng = cur_result_coords[1];
 		card.setAttribute('coords',cur_result_coords);
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
@@ -281,7 +282,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 				};
 			};
 		} else {
-			card.onclick = function() {goToNextStep(this, what_are_we_doing, searched_start, searched_end, start_found); };
+			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, searched_start, searched_end, start_found));};
 			card.onmouseover = function() {showHighlight(this)};
 			card.onmouseout = function () {clearHighlight();};
 		}
@@ -306,15 +307,22 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		console.log("Current options after if: ",markerOptions)
 		console.log("cur_result_name: "+cur_result_name)
 		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
-		marker.coords = [cur_result_coords[0], cur_result_coords[1]];
 
 		var markerPopup = L.popup();
 		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
+		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, searched_start, searched_end, start_found)
 		markerPopup.setContent("<div class='text-center'><b>"+cur_result_name+"</b></br><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='markerBtn'>Dequa!</button></div>");
 
-		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='possibilityMarkerBtn'>Dequa!</button></div>");
-		//marker.on('click', function(){
-		// 	goToNextStep(marker, what_we_know, tmp_start, tmp_end, start_found);
+		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
+		// marker.on('popupopen', function(){
+		// 		L.DomEvent.on(
+		// 			document.getElementById('possibilityMarkerBtn'),
+		// 			'click',
+		// 			goToNextStepFromMarker(this)
+		// 		);
+		// });
+		// marker.on('click', function(){
+		// 	goToNextStep(this.getLatLng(), what_we_know, tmp_start, tmp_end, start_found);
 		// });
 		possibilitiesLayer.addLayer(marker).addTo(map);
 	}
@@ -349,34 +357,44 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	showSidebar();
 }
 
-function getHandlerForFeature(marker) {  // A function...
-    return function(ev) {   // ...that returns a function...
-        goToNextStep(marker, what_we_know, tmp_start, tmp_end, start_found);  // ...that has a closure over the value.
-    }
-}
-
-function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
-	console.log("redirecting..");
-	console.log(divElement);
-	var clicked_coords = divElement.coords;
-	//var clicked_coords2 = divElement.attributes.coords;
-	console.log("cercato"+searched_end);
-	console.log("what are we doing:"+what_are_we_doing);
-	//console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
+function getNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
+	var clicked_coords = [divElement.lat, divElement.lng];
+	var new_site_to_go = "";
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
-		console.log("starting point was chosen!")
-		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
-		window.location = new_site_to_go;
+		new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
 	}
 	else if (what_are_we_doing == "choosing_end") {
-		console.log("end point was chosen!")
-		console.log("start"+start_found)
-
 		var strt_coords = start_found.coordinate;
-		var new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
-		window.location = new_site_to_go;
+		new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
 	}
+	return new_site_to_go;
 }
+
+function goToNextStep(nextStep) {
+	window.location = nextStep;
+}
+// function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
+// 	console.log("redirecting..");
+// 	console.log(divElement);
+// 	var clicked_coords = [divElement.lat, divElement.lng];
+// 	//var clicked_coords2 = divElement.attributes.coords;
+// 	console.log("cercato"+searched_end);
+// 	console.log("what are we doing:"+what_are_we_doing);
+// 	//console.log("cliccato: " + clicked_coords + ", " + clicked_coords2);
+// 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
+// 		console.log("starting point was chosen!")
+// 		var new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
+// 		window.location = new_site_to_go;
+// 	}
+// 	else if (what_are_we_doing == "choosing_end") {
+// 		console.log("end point was chosen!")
+// 		console.log("start"+start_found)
+//
+// 		var strt_coords = start_found.coordinate;
+// 		var new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
+// 		window.location = new_site_to_go;
+// 	}
+// }
 
 function closeResultsWindow() {
 	console.log("chiudo");
@@ -461,7 +479,7 @@ function areWeUsingBottomBar(){
 
 
 function showHighlight(card) {
-	var clicked_coords = card.coords;
+	var clicked_coords = [card.lat,card.lng];
 	var clicked_coords2 = card.attributes.coords;
 	console.log("sei sopra a: " + clicked_coords + ", " + clicked_coords2);
 	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
