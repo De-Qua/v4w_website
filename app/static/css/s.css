@@ -265,6 +265,13 @@ body, html {height: 100%}
 	font-size: 20px;
 }
 
+.icon {
+	font-weight: 800;
+	max-width: 1.4rem;
+	max-height: 1.4rem;
+	padding: 0rem !important;
+}
+
 .pressed {
 	background: blue;
 }
@@ -385,4 +392,8 @@ body, html {height: 100%}
 
 .blinking {
   animation: fade 0.5s infinite alternate;
+}
+
+.text-container {
+	padding: 2rem;
 }

@@ -3,6 +3,13 @@
 	<title>De Qua</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- we should think about SEO, keywords, descriptions, ecc... -->
+	<meta name="description" content="Find your way through Venice - Trova la tua strada a Venezia">
+	<!-- penso che ora non venga più usata la tag keyword -->
+  <meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
+	<!-- autori -->
+	<meta name="author" content="Dequa">
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
 	<link rel="stylesheet" href="/static/css/owl.carousel.min.css">
 	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css">
@@ -11,7 +18,7 @@
 	<link rel="stylesheet" href="/static/css/easy-button.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
-	<link rel="icon" href="/static/img/dequa_logo_v1.png">
+	<link rel="icon" href="/static/img/dequa_logo_v2.png">
 
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
 		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
@@ -182,11 +189,11 @@
 							<div class="row space_above">
 								<div class="col">
 									<div id="nav_buttons" style="display: none">
-										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><i class="fa fa-blind"></i></input></label>
-										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><i class="fa fa-ship"></i></input></label>
-										<label class="btn btn-sm btn-light v4wbtn disabled disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><i class="fa fa-line-chart"></i></input></label>
-										<label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><i class="fa fa-ambulance"></i></input></label>
-										<button type="submit" class="btn btn-sm btn-light v4wbtn">Vai! &nbsp; <i class="fa fa-search"></i></button>
+										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn disabled disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label>
+										&nbsp; &nbsp; <button type="submit" class="btn btn-sm btn-light v4wbtn">Vai! &nbsp; <i class="fa fa-search"></i></button>
 									</div>
 								</div>
 							</div>
@@ -304,7 +311,7 @@
 		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK
 		<div class="leaflet-top leaflet-right onlyMap">
 			<div class="modal-div">
-				<span class="topcoat-button open-modal"><img src="/static/img/dequa_logo_v1.png" width=25></span><br>
+				<span class="topcoat-button open-modal"><img src="/static/img/dequa_logo_v2.png" width=25></span><br>
 			</div>
 		</div>
 
@@ -346,13 +353,13 @@
 		<div class="leaflet-bottom leaflet-right onlyMap">
 			<a onclick="showSettingsWindow()">
 				<div class="leaflet-control maptype pointer_div">
-					<button class="btn v4wbtn mapbtn"><img src="/static/img/dequa_logo_v1.png" class="top-right-icon-img pointer_div"></button>
+					<button class="btn v4wbtn mapbtn"><img src="/static/img/dequa_logo_v2.png" class="top-right-icon-img pointer_div"></button>
 				</div>
 			</a>
 		</div>
 	-->
 		<script>
-			L.easyButton('<img src="/static/img/dequa_logo_v1.png" style="width:24px;margin-left: -5px;">',function(btn,map){
+			L.easyButton('<img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;">',function(btn,map){
 				showSettingsWindow();
 			},{position: 'bottomright'}).addTo(mymap);
 		</script>
@@ -382,7 +389,7 @@
 				</div>
 				<div class="w3-row-padding setting_icon">
 					<div class="w3-col s6 not-allowed">
-						<button class="fa fa-wrench dequa_area not-allowed">
+						<button class="fa fa-users dequa_area" onclick="window.open('/info');">
 					</div>
 					<div class="w3-col s6">
 						<button class="fa fa-github dequa_area" onclick="window.open('https://github.com/Lychfindel/v4w_website');">

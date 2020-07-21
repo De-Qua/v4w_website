@@ -42,7 +42,7 @@ def index():
     app.logger.critical('Prova critical')
     app.logger.log(10,'Prova log debug')
     app.logger.log(20,'Prova log info')
-    return render_template('index.html')
+    return render_template('info.html')
 
 @app.route('/', methods=['GET', 'POST'])
 def navigation():
