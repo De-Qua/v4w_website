@@ -267,9 +267,9 @@ body, html {height: 100%}
 
 .icon {
 	font-weight: 800;
-	max-width: 1.4rem;
-	max-height: 1.4rem;
-	padding: 0rem !important;
+	/*width: 1.4rem;*/
+	height: 1.4rem;
+	padding: 0rem 0.3rem;
 }
 
 .pressed {
