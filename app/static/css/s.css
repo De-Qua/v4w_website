@@ -326,7 +326,7 @@ body, html {height: 100%}
 	height: 100%;
 	width: auto;
 }
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 812px) {
 
 /*#possibilities_search_desktop {display: none;}
 	#possibilities_search_mobile {display: block;}*/

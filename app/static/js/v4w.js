@@ -7,6 +7,7 @@
   */
 
 /* Function to detect if a device is touch or not.
+	All the credits to https://stackoverflow.com/questions/4817029/whats-the-best-way-to-detect-a-touch-screen-device-using-javascript/4819886#4819886
 */
 function is_touch_device() {
 
@@ -123,31 +124,6 @@ function changeMap(currentMap) {
 	mymap.removeLayer(baseMaps[currentMap]);
 	baseMaps[whichmap].addTo(mymap);
 
-	// if (currentMap == "osm") {
-	// 	mymap.attributionControl._attributions = {};
-	// 	var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	// 		attribution: 'DeQua | Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-	// 		minZoom: 12,
-	// 		maxZoom: 19,
-	// 	}).addTo(mymap);
-	// 	// var Stamen_Watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
-	// 	// 	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-	// 	// 	subdomains: 'abcd',
-	// 	// 	minZoom: 10,
-	// 	// 	maxZoom: 16,
-	// 	// 	ext: 'jpg'
-	// 	// }).addTo(mymap);
-	// 	whichmap = "esri";
-	// }
-	// else {
-	// 	mymap.attributionControl._attributions = {};
-	// 	var OpenStreetMap_DE = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
-	// 	maxZoom: 20,
-	// 	zoomControl: false,
-	// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-	// 	}).addTo(mymap);
-	// 	whichmap = "osm";
-	// }
 	console.log("to " + whichmap)
 }
 
@@ -231,7 +207,7 @@ function showResultsWindow(result_type) {
 				document.getElementById("weird").style.display = "inline";
 				break;
 	}
-	if (window.innerWidth < 812) {
+	if (areWeUsingBottomBar()) {
 		moveResultsToSidebar();
 	}
 }
@@ -258,7 +234,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		}
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
-		card.setAttribute('coords',cur_result_coords);
+
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
 		card_header.innerHTML = '<div class="row">'
@@ -284,7 +260,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		} else {
 			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, searched_start, searched_end, start_found));};
 			card.onmouseover = function() {showHighlight(this)};
-			card.onmouseout = function () {clearHighlight();};
+			card.onmouseout = function() {clearHighlight();};
 		}
 		card.appendChild(card_header)
 		card.appendChild(card_body)
@@ -308,37 +284,14 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		console.log("cur_result_name: "+cur_result_name)
 		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
 
-		var markerPopup = L.popup();
 		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
 		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, searched_start, searched_end, start_found)
-		markerPopup.setContent("<div class='text-center'><b>"+cur_result_name+"</b></br><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='markerBtn'>Dequa!</button></div>");
 
 		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
-		// marker.on('popupopen', function(){
-		// 		L.DomEvent.on(
-		// 			document.getElementById('possibilityMarkerBtn'),
-		// 			'click',
-		// 			goToNextStepFromMarker(this)
-		// 		);
-		// });
-		// marker.on('click', function(){
-		// 	goToNextStep(this.getLatLng(), what_we_know, tmp_start, tmp_end, start_found);
-		// });
+
 		possibilitiesLayer.addLayer(marker).addTo(map);
 	}
 	document.getElementById("possibilitiesFather").appendChild(all_possibilities_div);
-	//document.getElementById("searchbar").style.display = "none";
-	// if (what_are_we_doing == "address") {
-	// 	document.getElementById("cercato").innerHTML = searched_start;
-	// }
-	// if (what_are_we_doing == "choosing_start") {
-	// 	document.getElementById("cercato").innerHTML = searched_start;
-	// }
-	// if (what_are_we_doing == "choosing_end") {
-	// 	document.getElementById("cercato").innerHTML = searched_end;
-	// }
-	//document.getElementById("map_type_btn").style.display = "none";
-	//document.getElementById("possibilities_search").style.display = 'inline';
 	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
@@ -348,9 +301,9 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		document.getElementById("search_field_1").value = searched_start;
 		document.getElementById("search_field_2").value = searched_end;
 		if (what_are_we_doing == "choosing_start") {
-			document.getElementById("search_field_1").style.backgroundColor = "red";
+			document.getElementById("search_field_1").style.backgroundColor = "#f44";
 		} else if (what_are_we_doing == "choosing_end") {
-			document.getElementById("search_field_2").style.backgroundColor = "red";
+			document.getElementById("search_field_2").style.backgroundColor = "#f44";
 		}
 	}
 
@@ -480,7 +433,7 @@ function areWeUsingBottomBar(){
 
 function showHighlight(card) {
 	var clicked_coords = [card.lat,card.lng];
-	var clicked_coords2 = card.attributes.coords;
+
 	console.log("sei sopra a: " + clicked_coords + ", " + clicked_coords2);
 	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
 	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
