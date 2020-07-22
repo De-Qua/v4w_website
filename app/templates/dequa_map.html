@@ -24,7 +24,8 @@
 		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
 		 crossorigin=""/>
 	 <!-- Make sure you put this AFTER Leaflet's CSS -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+	<script src="https://kit.fontawesome.com/c02ec4320e.js" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
 
 
@@ -52,7 +53,7 @@
 			<div class="card" id="features">
         <div id="result_title" class="card-header"><h3><b>Risultati</b>
 					<a onclick="hideSidebar()">
-          	<button type="button" class="btn btn-sm btn-outline-secondary pull-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
+          	<button type="button" class="btn btn-sm btn-outline-secondary float-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
 					</a>
 				</div>
 			</div>
@@ -139,10 +140,10 @@
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 
 		<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
-		<div class="leaflet-top col-lg-4" id="searchbar">
+		<div class="leaflet-top col-md-4" id="searchbar">
 			<!-- button works because of this -->
 			<div class="row">
-				<div class="leaflet-control col-lg-12">
+				<div class="leaflet-control col-md-12">
 					<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
 						<!-- PRIMA RIGA: BARRA DI RICERCA -->
 						<div class="row">
@@ -152,9 +153,9 @@
 							</div>
 							<!-- A destra il pulsante per cercare -->
 							<div class="col-1 align-self-center">
-								<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
+								<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-fw fa-search"></i></button>
 								<div id="start_from_my_location" style="display: none">
-									<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-compass"></i></button>
+									<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-fw fa-location-arrow"></i></button>
 									<script>
 										document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
 									</script>
@@ -168,7 +169,7 @@
 								<!-- inizialmente mostriamo il bottone -->
 								<div class="button-plus" id="add-searchfield">
 									<a onclick="showSecondSearchbar()">
-										<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-plus"></i></button>
+										<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-map-signs"></i></button>
 									</a>
 								</div>
 							</div>
@@ -182,19 +183,25 @@
 									<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
 								</div>
 								<div class="col-1 align-self-center">
-									<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-close"></i></button>
+									<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-close"></i></button>
 								</div>
 							</div>
 							<!-- TERZA RIGA: BOTTONI + trova la strada-->
 							<div class="row space_above">
-								<div class="col">
+								<div class="col-10">
 									<div id="nav_buttons" style="display: none">
+
 										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
 										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
 										<label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label>
 										<label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label>
-										&nbsp; &nbsp; <button type="submit" class="btn btn-sm btn-light v4wbtn">Vai! &nbsp; <i class="fa fa-search"></i></button>
+										<script>
+											checkTheBoxesThatNeedToBeChecked(dict_in_JS);
+										</script>
 									</div>
+								</div>
+								<div class="col-1">
+									<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
 								</div>
 							</div>
 							<!-- QUARTA RIGA: TROVA LA STRADA -->
@@ -220,7 +227,7 @@
 
 			<div class="row">
 					<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
-					<div class="leaflet-control col-lg-8">
+					<div class="leaflet-control col-md-8 col-10">
 						<div class="container-fluid" id="results_search" style="display:none;">
 						<!-- PERCORSO -->
 						<!--
@@ -237,7 +244,7 @@
 									<div class="col-3 float-right">
 									<!--<a onclick="closeResultsWindow()">-->
 									<a onclick="moveResultsToSidebar()">
-										<button class="btn btn-sm btn-outline-secondary pull-right"><i class="fa fa-close"></i></button>
+										<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
 									</a>
 									</div>
 								</div>
@@ -269,7 +276,7 @@
 									<div class="col-3 float-right">
 										<!-- <a onclick="closeResultsWindow()"> -->
 										<a onclick="moveResultsToSidebar()">
-											<button class="btn btn-sm btn-outline-secondary pull-right"><i class="fa fa-close"></i></button>
+											<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
 										</a>
 									</div>
 								</div>
@@ -354,7 +361,7 @@
 		<br>
 		Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
 		<br>
-		Ciònonostante, le funzionalità basiche dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
+		Ciononostante, le funzionalità basiche dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
 		e le strade anche! <br>
 		Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
 		o calcolare il percorso iin barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
@@ -488,7 +495,7 @@
 					// e facile aggiungere geo_type se vogliamo piu avanti
 					showResultsWindow('single_address');
 					console.log("shown a single address result")
-					var name_location = dict_in_JS.partenza[0].nome;
+					var name_location = dict_in_JS.how_to_get_there.da;
 					document.getElementById('search_field_1').value = name_location
 					document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
 					switch(geo_type) {
@@ -546,9 +553,9 @@
 					// geo type is not used
 					console.log("Setting up results window!")
 					showResultsWindow('percorso');
-					var nome_partenza = dict_in_JS.partenza[0].nome;
+					var nome_partenza = dict_in_JS.how_to_get_there.da;
 					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
-					var nome_arrivo = dict_in_JS.arrivo[0].nome;
+					var nome_arrivo = dict_in_JS.how_to_get_there.a;
 					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 					var path_length = dict_in_JS.path.human_readable_length;
 					document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
@@ -560,6 +567,9 @@
 					showSecondSearchbar();
 					document.getElementById('search_field_1').value = nome_partenza;
 					document.getElementById('search_field_2').value = nome_arrivo;
+					console.log("checking the boxes");
+					checkTheBoxesThatNeedToBeChecked(dict_in_JS);
+					console.log("done checking the boxes");
 					console.log("drawing the streets!")
 
 					// here all the stuff when we have path from A to B
@@ -603,7 +613,10 @@
 					var start_found = "";
 					var tmp_start = dict_in_JS.searched_start;
 					var tmp_end = dict_in_JS.searched_end;
-					console.log("Setting up possiblities window!")
+					console.log("Finished setting up possiblities window!");
+					console.log("checking the boxes");
+					checkTheBoxesThatNeedToBeChecked(dict_in_JS);
+					console.log("done checking the boxes");
 					// we are looking for path
 					if (dict_in_JS.start_type == 'unique') {
 						//dict_in_JS.end_type == 'multiple'

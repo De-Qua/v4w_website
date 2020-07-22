@@ -17,16 +17,19 @@ def retrieve_parameters_from_GET(arguments_GET_request):
     """
     Returns the parameters sent from the map page through the get method during a research.
     """
+    params_dict = {}
     # this could go in a method retrieve_parameters_from_GET
-    da = arguments_GET_request.get('partenza', default='', type=str)
-    a = arguments_GET_request.get('arrivo', default='', type=str)
+    params_dict['da'] = arguments_GET_request.get('partenza', default='', type=str)
+    params_dict['start_coord'] = arguments_GET_request.get('start_coord', default='', type=str)
+    params_dict['a'] = arguments_GET_request.get('arrivo', default='', type=str)
+    params_dict['end_coord'] = arguments_GET_request.get('end_coord', default='', type=str)
     # new code! i bottoni sono 'off' o 'on'
-    less_bridges = arguments_GET_request.get('lazy', default='off', type=str)
-    by_boat = arguments_GET_request.get('boat', default='off', type=str)
-    with_tide = arguments_GET_request.get('tide', default='off', type=str)
-    by_ambulance = arguments_GET_request.get('ambu', default='off', type=str)
+    params_dict['less_bridges'] = arguments_GET_request.get('lazy', default='off', type=str)
+    params_dict['by_boat'] = arguments_GET_request.get('boat', default='off', type=str)
+    params_dict['with_tide'] = arguments_GET_request.get('tide', default='off', type=str)
+    params_dict['by_ambulance'] = arguments_GET_request.get('ambu', default='off', type=str)
 
-    return [da, a, less_bridges, by_boat, with_tide, by_ambulance]
+    return params_dict
 
 def take_care_of_the_feedback(form, file_feedback):
     """
@@ -62,17 +65,18 @@ def ask_yourself(params_research):
     """
     In search for the truth, we try to find out if you are looking for the happiness, an address or a path from A to B.
     """
-    da, a, less_bridges, by_boat, with_tide, by_ambulance = params_research
-    if da == "":
-        return "nothing", "irrelevant"
-    elif a == "":
-        return "address", "irrelevant"
-    elif by_boat == "on":
-        return "path", "by_boat"
-    elif less_bridges == "on":
-        return "path", "less_bridges"
+    if params_research['da'] == "":
+        mode="nothing"
+    elif params_research['a'] == "":
+        mode="address"
+    elif params_research['by_boat'] == "on":
+        mode="by_boat"
+    elif params_research['less_bridges'] == "on":
+        mode="less_bridges"
     else:
-        return "path", "path_walking"
+        mode="path"
+
+    return mode
 
 
 def find_what_needs_to_be_found(params_research, G_objects):
@@ -80,10 +84,17 @@ def find_what_needs_to_be_found(params_research, G_objects):
     Take care of the whole research (many cases) calling smaller methods.
     """
 
-    what_am_I_really_searching_for, how_to_get_there = ask_yourself(params_research)
+    what_am_I_really_searching_for = ask_yourself(params_research)
 
-    da = params_research[0]
-    a = params_research[1]
+    if params_research['start_coord']:
+        da = params_research['start_coord']
+    else:
+        da=params_research['da']
+    if params_research['end_coord']:
+        a = params_research['end_coord']
+    else:
+        a=params_research['a']
+
     G_terra = G_objects['land_graph']
     G_acqua = G_objects['water_graph']
     G_terra_array = np.asarray(list(G_terra.nodes))
@@ -100,11 +111,11 @@ def find_what_needs_to_be_found(params_research, G_objects):
             # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
             app.logger.info('ci ho messo {tot} a calcolare la posizione di un indirizzo'.format(tot=time.perf_counter() - t0))
             modus_operandi = 0
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict) # aggiunge da solo "no_path" e "no_end"
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict, params_research) # aggiunge da solo "no_path" e "no_end"
             app.logger.debug("risposta per indirizzo singolo: {}".format(final_dict))
         else:
             modus_operandi = 2
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict, start_type='multiple')
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict, params_research, start_type='multiple')
 
     else:
 
@@ -119,7 +130,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
             app.logger.debug("non siamo sicuri di da")
             # non siamo sicuro di da!
             modus_operandi = 2
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, start_type='multiple')
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, start_type='multiple')
             return final_dict
         #else:
         match_dict_a = lib_search.give_me_the_dictionary(a)
@@ -128,14 +139,14 @@ def find_what_needs_to_be_found(params_research, G_objects):
 
             app.logger.debug("non siamo sicuri di a")
             modus_operandi = 2
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, dict_of_end_locations_candidates=match_dict_a, start_type='unique', end_type='multiple')
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, dict_of_end_locations_candidates=match_dict_a, start_type='unique', end_type='multiple')
 
         else:
 
             app.logger.info("Andiamo a botta sicura! Abbiamo trovato quello che cercavamo e calcoliamo il percorso!")
             app.logger.info("ricerca percorso da {} a {}..".format(da, a))
 
-            if how_to_get_there == "by_boat":
+            if params_research["by_boat"]=='on':
 
                 app.logger.info("andiamo in barca..")
                 min_number_of_rive = 10
@@ -148,14 +159,14 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
                 rive_start_nodes_list = lib_search.find_closest_nodes(rive_start_list, G_terra_array)
                 # ritorna la strada con properties e la riva scelta!
-                geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list)
+                geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list,flag_ponti=params_research["less_bridges"]=="on")
                 #    rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
                 rive_vicine_stop, how_many_stop = lib_search.find_POI(min_number_of_rive, stop_coord, name_of_rive_as_poi)
                 app.logger.info("rive vicine all'arrivo: {}".format(how_many_stop))
                 rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
                 rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
                 # ritorna la strada con properties e la riva scelta!
-                geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list)
+                geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list,flag_ponti=params_research["less_bridges"]=="on")
                 #print("riva stop", riva_stop)
                 t2=time.perf_counter()
                 # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
@@ -188,7 +199,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
                 [start_coord, stop_coord] = lib_search.find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
                 app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
-                if how_to_get_there == 'less_bridges':
+                if params_research['less_bridges'] == 'on':
                     f_ponti = True
                     app.logger.info("con meno ponti possibile!")
                 else:
@@ -205,6 +216,6 @@ def find_what_needs_to_be_found(params_research, G_objects):
 
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]])
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
 
     return final_dict

@@ -230,14 +230,14 @@ def degree2meters_approx(lat, long):
     distance_in_meters = np.sqrt(np.power(meters_lat, 2), np.power(meters_long, 2))
     return distance_in_meters, [meters_lat, meters_long]
 
-def find_path_to_closest_riva(G_un, coords_start, rive_list):
+def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
     """
     It finds the path to the closest riva with respect to the starting coordinates. It prepares the geojson and returns the chosen riva.
     """
     length_paths=[]
     paths=[]
     for riva in rive_list:
-        path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti=True)
+        path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti)
 #        print("percorso calcolato per questa riva: ", bool(path) )
         if path:
             length_paths.append(length)
@@ -251,7 +251,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list):
     chosen_riva = shortest_path[-1]
     app.logger.debug("la piu corta e la strada con indice {} e il punto d'arrivo e' {}".format(idx_shortest_path,chosen_riva))
     app.logger.debug("ora ricalcolo per il dizionario con le info")
-    path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti=True)
+    path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti)
 
     # la riva sara l'ultimo nodo della strada
     # closest_riva = shortest_path[-1]

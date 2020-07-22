@@ -59,7 +59,7 @@ def navigation():
         # se e stato inviato il form, scriviamo sul feedback file
         # anche questo da spostare su un metodo
 
-        form.searched_string.data = params_research[0] # equivalente al precedente "da"
+        form.searched_string.data = params_research['da'] # equivalente al precedente "da"
         t0=time.perf_counter()
         if request.method == 'POST':
             feedbacksent = interface.take_care_of_the_feedback(form, file_feedback)

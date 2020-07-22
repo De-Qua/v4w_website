@@ -151,14 +151,14 @@ function showSecondSearchbar() {
 	document.getElementById("searchbtn").style.display = "none";
 	document.getElementById("add-searchfield").style.display = "none";
 	document.getElementById("btn-plus").style.display = "none";
-	document.getElementById("second-search-field").style.display = "inline";
-	document.getElementById("nav_buttons").style.display = "inline";
-	document.getElementById("start_from_my_location").style.display = "inline";
+	document.getElementById("second-search-field").style.display = "block";
+	document.getElementById("nav_buttons").style.display = "block";
+	document.getElementById("start_from_my_location").style.display = "block";
 }
 
 function hideSecondSearchbar() {
-	document.getElementById("searchbtn").style.display = "inline";
-	document.getElementById("add-searchfield").style.display = "inline";
+	document.getElementById("searchbtn").style.display = "block";
+	document.getElementById("add-searchfield").style.display = "block";
 	document.getElementById("btn-plus").style.display = "block";
 	document.getElementById("second-search-field").style.display = "none";
 	document.getElementById("nav_buttons").style.display = "none";
@@ -234,6 +234,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		}
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
+    card.name = cur_result_name;
 
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
@@ -250,7 +251,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			card.onclick = function () {
 				if (activeCard == this){
 					clearHighlight();
-					goToNextStep(getNextStep(this, what_are_we_doing, searched_start, searched_end, start_found));
+					goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
 				} else{
 					activeCard = this;
 					clearHighlight();
@@ -258,7 +259,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 				};
 			};
 		} else {
-			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, searched_start, searched_end, start_found));};
+			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
 			card.onmouseover = function() {showHighlight(this)};
 			card.onmouseout = function() {clearHighlight();};
 		}
@@ -285,7 +286,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
 
 		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
-		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, searched_start, searched_end, start_found)
+		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, cur_result_name, searched_end, start_found)
 
 		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
 
@@ -295,14 +296,17 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
-		document.getElementById("search_field_1").style.backgroundColor = "red";
+		document.getElementById("search_field_1").style.backgroundColor = "#f44";
 	} else {
 		showSecondSearchbar();
-		document.getElementById("search_field_1").value = searched_start;
-		document.getElementById("search_field_2").value = searched_end;
+		//document.getElementById("search_field_1").value = searched_start;
+		//document.getElementById("search_field_2").value = searched_end;
 		if (what_are_we_doing == "choosing_start") {
+      document.getElementById("search_field_1").value = searched_start;
 			document.getElementById("search_field_1").style.backgroundColor = "#f44";
 		} else if (what_are_we_doing == "choosing_end") {
+      document.getElementById("search_field_1").value = start_found.nome;
+      document.getElementById("search_field_2").value = searched_end;
 			document.getElementById("search_field_2").style.backgroundColor = "#f44";
 		}
 	}
@@ -310,15 +314,35 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	showSidebar();
 }
 
-function getNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
-	var clicked_coords = [divElement.lat, divElement.lng];
+// mette la spunta
+function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
+  var checkBoxesDict = dict_in_JS.how_to_get_there;
+
+  if (checkBoxesDict.by_boat == "on") {
+    document.getElementById("boat_setting").checked = true;
+  }
+  if (checkBoxesDict.less_bridges == "on") {
+    document.getElementById("walk_setting").checked = true;
+  }
+}
+
+function retrieveBoxesSituationAsAString() {
+  var by_boat_checked = document.getElementById("boat_setting").checked ? "&boat=on" : "&boat=off";
+  var less_bridges_checked = document.getElementById("walk_setting").checked ? "&lazy=on" : "&lazy=off";
+  return by_boat_checked + less_bridges_checked;
+}
+
+function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, start_found) {
+	var clicked_coords = [element.lat, element.lng];
 	var new_site_to_go = "";
+  var stringBoxes = retrieveBoxesSituationAsAString();
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
-		new_site_to_go = "/?partenza=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"#dequa";
+		new_site_to_go = "/?partenza="+cur_result_name+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"&end_coord="+stringBoxes+"#dequavivavenezia";
 	}
 	else if (what_are_we_doing == "choosing_end") {
 		var strt_coords = start_found.coordinate;
-		new_site_to_go = "/?partenza=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
+    var strt_name = start_found.nome;
+		new_site_to_go = "/?partenza="+strt_name+"&start_coord=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo="+cur_result_name+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes+"#dequavivavenezia";
 	}
 	return new_site_to_go;
 }
@@ -434,7 +458,7 @@ function areWeUsingBottomBar(){
 function showHighlight(card) {
 	var clicked_coords = [card.lat,card.lng];
 
-	console.log("sei sopra a: " + clicked_coords + ", " + clicked_coords2);
+	console.log("sei sopra a: " + clicked_coords);
 	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
 	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
 	console.log("highlight: "+ highlight);
