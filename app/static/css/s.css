@@ -276,11 +276,17 @@ body, html {height: 100%}
 	background: blue;
 }
 
+.settingsButton {
+	font-family: "Segoe UI",Arial,sans-serif, FontAwesome !important;
+	background-color: #eee;
+}
+
 .dequa_area {
-	padding: 2rem;
-	min-height: 5rem;
-	font-size: 20px;
-	border-radius: 0.75rem;
+	/* padding: 2rem; */
+	/* min-height: 5rem;
+	font-size: 20px; */
+	font-family: "Segoe UI",Arial,sans-serif, FontAwesome !important;
+	/* border-radius: 0.75rem; */
 	background-color: #eee;
 }
 .dequa_area:hover {
@@ -396,4 +402,39 @@ body, html {height: 100%}
 
 .text-container {
 	padding: 2rem;
+}
+
+.btn-sq-lg {
+  width: 150px !important;
+  height: 150px !important;
+}
+
+.btn-sq {
+  width: 100px !important;
+  height: 100px !important;
+  font-size: 10px;
+}
+
+.btn-sq-md {
+  width: 75px !important;
+  height: 75px !important;
+  font-size: 10px;
+}
+
+.btn-sq-sm {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 10px;
+}
+
+.btn-sq-xs {
+  width: 25px !important;
+  height: 25px !important;
+  padding:2px;
+}
+
+.leaflet-center {
+    left: 50%;
+    transform: translate(-50%, 0%);
+		z-index: 100;
 }

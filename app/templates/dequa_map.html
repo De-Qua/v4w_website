@@ -325,7 +325,7 @@
 
 			<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 			<script>
-				L.easyButton('fa fa-map',function(btn,map){
+				L.easyButton('fa fa-map',function(){
 					changeMap(whichmap);
 				},{position: 'bottomleft'}).addTo(mymap);
 			</script>
@@ -333,9 +333,164 @@
 			<!-- DIV IN BASSO A DESTRA SOPRA LO ZOOM - Zampa per la finestra d'aiuto -->
 			<script>
 				L.easyButton('<img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;">',function(btn,map){
-					showSettingsWindow();
+					showSettingsWindowNew();
 				},{position: 'bottomright'}).addTo(mymap);
+
+				function showSettingsWindowNew(){
+					document.getElementById("settings-general").style.display = 'block';
+					document.getElementById("settings-help").style.display = 'none';
+					document.getElementById("settings-feedback").style.display = 'none';
+					$('#settingsWindow').modal({show: true});
+				};
+
+				function showHelpWindowNew(){
+					document.getElementById("settings-general").style.display = 'none';
+					document.getElementById("settings-help").style.display = 'block';
+				}
+
+				function closeHelpWindowNew(){
+					document.getElementById("settings-help").style.display = 'none';
+				}
+
+				function showFeedbackWindowNew(){
+					document.getElementById("settings-general").style.display = 'none';
+					document.getElementById("settings-feedback").style.display = 'block';
+				}
+
+				function closeFeedbackWindowNew(){
+					document.getElementById("settings-feedback").style.display = 'none';
+				}
 			</script>
+
+			<!-- New setting window! -->
+			<!-- Modal -->
+			<div class="modal fade" id="settingsWindow" tabindex="-1" role="dialog" aria-labelledby="Settings" aria-hidden="true">
+			  <div class="modal-dialog modal-dialog-centered" role="document">
+			    <div class="modal-content" id="settings-general">
+			      <div class="modal-header">
+			        <h5 class="modal-title">DeQua</h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+			      </div>
+			      <div class="modal-body">
+			        <div class="row mb-4">
+								<div class="col-6 text-center">
+									<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showHelpWindowNew()">
+									<i class="fa fa-4x fa-question"></i>
+									<br>
+									<h6 class="mb-0">Aiuto</h6>
+									</button>
+								</div>
+								<div class="col-6 text-center">
+									<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showFeedbackWindowNew()">
+										<i class="fa fa-4x fa-exclamation-triangle"></i>
+										<br>
+										<h6 class="mb-0">Feedback</h6>
+									</button>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-6 text-center">
+									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="/info" target="_blank">
+										<i class="fa fa-4x fa-user"></i>
+										<br>
+										<h6 class="mb-0">Info</h6>
+									</a>
+								</div>
+								<div class="col-6 text-center">
+									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="https://github.com/Lychfindel/v4w_website" target="_blank">
+										<i class="fa fa-4x fa-github"></i>
+										<br>
+										<h6 class="mb-0 pb-0">GitHub</h6>
+									</a>
+								</div>
+							</div>
+			      </div>
+					</div>
+					<div class="modal-content" id="settings-help" style="display: none">
+						<div class="modal-header">
+							<h5 class="modal-title">DeQua - Aiuto</h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeHelpWindowNew()">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+						</div>
+						<div class="modal-body">
+							<h3> Cerca il tuo indirizzo, o cerca un percorso tra due punti. </h3>
+							<br>
+							Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
+							<br>
+							Ciononostante, le funzionalità di base dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
+							e le strade anche! <br>
+							Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
+							o calcolare il percorso in barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
+							Se trovate qualcosa che non va o volete dirci qualcosa, scriveteci a <a href="mailto:info@dequa.it">info@dequa.it</a>!<br>
+							Se preferite, il form per il feedback si trova nel menu!<br>
+							<br>
+							Buona giornata.<br>
+							I fioi.<br>
+						</div>
+					</div>
+					<div class="modal-content" id="settings-feedback" style="display: none">
+						<div class="modal-header">
+							<h5 class="modal-title">DeQua - Feedback</h5>
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeedbackWindowNew()">
+			          <span aria-hidden="true">&times;</span>
+			        </button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group" id="formid">
+							<form action="" method="post">
+								{{ form.hidden_tag() }}
+								<p>
+									{{ form.name.label }}
+									{{ form.name(size=32) }} <br>
+									{% for error in form.name.errors %}
+							    	<span style="color: red;">[{{ error }}]</span>
+							    {% endfor %}
+								</p>
+								<p>
+									{{ form.email.label }}
+									{{ form.email(size=32) }} <br>
+									{% for error in form.email.errors %}
+							    	<span style="color: red;">[{{ error }}]</span>
+							    {% endfor %}
+								</p>
+								<p>
+									{{ form.category.label }}
+									{{ form.category() }}
+									{% for error in form.category.errors %}
+							    	<span style="color: red;">[{{ error }}]</span>
+							    {% endfor %}
+								</p>
+								<p>
+									{{ form.searched_string.label }}
+									{{ form.searched_string(size=32) }}
+								</p>
+								<p>
+									{{ form.found_string.label }}
+									{{ form.found_string(size=32) }}
+								</p>
+								<p>
+							    {{ form.feedback.label }}<br>
+							    {{ form.feedback(cols=50, rows=4) }}<br>
+							    {% for error in form.feedback.errors %}
+							    <span style="color: red;">[{{ error }}]</span>
+							    {% endfor %}
+							  </p>
+								<p>
+									{{ form.submit() }}
+								</p>
+							</form>
+							</div>
+							<div id="grazieid">
+								<p> Grazie per il tuo feedback! </p>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
 
 		 	<!--SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal-->
 			<div class="settings_window w3-animate-left" id="dequa_setting_window" style="display: none">
