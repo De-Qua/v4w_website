@@ -146,182 +146,203 @@
 		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 
 		<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
-		<div class="leaflet-top col-md-4" id="searchbar">
+		<div class="leaflet-top col no-gutters" id="searchbar">
 			<!-- button works because of this -->
 			<div class="row">
-				<div class="leaflet-control col-md-12">
-					<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
-						<!-- PRIMA RIGA: BARRA DI RICERCA -->
-						<div class="row">
-							<!-- A sinistra la barra di ricerca -->
-							<div class="col-10">
-								<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
-							</div>
-							<!-- A destra il pulsante per cercare -->
-							<div class="col-1 align-self-center">
-								<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-fw fa-search"></i></button>
-								<div id="start_from_my_location" style="display: none">
-									<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-fw fa-location-arrow"></i></button>
-									<script>
-										document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
-									</script>
+				<div class=col-md-4>
+					<div class="row">
+						<div class="leaflet-control col-md-12">
+							<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
+								<!-- PRIMA RIGA: BARRA DI RICERCA -->
+								<div class="row">
+									<!-- A sinistra la barra di ricerca -->
+									<div class="col-10">
+										<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
+									</div>
+									<!-- A destra il pulsante per cercare -->
+									<div class="col-1 align-self-center">
+										<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-fw fa-search"></i></button>
+										<div id="start_from_my_location" style="display: none">
+											<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-fw fa-location-arrow"></i></button>
+											<script>
+												document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
+											</script>
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
 
-						<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
-						<div class="row">
-							<div class="col align-self-center">
-								<!-- inizialmente mostriamo il bottone -->
-								<div class="button-plus" id="add-searchfield">
-									<a onclick="showSecondSearchbar()">
-										<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-map-signs"></i></button>
+								<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
+								<div class="row">
+									<div class="col align-self-center">
+										<!-- inizialmente mostriamo il bottone -->
+										<div class="button-plus" id="add-searchfield">
+											<a onclick="showSecondSearchbar()">
+												<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-map-signs"></i></button>
+											</a>
+										</div>
+									</div>
+								</div>
+
+								<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
+								<div class="container-search-field" id="second-search-field" style="display: none">
+									<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
+									<div class="row">
+										<div class="col-10">
+											<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
+										</div>
+										<div class="col-1 align-self-center">
+											<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-close"></i></button>
+										</div>
+									</div>
+									<!-- TERZA RIGA: BOTTONI + trova la strada-->
+									<div class="row space_above">
+										<div class="col-10">
+											<div id="nav_buttons" style="display: none">
+
+												<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
+												<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
+												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
+												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+												<script>
+												if(typeof dict_in_JS !== 'undefined'){
+													checkTheBoxesThatNeedToBeChecked(dict_in_JS);
+												};
+												</script>
+											</div>
+										</div>
+										<div class="col-1">
+											<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
+										</div>
+									</div>
+									<!-- QUARTA RIGA: TROVA LA STRADA -->
+									<!--
+									<div class="row space_above">
+										<div class="col-lg-4">
+											<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+										</div>
+									</div>
+								-->
+								</div> <!-- Chiudiamo seconde barre varie -->
+							</form>
+							<!-- Bottone per riaprire la sidebar -->
+							<div class="container-fluid" id="show-sidebar" style="display:none">
+								<div class="row space_above">
+									<a onclick="showSidebar()">
+										<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
 									</a>
 								</div>
 							</div>
 						</div>
+					</div>
 
-						<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
-						<div class="container-search-field" id="second-search-field" style="display: none">
-							<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
-							<div class="row">
-								<div class="col-10">
-									<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
-								</div>
-								<div class="col-1 align-self-center">
-									<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-close"></i></button>
-								</div>
-							</div>
-							<!-- TERZA RIGA: BOTTONI + trova la strada-->
-							<div class="row space_above">
-								<div class="col-10">
-									<div id="nav_buttons" style="display: none">
-
-										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
-										<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
-										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
-										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
-										<script>
-										if(typeof dict_in_JS !== 'undefined'){
-											checkTheBoxesThatNeedToBeChecked(dict_in_JS);
-										};
-										</script>
+					<div class="row">
+							<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
+						<div class="leaflet-control col-md-8 col-10">
+								<div class="container-fluid" id="results_search" style="display:none;">
+								<!-- PERCORSO -->
+								<!--
+								<div class="result_div" id="percorso">
+									<p class="results_title">PERCORSO:</p>
+									<p class="results_text">
+									<!-->
+									<div class="card" id="percorso">
+									<div class="card-header container-fluid">
+										<div class="row">
+											<div class="col-9 align-self-center">
+												PERCORSO
+											</div>
+											<div class="col-3 float-right">
+											<!--<a onclick="closeResultsWindow()">-->
+											<a onclick="moveResultsToSidebar()">
+												<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+											</a>
+											</div>
+										</div>
+									</div>
+									<div class="card-body">
+											DA:<br>
+											<span id="da_text"></span><br>
+											A:<br>
+											<span id="a_text"></span><br>
+											LUNGHEZZA:<br>
+											<span id="length_text"></span><br>
+											TEMPO:<br>
+											<span id="time_text"></span><br>
+											PONTI:<br>
+											<span id="ponti_text"></span><br>
 									</div>
 								</div>
-								<div class="col-1">
-									<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
+								<!-- RICERCA SINGLE -->
+								<!--
+								<div class="result_div" id="single_address">
+									<p class="results_title">RICERCA:</p>
+								-->
+									<div class="card" id="single_address">
+									<div class="card-header container-fluid">
+										<div class="row">
+											<div class="col-9 align-self-center">
+												RICERCA
+											</div>
+											<div class="col-3 float-right">
+												<!-- <a onclick="closeResultsWindow()"> -->
+												<a onclick="moveResultsToSidebar()">
+													<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+												</a>
+											</div>
+										</div>
+									</div>
+									<div class="card-body">
+										<p class="results_text">
+											TROVATO:<br>
+											<span id="found_text"></span><br>
+											TIPO:<br>
+											<span id="type_text"></span><br>
+									</div>
+								</div>
+								<!-- NON DOVREBBE APPARIRE -->
+								<!--
+								<div class="result_div" id="weird">
+									<p class="results_title">STRANO:</p>
+								-->
+									<div class="card" id="weird">
+									<div class="card-header">
+										STRANO
+										<!-- <a onclick="closeResultsWindow()"> -->
+										<a onclick="moveResultsToSidebar()">
+											<button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button>
+										</a>
+									</div>
+									<div class="card-body">
+										<p class="results_text">
+											Non dovrebbe mai apparire.<br>
+											Probabilmente abbiamo sbagliato qualcosa.
+										</p>
+									</div>
+								</div>
 								</div>
 							</div>
-							<!-- QUARTA RIGA: TROVA LA STRADA -->
-							<!--
-							<div class="row space_above">
-								<div class="col-lg-4">
-									<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
-								</div>
-							</div>
-						-->
-						</div> <!-- Chiudiamo seconde barre varie -->
-					</form>
-					<!-- Bottone per riaprire la sidebar -->
-					<div class="container-fluid" id="show-sidebar" style="display:none">
-						<div class="row space_above">
-							<a onclick="showSidebar()">
-								<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
-							</a>
+					</div>
+					<!--</div> chiudiamo leaflet control -->
+				</div>
+				<div class="col-md-4">
+					<div class="leaflet-control">
+						<div class="alert alert-danger alert-dismissible fade show" data-backdrop="true" role="modal" id="errorwindow" style="display:none">
+							<h4 class="alert-heading">C'è stato un errore!</h4>
+							<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
+								Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
+								Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
+							</p>
+							<hr>
+							<p class="mb-0" id="errorwindow-explanation">
+							</p>
+						  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						    <span aria-hidden="true">&times;</span>
+						  </button>
 						</div>
 					</div>
 				</div>
 			</div>
-
-			<div class="row">
-					<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
-					<div class="leaflet-control col-md-8 col-10">
-						<div class="container-fluid" id="results_search" style="display:none;">
-						<!-- PERCORSO -->
-						<!--
-						<div class="result_div" id="percorso">
-							<p class="results_title">PERCORSO:</p>
-							<p class="results_text">
-							<!-->
-						<div class="card" id="percorso">
-							<div class="card-header container-fluid">
-								<div class="row">
-									<div class="col-9 align-self-center">
-										PERCORSO
-									</div>
-									<div class="col-3 float-right">
-									<!--<a onclick="closeResultsWindow()">-->
-									<a onclick="moveResultsToSidebar()">
-										<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
-									</a>
-									</div>
-								</div>
-							</div>
-							<div class="card-body">
-									DA:<br>
-									<span id="da_text"></span><br>
-									A:<br>
-									<span id="a_text"></span><br>
-									LUNGHEZZA:<br>
-									<span id="length_text"></span><br>
-									TEMPO:<br>
-									<span id="time_text"></span><br>
-									PONTI:<br>
-									<span id="ponti_text"></span><br>
-							</div>
-						</div>
-						<!-- RICERCA SINGLE -->
-						<!--
-						<div class="result_div" id="single_address">
-							<p class="results_title">RICERCA:</p>
-						-->
-						<div class="card" id="single_address">
-							<div class="card-header container-fluid">
-								<div class="row">
-									<div class="col-9 align-self-center">
-										RICERCA
-									</div>
-									<div class="col-3 float-right">
-										<!-- <a onclick="closeResultsWindow()"> -->
-										<a onclick="moveResultsToSidebar()">
-											<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
-										</a>
-									</div>
-								</div>
-							</div>
-							<div class="card-body">
-								<p class="results_text">
-									TROVATO:<br>
-									<span id="found_text"></span><br>
-									TIPO:<br>
-									<span id="type_text"></span><br>
-							</div>
-						</div>
-						<!-- NON DOVREBBE APPARIRE -->
-						<!--
-						<div class="result_div" id="weird">
-							<p class="results_title">STRANO:</p>
-						-->
-						<div class="card" id="weird">
-							<div class="card-header">
-								STRANO
-								<!-- <a onclick="closeResultsWindow()"> -->
-								<a onclick="moveResultsToSidebar()">
-									<button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button>
-								</a>
-							</div>
-							<div class="card-body">
-								<p class="results_text">
-									Non dovrebbe mai apparire.<br>
-									Probabilmente abbiamo sbagliato qualcosa.
-								</p>
-							</div>
-						</div>
-					</div>
-					</div>
-				</div>
-				<!--</div> chiudiamo leaflet control -->
-			</div><!-- chiude leaflet-top -->
+		</div><!-- chiude leaflet-top -->
 
 			<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
 			<script>
@@ -335,7 +356,7 @@
 				L.easyButton('<img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;">',function(btn,map){
 					showSettingsWindowNew();
 				},{position: 'bottomright'}).addTo(mymap);
-
+				// Functions for setting window
 				function showSettingsWindowNew(){
 					document.getElementById("settings-general").style.display = 'block';
 					document.getElementById("settings-help").style.display = 'none';
@@ -355,6 +376,14 @@
 				function showFeedbackWindowNew(){
 					document.getElementById("settings-general").style.display = 'none';
 					document.getElementById("settings-feedback").style.display = 'block';
+					// Dropdown choices:
+					// (0, 'Oggetto non specificato')
+					// (1, 'Indirizzo sbagliato')
+					// (2, 'Strada sbagliata')
+					// (3, 'Problemi di grafica')
+					// (4, 'Proposta di miglioramento')
+					// (5, 'Altro')
+					document.getElementById("category").selectedIndex = 0;
 				}
 
 				function closeFeedbackWindowNew(){
@@ -362,7 +391,7 @@
 				}
 			</script>
 
-			<!-- New setting window! -->
+			<!-- <!--SETTING WINDOW: modal -->
 			<!-- Modal -->
 			<div class="modal fade" id="settingsWindow" tabindex="-1" role="dialog" aria-labelledby="Settings" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
@@ -434,171 +463,132 @@
 					<div class="modal-content" id="settings-feedback" style="display: none">
 						<div class="modal-header">
 							<h5 class="modal-title">DeQua - Feedback</h5>
-			        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeedbackWindowNew()">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeedbackWindowNew()">
 			          <span aria-hidden="true">&times;</span>
 			        </button>
 						</div>
 						<div class="modal-body">
-							<div class="form-group" id="formid">
-							<form action="" method="post">
-								{{ form.hidden_tag() }}
-								<p>
-									{{ form.name.label }}
+							<div class="form-group">
+								<small class="form-text text-muted">Nessuno dei campi è obbligatorio e nessuna informazione verrà condivisa con terzi!</small>
+							</div>
+							<div id="formid">
+								<form action="" method="post">
+								{{ form.csrf_token }}
+
+									<!-- {{ form.name.label }}
 									{{ form.name(size=32) }} <br>
 									{% for error in form.name.errors %}
 							    	<span style="color: red;">[{{ error }}]</span>
-							    {% endfor %}
-								</p>
-								<p>
+							    {% endfor %} -->
+								<div class="form-group">
+									<label class="feedback-label" for="name">Nome</label>
+									<input type="text" class="form-control" id="name" name="name" placeholder="Nome">
+								</div>
+								<!-- <div class="form-group">
 									{{ form.email.label }}
 									{{ form.email(size=32) }} <br>
 									{% for error in form.email.errors %}
 							    	<span style="color: red;">[{{ error }}]</span>
 							    {% endfor %}
-								</p>
-								<p>
-									{{ form.category.label }}
+								</div> -->
+								<div class="form-group">
+									<label class="feedback-label" for="email">Email</label>
+									<input type="text" class="form-control" id="email" name="email" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$">
+									<small class="form-text text-muted">La tua mail è sacra: la useremo solo per chiederti chiarimenti o per avvertirti che il problema è risolto.</small>
+								</div>
+								<div class="form-group">
+									<!-- {{ form.category.label }}
 									{{ form.category() }}
 									{% for error in form.category.errors %}
 							    	<span style="color: red;">[{{ error }}]</span>
-							    {% endfor %}
-								</p>
-								<p>
-									{{ form.searched_string.label }}
-									{{ form.searched_string(size=32) }}
-								</p>
-								<p>
-									{{ form.found_string.label }}
-									{{ form.found_string(size=32) }}
-								</p>
-								<p>
-							    {{ form.feedback.label }}<br>
+							    {% endfor %} -->
+									<label class="feedback-label" for="category">Oggetto</label>
+									<select class="form-control" id="category" name="category">
+										{% for num,choice in form.category.choices %}
+										<option value={{num}}>{{choice}}</option>
+										{% endfor %}
+										<!-- <option selected>Oggetto non specificato</option>
+										<option>Indirizzo sbagliato</option>
+										<option>Strada sbagliata</option>
+										<option>Problemi di grafica</option>
+										<option>Proposta di miglioramento</option>
+										<option>Altro</option> -->
+									</select>
+								</div>
+								<div class="form-group">
+									<div class="row" id="form-search-address" style="display:none;">
+										<div class="col">
+										<!-- {{ form.searched_string.label }}
+										{{ form.searched_string(size=32) }} -->
+											<label class="feedback-label" for="searched_string">Ricerca</label>
+											<input type="text" class="form-control" id="searched_string" name="searched_string" placeholder="Cosa hai cercato" readonly>
+										</div>
+									</div>
+									<div class="row" id="form-search-path" style="display:none;">
+										<div class="col-6">
+											<label class="feedback-label" for="searched_start">Partenza</label>
+											<input type="text" class="form-control" id="searched_start" name="searched_start" placeholder="La partenza che hai cercato" readonly>
+										</div>
+										<div class="col-6">
+											<label class="feedback-label" for="searched_end">Arrivo</label>
+											<input type="text" class="form-control" id="searched_end" name="searched_end" placeholder="L'arrivo che hai cercato" readonly>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<!-- {{ form.found_string.label }}
+									{{ form.found_string(size=32) }} -->
+									<div class="row" id="form-found-address" style="display:none;">
+										<div class="col">
+											<label class="feedback-label" for="found_string">Risultato</label>
+											<input type="text" class="form-control" id="found_string" name="found_string" placeholder="Quello che abbiamo trovato" readonly>
+										</div>
+									</div>
+									<div class="row" id="form-found-path" style="display:none;">
+										<div class="col-6">
+											<label class="feedback-label" for="found_start">Risultato partenza</label>
+											<input type="text" class="form-control" id="found_start" name="found_start" placeholder="La partenza che hai cercato" readonly>
+										</div>
+										<div class="col-6">
+											<label class="feedback-label" for="found_end">Risultato arrivo</label>
+											<input type="text" class="form-control" id="found_end" name="found_end" placeholder="L'arrivo che hai cercato" readonly>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+							    <!-- {{ form.feedback.label }}<br>
 							    {{ form.feedback(cols=50, rows=4) }}<br>
 							    {% for error in form.feedback.errors %}
 							    <span style="color: red;">[{{ error }}]</span>
-							    {% endfor %}
-							  </p>
-								<p>
+							    {% endfor %} -->
+									<label class="feedback-label" for="feedback">Problema o feedback</label>
+									<textarea class="form-control" id="feedback" name="feedback" rows="3"></textarea>
+									<small class="form-text text-muted">Più informazioni ci dai più semplice sarà per noi capire il problema e risolverlo!</small>
+							  </div>
+								<input type=hidden name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
+								<!-- <p>
 									{{ form.submit() }}
-								</p>
+								</p> -->
+								<button type="submit" class="btn btn-secondary">Invia</button>
 							</form>
 							</div>
-							<div id="grazieid">
-								<p> Grazie per il tuo feedback! </p>
-							</div>
-
+							<script>
+								function formShowAddressField(){
+									document.getElementById("form-search-path").style.display = 'none';
+									document.getElementById("form-found-path").style.display = 'none';
+									document.getElementById("form-search-address").style.display = 'block';
+									document.getElementById("form-found-address").style.display = 'block';
+								};
+							</script>
 						</div>
 					</div>
 				</div>
 			</div>
-
-		 	<!--SETTING WINDOW: da buttar via mi sa una volta che impariamo il modal-->
-			<div class="settings_window w3-animate-left" id="dequa_setting_window" style="display: none">
-				<span class="right"><a onclick="hideSettingsWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a></span>
-				<div class="w3-row-padding setting_icon">
-					<div class="w3-col s6">
-						<button class="fa fa-question dequa_area" onclick="showHelpWindow()">
-							<br>Aiuto
-					</div>
-					<div class="w3-col s6">
-						<button class="fa fa-exclamation-triangle dequa_area" onclick="showFeedbackWindow()">
-							<br>Feedback
-					</div>
-				</div>
-				<div class="w3-row-padding setting_icon">
-					<div class="w3-col s6 not-allowed">
-						<button class="fa fa-users dequa_area" onclick="window.open('/info');">
-							<br>Info
-					</div>
-					<div class="w3-col s6">
-						<button class="fa fa-github dequa_area" onclick="window.open('https://github.com/Lychfindel/v4w_website');">
-							<br>Codice
-					</div>
-				</div>
-			</div>
-
-	<div class="helpwindowpopup" id="helpwindow" style="display: none">
-		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
-		<p class="w3-medium"><b>COSA POSSO FARE?</b></p><br>
-		<p class="w3-small">Cerca il tuo indirizzo, o cerca un percorso tra due punti.<br>
-		<br>
-		Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
-		<br>
-		Ciononostante, le funzionalità basiche dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
-		e le strade anche! <br>
-		Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
-		o calcolare il percorso iin barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
-		Se trovate qualcosa che non va o volete dirci qualcosa, scriveteci a <a href="mailto:info@dequa.it">info@dequa.it!</a><br>
-		Se preferite, il form per il feedback si trova nel menu!<br>
-		<br>
-		Buona giornata.<br>
-		I fioi.<br>
-
-		<br>
-		<a onclick="closeHelpWindow()"><button class="btn closebutton">HO CAPITO</button></a>
-		</p>
-
-	</div>
-	<div class="feedbackwindowpopup" id="feedbackwindow" style="display: none">
-		<a onclick="changeFeedbackandClose()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
-		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
-		<div id="formid">
-		<form action="" method="post">
-			{{ form.hidden_tag() }}
-			<p>
-				{{ form.name.label }}
-				{{ form.name(size=32) }} <br>
-				{% for error in form.name.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.email.label }}
-				{{ form.email(size=32) }} <br>
-				{% for error in form.email.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.category.label }}
-				{{ form.category() }}
-				{% for error in form.category.errors %}
-		    	<span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-			</p>
-			<p>
-				{{ form.searched_string.label }}
-				{{ form.searched_string(size=32) }}
-			</p>
-			<p>
-				{{ form.found_string.label }}
-				{{ form.found_string(size=32) }}
-			</p>
-			<p>
-		    {{ form.feedback.label }}<br>
-		    {{ form.feedback(cols=50, rows=4) }}<br>
-		    {% for error in form.feedback.errors %}
-		    <span style="color: red;">[{{ error }}]</span>
-		    {% endfor %}
-		  </p>
-			<p>
-				{{ form.submit() }}
-			</p>
-		</form>
 		</div>
-		<div id="grazieid">
-			<p> Grazie per il tuo feedback! </p>
 		</div>
+	</div> <!-- Close map container -->
+</div> <!-- Close container -->
 
-	</div>
-</div>
-</div>
-
-<script>
-    closeHelpWindow();
-    closeFeedbackWindow();
-    toggleFeedbackWindowLayout();
-</script>
 <script>
 		var popup = L.popup();
 
@@ -615,12 +605,19 @@
 		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
 		//var result = JSON.parse({{ results_dictionary | tojson }});
 		var dict_in_JS = {{results_dictionary | tojson}};
+		console.log("dict: ",dict_in_JS);
+		// Set values on feedback window
+		setValuesInFeedbackWindow(dict_in_JS);
+
 		if (dict_in_JS == "None") {
 			mymap.setView([45.435, 12.333], 15);
 		} else if ("error" in dict_in_JS) {
 			mymap.setView([45.435, 12.333], 15);
 			console.log("error: " + dict_in_JS.msg)
-			alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
+			document.getElementById("errorwindow-explanation").innerHTML = dict_in_JS.msg;
+			document.getElementById("errorwindow").style.display = 'block';
+			//alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
+
 		} else {
 			mymap.setView([45.435, 12.333], 15);
 			// options for all markers
@@ -659,8 +656,9 @@
 					showResultsWindow('single_address');
 					console.log("shown a single address result")
 					var name_location = dict_in_JS.how_to_get_there.da;
+					var name_found = dict_in_JS.partenza[0].nome;
 					document.getElementById('search_field_1').value = name_location
-					document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
+					document.getElementById("found_text").innerHTML = "<i>"+name_found+"</i>";
 					switch(geo_type) {
 						case -2:
 							// do nothing - pagina senza ricerca_ind
@@ -745,7 +743,6 @@
 					var street = dict_in_JS.path;
 					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
 					//console.log("steets: " + streets);
-					console.log("street: " + street);
 					path_shapes = street.shape_list;
 						//var linestrings = L.geoJSON(path_shapes, {'style':stile});
 					var linestrings = L.geoJSON(path_shapes, {
@@ -761,7 +758,6 @@
 					        }
 					    }
 					}).addTo(mymap);
-					console.log("strada: " + path_shapes);
 					linestrings.addTo(group);
 					mymap.fitBounds(group.getBounds(), {padding: [10, 10]});
 					// javascript way to call a method in the for loop

@@ -34,42 +34,42 @@ console.log("Is touch device? "+isTouchDevice);
 	In the window a button to close it should be available, calling closeHelpWindow().
 	The actual happening is just making the element with id "helpwindow" visible.
 */
-function showHelpWindow() {
-	hideSettingsWindow();
-	document.getElementById("helpwindow").style.display = "block";
-	document.getElementById("searchbar").style.display = "none";
-	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
-	for (i = 0; i < thingstoBeHidden.length; i++) {
-		thingstoBeHidden[i].style.display = "none";
-	}
-}
+// function showHelpWindow() {
+// 	hideSettingsWindow();
+// 	document.getElementById("helpwindow").style.display = "block";
+// 	document.getElementById("searchbar").style.display = "none";
+// 	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
+// 	for (i = 0; i < thingstoBeHidden.length; i++) {
+// 		thingstoBeHidden[i].style.display = "none";
+// 	}
+// }
 
 /* Close the window visualizing a help message on how to make the correct search.
 	The actual happening is just making the element with id "helpwindow" invisible.
 */
-function closeHelpWindow() {
-	document.getElementById("mapid").style.opacity = 1.0;
-	document.getElementById("helpwindow").style.display = "none";
-	document.getElementById("searchbar").style.display = "block";
-	var thingstoBeShown = document.getElementsByClassName("onlyMap");
-	for (i = 0; i < thingstoBeShown.length; i++) {
-		thingstoBeShown[i].style.display = "inline";
-	}
-}
+// function closeHelpWindow() {
+// 	document.getElementById("mapid").style.opacity = 1.0;
+// 	document.getElementById("helpwindow").style.display = "none";
+// 	document.getElementById("searchbar").style.display = "block";
+// 	var thingstoBeShown = document.getElementsByClassName("onlyMap");
+// 	for (i = 0; i < thingstoBeShown.length; i++) {
+// 		thingstoBeShown[i].style.display = "inline";
+// 	}
+// }
 
 /* Open a window visualizing a help message on how to make the correct search.
 	In the window a button to close it should be available, calling closeHelpWindow().
 	The actual happening is just making the element with id "helpwindow" visible.
 */
-function showFeedbackWindow() {
-	hideSettingsWindow();
-	document.getElementById("feedbackwindow").style.display = "block";
-	document.getElementById("searchbar").style.display = "none";
-	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
-	for (i = 0; i < thingstoBeHidden.length; i++) {
-		thingstoBeHidden[i].style.display = "none";
-	}
-}
+// function showFeedbackWindow() {
+// 	hideSettingsWindow();
+// 	document.getElementById("feedbackwindow").style.display = "block";
+// 	document.getElementById("searchbar").style.display = "none";
+// 	var thingstoBeHidden = document.getElementsByClassName("onlyMap");
+// 	for (i = 0; i < thingstoBeHidden.length; i++) {
+// 		thingstoBeHidden[i].style.display = "none";
+// 	}
+// }
 
 /* Close the window visualizing a help message on how to make the correct search.
 	The actual happening is just making the element with id "helpwindow" invisible.
@@ -104,6 +104,48 @@ function closeFeedbackWindow() {
 	for (i = 0; i < thingstoBeShown.length; i++) {
 		thingstoBeShown[i].style.display = "inline";
 	}
+}
+
+function setValuesInFeedbackWindow(JSdict) {
+  if (JSdict == "None"){
+    return
+  } else if ("error" in JSdict){
+    return
+  } else {
+    // values we found
+    var all_found_start = [];
+    for (found_start of JSdict.partenza){
+      all_found_start.push(found_start.nome);
+    };
+    var all_found_end = [];
+    for (found_end of JSdict.arrivo){
+      all_found_end.push(found_end.nome);
+    };
+
+    // determine what to show
+    if(JSdict.modus_operandi==0 || (JSdict.modus_operandi==2 && JSdict.arrivo == "no_end")) {
+      // show div
+      document.getElementById("form-search-address").style.display = "flex";
+      document.getElementById("form-found-address").style.display = "flex";
+      // write values
+      document.getElementById("searched_string").value = JSdict.searched_start;
+      document.getElementById("found_string").value = all_found_start.join("; ");
+    } else if (JSdict.modus_operandi==1 || JSdict.modus_operandi==2){
+      // show div
+      document.getElementById("found_start").value = all_found_start.join("; ");
+      document.getElementById("found_end").value = all_found_end.join("; ");
+      document.getElementById("form-search-path").style.display = "flex";
+      document.getElementById("form-found-path").style.display = "flex";
+      // write values
+      document.getElementById("searched_start").value = JSdict.searched_start;
+      document.getElementById("searched_end").value = JSdict.searched_end;
+      document.getElementById("found_start").value = all_found_start.join("; ");
+      document.getElementById("found_end").value = all_found_end.join("; ");
+    } else {
+      // do nothing
+      return
+    }
+  }
 }
 
 function searchAgain() {
@@ -304,6 +346,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		if (what_are_we_doing == "choosing_start") {
       document.getElementById("search_field_1").value = searched_start;
 			document.getElementById("search_field_1").style.backgroundColor = "#f44";
+      document.getElementById("search_field_2").value = searched_end;
 		} else if (what_are_we_doing == "choosing_end") {
       document.getElementById("search_field_1").value = start_found.nome;
       document.getElementById("search_field_2").value = searched_end;

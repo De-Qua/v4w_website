@@ -540,7 +540,7 @@ def takeSecond(elem):
     return elem[1]
 
 
-def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process):
+def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process,threshold=98):
     """
     Search the input string using the fuzzy library, returns the best matches.
 
@@ -553,8 +553,8 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
     if isThereaCivico:
         matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_neigh:
-            final_matches.append((m,s,0))
-        if not any([match[1]>98 for match in final_matches]):
+            final_matches.append((m,s))
+        if not any([score>=threshold for match,score in final_matches]):
             matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_street:
                 final_matches.append((m,s))
@@ -563,23 +563,23 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
         matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
         for m,s in matches_street:
             final_matches.append((m,s))
-        if not any([match[1]>98 for match in final_matches]):
+        if not any([score>=threshold for match,score in final_matches]):
             matches_poi = process.extractBests(word,Poi.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_poi:
                 final_matches.append((m,s))
-        if not any([match[1]>98 for match in final_matches]):
+        if not any([score>=threshold for match,score in final_matches]):
             matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_neigh:
                 final_matches.append((m,s))
     final_matches.sort(key=takeSecond, reverse=True)
-    if any([match[1]>98 for match in final_matches]):
+    if any([score>=threshold for match,score in final_matches]):
         exact=True
-        final_matches=[match for match in final_matches if match[1]>98]
+        final_matches=[(match,score) for match,score in final_matches if score>=threshold]
     # se i risultati sono esatti non voglio escludere nessuna soluzione!
     if not exact:
         final_matches = final_matches[0:4]
 
-    return [match[0] for match in final_matches], [match[1] for match in final_matches], exact
+    return [match for match,score in final_matches], [score for match,score in final_matches], exact
 
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no

@@ -3,6 +3,7 @@ This class is an interface between routes.py (the main page where the routing ha
 and the libraries (in libpy), in order to maintain clean the routes page.
 """
 import time
+import datetime
 from app.src.libpy.lib_search import find_closest_nodes, find_closest_edge, find_path_to_closest_riva, find_POI, find_address_in_db, give_me_the_dictionary, are_we_sure_of_the_results
 from app.src.libpy.lib_communication import prepare_our_message_to_javascript
 import pdb
@@ -12,6 +13,8 @@ from sqlalchemy import and_
 from app import app, db
 from app.forms import FeedbackForm
 import numpy as np
+import os
+import json
 
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
@@ -31,13 +34,13 @@ def retrieve_parameters_from_GET(arguments_GET_request):
 
     return params_dict
 
-def take_care_of_the_feedback(form, file_feedback):
+def take_care_of_the_feedback(form, feedback_folder):
     """
     Wrapper that try to validate and write the feedback
     """
     if form.is_submitted():
         if form.validate_on_submit():
-            all_good = write_feedback(form, file_feedback)
+            all_good = write_feedback(form, feedback_folder)
             app.logger.info("feedback inviato")
             return 1
         else:
@@ -45,21 +48,41 @@ def take_care_of_the_feedback(form, file_feedback):
             return 0
 
 
-def write_feedback(form, file_feedback):
+def write_feedback(form, feedback_folder):
     """
-    Just writes the feedback to the given file.
+    Just writes the feedback to the given file as markdown.
     """
-    with open(file_feedback,'a') as f:
-        f.write('*****\n')
-        f.write(time.asctime( time.localtime(time.time()))+"\n")
-        categoria = dict(form.category.choices).get(form.category.data)
-        f.write(categoria+'\n')
-        f.write(form.name.data+'\n')
-        f.write(form.email.data+'\n')
-        f.write(form.searched_string.data+'\n')
-        f.write(form.found_string.data+'\n')
-        f.write(form.feedback.data + "\n")
-        f.write('*****\n')
+    curr_time = datetime.datetime.now()
+    file_feedback = os.path.join(feedback_folder,"dequa_fb_"+curr_time.strftime("%Y%m%d-%H%M%S.%f")+".md")
+    with open(file_feedback,'w+') as f:
+        f.write('<h1>***** DEQUA FEEDBACK ***** </h1>\n')
+        f.write('<h2>Website version</h2>\n')
+        f.write('0.0.0\n')
+        f.write('<h2>Time</h2>\n')
+        f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
+        category = dict(form.category.choices).get(form.category.data)
+        f.write('<h2>Category</h2>\n')
+        f.write(category+'\n')
+        dict_data_title = {
+            'name': 'Name',
+            'email': 'Email',
+            'searched_string': 'Searched string',
+            'searched_start': 'Searched start',
+            'searched_end': 'Searched end',
+            'found_string': 'Result string',
+            'found_start': 'Result start',
+            'found_end': 'Result end',
+            'feedback': 'Comments',
+        }
+        for (data,title) in dict_data_title.items():
+            value = form[data].data
+            if value:
+                f.write('<h2>'+title+'</h2>\n')
+                f.write(value+'\n')
+        # write json file
+        f.write('<h2>JSON</h2>\n')
+        dictJson = json.loads(form['dictJS'].data)
+        f.write(json.dumps(dictJson,indent=2))
 
 def ask_yourself(params_research):
     """
@@ -121,25 +144,23 @@ def find_what_needs_to_be_found(params_research, G_objects):
 
         t0=time.perf_counter()
         match_dict_da = lib_search.give_me_the_dictionary(da)
+        match_dict_a = lib_search.give_me_the_dictionary(a)
 
         #match_dict_a = dict() #lib_search.give_me_the_dictionary(a)
         app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
 
-        if not are_we_sure_of_the_results(match_dict_da):
-
-            app.logger.debug("non siamo sicuri di da")
-            # non siamo sicuro di da!
+        if not are_we_sure_of_the_results(match_dict_da) or not are_we_sure_of_the_results(match_dict_a):
+            start_type = "unique"
+            end_type = "unique"
             modus_operandi = 2
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, start_type='multiple')
-            return final_dict
-        #else:
-        match_dict_a = lib_search.give_me_the_dictionary(a)
+            if not are_we_sure_of_the_results(match_dict_da):
+                start_type = "multiple"
+                app.logger.debug("non siamo sicuri di da")
+            if not are_we_sure_of_the_results(match_dict_a):
+                end_type = "multiple"
+                app.logger.debug("non siamo sicuri di a")
 
-        if not are_we_sure_of_the_results(match_dict_a):
-
-            app.logger.debug("non siamo sicuri di a")
-            modus_operandi = 2
-            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, dict_of_end_locations_candidates=match_dict_a, start_type='unique', end_type='multiple')
+            final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, dict_of_end_locations_candidates=match_dict_a, start_type=start_type, end_type=end_type)
 
         else:
 

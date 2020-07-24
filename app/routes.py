@@ -26,7 +26,9 @@ app.logger.info("loading the graphs..")
 G_terra, G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
 G_objects = {'land_graph':G_terra, 'water_graph':G_acqua}
 
-file_feedback = os.path.join(folder,"file_feedback.txt")
+feedback_folder = os.path.join(folder,"feedback")
+if not os.path.exists(feedback_folder):
+    os.mkdir(feedback_folder)
 
 html_file = 'dequa_map.html'
 app.logger.setLevel(1)
@@ -59,13 +61,14 @@ def navigation():
         # se e stato inviato il form, scriviamo sul feedback file
         # anche questo da spostare su un metodo
 
-        form.searched_string.data = params_research['da'] # equivalente al precedente "da"
+        # form.searched_string.data = params_research['da'] # equivalente al precedente "da"
         t0=time.perf_counter()
         if request.method == 'POST':
-            feedbacksent = interface.take_care_of_the_feedback(form, file_feedback)
-            return render_template(html_file, geo_type=geo_type, start_coordx=-1,
-                searched_name=da, start_name=start_name,
-                form=form, feedbacksent=feedbacksent)
+            feedbacksent = interface.take_care_of_the_feedback(form, feedback_folder)
+            # return render_template(html_file, geo_type=geo_type, start_coordx=-1,
+            #     searched_name=da, start_name=start_name,
+            #     form=form, feedbacksent=feedbacksent)
+            return render_template(html_file, form=form, results_dictionary="None", feedbacksent=feedbacksent)
                 # non sono 100% sicuro che form vada ritornato sempre (nel caso precedente era ritornato solo in caso di 0)
                 # ma dovrebbe funzionare
         # altrimenti, dobbiamo fare qualocsa

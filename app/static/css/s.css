@@ -438,3 +438,14 @@ body, html {height: 100%}
     transform: translate(-50%, 0%);
 		z-index: 100;
 }
+
+.feedback-label {
+	font-size: 1rem;
+}
+
+.icon-dequa {
+  display: block;
+  background-image: url('/static/img/dequa_logo_v2.png');
+	height: 16px;
+  width: 16px;
+}

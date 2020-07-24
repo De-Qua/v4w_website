@@ -137,6 +137,7 @@ dmypy.json
 # v4w useless files
 file_feedback.txt
 log_ricerca/*
+feedback/*
 
 # database
 *.db-journal
