@@ -49,28 +49,6 @@ def find_closest_nodes(dict_list,G_array):
 
 from app.src.libpy.pyAny_lib import calculate_path
 
-def find_path_to_closest_riva(G_un, coords_start, rive_list):
-    """
-    It finds the path to the closest riva with respect to the starting coordinates. coords_start and rive_list are nodes of G_un
-    """
-    length_paths=[]
-    paths=[]
-    for riva in rive_list:
-        path, length = calculate_path(G_un, coords_start, riva, flag_ponti=True)
-#        print("percorso calcolato per questa riva: ", bool(path) )
-        if path:
-            length_paths.append(length)
-            paths.append(path)
-
-    # qua abbiamo la lista delle strade
-    print("quanto sono lunghe le strade?????????????????????", length_paths)
-    np_lengths = np.asarray(length_paths)
-    idx_shortest_path = np.argmin(np_lengths)
-    shortest_path = paths[idx_shortest_path]
-
-    # la riva sara l'ultimo nodo della strada
-    # closest_riva = shortest_path[-1]
-    return shortest_path
 
 def add_from_strada_to_porta(path, da, a):
 

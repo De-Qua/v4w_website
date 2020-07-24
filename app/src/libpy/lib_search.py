@@ -237,21 +237,34 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
     length_paths=[]
     paths=[]
     for riva in rive_list:
-        path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti)
-#        print("percorso calcolato per questa riva: ", bool(path) )
-        if path:
+        try:
+            path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti)
             length_paths.append(length)
             paths.append(path)
+            #     print("percorso calcolato per questa riva: ", bool(path) )
+        except:
+            continue
 
-    # qua abbiamo la lista delle strade
-    app.logger.debug("quanto sono lunghe le strade? {}".format(length_paths))
-    np_lengths = np.asarray(length_paths)
-    idx_shortest_path = np.argmin(np_lengths)
-    shortest_path = paths[idx_shortest_path]
-    chosen_riva = shortest_path[-1]
-    app.logger.debug("la piu corta e la strada con indice {} e il punto d'arrivo e' {}".format(idx_shortest_path,chosen_riva))
-    app.logger.debug("ora ricalcolo per il dizionario con le info")
-    path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti)
+    if paths:
+        # qua abbiamo la lista delle strade
+        app.logger.debug("quanto sono lunghe le strade? {}".format(length_paths))
+        np_lengths = np.asarray(length_paths)
+        idx_shortest_path = np.argmin(np_lengths)
+        shortest_path = paths[idx_shortest_path]
+        chosen_riva = shortest_path[-1]
+        app.logger.debug("la piu corta e la strada con indice {} e il punto d'arrivo e' {}".format(idx_shortest_path,chosen_riva))
+        app.logger.debug("ora ricalcolo per il dizionario con le info")
+        path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti)
+    else:
+        app.logger.debug("le rive vicine non sono raggiungibili")
+        chosen_riva=-1
+        path_info={'lunghezza':0,
+                   'human_readable_length':0,
+                   'time':0,
+                   'human_readable_time':0,
+                   'n_ponti':0,
+                   'shape_list':[]
+        }
 
     # la riva sara l'ultimo nodo della strada
     # closest_riva = shortest_path[-1]
