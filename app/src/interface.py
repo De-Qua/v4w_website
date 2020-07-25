@@ -94,15 +94,24 @@ def take_care_of_the_error(request,err,error_folder):
     file_error_name = os.path.join(error_folder,"dequa_err_"+curr_time.strftime("%Y%m%d-%H%M%S.%f"))
     file_error_pickle = file_error_name+".err"
     file_error_md = file_error_name+".md"
+    request_to_save = {
+        'headers': request.headers.to_wsgi_list(),
+        'method': request.method,
+        'user_agent': request.user_agent,
+        'url': request.url,
+        'args': request.args,
+        'form': request.form,
+    }
     error_info = {
         'time': curr_time,
         'version': getCurrentVersion(),
-        'request': request,
+        'request': request_to_save,
         'error': err,
         'traceback': traceback.format_exc(),
         'markdown': file_error_md
     }
     # save info in a pickle file
+    pdb.set_trace()
     pickle.dump(error_info, open(file_error_pickle,"wb"))
     # save info in a md file
     with open(file_error_md,'w+') as f:
