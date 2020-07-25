@@ -182,6 +182,7 @@ def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
     time=0
     lunghezza = 0.0
     n_ponti=0
+    last_edge_was_a_bridge = False
     for i in range(len(path_nodes)-1):
         isBridge = 0
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
@@ -199,12 +200,15 @@ def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
             isBridge = edge_attuale['ponte']
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
+                if not last_edge_was_a_bridge:
+                    n_ponti += 1
+                last_edge_was_a_bridge = True
             else:
                 edge_info_dict['street_type'] = 'calle'
+                last_edge_was_a_bridge = False
 
             edge_info_dict['bridge'] = isBridge
-            if isBridge:
-                n_ponti += 1
+
         time += how_long_does_it_take_from_a_to_b(edge_attuale['length'], speed, isBridge)
         lunghezza += edge_attuale['length']
         geojson = {
