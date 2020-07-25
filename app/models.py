@@ -66,14 +66,17 @@ class Location(db.Model):
     # cosa ritorniamo da __str__
     def __str__(self):
         if self.housenumber and self.street:
-            return "{street} {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
-        else:
-            return "{lat},{lon}".format(lat=self.latitude,lon=self.longitude)
-    def get_description(self):
-        if self.housenumber:
             return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
         else:
-            return "{street} ({neighborhood})".format(street=self.street.name,neighborhood=self.neighborhood.name)
+            return "({neighborhood}) {lat},{lon}".format(neighborhood=self.neighborhood.name,lat=self.latitude,lon=self.longitude)
+    def get_description(self):
+        try:
+            if self.housenumber:
+                return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+            else:
+                return "{street} ({neighborhood})".format(street=self.street.name,neighborhood=self.neighborhood.name)
+        except:
+            return self.__repr__()
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
@@ -130,8 +133,11 @@ class Street(db.Model):
     def __str__(self):
         return self.name
     def get_description(self):
-        return "{name} ({neighborhood})".join(name=self.name,neighborhood=self.neighborhood)
-
+        try:
+            all_neighb = [n.name for n in self.neighborhoods.all()]
+            return "{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
+        except:
+            return self.__repr__()
 """
 Sestieri:
  - name: nome del sestiere (consideriamo anche Sant'Elena e le isole)
@@ -190,8 +196,11 @@ class Poi(db.Model):
     def is_type(self,type):
         return self.types.filter(poi_types.c.type_id==type.id).count() > 0
     def get_description(self):
-        return "{name}\nAddress: {address})".format(
-        name=self.name, address=self.location)
+        try:
+            return "{name}<br>Address: {address}<br>Type: {types})".format(
+            name=self.name, address=self.location, types=', '.join([t.__str__() for t in self.types.all()]))
+        except:
+            return self.__repr__()
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,

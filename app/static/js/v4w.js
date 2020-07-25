@@ -257,10 +257,10 @@ function showResultsWindow(result_type) {
 var activeCard = '';
 /* show possibilities window / differnet mobile and desktop */
 function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_doing, searched_start, searched_end, start_found) {
-	console.log("At the beginning: ",markerOptions)
 	var cur_result_coords = '';
 	var div ='';
 	var cur_result_name = '';
+  var cur_result_description = '';
 	all_possibilities_div = document.createElement('div');
 	if (areWeUsingBottomBar()){
 		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
@@ -268,6 +268,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
+    cur_result_description = possibilities[i].descrizione;
 		card = document.createElement('div');
 		if (areWeUsingBottomBar()){
 			card.setAttribute('class', 'card possibilities_result col-6');
@@ -277,6 +278,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
     card.name = cur_result_name;
+    card.description = cur_result_description;
 
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
@@ -287,8 +289,8 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		//card_header.onclick = function() {stopPropagation();};
 		card_body = document.createElement('div');
 		card_body.setAttribute('class','card-body');
-		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Coordinate:</h6>'
-													+ '<p class="card-text">'+cur_result_coords+'</p>';
+		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Descrizione:</h6>'
+													+ '<p class="card-text">'+cur_result_description+'</p>';
 		if (isTouchDevice){
 			card.onclick = function () {
 				if (activeCard == this){
@@ -319,18 +321,14 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		// console.log(div);
 		console.log("for this div we searched "+searched_end);
 		//document.getElementById("possibilitiesFather").appendChild(div);
-		console.log("General options: ",markerOptions)
 		var curMarkerOptions = markerOptions;
-		console.log("Current options: ",markerOptions)
 		curMarkerOptions["title"] = cur_result_name;
-		console.log("Current options after if: ",markerOptions)
-		console.log("cur_result_name: "+cur_result_name)
 		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
 
 		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
 		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, cur_result_name, searched_end, start_found)
 
-		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b></br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
+		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description+"<br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
 
 		possibilitiesLayer.addLayer(marker).addTo(map);
 	}

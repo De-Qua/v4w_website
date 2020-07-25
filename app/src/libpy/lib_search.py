@@ -300,6 +300,7 @@ def create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_
         "geometry": dict(mapping(coordinate_as_shapely_point))
     }
     fake_result_dict = [{"nome":"Lat {:2.8f}, Long {:2.8f}".format(coordinate_current_position[0], coordinate_current_position[1]),
+                "descrizione": "",
                 "coordinate":coordinate_current_position,
                 "shape":coordinate_as_shapely_point,
                 "geotype":0, # marker
@@ -353,7 +354,7 @@ def find_address_in_db(input_string):
         app.logger.warning("Non abbiamo trovato nulla nel database!")
         raise Exception("Non abbiamo trovato nessuna corrispondenza con {} sicuro di aver scritto bene?".format(input_string))
     else:
-        for i,address in enumerate(address_list):
+        for address, score in zip(address_list,score_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             if geo_type>=0:
@@ -370,11 +371,12 @@ def find_address_in_db(input_string):
                     "geometry": dict(mapping(polygon_shape))
                 }
                 result_dict.append({"nome":nome,
+                            "descrizione":address.get_description(),
                             "coordinate":coordinates,
                             #"shape":polygon_shape_as_list,
                             "shape":polygon_shape,
                             "geotype":geo_type,
-                            "score":score_list[i],
+                            "score":score,
                             "exact":exact,
                             "geojson":geojson
                             })
