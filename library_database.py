@@ -75,7 +75,7 @@ def convert_SHP(shp_file, explain=False):
     If not already, convert the shapefile to WGS 84.
     """
 
-    if StrictVersion(pyproj.__version__) >= StrictVersion("2.2"):
+    if StrictVersion(pyproj.__version__[:3]) >= StrictVersion("2.2"):
         crs_attr = shp_file.crs.name
     else:
         warnings.warn("PyProj version should be at least 2.2\nSee why here, the crs field changed https://geopandas.readthedocs.io/en/latest/projections.html",
@@ -831,7 +831,7 @@ def update_waterPois(posti,type='all',explain=False):
     except:
         db.session.rollback()
         warnings.warn("Errore nel commit")
-        
+
     return err_poi
 
 def update_taxi(posti,explain):
