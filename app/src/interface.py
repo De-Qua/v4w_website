@@ -111,7 +111,6 @@ def take_care_of_the_error(request,err,error_folder):
         'markdown': file_error_md
     }
     # save info in a pickle file
-    pdb.set_trace()
     pickle.dump(error_info, open(file_error_pickle,"wb"))
     # save info in a md file
     with open(file_error_md,'w+') as f:
