@@ -294,18 +294,20 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		if (isTouchDevice){
 			card.onclick = function () {
 				if (activeCard == this){
-					clearHighlight();
+					clearHighlight(this);
 					goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
 				} else{
+          if (activeCard != ''){
+            clearHighlight(activeCard);
+          }
 					activeCard = this;
-					clearHighlight();
 					showHighlight(this);
 				};
 			};
 		} else {
 			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
 			card.onmouseover = function() {showHighlight(this)};
-			card.onmouseout = function() {clearHighlight();};
+			card.onmouseout = function() {clearHighlight(this);};
 		}
 		card.appendChild(card_header)
 		card.appendChild(card_body)
@@ -503,8 +505,16 @@ function showHighlight(card) {
 	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
 	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
 	console.log("highlight: "+ highlight);
+  // highlight the card
+  // childNodes[0] = header; childNodes[1] = body
+  card.childNodes[0].style.background = "#bbb";
+  card.childNodes[1].style.background = "#ccc";
 }
 
-function clearHighlight() {
+function clearHighlight(card) {
   highlight.clearLayers();
+  // dehighlight the card
+  // childNodes[0] = header; childNodes[1] = body
+  card.childNodes[0].style.background = "rgb(247, 247, 247)";
+  card.childNodes[1].style.background = "rgb(255, 255, 255)";
 }

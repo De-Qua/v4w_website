@@ -250,14 +250,25 @@ body, html {height: 100%}
 	padding: 0.5rem;
 }*/
 
-.possibilities_result:hover ~ .sibling-marker {
+/* .possibilities_result:hover ~ .sibling-marker {
   box-shadow: 5px 5px 10px blue;
-}
+} */
 
-.possibilities_result:hover {
-	background: #bbb;
+.possibilities_result:hover{
 	cursor: pointer;
 }
+/* .possibilities_result:hover .card-header{
+	background: #bbb;
+}
+.possibilities_result:hover .card-body{
+	background: #ccc;
+}
+.possibilities_result:active .card-header{
+	background: #bbb;
+}
+.possibilities_result:active .card-body{
+	background: #ccc;
+} */
 
 .setting_icon {
 	padding: 2rem;
