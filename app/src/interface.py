@@ -15,6 +15,8 @@ from app.forms import FeedbackForm
 import numpy as np
 import os
 import json
+import pickle
+import traceback
 
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
@@ -45,7 +47,7 @@ def take_care_of_the_feedback(form, feedback_folder):
             return 1
         else:
             app.logger.info('errore nel feedback')
-            return 0
+            return -1
 
 
 def write_feedback(form, feedback_folder):
@@ -83,6 +85,45 @@ def write_feedback(form, feedback_folder):
         f.write('<h2>JSON</h2>\n')
         dictJson = json.loads(form['dictJS'].data)
         f.write(json.dumps(dictJson,indent=2))
+
+def take_care_of_the_error(request,err,error_folder):
+    """
+    Wrapper that write the error log
+    """
+    curr_time = datetime.datetime.now()
+    file_error_name = os.path.join(error_folder,"dequa_err_"+curr_time.strftime("%Y%m%d-%H%M%S.%f"))
+    file_error_pickle = file_error_name+".err"
+    file_error_md = file_error_name+".md"
+    error_info = {
+        'time': curr_time,
+        'version': "0.0.0",
+        'request': request,
+        'error': err,
+        'traceback': traceback.format_exc(),
+        'markdown': file_error_md
+    }
+    # save info in a pickle file
+    pickle.dump(error_info, open(file_error_pickle,"wb"))
+    # save info in a md file
+    with open(file_error_md,'w+') as f:
+        f.write('<h1>***** DEQUA ERROR ***** </h1>\n')
+        f.write('<h2>Website version</h2>\n')
+        f.write('0.0.0\n')
+        f.write('<h2>Time</h2>\n')
+        f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
+        f.write('<h2>Error type</h2>\n')
+        f.write(type(err).__name__+'\n')
+        f.write('<h2>Error message</h2>\n')
+        f.write(str(err)+'\n')
+        f.write('<h2>URL</h2>\n')
+        f.write(request.url+'\n')
+        f.write('<h2>Method</h2>\n')
+        f.write(request.method+'\n')
+        f.write('<h2>Browser</h2>\n')
+        f.write(request.user_agent.string+'\n')
+        f.write('<h2>Pickle file</h2>')
+        f.write(file_error_pickle+'\n')
+
 
 def ask_yourself(params_research):
     """
@@ -192,7 +233,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list,flag_ponti=params_research["less_bridges"]=="on")
                 if riva_stop==-1:
                     riva_stop=stop_coord
-                
+
                 #print("riva stop", riva_stop)
                 t2=time.perf_counter()
                 # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!

@@ -138,6 +138,7 @@ dmypy.json
 file_feedback.txt
 log_ricerca/*
 feedback/*
+error/*
 
 # database
 *.db-journal

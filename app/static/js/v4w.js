@@ -74,27 +74,27 @@ console.log("Is touch device? "+isTouchDevice);
 /* Close the window visualizing a help message on how to make the correct search.
 	The actual happening is just making the element with id "helpwindow" invisible.
 */
-function changeFeedbackandClose() {
-	console.log("Prima: ");
-	console.log(feedbackjs);
-	feedbackjs = 0;
-	console.log("Dopo: ")
-	console.log(feedbackjs);
-	toggleFeedbackWindowLayout();
-	closeFeedbackWindow();
-}
-
-function toggleFeedbackWindowLayout() {
-	if (feedbackjs == 0) {
-		document.getElementById("formid").style.display = "block";
-		document.getElementById("grazieid").style.display = "none";
-	}
-	else if (feedbackjs == 1) {
-		showFeedbackWindow();
-		document.getElementById("formid").style.display = "none";
-		document.getElementById("grazieid").style.display = "block";
-	}
-}
+// function changeFeedbackandClose() {
+// 	console.log("Prima: ");
+// 	console.log(feedbackjs);
+// 	feedbackjs = 0;
+// 	console.log("Dopo: ")
+// 	console.log(feedbackjs);
+// 	toggleFeedbackWindowLayout();
+// 	closeFeedbackWindow();
+// }
+//
+// function toggleFeedbackWindowLayout() {
+// 	if (feedbackjs == 0) {
+// 		document.getElementById("formid").style.display = "block";
+// 		document.getElementById("grazieid").style.display = "none";
+// 	}
+// 	else if (feedbackjs == 1) {
+// 		showFeedbackWindow();
+// 		document.getElementById("formid").style.display = "none";
+// 		document.getElementById("grazieid").style.display = "block";
+// 	}
+// }
 
 function closeFeedbackWindow() {
 	document.getElementById("mapid").style.opacity = 1.0;

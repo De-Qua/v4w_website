@@ -27,8 +27,11 @@ G_terra, G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_a
 G_objects = {'land_graph':G_terra, 'water_graph':G_acqua}
 
 feedback_folder = os.path.join(folder,"feedback")
+error_folder = os.path.join(folder,"error")
 if not os.path.exists(feedback_folder):
     os.mkdir(feedback_folder)
+if not os.path.exists(error_folder):
+    os.mkdir(error_folder)
 
 html_file = 'dequa_map.html'
 app.logger.setLevel(1)
@@ -76,6 +79,7 @@ def navigation():
             dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research, G_objects)
             return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
     except Exception as e:
+        interface.take_care_of_the_error(request,e,error_folder)
         dictionary_of_err = {"error": True,
                             "repr": repr(e),
                             "type": type(e).__name__,

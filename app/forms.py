@@ -12,6 +12,6 @@ class FeedbackForm(FlaskForm):
     found_string = StringField('Risultato')
     found_start = StringField('Risultato partenza')
     found_end = StringField('Risultato arrivo')
-    feedback = TextAreaField('Problema o feedback', validators=[DataRequired()])
+    feedback = TextAreaField('Problema o feedback')
     dictJS = StringField("Dict JS")
     submit = SubmitField('Invia')
