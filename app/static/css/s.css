@@ -175,14 +175,14 @@ body, html {height: 100%}
 }
 .loader {
 	z-index: 100;
-  width: 20%;
-  height: 20%;
+  width: 50%;
+  height: 50%;
   text-align: left;
   position: fixed;
-  top: 40%;
-  left: 45%;
-  margin-left:-70px;
-  margin-top:-50px;
+  top: 33%;
+  left: 50%;
+  margin-left:0px;
+  margin-top:0px;
 }
 .transparent {
 	opacity: 0.3;
@@ -337,13 +337,14 @@ body, html {height: 100%}
   max-width: 100%;
   float: left;
 }
-
 .map-container{
 	position:relative;
 	height: 100%;
 	width: auto;
 }
-@media screen and (max-width: 812px) {
+.shrinkedMapForBottomBar{
+}
+@media screen and (max-width: 812px) and (orientation: portrait) {
 
 /*#possibilities_search_desktop {display: none;}
 	#possibilities_search_mobile {display: block;}*/
@@ -358,13 +359,17 @@ body, html {height: 100%}
 	}
 	#sidebar{
 		width: 100%;
-		height: 25%;
+		height: 33%;
 		max-width: 100%;
 		position: absolute;
 		bottom: 0;
 		overflow-x: auto;
 	}
+	.shrinkedMapForBottomBar{
+		height: 67%;
+	}
 }
+
 #container {
   height: 100%;
   width: 100%;

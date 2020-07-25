@@ -67,7 +67,10 @@
 	</div>
 
 	<div class="loader" style="display:none;" id="loading">
-		<img id="loading_gif">
+		<!-- <img id="loading_gif" src="/static/assets/loading.gif"> -->
+		<div class="spinner-border text-warning" role="status">
+		  <span class="sr-only">Loading...</span>
+		</div>
 	</div>
 
 	<!-- DIV CON LA MAPPA -->
@@ -104,13 +107,16 @@
 
 			var possibilitiesLayer = L.markerClusterGroup();
 
-			var highlight = L.geoJson(null).addTo(mymap);
+			var highlightPane = mymap.createPane("highlightPane");
+			highlightPane.style.zIndex = 700;
+			var highlight = L.geoJson(null,{pane: "highlightPane"}).addTo(mymap);
 			var highlightStyle = {
 			  stroke: false,
 			  fillColor: "#ffb400",
 			  fillOpacity: 0.9,
 			  radius: 10,
-				className: 'blinking'
+				className: 'blinking',
+				pane: "highlightPane"
 			};
 			//L.control.layers(baseMaps).addTo(mymap);
 			// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -144,7 +150,7 @@
 		<div class="leaflet-top col no-gutters" id="searchbar">
 			<!-- button works because of this -->
 			<div class="row">
-				<div class=col-md-4>
+				<div class=col-lg-4>
 					<div class="row">
 						<div class="leaflet-control col-md-12">
 							<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
@@ -319,7 +325,7 @@
 					</div>
 					<!--</div> chiudiamo leaflet control -->
 				</div>
-				<div class="col-md-4">
+				<div class="col-lg-4">
 					<div class="leaflet-control">
 						<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
 							<h4 class="alert-heading">C'è stato un errore!</h4>

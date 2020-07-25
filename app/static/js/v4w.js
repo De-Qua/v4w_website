@@ -214,8 +214,8 @@ function drawPreLoader() {
 	document.getElementById("mapid").style.opacity = 0.3;
 	console.log("visualizing div..")
 	document.getElementById("loading").style.display = "inline";
-	console.log("drawing preloader..")
-	document.getElementById("loading_gif").src = "/static/assets/loading.gif";
+	// console.log("drawing preloader..")
+	//document.getElementById("loading_gif").src = "/static/assets/loading.gif";
 	console.log("done!")
 	setTimeout(console.log("now, ok"), 1000);
 	return true;
@@ -302,6 +302,8 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
           }
 					activeCard = this;
 					showHighlight(this);
+          // move the map over the coordinates
+          mymap.panTo([this.lat,this.lng])
 				};
 			};
 		} else {
@@ -478,19 +480,19 @@ function showSidebar(){
 function shrinkMapForBottomBar(){
 	if (areWeUsingBottomBar()){
 		console.log("Let's shrink the map size");
-		document.getElementById("mapcontainer").style.height = '75%';
+		document.getElementById("mapcontainer").classList.add('shrinkedMapForBottomBar');
 	}
 }
 
 function restoreMapForBottomBar(){
 	if (areWeUsingBottomBar()){
 		console.log("Let's restore the map size");
-		document.getElementById("mapcontainer").style.height = '100%';
+		document.getElementById("mapcontainer").classList.remove("shrinkedMapForBottomBar")
 	}
 }
 
 function areWeUsingBottomBar(){
-	if (window.innerWidth < 812) {
+	if ((window.innerWidth < 812) && (window.innerWidth < window.innerHeight)){
 		return true;
 	} else{
 		return false;
@@ -504,6 +506,7 @@ function showHighlight(card) {
 	console.log("sei sopra a: " + clicked_coords);
 	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
 	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
+  highlight.bringToFront();
 	console.log("highlight: "+ highlight);
   // highlight the card
   // childNodes[0] = header; childNodes[1] = body
