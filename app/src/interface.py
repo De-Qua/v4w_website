@@ -10,7 +10,7 @@ import pdb
 from app.src.libpy import lib_graph, lib_communication, lib_search
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from sqlalchemy import and_
-from app import app, db
+from app import app, db, getCurrentVersion
 from app.forms import FeedbackForm
 import numpy as np
 import os
@@ -59,7 +59,7 @@ def write_feedback(form, feedback_folder):
     with open(file_feedback,'w+') as f:
         f.write('<h1>***** DEQUA FEEDBACK ***** </h1>\n')
         f.write('<h2>Website version</h2>\n')
-        f.write('0.0.0\n')
+        f.write(getCurrentVersion()+'\n')
         f.write('<h2>Time</h2>\n')
         f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
         category = dict(form.category.choices).get(form.category.data)
@@ -96,7 +96,7 @@ def take_care_of_the_error(request,err,error_folder):
     file_error_md = file_error_name+".md"
     error_info = {
         'time': curr_time,
-        'version': "0.0.0",
+        'version': getCurrentVersion(),
         'request': request,
         'error': err,
         'traceback': traceback.format_exc(),
@@ -108,7 +108,7 @@ def take_care_of_the_error(request,err,error_folder):
     with open(file_error_md,'w+') as f:
         f.write('<h1>***** DEQUA ERROR ***** </h1>\n')
         f.write('<h2>Website version</h2>\n')
-        f.write('0.0.0\n')
+        f.write(getCurrentVersion()+'\n')
         f.write('<h2>Time</h2>\n')
         f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
         f.write('<h2>Error type</h2>\n')

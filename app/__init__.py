@@ -10,8 +10,14 @@ from flask_migrate import Migrate
 import sqlalchemy as sa
 from sqlalchemy import MetaData
 
+# version of the software
+version = "0.1"
+
 app = Flask(__name__)
 app.config.from_object(Config)
+#function to retrieve the version
+def getCurrentVersion():
+    return version
 # metadata per magheggio di slalchemy per database sqlite
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
