@@ -224,6 +224,9 @@
 									</div>
 								-->
 								</div> <!-- Chiudiamo seconde barre varie -->
+								<!-- Hidden fields -->
+								<input type="hidden" name="start_coord" id="start_coord">
+								<input type="hidden" name="end_coord" id="end_coord">
 							</form>
 							<!-- Bottone per riaprire la sidebar -->
 							<div class="container-fluid" id="show-sidebar" style="display:none">
@@ -579,7 +582,7 @@
 									<textarea class="form-control" id="feedback" name="feedback" rows="3"></textarea>
 									<small class="form-text text-muted">Più informazioni ci dai più semplice sarà per noi capire il problema e risolverlo!</small>
 							  </div>
-								<input type=hidden name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
+								<input type="hidden" name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
 								<!-- <p>
 									{{ form.submit() }}
 								</p> -->

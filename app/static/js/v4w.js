@@ -217,7 +217,7 @@ function drawPreLoader() {
 	// console.log("drawing preloader..")
 	//document.getElementById("loading_gif").src = "/static/assets/loading.gif";
 	console.log("done!")
-	setTimeout(console.log("now, ok"), 1000);
+	// setTimeout(console.log("now, ok"), 1000);
 	return true;
 }
 
@@ -382,18 +382,26 @@ function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, 
 	var new_site_to_go = "";
   var stringBoxes = retrieveBoxesSituationAsAString();
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
-		new_site_to_go = "/?partenza="+cur_result_name+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"&end_coord="+stringBoxes+"#dequavivavenezia";
-	}
+		new_site_to_go = "/?partenza="+cur_result_name+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+searched_end+"&end_coord="+stringBoxes;
+    // document.getElementById("search_field_1").value = cur_result_name
+    // document.getElementById("start_coord").value = "LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
+  }
 	else if (what_are_we_doing == "choosing_end") {
 		var strt_coords = start_found.coordinate;
     var strt_name = start_found.nome;
-		new_site_to_go = "/?partenza="+strt_name+"&start_coord=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo="+cur_result_name+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes+"#dequavivavenezia";
-	}
-	return new_site_to_go;
+		new_site_to_go = "/?partenza="+strt_name+"&start_coord=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo="+cur_result_name+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes;
+    // document.getElementById("search_field_1").value = strt_name
+    // document.getElementById("start_coord").value = "LatLng("+strt_coords[0]+", "+strt_coords[1]+")";
+    // document.getElementById("search_field_2").value = cur_result_name
+    // document.getElementById("end_coord").value = "LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
+  }
+	return encodeURI(new_site_to_go).replace(/%20/g, "+");
 }
 
 function goToNextStep(nextStep) {
+  drawPreLoader()
 	window.location = nextStep;
+  // document.getElementById("ricerca_ind").submit()
 }
 // function goToNextStep(divElement, what_are_we_doing, searched_start, searched_end, start_found) {
 // 	console.log("redirecting..");
