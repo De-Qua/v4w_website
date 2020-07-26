@@ -17,6 +17,7 @@ import os
 import json
 import pickle
 import traceback
+from app import mail
 
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
@@ -56,35 +57,39 @@ def write_feedback(form, feedback_folder):
     """
     curr_time = datetime.datetime.now()
     file_feedback = os.path.join(feedback_folder,"dequa_fb_"+curr_time.strftime("%Y%m%d-%H%M%S.%f")+".md")
+    mdfile = '<h1>***** DEQUA FEEDBACK ***** </h1>\n'
+    mdfile += '<h2>Website version</h2>\n'
+    mdfile += getCurrentVersion()+'\n'
+    mdfile += '<h2>Time</h2>\n'
+    mdfile += curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
+    category = dict(form.category.choices).get(form.category.data)
+    mdfile += '<h2>Category</h2>\n'
+    mdfile += category+'\n'
+    dict_data_title = {
+        'name': 'Name',
+        'email': 'Email',
+        'searched_string': 'Searched string',
+        'searched_start': 'Searched start',
+        'searched_end': 'Searched end',
+        'found_string': 'Result string',
+        'found_start': 'Result start',
+        'found_end': 'Result end',
+        'feedback': 'Comments',
+    }
+    for (data,title) in dict_data_title.items():
+        value = form[data].data
+        if value:
+            mdfile += '<h2>'+title+'</h2>\n'
+            mdfile += value+'\n'
+    # write json file
+    mdfile += '<h2>JSON</h2>\n'
+    dictJson = json.loads(form['dictJS'].data)
+    mdfile += json.dumps(dictJson,indent=2)
     with open(file_feedback,'w+') as f:
-        f.write('<h1>***** DEQUA FEEDBACK ***** </h1>\n')
-        f.write('<h2>Website version</h2>\n')
-        f.write(getCurrentVersion()+'\n')
-        f.write('<h2>Time</h2>\n')
-        f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
-        category = dict(form.category.choices).get(form.category.data)
-        f.write('<h2>Category</h2>\n')
-        f.write(category+'\n')
-        dict_data_title = {
-            'name': 'Name',
-            'email': 'Email',
-            'searched_string': 'Searched string',
-            'searched_start': 'Searched start',
-            'searched_end': 'Searched end',
-            'found_string': 'Result string',
-            'found_start': 'Result start',
-            'found_end': 'Result end',
-            'feedback': 'Comments',
-        }
-        for (data,title) in dict_data_title.items():
-            value = form[data].data
-            if value:
-                f.write('<h2>'+title+'</h2>\n')
-                f.write(value+'\n')
-        # write json file
-        f.write('<h2>JSON</h2>\n')
-        dictJson = json.loads(form['dictJS'].data)
-        f.write(json.dumps(dictJson,indent=2))
+        f.write(mdfile)
+    # send an email to ourself with the feedback
+    if not app.debug:
+        mail.send_email_to_ourself(subject="[FEEDBACK] "+ category,html_body=mdfile)
 
 def take_care_of_the_error(request,err,error_folder):
     """
@@ -112,25 +117,30 @@ def take_care_of_the_error(request,err,error_folder):
     }
     # save info in a pickle file
     pickle.dump(error_info, open(file_error_pickle,"wb"))
+    mdfile = '<h1>***** DEQUA ERROR ***** </h1>\n'
+    mdfile += '<h2>Website version</h2>\n'
+    mdfile += getCurrentVersion()+'\n'
+    mdfile += '<h2>Time</h2>\n'
+    mdfile += curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
+    mdfile += '<h2>Error type</h2>\n'
+    mdfile += type(err).__name__+'\n'
+    mdfile += '<h2>Error message</h2>\n'
+    mdfile += str(err)+'\n'
+    mdfile += '<h2>URL</h2>\n'
+    mdfile += request.url+'\n'
+    mdfile += '<h2>Method</h2>\n'
+    mdfile += request.method+'\n'
+    mdfile += '<h2>Browser</h2>\n'
+    mdfile += request.user_agent.string+'\n'
+    mdfile += '<h2>Pickle file</h2>'
+    mdfile += file_error_pickle+'\n'
     # save info in a md file
     with open(file_error_md,'w+') as f:
-        f.write('<h1>***** DEQUA ERROR ***** </h1>\n')
-        f.write('<h2>Website version</h2>\n')
-        f.write(getCurrentVersion()+'\n')
-        f.write('<h2>Time</h2>\n')
-        f.write(curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n")
-        f.write('<h2>Error type</h2>\n')
-        f.write(type(err).__name__+'\n')
-        f.write('<h2>Error message</h2>\n')
-        f.write(str(err)+'\n')
-        f.write('<h2>URL</h2>\n')
-        f.write(request.url+'\n')
-        f.write('<h2>Method</h2>\n')
-        f.write(request.method+'\n')
-        f.write('<h2>Browser</h2>\n')
-        f.write(request.user_agent.string+'\n')
-        f.write('<h2>Pickle file</h2>')
-        f.write(file_error_pickle+'\n')
+        f.write(mdfile)
+
+    # send an email with the error
+    if not app.debug:
+        mail.send_email_to_ourself(subject="[ERROR] "+ str(err),html_body=mdfile)
 
 
 def ask_yourself(params_research):

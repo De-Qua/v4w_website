@@ -9,12 +9,15 @@ from flask_sqlalchemy import Model,SQLAlchemy
 from flask_migrate import Migrate
 import sqlalchemy as sa
 from sqlalchemy import MetaData
+from flask_mail import Mail
 
 # version of the software
 version = "0.1"
 
 app = Flask(__name__)
 app.config.from_object(Config)
+# add Email
+email = Mail(app)
 #function to retrieve the version
 def getCurrentVersion():
     return version
