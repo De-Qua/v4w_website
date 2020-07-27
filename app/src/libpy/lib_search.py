@@ -238,7 +238,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
     paths=[]
     for riva in rive_list:
         try:
-            path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, flag_ponti)
+            path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, lib_graph.weight_bridge)
             length_paths.append(length)
             paths.append(path)
             #     print("percorso calcolato per questa riva: ", bool(path) )

@@ -47,9 +47,6 @@ def find_closest_nodes(dict_list,G_array):
         nodes_list.append((G_array[idx][0], G_array[idx][1]))
     return nodes_list
 
-from app.src.libpy.pyAny_lib import calculate_path
-
-
 def add_from_strada_to_porta(path, da, a):
 
     print("first node path", path[0])
