@@ -16,6 +16,9 @@ import shapely, shapely.wkt
 from shapely.geometry import mapping
 import geopy.distance
 
+speed_global=2
+
+
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
     with open(pickle_path, 'rb') as file:
@@ -112,7 +115,16 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
     """
     path_nodes = []
     streets_info = {}
-    path_nodes, length = calculate_path_wkt(G, coords_start, coords_end, flag_ponti)
+    if water_flag:
+        weight_func=weight_motor_boat
+    elif flag_ponti:
+        weight_func=weight_bridge
+    else:
+        weight_func=weight_time
+
+    global speed_global
+    speed_global=speed
+    path_nodes, length = calculate_path_wkt(G, coords_start, coords_end, weight_func)
     # non volevamo avere gli errori?
     # if not path_nodes:
     #   raise Exception("No street found between {} and {}".format(coords_start, coords_end))
@@ -134,24 +146,49 @@ def weight_time(x,y,dic):
     """
     # ma se spped e fisso, non ha senso no?
     # 4kmh in metri al minuto
-    speed = 4/3.6*60
+    global speed_global
+    speed = speed_global/3.6
     # speed = np.min(speed, dic["VEL_MAX"]) ?
-    return dic["length"]/speed
+    return dic["length"]
 
-def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
+def weight_motor_boat(x,y,dic):
+    """
+    It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
+    """
+    global speed_global
+    if dic['senso_unic'] is not None:
+        verso=None
+        line=mapping(shapely.wkt.loads(dic['Wkt']))
+        first_point_in_linestring = line['coordinates'][0]
+        if (first_point_in_linestring[0]-x[0])<10e-13 and (first_point_in_linestring[1]-x[1])<10e-13:
+            verso='TF'
+            app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
+            return 10000
+#        elif  (first_point_in_linestring[0]-y[0])<10e-13 and (first_point_in_linestring[1]-y[1])<10e-13:
+ #           verso='FT'
+  #      else:
+   #         app.logger.debug("something wrong here!")
+    #    if dic['senso_unic'] == verso:
+     #       app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
+      #      return 10000
+    if dic['solo_remi']:
+        app.logger.debug("le barche a motore non passano per {} !".format(dic))
+        return 10000
+    else:
+        max_speed=dic['vel_max']/3.6
+        speed=np.minimum(speed_global, max_speed)
+        #app.logger.debug("limite di velocita {} !".format(max_speed))
+        #app.logger.debug(" velocita scelta {} !".format(speed))
+#        pdb.set_trace()
+        # speed = np.min(speed, dic["VEL_MAX"]) ?
+        return dic["length"]/speed
+
+def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
     """
     It calculates the path from coords_start to coords_end using the shape contained in the edges of the G_un graph.
     """
     try:
-        # Dijkstra algorithm, funzione peso lunghezza
-        if flag_ponti == False:
-            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_time)
-            # lista dei nodi attraversati
-        # Dijkstra algorithm, funzione peso ponti
-        elif flag_ponti == True:
-            length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un, coords_start,coords_end, weight = weight_bridge)
-                # lista dei nodi attraversati
-            #print(length_path)
+        length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_func)
         app.logger.debug("Strada lunga {} !".format(length_path))
         app.logger.debug("Nodi della strada: {}".format(path))
         #print("strada---------------------------",path)
@@ -166,6 +203,8 @@ def calculate_path_wkt(G_un, coords_start, coords_end, flag_ponti=False):
         raise Exception("Non esiste un percorso tra A e B. Devi forse andare in barca?")
 
     return path_nodes, length_path #json.dumps(x_tot), length_path
+
+
 
 def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
     """

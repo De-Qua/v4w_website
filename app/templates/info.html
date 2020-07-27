@@ -12,6 +12,7 @@
 	<meta name="author" content="Dequa">
 
   <link rel="stylesheet" href="/static/css/s.css" >
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
   <link rel="icon" href="/static/img/dequa_logo_v2.png">
   <body>
 		<div class="text-container">
@@ -26,43 +27,171 @@
 				</svg>
 				 Cos'è DeQua?
 			</h2>
-			DeQua è una WebApp
-			(non sai cos'è una WebApp? Ci stiamo discutendo pure noi.. ),
-			o più semplicemente un sito che aiuta a cercare indirizzi a Venezia!
+			DeQua è difficile da definire. Che sia un sito, un'app, una webapp, poco importa, il cuore resta un servizio per Venezia.
+			DeQua gestisce la navigazione, trova indirizzi, strade e percorsi alternativi.
+			Aiuta nella ricerca degli indirizzi sia nella forma standard "sestiere + numero" che in altre forme "calle + numero", e abbiamo aggiunto anche migliaia di punti di interesse
+			(bar, chiese, negozi, ecc).
 			<h3>
-				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-cone-striped" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-					<path fill-rule="evenodd" d="M7.879 11.015a.5.5 0 0 1 .242 0l6 1.5a.5.5 0 0 1 .037.96l-6 2a.499.499 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l6-1.5z"/>
-					<path d="M9.97 4.88l.953 3.811C10.159 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.275 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm2.005 8.015l-.565-2.257c-.862.212-1.964.339-3.165.339s-2.303-.127-3.165-.339l-.565 2.257 3.609-.902a.5.5 0 0 1 .242 0l3.609.902z"/>
+				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-geo" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path d="M11 4a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+				  <path d="M7.5 4h1v9a.5.5 0 0 1-1 0V4z"/>
+				  <path fill-rule="evenodd" d="M6.489 12.095a.5.5 0 0 1-.383.594c-.565.123-1.003.292-1.286.472-.302.192-.32.321-.32.339 0 .013.005.085.146.21.14.124.372.26.701.382.655.246 1.593.408 2.653.408s1.998-.162 2.653-.408c.329-.123.56-.258.701-.382.14-.125.146-.197.146-.21 0-.018-.018-.147-.32-.339-.283-.18-.721-.35-1.286-.472a.5.5 0 1 1 .212-.977c.63.137 1.193.34 1.61.606.4.253.784.645.784 1.182 0 .402-.219.724-.483.958-.264.235-.618.423-1.013.57-.793.298-1.855.472-3.004.472s-2.21-.174-3.004-.471c-.395-.148-.749-.336-1.013-.571-.264-.234-.483-.556-.483-.958 0-.537.384-.929.783-1.182.418-.266.98-.47 1.611-.606a.5.5 0 0 1 .595.383z"/>
 				</svg> Cosa posso farci?
 			</h3>
 			Cerca casa tua, cerca quello che vuoi, prova a trovare la strada migliore, in barca, a piedi, ecc..
 			e <a href="#contatti">dicci cosa ne pensi!</a>
-			<h3 id="perche">
-				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-patch-question-fll" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-				  <path fill-rule="evenodd" d="M5.933.87a2.89 2.89 0 0 1 4.134 0l.622.638.89-.011a2.89 2.89 0 0 1 2.924 2.924l-.01.89.636.622a2.89 2.89 0 0 1 0 4.134l-.637.622.011.89a2.89 2.89 0 0 1-2.924 2.924l-.89-.01-.622.636a2.89 2.89 0 0 1-4.134 0l-.622-.637-.89.011a2.89 2.89 0 0 1-2.924-2.924l.01-.89-.636-.622a2.89 2.89 0 0 1 0-4.134l.637-.622-.011-.89a2.89 2.89 0 0 1 2.924-2.924l.89.01.622-.636zM7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zm1.602-2.027c-.05.386-.218.627-.554.627-.377 0-.585-.317-.585-.745v-.11c0-.727.307-1.208.926-1.641.614-.44.822-.762.822-1.325 0-.638-.42-1.084-1.03-1.084-.55 0-.916.323-1.074.914-.109.364-.292.51-.564.51C6.203 6.12 6 5.873 6 5.48c0-.251.045-.468.139-.69.307-.798 1.079-1.29 2.099-1.29 1.341 0 2.262.902 2.262 2.227 0 .896-.376 1.511-1.05 1.986-.648.445-.806.726-.846 1.26z"/>
-				</svg> Perchè
-			</h3>
-			bla bla bla
 			<hr>
-			<h2 id="chi">
+			<h2 id="tools">
+				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-gear-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 0 0-5.86 2.929 2.929 0 0 0 0 5.858z"/>
+</svg> Come funziona? (tecnico)</h2>
+				Il processo è il seguente: noi otteniamo la mappa di Venezia e i Punti di Interesse da OSM, gli indirizzi dal Comune di Venezia, e ci costruiamo un grafo.
+				In questo grafo ci sono migliaia di nodi, legati tra di loro da degli archi con delle caratteristiche.
+				Per esempio, una casa, una chiesa o un bar sono nodi. Una calle o un canale sono archi.
+				Ora, il primo step è cercare di capire cosa l'utente sta cercando.
+				Per quello usiamo una barra di ricerca e una libreria (fuzzysearch) per trovare la corrispondenza nel nostro database.
+				Nel caso dovessimo creare una mappa, usiamo una libreria (networkx) e descriviamo il problema come trovare il percorso più breve tra due nodi del grafo.
+				Avendo costruito il grafo e potendo scegliere la definizione di <i>percorso più breve</i>, abbiamo spazio di manovra.
+				Per questo possiamo calcolare percorsi a piedi, percorsi con meno ponti, percorsi in barca a remi, percorsi in barca a motore, percorsi in caso di acqua alta e molto altro ancora.
+				<br>
+				<br>
+				<h3><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-shield-shaded" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M5.443 1.991a60.17 60.17 0 0 0-2.725.802.454.454 0 0 0-.315.366C1.87 7.056 3.1 9.9 4.567 11.773c.736.94 1.533 1.636 2.197 2.093.333.228.626.394.857.5.116.053.21.089.282.11A.73.73 0 0 0 8 14.5c.007-.001.038-.005.097-.023.072-.022.166-.058.282-.111.23-.106.525-.272.857-.5a10.197 10.197 0 0 0 2.197-2.093C12.9 9.9 14.13 7.056 13.597 3.159a.454.454 0 0 0-.315-.366c-.626-.2-1.682-.526-2.725-.802C9.491 1.71 8.51 1.5 8 1.5c-.51 0-1.49.21-2.557.491zm-.256-.966C6.23.749 7.337.5 8 .5c.662 0 1.77.249 2.813.525a61.09 61.09 0 0 1 2.772.815c.528.168.926.623 1.003 1.184.573 4.197-.756 7.307-2.367 9.365a11.191 11.191 0 0 1-2.418 2.3 6.942 6.942 0 0 1-1.007.586c-.27.124-.558.225-.796.225s-.526-.101-.796-.225a6.908 6.908 0 0 1-1.007-.586 11.192 11.192 0 0 1-2.417-2.3C2.167 10.331.839 7.221 1.412 3.024A1.454 1.454 0 0 1 2.415 1.84a61.11 61.11 0 0 1 2.772-.815z"/>
+				  <path d="M8 2.25c.909 0 3.188.685 4.254 1.022a.94.94 0 0 1 .656.773c.814 6.424-4.13 9.452-4.91 9.452V2.25z"/>
+				</svg> Protezione dei dati</h3>
+				Non salviamo attivamente nessun dato personale sui server.
+				Al momento salviamo le ricerche effettuate (il testo che l'utente ha inserito) per migliorare l'algoritmo di ricerca nel database).
+				I server appartengono a PythonAnywhere (vedi sezione <a href="#tools">Strumenti</a>).
+				Per questo, un cookie di sessione verrà salvato ogni volta che il sito viene visitato.
+				Il cookie è visibile dall'inspector del browser nella sezione <i>Storage</i> e come potete vedere, non salva nulla riguardante i dati personali o di posizione.
+				Se l'utente sceglie di usare la propria posizione, il browser usa le impostazioni di default dell'utente, e nel caso venga negata, lancia semplicemente un'errore.
+				Se l'utente non condivide la propria posizione, non viene usata per altri scopi.
+				Se avete domande in materia, scriveteci pure!
+			<h3 id="coding">
+				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-terminal-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M0 3a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3zm9.5 5.5h-3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm-6.354-.354L4.793 6.5 3.146 4.854a.5.5 0 1 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708z"/>
+				</svg> In che linguaggio scrivete?</h3>
+			Scriviamo principalmente in python. Il sito è fatto usando HTML/CSS e JavaScript, ma il cuore del progetto rimane in python.
+			<h3 id="tools">
 				<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-tools" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 				  <path fill-rule="evenodd" d="M0 1l1-1 3.081 2.2a1 1 0 0 1 .419.815v.07a1 1 0 0 0 .293.708L10.5 9.5l.914-.305a1 1 0 0 1 1.023.242l3.356 3.356a1 1 0 0 1 0 1.414l-1.586 1.586a1 1 0 0 1-1.414 0l-3.356-3.356a1 1 0 0 1-.242-1.023L9.5 10.5 3.793 4.793a1 1 0 0 0-.707-.293h-.071a1 1 0 0 1-.814-.419L0 1zm11.354 9.646a.5.5 0 0 0-.708.708l3 3a.5.5 0 0 0 .708-.708l-3-3z"/>
 				  <path fill-rule="evenodd" d="M15.898 2.223a3.003 3.003 0 0 1-3.679 3.674L5.878 12.15a3 3 0 1 1-2.027-2.027l6.252-6.341A3 3 0 0 1 13.778.1l-2.142 2.142L12 4l1.757.364 2.141-2.141zm-13.37 9.019L3.001 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026z"/>
-				</svg> Che strumenti utilizzate?</h2>
+				</svg> Che strumenti utilizzate?</h3>
 			Proviamo ad utilizzare strumenti che seguano l'idea del codice aperto. Non siamo ancora al 100%, ma ci stiamo lavorando.<br>
+			Se avete suggerimenti o critiche, entrambe sono benvenute! Fateci sapere<br>
 			Al momento usiamo:<br>
-			<div class="row">
+			<div class="row tools-container">
 				<div class="col-md-3">
-					<b>Atom:</b>
-					<br>
-					 editor free software  
+					<div class="card">
+					  <img class="card-img-top" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Atom_1.0_icon.png/200px-Atom_1.0_icon.png" alt="logo Atom">
+					  <div class="card-body">
+					    <h5 class="card-title">Atom</h5>
+					    <p class="card-text">Un editor di testo con codice libero sviluppato da <a href="https://github.com/">github</a> che permettere a diverse persone di lavorare <a href="https://teletype.atom.io/">in contemporanea.</a></p>
+					    <a href="https://atom.io/" class="btn btn-primary">dacci un'occhiata!</a>
+					  </div>
+					</div>
 				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://www.pythonanywhere.com/static/anywhere/images/PA-logo.svg" alt="logo pa">
+						<div class="card-body">
+							<h5 class="card-title">PythonAnywhere</h5>
+							<p class="card-text">Un servizio che permette di sviluppare un sito in python. Ultimamente stanno aggiungendo supporto per l'insegnamento! Fornisce un server con python installato, per cui non ha codice aperto, a quanto sappiamo. I server usati soddisfano <a href="https://blog.pythonanywhere.com/162/">i criteri europei pre la privacy</a>, ma al momento sono in America. Stiamo lavorando per migliorare questo aspetto.</p>
+							<a href="https://www.pythonanywhere.com" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://intranet.comune.venezia.it/system/files/4/images/cittadive.png" alt="logo bs">
+						<div class="card-body">
+							<h5 class="card-title">OpenData Comune di Venezia</h5>
+							<p class="card-text">Il nostro comune mette a disposizione un sacco di dati di ottima qualità sulla nostra città! Grazie mille!</p>
+							<a href="https://www.comune.venezia.it/it/content/open-data" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://www.openstreetmap.org/assets/osm_logo-d4979005d8a03d67bbf051b4e7e6ef1b26c6a34a5cd1b65908e2947c360ca391.svg" alt="logo OSM">
+						<div class="card-body">
+							<h5 class="card-title">OpenStreetMap</h5>
+							<p class="card-text">Con uno sforzo enorme per mappare tutto il mondo, OSM mette a disposizione tutte le mappe di tutto il mondo per tutti completamente gratis! Non è fantastico?</p>
+							<a href="https://www.openstreetmap.org" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="logo github">
+						<div class="card-body">
+							<h5 class="card-title">Github</h5>
+							<p class="card-text">Uno spazio dove ospitiamo il nostro codice che usa <a href="https://git-scm.com/">git</a> per il meccanismo di controllo della versione. Purtroppo, solo parzialmente a codice aperto.</p>
+							<a href="https://github.com/" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://camo.githubusercontent.com/f51f518aa896d3d6d541bcb03a84973e3379a409/68747470733a2f2f662e636c6f75642e6769746875622e636f6d2f6173736574732f3439363235352f313735383139332f63313231376535342d363638622d313165332d383138342d6132313265663865666337362e706e67" alt="logo leaflet">
+						<div class="card-body">
+							<h5 class="card-title">Leaflet</h5>
+							<p class="card-text">Fantastica libreria JavaScript con codice aperto che fa magie disegnando tutto quello che vogliamo sopra le nostre mappe!</p>
+							<a href="https://leafletjs.com/" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://avatars.slack-edge.com/2019-11-26/850068936965_30a2107c9f837f1d1179_132.png" alt="logo bs">
+						<div class="card-body">
+							<h5 class="card-title">Bootstrap</h5>
+							<p class="card-text">Fantastica libreria HTML/CSS/Javascript con codice aperto per adattare il nostro sito a telefoni e computer!</p>
+							<a href="https://getbootstrap.com" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="card">
+						<img class="card-img-top" src="https://tse2.mm.bing.net/th?id=OIP.d0psMrrqajoGl5C6Vdqq3gHaDj&pid=Api" alt="logo bs">
+						<div class="card-body">
+							<h5 class="card-title">QGIS</h5>
+							<p class="card-text">Programma con codice aperto per la gestione di file geografici che ci permette di manipolare i file del comune e costruire le reti di strutture a Venezia!</p>
+							<a href="https://getbootstrap.com" class="btn btn-primary">dacci un'occhiata!</a>
+						</div>
+					</div>
+				</div>
+
+
 			</div>
 			<hr>
-			<h2 id="chi">&#x25BA; Chi siete?</h2>
-			bla bla bla
+			<h2 id="partecipa">
+			<svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-person-circle" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			  <path d="M13.468 12.37C12.758 11.226 11.195 10 8 10s-4.757 1.225-5.468 2.37A6.987 6.987 0 0 0 8 15a6.987 6.987 0 0 0 5.468-2.63z"/>
+			  <path fill-rule="evenodd" d="M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+			  <path fill-rule="evenodd" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"/>
+			</svg> Chi siamo </h2>
+			Il nostro progetto è un progetto aperto a tutti quelli che condividono i nostri valori.
+			Stiamo lavorando a una specie di statuto, ma per farla breve: <br>
+			<ul>
+				<li><b>Entusiasmo: </b> la chiave per lavorare insieme e avere voglia di fare qualcosa, indipendentemente dal risultato o da un ritorno economico. Requisito di base spesso sottovalutato: avere voglia di fare.</li>
+				<li><b>Amore per la citta: </b>indipendentemente se veneziani di origine, di adozione o semplicemente amanti della citta, ci accomuna un desiderio comune di salvaguardare questo tesoro.</li>
+				<li><b>Sostenibilita:</b> ci interessa creare un modello sostenibile dal punto di vista ecologico, sociale, democratico ed economico. Anche a scapito di qualche perdita nel profitto.</li>
+				<li><b>Apertura: </b>sempre disponibili a cambiare la propria idea, ci impegnamo nel creare una struttura democratica senza gerarchie per quanto riguarda il nostro gruppo, e cerchiamo dove possibile di costruire un'infrastruttura (digitale e non) che si basi su principi di apertura e scambio di idee.</li>
+				<li><b>Etica: </b>cerchiamo di accordarci e mantenere i principi di etica basici per la collaborazione e il vivere insieme. Siamo sempre pronti a criticare, ma anche a discutere e riconsiderare.</li>
+				<li><b>Innovazione: </b>l'obiettivo è di riuscire a migliorare la situazione esistente, ricordando che a volte fare meno può voler dire ottenere di più. La tecnologia dev'essere al servizio delle persone e non viceversa.</li>
+				<li><b>Tessuto sociale: </b>vorremmo creare valore, aggregare competenze e cercare di avere un impatto positivo anche nel lato sociale.</li>
+			</ul>
+			<h3><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-person-plus-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			  <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.5-3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+			  <path fill-rule="evenodd" d="M13 7.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0v-2z"/>
+			</svg> Partecipa </h3>
+				Se ti piace o ti interessa il progetto, puoi aiutarci! <br>
+				Abbiamo sempre bisogno di persone che hanno voglia di fare, in qualsiasi settore, dal codice, al design, al marketing, social media, pubblicità, raccolta fondi o qualsiasi cosa ti venga in mente!
 			<hr>
-			<h2 id="contatti">&#x25BA; Contatti</h2>
+			<h2 id="contatti"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-envelope-open" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			  <path fill-rule="evenodd" d="M8.47 1.318a1 1 0 0 0-.94 0l-6 3.2A1 1 0 0 0 1 5.4v.818l5.724 3.465L8 8.917l1.276.766L15 6.218V5.4a1 1 0 0 0-.53-.882l-6-3.2zM15 7.388l-4.754 2.877L15 13.117v-5.73zm-.035 6.874L8 10.083l-6.965 4.18A1 1 0 0 0 2 15h12a1 1 0 0 0 .965-.738zM1 13.117l4.754-2.852L1 7.387v5.73zM7.059.435a2 2 0 0 1 1.882 0l6 3.2A2 2 0 0 1 16 5.4V14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5.4a2 2 0 0 1 1.059-1.765l6-3.2z"/>
+			</svg> Contatti</h2>
 			Idee, problemi, critiche, ringraziamenti?<br>
 			Scrivici a <a href="mailto:info@dequa.it">info@dequa.it</a>!
 		</div>

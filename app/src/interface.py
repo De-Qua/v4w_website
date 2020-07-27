@@ -182,6 +182,9 @@ def find_what_needs_to_be_found(params_research, G_objects):
     G_terra_array = np.asarray(list(G_terra.nodes))
     G_acqua_array = np.asarray(list(G_acqua.nodes))
 
+    boat_speed=20/3.6
+    walk_speed=5/3.6
+
     if what_am_I_really_searching_for == "nothing":
         return "None"
 
@@ -260,7 +263,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 # aggiungere gli archi!
                 list_of_added_edges = lib_graph.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
                 # trova la strada
-                water_streets_info = lib_graph.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True)
+                water_streets_info = lib_graph.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True, speed=boat_speed)
                 # app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
                 # togli gli archi
                 lib_graph.dynamically_remove_edges(G_acqua, list_of_added_edges)
@@ -290,7 +293,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
                 else:
                     f_ponti = False
                 t2=time.perf_counter()
-                streets_info = lib_graph.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti)
+                streets_info = lib_graph.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=walk_speed)
                 #app.logger.debug(streets_info)
                 #print("path, length", strada, length)
                 streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dict_da[0], match_dict_a[0])

@@ -7,6 +7,19 @@ body, html {height: 100%}
 	background-size: cover;
 }
 
+.card-img-top {
+	object-fit: cover;
+	max-height: 11rem;
+	max-width: 10rem;
+	padding-top: 1rem;
+	margin: auto;
+	width: auto;
+  height: auto;
+}
+
+.tools-container{
+	margin: 2rem;
+}
 .bgimg:after {
 	content : "";
 	display: block;
