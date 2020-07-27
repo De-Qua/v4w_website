@@ -451,6 +451,16 @@ function copyEndingPosition(address_string) {
 	document.getElementById('search_field_2').value = address_string
 }
 
+function addMarkerStart(latlng) {
+  marker_start.setLatLng(latlng);
+  marker_start.addTo(mymap);
+}
+
+function addMarkerEnd(latlng) {
+  marker_end.setLatLng(latlng);
+  marker_end.addTo(mymap);
+}
+
 function copyMyPositionAsStart(map) {
 	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
 		.on('locationfound', function(e){
