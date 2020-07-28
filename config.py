@@ -12,4 +12,5 @@ class Config(object):
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None #1
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') #"info@dequa.it"
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') # QUA INSERIRE LA PASSWORD DELL'ACCOUNT
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') #"info@dequa.it"
     ADMINS = ['info@dequa.it']
