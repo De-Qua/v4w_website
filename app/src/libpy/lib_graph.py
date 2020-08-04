@@ -156,23 +156,27 @@ def weight_motor_boat(x,y,dic):
     It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
     """
     global speed_global
+
     if dic['senso_unic'] is not None:
         verso=None
         line=mapping(shapely.wkt.loads(dic['Wkt']))
         first_point_in_linestring = line['coordinates'][0]
-        if (first_point_in_linestring[0]-x[0])<10e-13 and (first_point_in_linestring[1]-x[1])<10e-13:
-            verso='TF'
-            app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
+        if (first_point_in_linestring[0]-x[0])<10e-15 and (first_point_in_linestring[1]-x[1])<10e-15:
+            verso=1          
+        elif  (first_point_in_linestring[0]-y[0])<10e-15 and (first_point_in_linestring[1]-y[1])<10e-15:
+            verso=-1
+        else:
+            app.logger.debug("something wrong here!")
+        if dic['nome'] == "DE NOAL - CANALE DE LA MISERICORDIA":
+            app.logger.debug("canale della misericordia, coordinate inizio linestring {} stai entrando in {} e uscendo in {} !".format(first_point_in_linestring, x, y))
+            app.logger.debug("canale della misericordia, verso  {} !".format(dic['senso_unic']))
+            app.logger.debug("lo stai imboccando con verso {} !".format(verso))
+        if dic['senso_unic'] == verso:
+            #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
+#            pdb.set_trace()
             return 10000
-#        elif  (first_point_in_linestring[0]-y[0])<10e-13 and (first_point_in_linestring[1]-y[1])<10e-13:
- #           verso='FT'
-  #      else:
-   #         app.logger.debug("something wrong here!")
-    #    if dic['senso_unic'] == verso:
-     #       app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
-      #      return 10000
     if dic['solo_remi']:
-        app.logger.debug("le barche a motore non passano per {} !".format(dic))
+        #app.logger.debug("le barche a motore non passano per {} !".format(dic))
         return 10000
     else:
         max_speed=dic['vel_max']/3.6

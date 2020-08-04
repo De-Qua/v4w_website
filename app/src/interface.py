@@ -182,7 +182,7 @@ def find_what_needs_to_be_found(params_research, G_objects):
     G_terra_array = np.asarray(list(G_terra.nodes))
     G_acqua_array = np.asarray(list(G_acqua.nodes))
 
-    boat_speed=20/3.6
+    boat_speed=5/3.6
     walk_speed=5/3.6
 
     if what_am_I_really_searching_for == "nothing":
