@@ -206,10 +206,10 @@
 										<div class="col-10">
 											<div id="nav_buttons" style="display: none">
 
-												<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
-												<label class="btn btn-sm btn-light v4wbtn"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
-												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
-												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+												<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
+												<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
+												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
+												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
 												<script>
 												if(typeof dict_in_JS !== 'undefined'){
 													checkTheBoxesThatNeedToBeChecked(dict_in_JS);
@@ -219,6 +219,8 @@
 										</div>
 										<div class="col-1">
 											<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
+											<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn">Vai!</button> -->
+											<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-search"></i></button> -->
 										</div>
 									</div>
 									<!-- QUARTA RIGA: TROVA LA STRADA -->
@@ -445,20 +447,23 @@
 							<div class="row">
 								<div class="col-6 text-center">
 									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="/info" target="_blank">
-										<i class="fa fa-4x fa-user"></i>
+										<i class="fa fa-4x fa-user pt-2"></i>
 										<br>
 										<h6 class="mb-0">Info</h6>
 									</a>
 								</div>
 								<div class="col-6 text-center">
 									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="https://github.com/Lychfindel/v4w_website" target="_blank">
-										<i class="fa fa-4x fa-github"></i>
+										<i class="fa fa-4x fa-github pt-2"></i>
 										<br>
 										<h6 class="mb-0 pb-0">GitHub</h6>
 									</a>
 								</div>
 							</div>
 			      </div>
+						<div class="modal-footer">
+							<small class="text-muted">Versione alpha</small>
+						</div>
 					</div>
 					<div class="modal-content" id="settings-help" style="display: none">
 						<div class="modal-header">
@@ -517,7 +522,7 @@
 								<div class="form-group">
 									<label class="feedback-label" for="email">Email</label>
 									<input type="text" class="form-control" id="email" name="email" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$">
-									<small class="form-text text-muted">La tua mail è sacra: la useremo solo per chiederti chiarimenti o per avvertirti che il problema è risolto.</small>
+									<small class="form-text text-muted">La tua mail è sacra: la useremo solo per chiederti chiarimenti o per avvisarti che il problema è risolto.</small>
 								</div>
 								<div class="form-group">
 									<!-- {{ form.category.label }}
