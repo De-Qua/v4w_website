@@ -167,10 +167,6 @@ def weight_motor_boat(x,y,dic):
             verso=-1
         else:
             app.logger.debug("something wrong here!")
-        if dic['nome'] == "DE NOAL - CANALE DE LA MISERICORDIA":
-            app.logger.debug("canale della misericordia, differenza in x {} differenza in y {} !".format(abs(first_point_in_linestring[0]-x[0]), abs(first_point_in_linestring[1]-x[1])))
-            app.logger.debug("canale della misericordia, verso  {} !".format(dic['senso_unic']))
-            app.logger.debug("lo stai imboccando con verso {} !".format(verso))
         if dic['senso_unic'] == verso:
             #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
 #            pdb.set_trace()
