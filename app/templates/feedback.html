@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<!-- Non dovrebbe essere indicizzato -->
+		<meta name="robots" content="noindex">
+		<meta name="googlebot" content="noindex">
+
+    <title>DeQua Feedback</title>
+    <!-- Bootstrap core CSS -->
+		<link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/s.css" rel="stylesheet">
+	</head>
+	<body>
+    <script>var feedback_dict_in_JS = {{feedback_dict | tojson}};</script>
+
+		<div class="container">
+			<div class="header_feedback">
+				<div class="row">
+					<div class="col-md-1"><img src="/static/img/dequa_logo_v2.png" width="100%"></div>
+					<div class="col-md-11">
+            <div class="title">DeQua Feedback</div>
+            <div class="feedback_count" id="fb_count"></div>
+          </div>
+				</div>
+			</div>
+
+			<div class="feedbacks">
+        <div id="feedback_list">
+          <script>
+            var fb_names = feedback_dict_in_JS.fb_names;
+            var fb_contents = feedback_dict_in_JS.fb_contents;
+            // perche function(i) ? malvagita trovata su stackoverflow
+            // https://stackoverflow.com/questions/15860683/onclick-event-in-a-for-loop
+            // esempio qui https://johnresig.com/apps/learn/#59
+            for (i=0; i<fb_names.length; i++) (function(i){
+              // the content of the file is a hidden div that will be child of the list_item
+              var div_container = document.createElement("div");
+              div_container.classList.add("fb_content");
+              div_container.id = "fb_content" + i; // we need id to toggle the visibility (or at least I think)
+              div_container.style.display = "none";
+
+              var item_text = document.createElement("div");
+              item_text.innerHTML = fb_contents[i];
+              div_container.appendChild(item_text);
+
+              // the list item is the name of the feedback file
+              var list_item = document.createElement("div");
+              list_item.classList.add("fb_name");
+              list_item.innerHTML = fb_names[i];
+              list_item.appendChild(div_container);
+              list_item.id = "fb_name" + i;
+              list_item.onclick = function() { toggle_content(div_container.id, list_item.id); };
+              document.getElementById("feedback_list").appendChild(list_item);
+            })(i);
+          </script>
+        </div>
+			</div>
+		</div>
+
+	</body>
+  <script>
+    // hide the contents and show the one we clicked
+    function toggle_content(el_id, list_id) {
+      // if it's already open, just close it
+      if (document.getElementById(el_id).style.display == "inline") {
+        document.getElementById(el_id).style.display = "none";
+        document.getElementById(list_id).style.color = "black";
+      }
+      else {
+        // close all the others
+        console.log("trying to show " + el_id);
+        var fb_contents = document.getElementsByClassName("fb_content");
+        for (j=0; j<fb_contents.length; j++) {
+          fb_contents[j].style.display = "none";
+        }
+        // put it back to black color
+        var fb_names = document.getElementsByClassName("fb_name");
+        for (j=0; j<fb_names.length; j++) {
+          fb_names[j].style.color = "black";
+        }
+        //show the good goood one
+        document.getElementById(el_id).style.display = "inline";
+        // color blue to show it's active
+        console.log("coloring the list " + el_id);
+        document.getElementById(list_id).style.color = "blue";
+      }
+
+    }
+  </script>
+  <script>
+    var fb_names = feedback_dict_in_JS.fb_names;
+    // set the html for the counter
+    document.getElementById('fb_count').innerHTML = "Ci sono " + fb_names.length + " files di feedback";
+  </script>
+
+</html>

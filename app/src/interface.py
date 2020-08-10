@@ -19,6 +19,22 @@ import pickle
 import traceback
 from app import mail
 
+FEEDBACK_FOLDER = 'feedback'
+
+def get_feedback_from_server():
+    """
+    Check for feedback files in the server, returns their names and their contents, in a dictionary for js.
+    """
+    feedback_files_names = os.listdir(FEEDBACK_FOLDER)
+    feedback_files_content = []
+    for fb_file in feedback_files_names:
+        with open(os.path.join(FEEDBACK_FOLDER, fb_file), 'r') as content_file:
+            cur_fb_content = content_file.read()
+        feedback_files_content.append(cur_fb_content)
+
+    feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_content}
+    return feedback_dict
+
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
     Returns the parameters sent from the map page through the get method during a research.
