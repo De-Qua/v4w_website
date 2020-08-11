@@ -17,7 +17,7 @@ import traceback
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
 path_pickle_terra = os.path.join(folder_db,"grafo_pickle_4326VE")
-path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle_4326VE")
+path_pickle_acqua = os.path.join(folder_db,"grafo_acqueo_pickle")
 
 # Logging
 app.logger.info("loading the graphs..")
@@ -48,6 +48,13 @@ def index():
     app.logger.log(10,'Prova log debug')
     app.logger.log(20,'Prova log info')
     return render_template('info.html')
+
+@app.route('/r2d2', methods=['GET', 'POST'])
+def feedback():
+    app.logger.info('Pagina di feedback aperta')
+    #get list of feedback files
+    feedback_dict = interface.get_feedback_from_server()
+    return render_template('feedback.html', feedback_dict = feedback_dict)
 
 @app.route('/', methods=['GET', 'POST'])
 def navigation():

@@ -478,3 +478,28 @@ body, html {height: 100%}
 	height: 16px;
   width: 16px;
 }
+
+.title {
+
+	text-align: center;
+	font-size: 1.5rem;
+	font-weight: 800;
+}
+.header_feedback {
+		padding: 2rem;
+}
+
+.feedback_count {
+	text-align: center;
+	padding-top: 1rem;
+}
+.fb_name {
+	font-weight: 400;
+	font-size: 2rem;
+}
+.fb_content {
+	margin: 10rem;
+	margin-left: 2rem;
+	padding-left: 2rem;
+	font-size: 1rem;
+}
