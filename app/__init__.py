@@ -12,7 +12,7 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 
 # version of the software
-version = "0.1"
+version = "0.1.1"
 
 app = Flask(__name__)
 app.config.from_object(Config)
