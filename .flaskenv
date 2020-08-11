@@ -1,2 +1,2 @@
 FLASK_APP=flask_app.py
-FLASK_DEBUG=0
+FLASK_DEBUG=1
