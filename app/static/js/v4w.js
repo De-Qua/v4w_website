@@ -190,23 +190,29 @@ function locateUser(map, marker, circle) {
 
 /* Show the second search bar field - to calculate the path */
 function showSecondSearchbar() {
-	document.getElementById("searchbtn").style.display = "none";
+	// document.getElementById("searchbtn").style.display = "none";
 	document.getElementById("add-searchfield").style.display = "none";
 	document.getElementById("btn-plus").style.display = "none";
 	document.getElementById("second-search-field").style.display = "block";
 	document.getElementById("nav_buttons").style.display = "block";
-	document.getElementById("start_from_my_location").style.display = "block";
+	// document.getElementById("start_from_my_location").style.display = "block";
 }
 
 function hideSecondSearchbar() {
-	document.getElementById("searchbtn").style.display = "block";
+	// document.getElementById("searchbtn").style.display = "block";
 	document.getElementById("add-searchfield").style.display = "block";
 	document.getElementById("btn-plus").style.display = "block";
 	document.getElementById("second-search-field").style.display = "none";
 	document.getElementById("nav_buttons").style.display = "none";
-	document.getElementById("start_from_my_location").style.display = "none";
+	// document.getElementById("start_from_my_location").style.display = "none";
 	document.getElementById("search_field_2").value = "";
 	return false;
+}
+
+function swapDirections() {
+  var field_1 = document.getElementById('search_field_1').value;
+  document.getElementById('search_field_1').value = document.getElementById('search_field_2').value;
+  document.getElementById('search_field_2').value = field_1;
 }
 
 function drawPreLoader() {

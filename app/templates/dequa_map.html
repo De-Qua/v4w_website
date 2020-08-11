@@ -164,17 +164,33 @@
 								<div class="row">
 									<!-- A sinistra la barra di ricerca -->
 									<div class="col-10">
-										<input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1">
+										<div class="input-group">
+											<div class="input-group-prepend">
+										    <button class="input-group-text btn bg-white border-right-0 border" type="button" id="startFromWhereIAMbtn">
+													<i class="fa fa-bullseye"></i>
+												</button>
+												<script>
+													document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
+												</script>
+										  </div>
+										  <input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1">
+											<div class="input-group-append">
+										    <button class="input-group-text btn bg-white border-left-0 border" type="button">
+													<i class="fa fa-times"></i>
+												</button>
+										  </div>
+										</div>
+										<!-- <input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1"> -->
 									</div>
 									<!-- A destra il pulsante per cercare -->
 									<div class="col-1 align-self-center">
-										<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-fw fa-search"></i></button>
-										<div id="start_from_my_location" style="display: none">
+										<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;"></button>
+										<!-- <div id="start_from_my_location" style="display: none">
 											<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-fw fa-location-arrow"></i></button>
 											<script>
 												document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
 											</script>
-										</div>
+										</div> -->
 									</div>
 								</div>
 
@@ -184,7 +200,7 @@
 										<!-- inizialmente mostriamo il bottone -->
 										<div class="button-plus" id="add-searchfield">
 											<a onclick="showSecondSearchbar()">
-												<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-map-signs"></i></button>
+												<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><img src="/static/icons/iconfinder_path_2969396.svg" class="icon fa-fw p-0"></button>
 											</a>
 										</div>
 									</div>
@@ -195,17 +211,30 @@
 									<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
 									<div class="row">
 										<div class="col-10">
-											<input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2">
+											<div class="input-group">
+												<div class="input-group-prepend">
+											    <button class="input-group-text btn bg-white border-right-0 border" type="button" onclick="hideSecondSearchbar()">
+														<i class="fa fa-minus-square-o"></i>
+													</button>
+											  </div>
+											  <input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2">
+												<div class="input-group-append">
+											    <button class="input-group-text btn bg-white border-left-0 border" type="button">
+														<i class="fa fa-times"></i>
+													</button>
+											  </div>
+											</div>
+											<!-- <input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2"> -->
 										</div>
 										<div class="col-1 align-self-center">
-											<button type=button onclick="hideSecondSearchbar()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-close"></i></button>
+											<button type=button onclick="swapDirections()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-exchange fa-rotate-90"></i></button>
 										</div>
 									</div>
 									<!-- TERZA RIGA: BOTTONI + trova la strada-->
 									<div class="row space_above">
 										<div class="col-10">
 											<div id="nav_buttons" style="display: none">
-
+												<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting" checked><img src="/static/icons/pedone.svg" class="icon"></input></label>
 												<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="walk_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
 												<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
 												<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
@@ -217,11 +246,11 @@
 												</script>
 											</div>
 										</div>
-										<div class="col-1">
+										<!-- <div class="col-1">
 											<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
 											<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn">Vai!</button> -->
 											<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-search"></i></button> -->
-										</div>
+										<!-- </div> -->
 									</div>
 									<!-- QUARTA RIGA: TROVA LA STRADA -->
 									<!--
@@ -378,7 +407,7 @@
 
 			<!-- DIV IN BASSO A DESTRA SOPRA LO ZOOM - Zampa per la finestra d'aiuto -->
 			<script>
-				L.easyButton('<img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;">',function(btn,map){
+				L.easyButton('<i class="fa fa-question-circle" aria-hidden="true"></i>',function(btn,map){
 					showSettingsWindowNew();
 				},{position: 'bottomright'}).addTo(mymap);
 				// Functions for setting window
