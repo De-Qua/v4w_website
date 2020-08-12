@@ -104,8 +104,8 @@ def write_feedback(form, feedback_folder):
     with open(file_feedback,'w+') as f:
         f.write(mdfile)
     # send an email to ourself with the feedback
-    if app.debug:# if not app.debug:
-        mail.send_email_to_ourself(subject="[FEEDBACK] "+ category,html_body=mdfile)
+    # if app.debug:# if not app.debug:
+    #     mail.send_email_to_ourself(subject="[FEEDBACK] "+ category,html_body=mdfile)
 
 def take_care_of_the_error(request,err,error_folder):
     """
@@ -155,8 +155,8 @@ def take_care_of_the_error(request,err,error_folder):
         f.write(mdfile)
 
     # send an email with the error
-    if app.debug:# if not app.debug:
-        mail.send_email_to_ourself(subject="[ERROR] "+ str(err),html_body=mdfile)
+    # if app.debug:# if not app.debug:
+    #     mail.send_email_to_ourself(subject="[ERROR] "+ str(err),html_body=mdfile)
 
 
 def ask_yourself(params_research):

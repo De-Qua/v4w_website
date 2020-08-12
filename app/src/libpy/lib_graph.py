@@ -134,11 +134,11 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
     return streets_info
 
-def weight_bridge(x,y,dic, bridge_distance=10000):
+def weight_bridge(x,y,dic, bridge_factor=10):
     """
     It weights bridges different, so that dijkstra may find the optimal path as a path with less bridges.
     """
-    return dic["length"] + dic["ponte"]*bridge_distance
+    return dic["length"] + dic["ponte"]*bridge_factor*dic['length']
 
 def weight_time(x,y,dic):
     """
@@ -162,7 +162,7 @@ def weight_motor_boat(x,y,dic):
         line=mapping(shapely.wkt.loads(dic['Wkt']))
         first_point_in_linestring = line['coordinates'][0]
         if (first_point_in_linestring[0]-x[0])<10e-15 and (first_point_in_linestring[1]-x[1])<10e-15:
-            verso=1          
+            verso=1
         elif  (first_point_in_linestring[0]-y[0])<10e-15 and (first_point_in_linestring[1]-y[1])<10e-15:
             verso=-1
         else:
