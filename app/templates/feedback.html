@@ -6,7 +6,7 @@
 		<!-- Non dovrebbe essere indicizzato -->
 		<meta name="robots" content="noindex">
 		<meta name="googlebot" content="noindex">
-
+    <link rel="icon" href="/static/img/dequa_logo_v2.png">
     <title>DeQua Feedback</title>
     <!-- Bootstrap core CSS -->
 		<link href="/static/css/bootstrap.css" rel="stylesheet">
@@ -26,41 +26,53 @@
 				</div>
 			</div>
 
-			<div class="feedbacks">
-        <div id="feedback_list">
-          <script>
-            var fb_names = feedback_dict_in_JS.fb_names;
-            var fb_contents = feedback_dict_in_JS.fb_contents;
-            // perche function(i) ? malvagita trovata su stackoverflow
-            // https://stackoverflow.com/questions/15860683/onclick-event-in-a-for-loop
-            // esempio qui https://johnresig.com/apps/learn/#59
-            for (i=0; i<fb_names.length; i++) (function(i){
-              // the content of the file is a hidden div that will be child of the list_item
-              var div_container = document.createElement("div");
-              div_container.classList.add("fb_content");
-              div_container.id = "fb_content" + i; // we need id to toggle the visibility (or at least I think)
-              div_container.style.display = "none";
-
-              var item_text = document.createElement("div");
-              item_text.innerHTML = fb_contents[i];
-              div_container.appendChild(item_text);
-
-              // the list item is the name of the feedback file
-              var list_item = document.createElement("div");
-              list_item.classList.add("fb_name");
-              list_item.innerHTML = fb_names[i];
-              list_item.appendChild(div_container);
-              list_item.id = "fb_name" + i;
-              list_item.onclick = function() { toggle_content(div_container.id, list_item.id); };
-              document.getElementById("feedback_list").appendChild(list_item);
-            })(i);
-          </script>
+			<div class="feedbacks" id="feedback_container">
+        <div class="row" id="feedback_row">
+          <div class="col-3 fb-col" id="left_col">
+          </div>
+          <div class="col-9 fb-col" id="right_col">
         </div>
-			</div>
-		</div>
+			</div><!-- END OF FEEDBACK CONTAINER -->
+		</div><!-- END OF BIG CONTAINER (whole page) -->
 
 	</body>
   <script>
+    var fb_names = feedback_dict_in_JS.fb_names;
+    var fb_contents = feedback_dict_in_JS.fb_contents;
+    for (i=0; i<fb_names.length; i++) (function(i){
+      var div_left_col = document.createElement("div");
+      var div_right_col = document.createElement("div");
+      // a div contains the text (this will later be better made, with maps and all)
+      var div_container = document.createElement("div");
+      div_container.classList.add("fb_content");
+      div_container.id = "fb_content" + i; // we need id to toggle the visibility (or at least I think)
+      div_container.style.display = "none";
+      var item_text = document.createElement("div");
+      item_text.innerHTML = fb_contents[i];
+
+
+      // the content of the file is a hidden div that
+      var list_item = document.createElement("div");
+      list_item.classList.add("fb_name");
+      list_item.innerHTML = fb_names[i];
+      list_item.id = "fb_name" + i;
+      list_item.onclick = function() { toggle_content(div_container.id, list_item.id); };
+
+      // here we build the structure, so:
+      // -- feedback_container
+      //  |-- row
+      //    |-- col-3
+      //      |-- list_item
+      //    |-- col-9
+      //      |-- div_container
+      //        |-- item_text
+      div_container.appendChild(item_text);
+      div_right_col.appendChild(div_container);
+      div_left_col.appendChild(list_item);
+      document.getElementById("left_col").appendChild(div_left_col);
+      document.getElementById("right_col").appendChild(div_right_col);
+    })(i);
+
     // hide the contents and show the one we clicked
     function toggle_content(el_id, list_id) {
       // if it's already open, just close it

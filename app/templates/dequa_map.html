@@ -18,7 +18,7 @@
 	<link rel="stylesheet" href="/static/css/easy-button.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
-	<!-- <link rel="icon" href="/static/img/dequa_logo_v2.png"> -->
+  <link rel="icon" href="/static/img/dequa_logo_v2.png">
 
 	<link rel="stylesheet" href="/static/css/leaflet.css">
 	 <!-- Make sure you put this AFTER Leaflet's CSS -->
@@ -41,7 +41,7 @@
 	<script src="/static/js/easy-button.js"></script>
 	<script src="/static/js/leaflet.markercluster.js"></script>
 	<script src="/static/js/leaflet-color-markers.js"></script>
-<body>
+<body onbeforeunload="HandleBackFunctionality()">
 	<!-- Initialize popover -->
 <script>
 	$(function () {
@@ -445,7 +445,7 @@
 				}
 			</script>
 
-			<!-- <!--SETTING WINDOW: modal -->
+			<!-- SETTING WINDOW: modal -->
 			<!-- Modal -->
 			<div class="modal fade" id="settingsWindow" tabindex="-1" role="dialog" aria-labelledby="Settings" aria-hidden="true">
 			  <div class="modal-dialog modal-dialog-centered" role="document">
@@ -898,8 +898,27 @@
 		 	}//closing switch modus_operandi
 
 		}
-
-
+		/* Primo tentativo!
+		window.addEventListener('locationchange', function() {
+			if (document.getElementById("loading").style.display = "inline") {
+  			document.getElementById("loading").style.display = "none";
+  			document.getElementById("mapid").style.opacity = 1;
+  		}
+	    console.log('location changed!');
+		})*/
+		// sembra funzionare semplicemente per l'esistenza di questo HandleBackFunctionality,
+		// ma in realtà non printa nulla a console, forse non entra mai, ma sparisce la rotella
+		// MISTERO
+		function HandleBackFunctionality()
+		{
+			/*
+			if (document.getElementById("loading").style.display = "inline") {
+  			document.getElementById("loading").style.display = "none";
+  			document.getElementById("mapid").style.opacity = 1;
+  		}
+	    console.log('tolto la rotella');
+			*/
+		}
 </script>
 
 

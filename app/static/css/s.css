@@ -495,11 +495,14 @@ body, html {height: 100%}
 }
 .fb_name {
 	font-weight: 400;
-	font-size: 2rem;
+	font-size: 0.7rem;
 }
 .fb_content {
 	margin: 10rem;
 	margin-left: 2rem;
 	padding-left: 2rem;
 	font-size: 1rem;
+}
+.fb_col {
+	border: 1px solid;
 }

@@ -102,3 +102,9 @@ def merged_path_list(path_list):
     merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
 
     return merged_path
+
+def parseFeedbackFile(file_content_as_text):
+    """
+    Parse the content of the file we wrote and creates a dict to pass to js.
+    """
+    #pdb.set_trace()

@@ -5,7 +5,7 @@ and the libraries (in libpy), in order to maintain clean the routes page.
 import time
 import datetime
 from app.src.libpy.lib_search import find_closest_nodes, find_closest_edge, find_path_to_closest_riva, find_POI, find_address_in_db, give_me_the_dictionary, are_we_sure_of_the_results
-from app.src.libpy.lib_communication import prepare_our_message_to_javascript
+from app.src.libpy.lib_communication import prepare_our_message_to_javascript, parseFeedbackFile
 import pdb
 from app.src.libpy import lib_graph, lib_communication, lib_search
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
@@ -26,13 +26,18 @@ def get_feedback_from_server():
     Check for feedback files in the server, returns their names and their contents, in a dictionary for js.
     """
     feedback_files_names = os.listdir(FEEDBACK_FOLDER)
-    feedback_files_content = []
+    feedback_files_names.sort()
+    feedback_files_contents = []
+    feedback_files_contents_as_dicts = []
     for fb_file in feedback_files_names:
-        with open(os.path.join(FEEDBACK_FOLDER, fb_file), 'r') as content_file:
-            cur_fb_content = content_file.read()
-        feedback_files_content.append(cur_fb_content)
+        full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
+        with open(full_path, 'r') as content_file:
+            cur_fb_content_as_text = content_file.read()
+            cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
+        feedback_files_contents.append(cur_fb_content_as_text)
+        #feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
 
-    feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_content}
+    feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
     return feedback_dict
 
 def retrieve_parameters_from_GET(arguments_GET_request):
