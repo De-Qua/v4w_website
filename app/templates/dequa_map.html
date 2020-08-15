@@ -173,9 +173,9 @@
 													document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
 												</script>
 										  </div>
-										  <input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1">
+										  <input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="nowitstimetoshowtheX('search_field_1_x')">
 											<div class="input-group-append">
-										    <button class="input-group-text btn bg-white border-left-0 border" type="button" onclick="clearField('search_field_1')">
+										    <button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_1_x" onclick="clearField('search_field_1')">
 													<i class="fa fa-times"></i>
 												</button>
 										  </div>
@@ -217,9 +217,9 @@
 														<i class="fa fa-minus-square-o"></i>
 													</button>
 											  </div>
-											  <input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2">
+											  <input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="nowitstimetoshowtheX('search_field_2_x')">
 												<div class="input-group-append">
-											    <button class="input-group-text btn bg-white border-left-0 border" type="button" onclick="clearField('search_field_2')">
+											    <button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_2_x" onclick="clearField('search_field_2')">
 														<i class="fa fa-times"></i>
 													</button>
 											  </div>
@@ -647,6 +647,7 @@
 </div> <!-- Close container -->
 
 <script>
+		toggleXbuttons();
 		// deal with feedback sent
 		switch({{feedbacksent}}) {
 			case -1:
@@ -679,6 +680,7 @@
 
 		if (dict_in_JS == "None") {
 			mymap.setView([45.435, 12.333], 15);
+			hidebothXbuttons();
 		} else if ("error" in dict_in_JS) {
 			mymap.setView([45.435, 12.333], 15);
 			console.log("error: " + dict_in_JS.msg)
@@ -726,6 +728,9 @@
 					var name_location = dict_in_JS.how_to_get_there.da;
 					var name_found = dict_in_JS.partenza[0].nome;
 					document.getElementById('search_field_1').value = name_location
+					if (name_location.length > 0) {
+						nowitstimetoshowtheX('search_field_1_x');
+					}
 					document.getElementById("found_text").innerHTML = "<i>"+name_found+"</i>";
 					switch(geo_type) {
 						case -2:
@@ -795,7 +800,13 @@
 					console.log("also the search should be ready");
 					showSecondSearchbar();
 					document.getElementById('search_field_1').value = nome_partenza;
+					if (nome_partenza.length > 0) {
+						nowitstimetoshowtheX('search_field_1_x');
+					}
 					document.getElementById('search_field_2').value = nome_arrivo;
+					if (nome_arrivo.length > 0) {
+						nowitstimetoshowtheX('search_field_2_x');
+					}
 					console.log("checking the boxes");
 					checkTheBoxesThatNeedToBeChecked(dict_in_JS);
 					console.log("done checking the boxes");

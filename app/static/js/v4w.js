@@ -347,6 +347,8 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
 		document.getElementById("search_field_1").style.backgroundColor = "#f44";
+    console.log('@showPossibilitiesWindow[address]: show both X buttons');
+    nowitstimetoshowtheX('search_field_1_x');
 	} else {
 		showSecondSearchbar();
 		//document.getElementById("search_field_1").value = searched_start;
@@ -360,6 +362,8 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
       document.getElementById("search_field_2").value = searched_end;
 			document.getElementById("search_field_2").style.backgroundColor = "#f44";
 		}
+    console.log('@showPossibilitiesWindow[choosing_start/choosing_end]: show both X buttons');
+    showbothXbuttons();
 	}
 
 	showSidebar();
@@ -553,4 +557,38 @@ function clearHighlight(card) {
 function clearField(field_id) {
   document.getElementById(field_id).value = '';
   console.log("cleared " + field_id + " field");
+  var button_id = field_id + "_x";
+  hidefornowtheX(button_id);
+}
+// but we want the X to show only when something was typed in!
+// here also with jQuery possible --> https://stackoverflow.com/questions/13828450/html-catch-event-when-user-is-typing-into-a-text-input
+function nowitstimetoshowtheX(button_id) {
+  document.getElementById(button_id).style.display = "inline";
+  console.log("showing " + button_id + " button");
+}
+function hidefornowtheX(button_id) {
+  document.getElementById(button_id).style.display = "none";
+  console.log("hiding " + button_id + " button");
+}
+function hidebothXbuttons() {
+  hidefornowtheX('search_field_1_x');
+  hidefornowtheX('search_field_2_x');
+}
+function showbothXbuttons() {
+  nowitstimetoshowtheX('search_field_1_x');
+  nowitstimetoshowtheX('search_field_2_x');
+}
+function toggleXbuttons() {
+  if (document.getElementById('search_field_1').value.length > 0) {
+    nowitstimetoshowtheX('search_field_1_x');
+  }
+  else {
+    hidefornowtheX('search_field_1_x');
+  }
+  if (document.getElementById('search_field_2').value.length > 0) {
+    nowitstimetoshowtheX('search_field_2_x');
+  }
+  else {
+    hidefornowtheX('search_field_2_x');
+  }
 }
