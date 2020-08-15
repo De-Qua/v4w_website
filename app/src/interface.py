@@ -51,6 +51,7 @@ def retrieve_parameters_from_GET(arguments_GET_request):
     params_dict['a'] = arguments_GET_request.get('arrivo', default='', type=str)
     params_dict['end_coord'] = arguments_GET_request.get('end_coord', default='', type=str)
     # new code! i bottoni sono 'off' o 'on'
+    params_dict['walking'] = arguments_GET_request.get('walk', default='off', type=str)
     params_dict['less_bridges'] = arguments_GET_request.get('lazy', default='off', type=str)
     params_dict['by_boat'] = arguments_GET_request.get('boat', default='off', type=str)
     params_dict['with_tide'] = arguments_GET_request.get('tide', default='off', type=str)

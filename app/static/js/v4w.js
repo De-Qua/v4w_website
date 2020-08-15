@@ -373,6 +373,9 @@ function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
     document.getElementById("boat_setting").checked = true;
   }
   if (checkBoxesDict.less_bridges == "on") {
+    document.getElementById("less_bridges_setting").checked = true;
+  }
+  if (checkBoxesDict.walking == "on") {
     document.getElementById("walk_setting").checked = true;
   }
 }
@@ -544,4 +547,10 @@ function clearHighlight(card) {
   // childNodes[0] = header; childNodes[1] = body
   card.childNodes[0].style.background = "rgb(247, 247, 247)";
   card.childNodes[1].style.background = "rgb(255, 255, 255)";
+}
+
+// clear the text of a field (gives as input the field id!)
+function clearField(field_id) {
+  document.getElementById(field_id).value = '';
+  console.log("cleared " + field_id + " field");
 }
