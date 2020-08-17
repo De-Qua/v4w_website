@@ -553,10 +553,27 @@ function clearHighlight(card) {
   card.childNodes[1].style.background = "rgb(255, 255, 255)";
 }
 
+
+// GESTIONE INPUT
+//
+// quando l'utente scrive qualcosa (non quando ha il focus), succedono cose:
+//  - la x appare
+//  - il campo "segreto" viene resettato
+//
+// ### Cos'e il campo "segreto"? visto che il bottone e un form, ho agigunto un campo nascosto (senza prendere spazio)
+// che contiene le coordinate. quando uno cerca premendo il bottone, il form viene inviato, e visto che il campo nascosto
+// si chiama start_coord (e e end_coord l'altro) viene inviato esattamente come ci aspettiamo, e il python lo puo gestire
+//
+// ### come sappiamo quando l'utente scrive?
+// usiamo il metodo oninput - sembra funzionare molto bene, o almeno, esattamente come serve a noi
+// (se una persona scrive, poi clicca sulla mappa, poi di nuovo sulla barra, non viene rilanciato)
+// resta da testare nei casi limiti e nel telefono, per capire se fa cose strane
+
 // mother function:
 // when user is typing we need to clear the hidden field and show the x
 // is this robust enough?
 // TODO: check if oninput is always called in special cases
+// here also with jQuery possible --> https://stackoverflow.com/questions/13828450/html-catch-event-when-user-is-typing-into-a-text-input
 function useristypingin(field_id) {
   console.log("user is typing in " + field_id);
   var button_id = field_id + "_x";
@@ -585,7 +602,6 @@ function clearField(field_id) {
   hidefornowtheX(button_id);
 }
 // but we want the X to show only when something was typed in!
-// here also with jQuery possible --> https://stackoverflow.com/questions/13828450/html-catch-event-when-user-is-typing-into-a-text-input
 function nowitstimetoshowtheX(button_id) {
   document.getElementById(button_id).style.display = "inline";
   console.log("showing " + button_id + " button");
