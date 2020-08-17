@@ -347,7 +347,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
 		document.getElementById("search_field_1").style.backgroundColor = "#f44";
-    console.log('@showPossibilitiesWindow[address]: show both X buttons');
+    console.log('@showPossibilitiesWindow[address]: show X button in first search field');
     nowitstimetoshowtheX('search_field_1_x');
 	} else {
 		showSecondSearchbar();
@@ -371,7 +371,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 
 // mette la spunta
 function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
-  var checkBoxesDict = dict_in_JS.how_to_get_there;
+  var checkBoxesDict = dict_in_JS.params_research;
 
   if (checkBoxesDict.by_boat == "on") {
     document.getElementById("boat_setting").checked = true;
@@ -551,6 +551,30 @@ function clearHighlight(card) {
   // childNodes[0] = header; childNodes[1] = body
   card.childNodes[0].style.background = "rgb(247, 247, 247)";
   card.childNodes[1].style.background = "rgb(255, 255, 255)";
+}
+
+// mother function:
+// when user is typing we need to clear the hidden field and show the x
+// is this robust enough?
+// TODO: check if oninput is always called in special cases
+function useristypingin(field_id) {
+  console.log("user is typing in " + field_id);
+  var button_id = field_id + "_x";
+  clearhiddeninput(field_id);
+  nowitstimetoshowtheX(button_id);
+}
+
+function clearhiddeninput(field_id) {
+  console.log("clearing hidden field for " + field_id);
+  if (field_id == 'search_field_1') {
+    document.getElementById('hidden_start_coord').value='';
+    console.log('cleared hidden start');
+  }
+  if (field_id == 'search_field_2') {
+    document.getElementById('hidden_end_coord').value='';
+    console.log('cleared hidden end');
+  }
+  console.log('finished, if no print of start or end, nothing happened!')
 }
 
 // clear the text of a field (gives as input the field id!)

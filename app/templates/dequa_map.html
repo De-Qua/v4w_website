@@ -173,7 +173,9 @@
 													document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
 												</script>
 										  </div>
-										  <input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="nowitstimetoshowtheX('search_field_1_x')">
+										  <input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="useristypingin('search_field_1')">
+											<!-- A hidden input takes the coordinates for the start location and we can store them here: it will never be visible -->
+											<input type="text" name="start_coord" id="hidden_start_coord" style="display: none">
 											<div class="input-group-append">
 										    <button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_1_x" onclick="clearField('search_field_1')">
 													<i class="fa fa-times"></i>
@@ -217,7 +219,9 @@
 														<i class="fa fa-minus-square-o"></i>
 													</button>
 											  </div>
-											  <input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="nowitstimetoshowtheX('search_field_2_x')">
+											  <input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="useristypingin('search_field_2')">
+												<!-- A hidden input takes the coordinates for the end location and we can store them here: it will never be visible -->
+												<input type="text" name="end_coord" id="hidden_end_coord" style="display: none">
 												<div class="input-group-append">
 											    <button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_2_x" onclick="clearField('search_field_2')">
 														<i class="fa fa-times"></i>
@@ -725,13 +729,16 @@
 					// e facile aggiungere geo_type se vogliamo piu avanti
 					showResultsWindow('single_address');
 					console.log("shown a single address result")
-					var name_location = dict_in_JS.how_to_get_there.da;
-					var name_found = dict_in_JS.partenza[0].nome;
+					var name_location = dict_in_JS.params_research.da;
 					document.getElementById('search_field_1').value = name_location
 					if (name_location.length > 0) {
 						nowitstimetoshowtheX('search_field_1_x');
 					}
-					document.getElementById("found_text").innerHTML = "<i>"+name_found+"</i>";
+					// if we have the coordinate, we should keep it!
+					if (dict_in_JS.params_research.start_coord.length > 0) {
+						document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
+					}
+					document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
 					switch(geo_type) {
 						case -2:
 							// do nothing - pagina senza ricerca_ind
@@ -787,9 +794,9 @@
 					// geo type is not used
 					console.log("Setting up results window!")
 					showResultsWindow('percorso');
-					var nome_partenza = dict_in_JS.how_to_get_there.da;
+					var nome_partenza = dict_in_JS.params_research.da;
 					document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
-					var nome_arrivo = dict_in_JS.how_to_get_there.a;
+					var nome_arrivo = dict_in_JS.params_research.a;
 					document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 					var path_length = dict_in_JS.path.human_readable_length;
 					document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
@@ -803,9 +810,23 @@
 					if (nome_partenza.length > 0) {
 						nowitstimetoshowtheX('search_field_1_x');
 					}
+					// if we have the coordinate, we should keep it!
+					if (dict_in_JS.params_research.start_coord.length > 0) {
+						document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
+					}
 					document.getElementById('search_field_2').value = nome_arrivo;
 					if (nome_arrivo.length > 0) {
 						nowitstimetoshowtheX('search_field_2_x');
+					}
+					// if we have the coordinate, we should keep it!
+					if (dict_in_JS.params_research.end_coord.length > 0) {
+						document.getElementById('hidden_end_coord').value = dict_in_JS.params_research.end_coord;
+					}
+					else if (dict_in_JS.end_type == 'unique' && dict_in_JS.arrivo[0].coordinate.lenght > 0) {
+						document.getElementById('hidden_end_coord').value = dict_in_JS.arrivo[0].coordinate;
+					}
+					else {
+						console.log("[modus 1]: seems like we are not using end_coord! is this correct?")
 					}
 					console.log("checking the boxes");
 					checkTheBoxesThatNeedToBeChecked(dict_in_JS);
@@ -898,6 +919,16 @@
 					console.log("We send this to js: ",markerOptions)
 					// showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found, end_found);
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
+
+					//keep coordinates
+					// if we have the start coordinate, we should keep it!
+					if (dict_in_JS.params_research.start_coord.length > 0) {
+						document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
+					}
+					// if we have the end coordinate, we should keep it!
+					if (dict_in_JS.params_research.end_coord.length > 0) {
+						document.getElementById('hidden_end_coord').value = dict_in_JS.params_research.end_coord;
+					}
 					//possibilitiesLayer.addTo(mymap);
 					mymap.fitBounds(possibilitiesLayer.getBounds());
 					/*$(document).ready(function(){
