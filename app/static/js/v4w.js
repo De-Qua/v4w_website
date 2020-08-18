@@ -213,6 +213,10 @@ function swapDirections() {
   var field_1 = document.getElementById('search_field_1').value;
   document.getElementById('search_field_1').value = document.getElementById('search_field_2').value;
   document.getElementById('search_field_2').value = field_1;
+  // swap also hidden stuff
+  var hidden_field_1 = document.getElementById('hidden_start_coord').value;
+  document.getElementById('hidden_start_coord').value = document.getElementById('hidden_end_coord').value;
+  document.getElementById('hidden_end_coord').value = hidden_field_1;
 }
 
 function drawPreLoader() {
