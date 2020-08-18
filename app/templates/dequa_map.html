@@ -920,6 +920,15 @@
 					// showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found, end_found);
 					showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
 
+					// sbagliamo a scrivere sulle barre! Da correggere in showPossibilitiesWindow
+					// o ancora meglio separare possibilities window dallo scrivere sulle barre
+					var nome_partenza = dict_in_JS.params_research.da;
+					document.getElementById("search_field_1").value = nome_partenza;
+					var nome_arrivo = dict_in_JS.params_research.a;
+					document.getElementById("search_field_2").value = nome_arrivo;
+					
+					showSecondSearchbar();
+					document.getElementById('search_field_1').value = nome_partenza;
 					//keep coordinates
 					// if we have the start coordinate, we should keep it!
 					if (dict_in_JS.params_research.start_coord.length > 0) {
