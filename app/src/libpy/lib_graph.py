@@ -15,6 +15,7 @@ from app import app
 import shapely, shapely.wkt
 from shapely.geometry import mapping
 import geopy.distance
+import datetime
 
 speed_global=2
 
@@ -38,66 +39,101 @@ def load_graphs(pickle_terra,pickle_acqua):
         app.logger.debug("loaded water graph {}".format(pickle_acqua))
     return G_terra, G_acqua
 
+"""
+ OLD VERSION OF dynamically_add_edges
+# la lista ritornata da find_closest_edge e una lista di dizionari, con la stessa lunghezza della lista di input
+# i due nodi del primo arco!
+first_edge_first_node = list_of_edges_node_with_their_distance[0]["first_node"]
+first_edge_second_node = list_of_edges_node_with_their_distance[0]["second_node"]
+first_edge_first_dist = list_of_edges_node_with_their_distance[0]["first_dist"]
+first_edge_second_dist = list_of_edges_node_with_their_distance[0]["second_dist"]
+# ! i due nodi del secondo arco!
+second_edge_first_node = list_of_edges_node_with_their_distance[1]["first_node"]
+second_edge_second_node = list_of_edges_node_with_their_distance[1]["second_node"]
+second_edge_first_dist = list_of_edges_node_with_their_distance[1]["first_dist"]
+second_edge_second_dist = list_of_edges_node_with_their_distance[1]["second_dist"]
+# non serve aggiungere il nodo singolarmente, basta aggiungere i 4 archi (due per la partenza, due per l'arrivo)
+# se dobbiamo fare dall'ospedale, basterebbero 2
+#water_graph.add_node(coord_riva)#?? --> NON SERVE
+# aggiungi archi partenza
+first_edge_linestring_first_node = shapely.geometry.LineString([first_edge_first_node, coord_riva_start])
+first_edge_linestring_second_node = shapely.geometry.LineString([first_edge_second_node, coord_riva_start])
+# aggiungi gli archi (per ora senza attributi)
+water_graph.add_edge(first_edge_first_node, coord_riva_start)
+water_graph.add_edge(first_edge_second_node, coord_riva_start)
+# aggiungi gli attributi
+# non ha tanto senso cosi, ma la documentazione lo da come esempio --> https://networkx.github.io/documentation/stable/reference/generated/networkx.classes.function.set_edge_attributes.html
+# il .wkt lo mette come una stringa come negli altri nodi del grafo
+attrs_first_edges = {(first_edge_first_node, coord_riva_start): {'length':first_edge_first_dist, 'Wkt':first_edge_linestring_first_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None},
+         (first_edge_second_node, coord_riva_start): {'length':first_edge_second_dist, 'Wkt':first_edge_linestring_second_node.wkt,'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None}}
+nt.set_edge_attributes(water_graph, attrs_first_edges)
+#controlla
+added_edges.append((first_edge_first_node, coord_riva_start))
+app.logger.debug("Added {}".format(water_graph[first_edge_first_node][coord_riva_start]))
+added_edges.append((first_edge_second_node, coord_riva_start))
+app.logger.debug("Added {}".format(water_graph[first_edge_second_node][coord_riva_start]))
+
+# aggiungi archi arrivo
+second_edge_linestring_first_node = shapely.geometry.LineString([second_edge_first_node, coord_riva_end])
+second_edge_linestring_second_node = shapely.geometry.LineString([second_edge_second_node, coord_riva_end])
+# aggiungi gli archi (per ora senza attributi)
+water_graph.add_edge(second_edge_first_node, coord_riva_end)
+water_graph.add_edge(second_edge_second_node, coord_riva_end)
+# aggiungi gli attributi
+# non ha tanto senso cosi, ma la documentazione lo da come esempio --> https://networkx.github.io/documentation/stable/reference/generated/networkx.classes.function.set_edge_attributes.html
+# il .wkt lo mette come una stringa come negli altri nodi del grafo
+attrs_second_edges = {(second_edge_first_node, coord_riva_end): {'length':second_edge_first_dist, 'Wkt':second_edge_linestring_first_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None},
+         (second_edge_second_node, coord_riva_end): {'length':second_edge_second_dist, 'Wkt':second_edge_linestring_second_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None}}
+nt.set_edge_attributes(water_graph, attrs_second_edges)
+#controlla
+added_edges.append((second_edge_first_node, coord_riva_end))
+app.logger.debug("Added {}".format(water_graph[second_edge_first_node][coord_riva_end]))
+added_edges.append((second_edge_second_node, coord_riva_end))
+app.logger.debug("Added {}".format(water_graph[second_edge_second_node][coord_riva_end]))
+"""
+
+
 def dynamically_add_edges(water_graph, list_of_edges_node_with_their_distance, rive):
     """
-    Al momento aggiunge solo 2 edges, indipendentemente dalla lunghezza della lista! TODO.
+    Ora chiama connect_land_to_water per ogni coppia (riva, dizionario). La dobbiamo modificare
     """
     app.logger.warning("Warning: aggiunge solo 2 edges (e se la lista ne ha uno solo dara errore!), dobbiamo finirlo!")
     coord_riva_start = rive[0]
     coord_riva_end = rive[1]
     added_edges = []
-    # la lista ritornata da find_closest_edge e una lista di dizionari, con la stessa lunghezza della lista di input
-    # i due nodi del primo arco!
-    first_edge_first_node = list_of_edges_node_with_their_distance[0]["first_node"]
-    first_edge_second_node = list_of_edges_node_with_their_distance[0]["second_node"]
-    first_edge_first_dist = list_of_edges_node_with_their_distance[0]["first_dist"]
-    first_edge_second_dist = list_of_edges_node_with_their_distance[0]["second_dist"]
-    # ! i due nodi del secondo arco!
-    second_edge_first_node = list_of_edges_node_with_their_distance[1]["first_node"]
-    second_edge_second_node = list_of_edges_node_with_their_distance[1]["second_node"]
-    second_edge_first_dist = list_of_edges_node_with_their_distance[1]["first_dist"]
-    second_edge_second_dist = list_of_edges_node_with_their_distance[1]["second_dist"]
-    # non serve aggiungere il nodo singolarmente, basta aggiungere i 4 archi (due per la partenza, due per l'arrivo)
-    # se dobbiamo fare dall'ospedale, basterebbero 2
-    #water_graph.add_node(coord_riva)#?? --> NON SERVE
-    # aggiungi archi partenza
-    first_edge_linestring_first_node = shapely.geometry.LineString([first_edge_first_node, coord_riva_start])
-    first_edge_linestring_second_node = shapely.geometry.LineString([first_edge_second_node, coord_riva_start])
-    # aggiungi gli archi (per ora senza attributi)
-    water_graph.add_edge(first_edge_first_node, coord_riva_start)
-    water_graph.add_edge(first_edge_second_node, coord_riva_start)
-    # aggiungi gli attributi
-    # non ha tanto senso cosi, ma la documentazione lo da come esempio --> https://networkx.github.io/documentation/stable/reference/generated/networkx.classes.function.set_edge_attributes.html
-    # il .wkt lo mette come una stringa come negli altri nodi del grafo
-    attrs_first_edges = {(first_edge_first_node, coord_riva_start): {'length':first_edge_first_dist, 'Wkt':first_edge_linestring_first_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None},
-             (first_edge_second_node, coord_riva_start): {'length':first_edge_second_dist, 'Wkt':first_edge_linestring_second_node.wkt,'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None}}
-    nt.set_edge_attributes(water_graph, attrs_first_edges)
-    #controlla
-    added_edges.append((first_edge_first_node, coord_riva_start))
-    app.logger.debug("Added {}".format(water_graph[first_edge_first_node][coord_riva_start]))
-    added_edges.append((first_edge_second_node, coord_riva_start))
-    app.logger.debug("Added {}".format(water_graph[first_edge_second_node][coord_riva_start]))
 
-    # aggiungi archi arrivo
-    second_edge_linestring_first_node = shapely.geometry.LineString([second_edge_first_node, coord_riva_end])
-    second_edge_linestring_second_node = shapely.geometry.LineString([second_edge_second_node, coord_riva_end])
-    # aggiungi gli archi (per ora senza attributi)
-    water_graph.add_edge(second_edge_first_node, coord_riva_end)
-    water_graph.add_edge(second_edge_second_node, coord_riva_end)
-    # aggiungi gli attributi
-    # non ha tanto senso cosi, ma la documentazione lo da come esempio --> https://networkx.github.io/documentation/stable/reference/generated/networkx.classes.function.set_edge_attributes.html
-    # il .wkt lo mette come una stringa come negli altri nodi del grafo
-    attrs_second_edges = {(second_edge_first_node, coord_riva_end): {'length':second_edge_first_dist, 'Wkt':second_edge_linestring_first_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None},
-             (second_edge_second_node, coord_riva_end): {'length':second_edge_second_dist, 'Wkt':second_edge_linestring_second_node.wkt, 'vel_max':1, 'solo_remi':0, 'larghezza':0.0, 'senso_unic':None}}
-    nt.set_edge_attributes(water_graph, attrs_second_edges)
-    #controlla
-    added_edges.append((second_edge_first_node, coord_riva_end))
-    app.logger.debug("Added {}".format(water_graph[second_edge_first_node][coord_riva_end]))
-    added_edges.append((second_edge_second_node, coord_riva_end))
-    app.logger.debug("Added {}".format(water_graph[second_edge_second_node][coord_riva_end]))
-
+    assert(len(rive)==len(list_of_edges_node_with_their_distance), 'We need same number of edges-nodes dictionaries and rive (2 in most cases)')
+    for i in range(len(rive)):
+        cur_riva = rive[i]
+        cur_edges_node_dist = list_of_edges_node_with_their_distance[i]
+        added_eges = connect_land_to_water(water_graph, cur_edges_node_dist, cur_riva)
+        app.logger.debug("Added:\n {}".format(added_edges))
 
     return added_edges
+
+def connect_land_to_water(graph, node_and_dists_dict, coord_riva):
+    """
+    Add connection from the riva to the water graph. Now with 2 edges, later smarter with only one hopefully.
+    """
+    #### QUA METTERE LA MANIERA INTELLIGENTE DI UNIRE GLI ARCHI (tagliando un arco acqueo)
+    # dal nodo 1 alla riva
+    linestring_first_node = shapely.geometry.LineString([node_and_dists_dict['first_node'], coord_riva]).wkt
+    create_edge(graph, node_and_dists_dict['first_node'], coord_riva, node_and_dists_dict['first_dist'], linestring_first_node)
+    # dal nodo 2 alla riva
+    linestring_second_node = shapely.geometry.LineString([node_and_dists_dict['second_node'], coord_riva]).wkt
+    create_edge(graph, node_and_dists_dict['second_node'], coord_riva, node_and_dists_dict['second_dist'], linestring_second_node)
+
+    return [(node_and_dists_dict['first_node'], coord_riva), (node_and_dists_dict['second_node'], coord_riva)]
+
+def create_edge(graph, first_node, last_node, length=0, linestring=None, vel_max=20, vel_max_mp=20, solo_remi=0,
+larghezza=10, altezza=1000, senso_unico=None, h_su_start=0,h_su_end=24, h_closed_start=None, h_closed_end=None, nome=""):
+    """
+    """
+    graph.add_edge(first_node, last_node)
+    attrs_edge = {(first_node, last_node): {'length':length, 'Wkt':linestring, 'vel_max':vel_max, 'solo_remi':solo_remi,
+        'larghezza':larghezza, 'senso_unic':senso_unico,'h_su_start':h_su_start,'h_su_end':h_su_end,
+        'h_closed_start':h_closed_start, 'h_closed_end':h_closed_end, 'nome':nome, 'altezza':altezza}}
+    nt.set_edge_attributes(graph, attrs_edge)
 
 def dynamically_remove_edges(G,list_of_edges):
     """
@@ -156,22 +192,21 @@ def weight_motor_boat(x,y,dic):
     It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
     """
     global speed_global
+    actual_hour=int(datetime.datetime.now().strftime("%H"))
+    #if dic['altezza']<1000:
+        #app.logger.info("Stai passando sotto un ponte alto {} metri".format(dic['altezza']))
 
-    if dic['senso_unic'] is not None:
+    if dic['senso_unic'] is not None and dic['h_su_start']<=actual_hour and dic['h_su_end']>actual_hour:
         verso=None
         line=mapping(shapely.wkt.loads(dic['Wkt']))
         first_point_in_linestring = line['coordinates'][0]
         if (first_point_in_linestring[0]-x[0])<10e-15 and (first_point_in_linestring[1]-x[1])<10e-15:
-            verso=1
-        elif  (first_point_in_linestring[0]-y[0])<10e-15 and (first_point_in_linestring[1]-y[1])<10e-15:
             verso=-1
+        elif  (first_point_in_linestring[0]-y[0])<10e-15 and (first_point_in_linestring[1]-y[1])<10e-15:
+            verso=1
         else:
             app.logger.debug("something wrong here!")
-        if dic['nome'] == "DE NOAL - CANALE DE LA MISERICORDIA":
-            app.logger.debug("canale della misericordia, coordinate inizio linestring {} stai entrando in {} e uscendo in {} !".format(first_point_in_linestring, x, y))
-            app.logger.debug("canale della misericordia, verso  {} !".format(dic['senso_unic']))
-            app.logger.debug("lo stai imboccando con verso {} !".format(verso))
-        if dic['senso_unic'] == verso:
+        if dic['senso_unic'] != verso:
             #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
 #            pdb.set_trace()
             return 10000
@@ -210,7 +245,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
 
 
 
-def go_again_through_the_street(G, path_nodes, speed=1, water_flag=False):
+def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
