@@ -347,7 +347,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
 		document.getElementById("search_field_1").style.backgroundColor = "#f44";
-    console.log('@showPossibilitiesWindow[address]: show both X buttons');
+    console.log('@showPossibilitiesWindow[address]: show X button in first search field');
     nowitstimetoshowtheX('search_field_1_x');
 	} else {
 		showSecondSearchbar();
@@ -371,7 +371,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 
 // mette la spunta
 function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
-  var checkBoxesDict = dict_in_JS.how_to_get_there;
+  var checkBoxesDict = dict_in_JS.params_research;
 
   if (checkBoxesDict.by_boat == "on") {
     document.getElementById("boat_setting").checked = true;
@@ -553,6 +553,47 @@ function clearHighlight(card) {
   card.childNodes[1].style.background = "rgb(255, 255, 255)";
 }
 
+
+// GESTIONE INPUT
+//
+// quando l'utente scrive qualcosa (non quando ha il focus), succedono cose:
+//  - la x appare
+//  - il campo "segreto" viene resettato
+//
+// ### Cos'e il campo "segreto"? visto che il bottone e un form, ho agigunto un campo nascosto (senza prendere spazio)
+// che contiene le coordinate. quando uno cerca premendo il bottone, il form viene inviato, e visto che il campo nascosto
+// si chiama start_coord (e e end_coord l'altro) viene inviato esattamente come ci aspettiamo, e il python lo puo gestire
+//
+// ### come sappiamo quando l'utente scrive?
+// usiamo il metodo oninput - sembra funzionare molto bene, o almeno, esattamente come serve a noi
+// (se una persona scrive, poi clicca sulla mappa, poi di nuovo sulla barra, non viene rilanciato)
+// resta da testare nei casi limiti e nel telefono, per capire se fa cose strane
+
+// mother function:
+// when user is typing we need to clear the hidden field and show the x
+// is this robust enough?
+// TODO: check if oninput is always called in special cases
+// here also with jQuery possible --> https://stackoverflow.com/questions/13828450/html-catch-event-when-user-is-typing-into-a-text-input
+function useristypingin(field_id) {
+  console.log("user is typing in " + field_id);
+  var button_id = field_id + "_x";
+  clearhiddeninput(field_id);
+  nowitstimetoshowtheX(button_id);
+}
+
+function clearhiddeninput(field_id) {
+  console.log("clearing hidden field for " + field_id);
+  if (field_id == 'search_field_1') {
+    document.getElementById('hidden_start_coord').value='';
+    console.log('cleared hidden start');
+  }
+  if (field_id == 'search_field_2') {
+    document.getElementById('hidden_end_coord').value='';
+    console.log('cleared hidden end');
+  }
+  console.log('finished, if no print of start or end, nothing happened!')
+}
+
 // clear the text of a field (gives as input the field id!)
 function clearField(field_id) {
   document.getElementById(field_id).value = '';
@@ -561,7 +602,6 @@ function clearField(field_id) {
   hidefornowtheX(button_id);
 }
 // but we want the X to show only when something was typed in!
-// here also with jQuery possible --> https://stackoverflow.com/questions/13828450/html-catch-event-when-user-is-typing-into-a-text-input
 function nowitstimetoshowtheX(button_id) {
   document.getElementById(button_id).style.display = "inline";
   console.log("showing " + button_id + " button");

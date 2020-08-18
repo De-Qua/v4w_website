@@ -193,11 +193,11 @@ def find_what_needs_to_be_found(params_research, G_objects):
     if params_research['start_coord']:
         da = params_research['start_coord']
     else:
-        da=params_research['da']
+        da = params_research['da']
     if params_research['end_coord']:
         a = params_research['end_coord']
     else:
-        a=params_research['a']
+        a = params_research['a']
 
     G_terra = G_objects['land_graph']
     G_acqua = G_objects['water_graph']
