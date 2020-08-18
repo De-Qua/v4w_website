@@ -652,6 +652,9 @@
 
 <script>
 		toggleXbuttons();
+		document.getElementById("search_field_1").addEventListener("change", clear_hidden_start);
+		document.getElementById("search_field_2").addEventListener("change", clear_hidden_end);
+
 		// deal with feedback sent
 		switch({{feedbacksent}}) {
 			case -1:
@@ -752,7 +755,6 @@
 							// coordinate
 							var coords_location = dict_in_JS.partenza[0].coordinate;
 							marker_location = L.marker(coords_location, markerOptions);
-
 							document.getElementById("type_text").innerHTML = "<i>indirizzo</i>";
 							// Popup se uno clicca sul marker
 							marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
@@ -926,7 +928,7 @@
 					document.getElementById("search_field_1").value = nome_partenza;
 					var nome_arrivo = dict_in_JS.params_research.a;
 					document.getElementById("search_field_2").value = nome_arrivo;
-					
+
 					showSecondSearchbar();
 					document.getElementById('search_field_1').value = nome_partenza;
 					//keep coordinates

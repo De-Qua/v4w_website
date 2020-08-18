@@ -460,12 +460,14 @@ function moveResultsToSidebar() {
 }
 
 function copyStartingPosition(address_string) {
-	document.getElementById('search_field_1').value = address_string
+  document.getElementById('search_field_1').value = 'Indicatore Verde';
+  document.getElementById('hidden_start_coord').value = e.latlng.toString();
 }
 
 function copyEndingPosition(address_string) {
 	showSecondSearchbar();
-	document.getElementById('search_field_2').value = address_string
+  document.getElementById('search_field_2').value = 'Indicatore Rosso';
+  document.getElementById('hidden_start_coord').value = e.latlng.toString();
 }
 
 function addMarkerStart(latlng) {
@@ -481,7 +483,8 @@ function addMarkerEnd(latlng) {
 function copyMyPositionAsStart(map) {
 	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
 		.on('locationfound', function(e){
-				document.getElementById('search_field_1').value = e.latlng.toString();
+			document.getElementById('search_field_1').value = 'La Mia Posizione';
+      document.getElementById('hidden_start_coord').value = e.latlng.toString();
 		})
 	 .on('locationerror', function(e){
 				console.log(e);
@@ -635,4 +638,13 @@ function toggleXbuttons() {
   else {
     hidefornowtheX('search_field_2_x');
   }
+}
+
+function clear_hidden_start() {
+  console.log("search_field_1 listeren triggered");
+  document.getElementById("hidden_start_coord").value = '';
+}
+function clear_hidden_end() {
+  console.log("search_field_2 listeren triggered");
+  document.getElementById("hidden_end_coord").value = '';
 }
