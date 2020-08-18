@@ -461,13 +461,13 @@ function moveResultsToSidebar() {
 
 function copyStartingPosition(address_string) {
   document.getElementById('search_field_1').value = 'Indicatore Verde';
-  document.getElementById('hidden_start_coord').value = e.latlng.toString();
+  document.getElementById('hidden_start_coord').value = address_string;
 }
 
 function copyEndingPosition(address_string) {
 	showSecondSearchbar();
   document.getElementById('search_field_2').value = 'Indicatore Rosso';
-  document.getElementById('hidden_start_coord').value = e.latlng.toString();
+  document.getElementById('hidden_end_coord').value = address_string;
 }
 
 function addMarkerStart(latlng) {
