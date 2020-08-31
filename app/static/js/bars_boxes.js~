@@ -1,0 +1,54 @@
+/* Show the second search bar field - to calculate the path */
+function showSecondSearchbar() {
+	// document.getElementById("searchbtn").style.display = "none";
+	document.getElementById("add-searchfield").style.display = "none";
+	document.getElementById("btn-plus").style.display = "none";
+	document.getElementById("second-search-field").style.display = "block";
+	document.getElementById("nav_buttons").style.display = "block";
+	// document.getElementById("start_from_my_location").style.display = "block";
+}
+
+function hideSecondSearchbar() {
+	// document.getElementById("searchbtn").style.display = "block";
+	document.getElementById("add-searchfield").style.display = "block";
+	document.getElementById("btn-plus").style.display = "block";
+	document.getElementById("second-search-field").style.display = "none";
+	document.getElementById("nav_buttons").style.display = "none";
+	// document.getElementById("start_from_my_location").style.display = "none";
+	document.getElementById("search_field_2").value = "";
+	return false;
+}
+
+
+
+function swapDirections() {
+  var field_1 = document.getElementById('search_field_1').value;
+  document.getElementById('search_field_1').value = document.getElementById('search_field_2').value;
+  document.getElementById('search_field_2').value = field_1;
+  // swap also hidden stuff
+  var hidden_field_1 = document.getElementById('hidden_start_coord').value;
+  document.getElementById('hidden_start_coord').value = document.getElementById('hidden_end_coord').value;
+  document.getElementById('hidden_end_coord').value = hidden_field_1;
+}
+
+
+// mette la spunta
+function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
+  var checkBoxesDict = dict_in_JS.params_research;
+
+  if (checkBoxesDict.by_boat == "on") {
+    document.getElementById("boat_setting").checked = true;
+  }
+  if (checkBoxesDict.less_bridges == "on") {
+    document.getElementById("less_bridges_setting").checked = true;
+  }
+  if (checkBoxesDict.walking == "on") {
+    document.getElementById("walk_setting").checked = true;
+  }
+}
+
+function retrieveBoxesSituationAsAString() {
+  var by_boat_checked = document.getElementById("boat_setting").checked ? "&boat=on" : "&boat=off";
+  var less_bridges_checked = document.getElementById("walk_setting").checked ? "&lazy=on" : "&lazy=off";
+  return by_boat_checked + less_bridges_checked;
+}

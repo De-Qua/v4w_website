@@ -27,7 +27,7 @@ def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locatio
             start['geojson'] = start['geojson']
     if dict_of_end_locations_candidates is not "no_end":
         for end in dict_of_end_locations_candidates:
-            end['coordinates'], end['shape'] = correct_coordinates_for_leaflet(end,shift_xy=[0,0])
+            end['coordinate'], end['shape'] = correct_coordinates_for_leaflet(end,shift_xy=[0,0])
             xy =end['coordinate'][:]
             end['coordinate'][0]=xy[1]
             end['coordinate'][1]=xy[0]

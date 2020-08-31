@@ -164,7 +164,6 @@ def take_care_of_the_error(request,err,error_folder):
     # if app.debug:# if not app.debug:
     #     mail.send_email_to_ourself(subject="[ERROR] "+ str(err),html_body=mdfile)
 
-
 def ask_yourself(params_research):
     """
     In search for the truth, we try to find out if you are looking for the happiness, an address or a path from A to B.
@@ -189,15 +188,16 @@ def find_what_needs_to_be_found(params_research, G_objects):
     """
 
     what_am_I_really_searching_for = ask_yourself(params_research)
-
+    da = params_research['da']
+    a = params_research['a']
     if params_research['start_coord']:
-        da = params_research['start_coord']
+        da_to_lib_search = params_research['start_coord']
     else:
-        da = params_research['da']
+        da_to_lib_search = da
     if params_research['end_coord']:
-        a = params_research['end_coord']
+        a_to_lib_search = params_research['end_coord']
     else:
-        a = params_research['a']
+        a_to_lib_search = a
 
     G_terra = G_objects['land_graph']
     G_acqua = G_objects['water_graph']
@@ -211,9 +211,9 @@ def find_what_needs_to_be_found(params_research, G_objects):
         return "None"
 
     elif what_am_I_really_searching_for == "address":
-        app.logger.debug('ricerca singolo indirizzo: {}'.format(da))
+        app.logger.debug('ricerca singolo indirizzo: {}'.format(da_to_lib_search) )
         t0 = time.perf_counter()
-        match_dict = lib_search.give_me_the_dictionary(da)
+        match_dict = lib_search.give_me_the_dictionary(da_to_lib_search)
         if are_we_sure_of_the_results(match_dict):
             # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
             app.logger.info('ci ho messo {tot} a calcolare la posizione di un indirizzo'.format(tot=time.perf_counter() - t0))
@@ -227,8 +227,8 @@ def find_what_needs_to_be_found(params_research, G_objects):
     else:
 
         t0=time.perf_counter()
-        match_dict_da = lib_search.give_me_the_dictionary(da)
-        match_dict_a = lib_search.give_me_the_dictionary(a)
+        match_dict_da = lib_search.give_me_the_dictionary(da_to_lib_search)
+        match_dict_a = lib_search.give_me_the_dictionary(a_to_lib_search)
 
         #match_dict_a = dict() #lib_search.give_me_the_dictionary(a)
         app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))

@@ -1,0 +1,6 @@
+function retrieveBoxesSituationAsAString() {
+  var by_boat_checked = document.getElementById("boat_setting").checked ? "&boat=on" : "&boat=off";
+  var less_bridges_checked = document.getElementById("walk_setting").checked ? "&lazy=on" : "&lazy=off";
+  return by_boat_checked + less_bridges_checked;
+}
+

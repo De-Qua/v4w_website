@@ -1,0 +1,33 @@
+function addMarkerStart(latlng) {
+  marker_start.setLatLng(latlng);
+  marker_start.addTo(mymap);
+}
+
+function addMarkerEnd(latlng) {
+  marker_end.setLatLng(latlng);
+  marker_end.addTo(mymap);
+}
+
+function showHighlight(card) {
+	var clicked_coords = [card.lat,card.lng];
+
+	console.log("sei sopra a: " + clicked_coords);
+	//highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[1], clicked_coords[0]], highlightStyle));
+	highlight.clearLayers().addLayer(L.circleMarker([clicked_coords[0], clicked_coords[1]], highlightStyle));
+  highlight.bringToFront();
+	console.log("highlight: "+ highlight);
+  // highlight the card
+  // childNodes[0] = header; childNodes[1] = body
+  card.childNodes[0].style.background = "#bbb";
+  card.childNodes[1].style.background = "#ccc";
+}
+
+function clearHighlight(card) {
+  highlight.clearLayers();
+  // dehighlight the card
+  // childNodes[0] = header; childNodes[1] = body
+  card.childNodes[0].style.background = "rgb(247, 247, 247)";
+  card.childNodes[1].style.background = "rgb(255, 255, 255)";
+}
+
+
