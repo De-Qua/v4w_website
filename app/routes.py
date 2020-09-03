@@ -56,6 +56,12 @@ def feedback():
     feedback_dict = interface.get_feedback_from_server()
     return render_template('feedback.html', feedback_dict = feedback_dict)
 
+@app.route('/tuttofinto', methods=['GET', 'POST'])
+def marketingfalso():
+    app.logger.info('Pagina di marketing')
+    #get list of feedback files
+    return render_template('marketing.html')
+
 @app.route('/', methods=['GET', 'POST'])
 def navigation():
     form = FeedbackForm()
