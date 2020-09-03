@@ -478,9 +478,13 @@ body, html {height: 100%}
 	height: 16px;
   width: 16px;
 }
-
+.thicker {
+	height: 3px;
+}
+.competitors {
+	font-size: 1.2rem;
+}
 .title {
-
 	text-align: center;
 	font-size: 1.5rem;
 	font-weight: 800;
