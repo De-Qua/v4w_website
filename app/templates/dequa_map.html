@@ -157,15 +157,12 @@
 			//OpenStreetMap_DE = L.tileLayer.provider('Stamen.Watercolor').addTo(mymap);
 			// Zoom buttons to the bottom right
 			mymap.zoomControl.setPosition('bottomright');
-			// a random marker to show a markers are used
-			//var marker = L.marker([45.43, 12.33]).addTo(mymap);
-			//var marker;
-			//var circle;
 			L.control.locate({
-		    position: 'bottomright',
-		    strings: {
+			position: 'bottomright',
+			strings: {
 		        title: "Show me where I am, yo!"
-		    }
+			},
+			showCompass:true
 				}).addTo(mymap);
 			var scale = L.control.scale().addTo(mymap);
 		</script>

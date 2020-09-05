@@ -23,25 +23,6 @@ function changeMap(currentMap) {
 	console.log("to " + whichmap)
 }
 
-function locateUser(map, marker, circle) {
-	map.locate({setView: false, watch: false}) /* This will return map so you can do chaining */
-		.on('locationfound', function(e){
-				marker = L.marker([e.latitude, e.longitude]).bindPopup('Your are here :)');
-				circle = L.circle([e.latitude, e.longitude], e.accuracy/2, {
-						weight: 1,
-						color: '#add8e6',
-						fillColor: '#add8e6',
-						fillOpacity: 0.2
-				});
-				map.addLayer(marker);
-				map.addLayer(circle);
-		})
-	 .on('locationerror', function(e){
-				console.log(e);
-				alert("Location access denied.");
-		});
-}
-
 function addMarkerStart(latlng) {
   marker_start.setLatLng(latlng);
   marker_start.addTo(mymap);

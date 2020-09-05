@@ -136,3 +136,15 @@ function copyEndingPosition(address_string) {
   document.getElementById('search_field_2').value = 'Indicatore Rosso';
   document.getElementById('hidden_end_coord').value = address_string;
 }
+
+function copyMyPositionAsStart(map) {
+    map.locate().on('locationfound', function(e){
+	document.getElementById('search_field_1').value = 'La Mia Posizione';
+	document.getElementById('hidden_start_coord').value = e.latlng.toString();
+		})
+	 .on('locationerror', function(e){
+				console.log(e);
+				alert("Location access denied.");
+		});
+}
+
