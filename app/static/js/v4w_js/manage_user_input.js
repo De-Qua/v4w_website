@@ -138,11 +138,13 @@ function copyEndingPosition(address_string) {
 }
 
 function copyMyPositionAsStart(map) {
-  map.locate().on('locationfound', function(e){
+    map.locate().on('locationfound', function(e){
+	marker_start.setLatLng(e.latlng);
+	marker_start.addTo(mymap);
 	document.getElementById('search_field_1').value = 'La Mia Posizione';
 	document.getElementById('hidden_start_coord').value = e.latlng.toString();
-  loc_control.start();
-  // L.circle(e.latlng, radius).addTo(map);
+      
+  //loc_control.start();
 		})
 	 .on('locationerror', function(e){
 				console.log(e);
