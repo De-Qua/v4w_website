@@ -154,7 +154,7 @@ def find_closest_nodes(dict_list,G_array, MIN_DIST_FOR_THE_CLOSEST_NODE=100):
         app.logger.debug("il tuo nodo è distante {}".format(closest_dist))
         # se la distanza e troppo grande, salutiamo i campagnoli
         if closest_dist>MIN_DIST_FOR_THE_CLOSEST_NODE:
-            app.logger.error("Sei troppo distante da Venezia, povero campagnolo (il punto del grafo piu vicino dista {} metri)".format(closest_dist))
+            app.logger.error("Sei troppo distante da Venezia, cosa ci fai là?? (il punto del grafo piu vicino dista {} metri)".format(closest_dist))
             raise Exception("Non abbiamo trovato nulla qua - magari cercavi di andare fuori venezia?")
         nodes_list.append((G_array[closest_id][0], G_array[closest_id][1]))
 

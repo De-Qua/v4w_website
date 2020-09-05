@@ -223,6 +223,9 @@ function initialize_html(){
       break;
       // MODUS OPERANDI == 2 --> Non siamo sicuri della soluzione
       case 2:
+      // Disable click on the map
+      mymap.off('click');
+
       console.log("Setting up possiblities window!")
       var possibilities = "";
       var what_we_know = "nothing";
