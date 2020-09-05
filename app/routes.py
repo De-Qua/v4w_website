@@ -17,7 +17,7 @@ import traceback
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
 path_pickle_terra = os.path.join(folder_db,"dequa_ve_terra_v8_dequa_ve_terra_0509_pickle_4326VE")
-path_pickle_acqua = os.path.join(folder_db,"dequa_ve_acqua_5_dequa_ve_acqua_1808_pickle_4326VE")
+path_pickle_acqua = os.path.join(folder_db,"dequa_ve_acqua_v6_dequa_ve_acqua_0509_pickle_4326VE")
 
 # Logging
 app.logger.info("loading the graphs..")
