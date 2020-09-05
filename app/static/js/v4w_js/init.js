@@ -20,7 +20,7 @@ function initialize_html(){
     document.getElementById("feedbackmessagewindow-success").style.display = 'block';
     break;
   }
-  
+
 
   // function onMapClick(e) {
   //   var address_string = e.latlng.toString();
@@ -216,7 +216,7 @@ function initialize_html(){
         }
       }).addTo(mymap);
       linestrings.addTo(group);
-      mymap.fitBounds(group.getBounds(), {padding: [10, 10]});
+	mymap.fitBounds(group.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
       // javascript way to call a method in the for loop
       //streets.forEach(drawStreet());
       //alert('YET TO BE DONE');
