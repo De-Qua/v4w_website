@@ -270,27 +270,33 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
     # closest_riva = shortest_path[-1]
     return path_info, chosen_riva
 
-def give_me_the_dictionary(input_string):
+def give_me_the_dictionary(input_string, coords):
     """
     Wrapper of the wrapper that check if the user input is a coordinate or a string to be searched in the database.
     """
-    isACoordinate, coordinate_current_position = check_if_is_already_a_coordinate(input_string)
-    if isACoordinate:
+    if coords:
+        isACoordinate, coordinate_current_position = check_if_is_already_a_coordinate(coords)
         app.logger.debug("Abbiamo ricevuto la coordianta! Nient'altro da fare a parte fingere di aver cercato!")
-        dict = create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_position)
+        out_dict = create_fake_dict_because_we_already_have_the_coordinates(input_string, coordinate_current_position)
         app.logger.debug("Il dizionario fake è {}".format(dict))
     else:
-        app.logger.debug("Abbiamo ricevuto una stringa vera, cerchiamo nel dizionario!")
-        dict = find_address_in_db(input_string)
+        isACoordinate, coordinate_current_position = check_if_is_already_a_coordinate(input_string)
+        if isACoordinate:
+            app.logger.debug("Abbiamo ricevuto la coordianta! Nient'altro da fare a parte fingere di aver cercato!")
+            out_dict = create_fake_dict_because_we_already_have_the_coordinates('Coordinate inserite', coordinate_current_position)
+            app.logger.debug("Il dizionario fake è {}".format(dict))
+        else:
+            app.logger.debug("Abbiamo ricevuto una stringa vera, cerchiamo nel dizionario!")
+            out_dict = find_address_in_db(input_string)
 
-    return dict
+    return out_dict
 
-def create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_position):
+def create_fake_dict_because_we_already_have_the_coordinates(name, coords):
     """
     Creates a well-formatted dictionary to pass as result also in the case we already have the coordinates as input.
     """
     # una lista con un dizionario
-    coordinate_as_shapely_point = shapely.geometry.Point(coordinate_current_position[0], coordinate_current_position[1])
+    coordinate_as_shapely_point = shapely.geometry.Point(coords[0], coords[1])
     edge_info_dict = {}
     edge_info_dict['street_type'] = 'calle'
     edge_info_dict['bridge'] = 0
@@ -299,9 +305,9 @@ def create_fake_dict_because_we_already_have_the_coordinates(coordinate_current_
         "properties": edge_info_dict,
         "geometry": dict(mapping(coordinate_as_shapely_point))
     }
-    fake_result_dict = [{"nome":"Lat {:2.8f}, Long {:2.8f}".format(coordinate_current_position[0], coordinate_current_position[1]),
+    fake_result_dict = [{"nome":name,
                 "descrizione": "",
-                "coordinate":coordinate_current_position,
+                "coordinate":coords,
                 "shape":coordinate_as_shapely_point,
                 "geotype":0, # marker
                 "score":100,
