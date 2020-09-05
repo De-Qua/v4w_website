@@ -21,6 +21,7 @@ function initialize_html(){
     break;
   }
 
+
   // function onMapClick(e) {
   //   var address_string = e.latlng.toString();
   //   popup
