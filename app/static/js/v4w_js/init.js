@@ -20,7 +20,7 @@ function initialize_html(){
     document.getElementById("feedbackmessagewindow-success").style.display = 'block';
     break;
   }
-  var popup = L.popup();
+  
 
   // function onMapClick(e) {
   //   var address_string = e.latlng.toString();
