@@ -186,18 +186,12 @@ def find_what_needs_to_be_found(params_research, G_objects):
     """
     Take care of the whole research (many cases) calling smaller methods.
     """
-
     what_am_I_really_searching_for = ask_yourself(params_research)
     da = params_research['da']
     a = params_research['a']
-    if params_research['start_coord']:
-        da_to_lib_search = params_research['start_coord']
-    else:
-        da_to_lib_search = da
-    if params_research['end_coord']:
-        a_to_lib_search = params_research['end_coord']
-    else:
-        a_to_lib_search = a
+    start_coord = params_research['start_coord']
+    end_coord = params_research['end_coord']
+
 
     G_terra = G_objects['land_graph']
     G_acqua = G_objects['water_graph']
@@ -211,9 +205,9 @@ def find_what_needs_to_be_found(params_research, G_objects):
         return "None"
 
     elif what_am_I_really_searching_for == "address":
-        app.logger.debug('ricerca singolo indirizzo: {}'.format(da_to_lib_search) )
+        app.logger.debug('ricerca singolo indirizzo: {}'.format(da) )
         t0 = time.perf_counter()
-        match_dict = lib_search.give_me_the_dictionary(da_to_lib_search)
+        match_dict = lib_search.give_me_the_dictionary(da, start_coord)
         if are_we_sure_of_the_results(match_dict):
             # per ora usiamo solo la coordinata (nel caso di un poligono ritorno il centroide) e il nome, ma poi cambieremo
             app.logger.info('ci ho messo {tot} a calcolare la posizione di un indirizzo'.format(tot=time.perf_counter() - t0))
@@ -227,8 +221,8 @@ def find_what_needs_to_be_found(params_research, G_objects):
     else:
 
         t0=time.perf_counter()
-        match_dict_da = lib_search.give_me_the_dictionary(da_to_lib_search)
-        match_dict_a = lib_search.give_me_the_dictionary(a_to_lib_search)
+        match_dict_da = lib_search.give_me_the_dictionary(da, start_coord)
+        match_dict_a = lib_search.give_me_the_dictionary(a, end_coord)
 
         #match_dict_a = dict() #lib_search.give_me_the_dictionary(a)
         app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
