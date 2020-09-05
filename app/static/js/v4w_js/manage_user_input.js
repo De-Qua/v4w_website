@@ -138,13 +138,14 @@ function copyEndingPosition(address_string) {
 }
 
 function copyMyPositionAsStart(map) {
-    map.locate().on('locationfound', function(e){
+  map.locate().on('locationfound', function(e){
 	document.getElementById('search_field_1').value = 'La Mia Posizione';
 	document.getElementById('hidden_start_coord').value = e.latlng.toString();
+  addMarkerPosition(e.latlng, e.accuracy);
+  // L.circle(e.latlng, radius).addTo(map);
 		})
 	 .on('locationerror', function(e){
 				console.log(e);
 				alert("Location access denied.");
 		});
 }
-

@@ -22,15 +22,15 @@ function initialize_html(){
   }
   var popup = L.popup();
 
-  function onMapClick(e) {
-    var address_string = e.latlng.toString();
-    popup
-    .setLatLng(e.latlng)
-    .setContent("<div class='text-center'>Posizione: " + address_string + "<br><button  class='btn btn-sm btn-light v4wbtn mr-3' style='font-size: 0.8em;' id='btnMapStart'>DA QUA</button><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='btnMapTo'>A</button><br></div>")
-    .openOn(mymap);
-    document.getElementById('btnMapStart').onclick = function() { copyStartingPosition(address_string); addMarkerStart(e.latlng); popup.remove();};
-    document.getElementById('btnMapTo').onclick = function() { copyEndingPosition(address_string); addMarkerEnd(e.latlng);popup.remove();};
-  }
+  // function onMapClick(e) {
+  //   var address_string = e.latlng.toString();
+  //   popup
+  //   .setLatLng(e.latlng)
+  //   .setContent("<div class='text-center'>Posizione: " + address_string + "<br><button  class='btn btn-sm btn-light v4wbtn mr-3' style='font-size: 0.8em;' id='btnMapStart'>DA QUA</button><button  class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;' id='btnMapTo'>A</button><br></div>")
+  //   .openOn(mymap);
+  //   document.getElementById('btnMapStart').onclick = function() { copyStartingPosition(address_string); addMarkerStart(e.latlng); popup.remove();};
+  //   document.getElementById('btnMapTo').onclick = function() { copyEndingPosition(address_string); addMarkerEnd(e.latlng);popup.remove();};
+  // }
   mymap.on('click', onMapClick);
   // HERE WE READ OUR JSON MESSAGE FROM PYTHON
   //var result = JSON.parse({{ results_dictionary | tojson }});
