@@ -157,7 +157,7 @@
 			//OpenStreetMap_DE = L.tileLayer.provider('Stamen.Watercolor').addTo(mymap);
 			// Zoom buttons to the bottom right
 			mymap.zoomControl.setPosition('bottomright');
-			L.control.locate({
+			var loc_control = L.control.locate({
 			position: 'bottomright',
 			strings: {
 		        title: "Show me where I am, yo!"
