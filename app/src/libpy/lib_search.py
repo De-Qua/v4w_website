@@ -511,6 +511,12 @@ def dividiEtImpera(clean_string):
             number = numero_cifra[0]
         text = clean_string[:isThereaCivico.start()] + clean_string[isThereaCivico.end():]
         text = text.strip() # elimina spazi che possono essersi creati togliendo il numero
+        # Piccolo trucco per barare con santa marta: sostituisci con Dorsoduro
+        # TODO: CAMBIARE CON QUALCOSA DI PIÙ SOLIDO
+        if text.lower() == "santa marta":
+            text = text.lower().replace("santa marta", "dorsoduro")
+        elif text.lower() == "santamarta":
+            text = text.lower().replace("santamarta", "dorsoduro")
     else:
         text = clean_string
         number = ""
@@ -581,17 +587,24 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
                 final_matches.append((m,s))
     else:
         # andrà implementata qui la ricerca nei poi, che fa un check delle corssipondenze con le keyword e fa la query invece di Poi.query.all() filtrando sui types di poi
-        matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-        for m,s in matches_street:
-            final_matches.append((m,s))
-        if not any([score>=threshold for match,score in final_matches]):
-            matches_poi = process.extractBests(word,Poi.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-            for m,s in matches_poi:
+        tables_where_to_look = [Neighborhood, Street, Poi] #[Street, Poi, Neighborhood]
+        for table in tables_where_to_look:
+            matches_table = process.extractBests(word, table.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
+            for m,s in matches_table:
                 final_matches.append((m,s))
-        if not any([score>=threshold for match,score in final_matches]):
-            matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-            for m,s in matches_neigh:
-                final_matches.append((m,s))
+            if any([score>=threshold for match,score in final_matches]):
+                break
+        # matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
+        # for m,s in matches_street:
+        #     final_matches.append((m,s))
+        # if not any([score>=threshold for match,score in final_matches]):
+        #     matches_poi = process.extractBests(word,Poi.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
+        #     for m,s in matches_poi:
+        #         final_matches.append((m,s))
+        # if not any([score>=threshold for match,score in final_matches]):
+        #     matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
+        #     for m,s in matches_neigh:
+        #         final_matches.append((m,s))
     final_matches.sort(key=takeSecond, reverse=True)
     if any([score>=threshold for match,score in final_matches]):
         exact=True
