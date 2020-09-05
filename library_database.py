@@ -212,7 +212,8 @@ def update_sestieri(shp, showFig=False, explain=False):
        ("SACCA FISOLA",30133),
        ("SANT'ELENA",30122),
        ("BURANO",30012),
-       ("MURANO",30141)
+       ("MURANO",30141),
+       ("SANTA MARTA", 30123)
        ]
     if explain:
         print("Aggiungo i sestieri.. ne abbiamo {} in totale nel file.".format(len(list_sest_cap)))

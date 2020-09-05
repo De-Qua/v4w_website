@@ -694,10 +694,13 @@ from app import db
 lb.create_query_objects()
 folder = os.getcwd()
 folder_file = os.path.join(folder,"app","static","files")
+folder_file = "/Users/ale/Documents/Venezia/MappaDisabili/data/OpenDataVenezia/"
 # lb.delete_all(explain=True)
 #%%
 # Sestieri
+lb.delete_all_neighborhoods(explain=True)
 path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
+path_shp_sestieri =  (os.path.join(folder_file,"Localita","Localita_v2.shp"))
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
 # Strade
 path_shp_streets = (os.path.join(folder_file,"TP_STR_4326VE.shp"))

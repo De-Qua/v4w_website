@@ -22,6 +22,7 @@ from poi import library_overpass as op
 import sqlalchemy
 import time
 import json
+import pdb
 
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
@@ -212,7 +213,8 @@ def update_sestieri(shp, showFig=False, explain=False):
        ("SACCA FISOLA",30133),
        ("SANT'ELENA",30122),
        ("BURANO",30012),
-       ("MURANO",30141)
+       ("MURANO",30141),
+       ("SANTA MARTA",30123)
        ]
     if explain:
         print("Aggiungo i sestieri.. ne abbiamo {} in totale nel file.".format(len(list_sest_cap)))
@@ -223,6 +225,7 @@ def update_sestieri(shp, showFig=False, explain=False):
     all_neighb = len(list_sest_cap)
     for s,c in list_sest_cap:
         tot_neighb += 1
+        print(s)
         progressbar(tot_neighb,all_neighb)
         # controlla geometria
         geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
