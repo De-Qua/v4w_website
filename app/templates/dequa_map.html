@@ -146,7 +146,7 @@
 			var marker_end = L.marker([],{icon:redIcon});
 
 			var popup = L.popup();
-			
+
 			//L.control.layers(baseMaps).addTo(mymap);
 			// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			// minZoom: 12,
@@ -304,13 +304,41 @@
 							<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
 						<div class="leaflet-control col-md-8 col-10">
 								<div class="container-fluid" id="results_search" style="display:none;">
-								<!-- PERCORSO -->
+								<!-- PERCORSO TERRA -->
 								<!--
 								<div class="result_div" id="percorso">
 									<p class="results_title">PERCORSO:</p>
 									<p class="results_text">
 									<!-->
-									<div class="card" id="percorso">
+								<div class="card" id="percorso_terra">
+									<div class="card-header container-fluid">
+										<div class="row">
+											<div class="col-9 align-self-center">
+												PERCORSO
+											</div>
+											<div class="col-3 float-right">
+											<!--<a onclick="closeResultsWindow()">-->
+											<a onclick="moveResultsToSidebar()">
+												<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+											</a>
+											</div>
+										</div>
+									</div>
+									<div class="card-body">
+											DA:<br>
+											<span id="da_text"></span><br>
+											A:<br>
+											<span id="a_text"></span><br>
+											LUNGHEZZA:<br>
+											<span id="length_text"></span><br>
+											TEMPO:<br>
+											<span id="time_text"></span><br>
+											PONTI:<br>
+											<span id="ponti_text"></span><br>
+									</div>
+								</div>
+								<!-- PERCORSO ACQUA -->
+								<div class="card" id="percorso_acqua">
 									<div class="card-header container-fluid">
 										<div class="row">
 											<div class="col-9 align-self-center">
@@ -342,7 +370,7 @@
 								<div class="result_div" id="single_address">
 									<p class="results_title">RICERCA:</p>
 								-->
-									<div class="card" id="single_address">
+								<div class="card" id="single_address">
 									<div class="card-header container-fluid">
 										<div class="row">
 											<div class="col-9 align-self-center">

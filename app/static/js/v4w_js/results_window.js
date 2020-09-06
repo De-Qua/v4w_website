@@ -6,21 +6,31 @@
   */
 
 
-function showResultsWindow(result_type) {
+function showResultsWindow(dictJS) {
+
 		document.getElementById("results_search").style.display = "inline";
 		document.getElementById("weird").style.display = "none";
-		switch (result_type) {
-			case 'single_address':
+		switch (dictJS.modus_operandi) {
+			case 0:
 				document.getElementById("single_address").style.display = "inline";
-				document.getElementById("percorso").style.display = "none";
+				document.getElementById("percorso_terra").style.display = "none";
+				document.getElementById("percorso_acqua").style.display = "none";
 				break;
-			case 'percorso':
+			case 1:
 				document.getElementById("single_address").style.display = "none";
-				document.getElementById("percorso").style.display = "inline";
+				document.getElementById("percorso_terra").style.display = "inline";
+				document.getElementById("percorso_acqua").style.display = "none";
 				break;
+			case 2:
+				document.getElementById("results_search").style.display = "none";
+				document.getElementById("weird").style.display = "none";
+				document.getElementById("single_address").style.display = "none";
+				document.getElementById("percorso_terra").style.display = "none";
+				document.getElementById("percorso_acqua").style.display = "none";
 			default:
 				document.getElementById("single_address").style.display = "none";
-				document.getElementById("percorso").style.display = "none";
+				document.getElementById("percorso_terra").style.display = "none";
+				document.getElementById("percorso_acqua").style.display = "none";
 				document.getElementById("weird").style.display = "inline";
 				break;
 	}
