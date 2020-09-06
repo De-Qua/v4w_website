@@ -151,43 +151,10 @@ function initialize_html(){
       // geo type is not used
       console.log("Setting up results window!")
       showResultsWindow('percorso');
-      var nome_partenza = dict_in_JS.params_research.da;
-      document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
-      var nome_arrivo = dict_in_JS.params_research.a;
-      document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
-      var path_length = dict_in_JS.path.human_readable_length;
-      document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
-      var time_description = dict_in_JS.path.human_readable_time;
-      document.getElementById("time_text").innerHTML = "<i>"+time_description+"</i>";
-      var num_of_bridges = dict_in_JS.path.n_ponti[0];
-      function ponte_sing_plur(num){
-        if (num == 1) {
-          return "ponte"
-        } else{
-          return "ponti"
-        }
-      }
-      document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
-      var bridge_accessibility_name = ["gradini normali",
-                                      "nessuna barriera architettonica",
-                                      "gradino aggevolato",
-                                      "gradino aggevolato accessibile con accompagnatore",
-                                      "rampa fissa",
-                                      "rampa provvisoria da Feb a Nov",
-                                      "rampa provvisoria da Set a Giu",
-                                      "rampa provvisoria da Mag a Nov"]
-      var num_bridges_accessible = dict_in_JS.path.n_ponti[1];
-      for (i=0; i<num_bridges_accessible.length; i++){
-        if (num_bridges_accessible[i] > 0){
-      	  document.getElementById("ponti_text").innerHTML += "<i><br>"+"&emsp;- "+
-                                                          num_bridges_accessible[i]+ " " +
-                                                          ponte_sing_plur(num_bridges_accessible[i]) +
-                                                          " con "+bridge_accessibility_name[i]+
-                                                          "</i>";
-        }
-      }
+      fillResultsWindow(dict_in_JS);
       console.log("also the search should be ready");
       showSecondSearchbar();
+      var nome_partenza = dict_in_JS.params_research.da
       document.getElementById('search_field_1').value = nome_partenza;
       if (nome_partenza.length > 0) {
         nowitstimetoshowtheX('search_field_1_x');
@@ -196,6 +163,7 @@ function initialize_html(){
       if (dict_in_JS.params_research.start_coord.length > 0) {
         document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
       }
+      var nome_arrivo = dict_in_JS.params_research.a
       document.getElementById('search_field_2').value = nome_arrivo;
       if (nome_arrivo.length > 0) {
         nowitstimetoshowtheX('search_field_2_x');
