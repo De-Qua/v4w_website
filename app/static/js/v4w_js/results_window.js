@@ -18,8 +18,16 @@ function showResultsWindow(dictJS) {
 				break;
 			case 1:
 				document.getElementById("single_address").style.display = "none";
-				document.getElementById("percorso_terra").style.display = "inline";
-				document.getElementById("percorso_acqua").style.display = "none";
+				switch(dictJS.params_research.by_boat){
+					case "on":
+						document.getElementById("percorso_terra").style.display = "none";
+						document.getElementById("percorso_acqua").style.display = "inline";
+						break;
+					case "off":
+						document.getElementById("percorso_terra").style.display = "inline";
+						document.getElementById("percorso_acqua").style.display = "none";
+						break;
+				}
 				break;
 			case 2:
 				document.getElementById("results_search").style.display = "none";
@@ -34,6 +42,7 @@ function showResultsWindow(dictJS) {
 				document.getElementById("weird").style.display = "inline";
 				break;
 	}
+	fillResultsWindow(dictJS)
 	if (areWeUsingBottomBar()) {
 		moveResultsToSidebar();
 	}
@@ -59,10 +68,12 @@ function fillResultsWindow(dictJS) {
 	switch (dictJS.modus_operandi) {
 		case 0:
 			fillResultsWindowSingleAddress(dictJS);
-			break
+			break;
 		case 1:
 			fillResultsWindowPercorso(dictJS);
-			break
+			break;
+		case 2:
+			break;
 	}
 }
 
@@ -89,15 +100,15 @@ function fillResultsWindowPercorso(dictJS) {
 
 function fillResultsWindowPercorsoWalk(dictJS) {
 	var nome_partenza = dictJS.params_research.da;
-	document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
+	document.getElementById("walk_da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 	var nome_arrivo = dictJS.params_research.a;
-	document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
+	document.getElementById("walk_a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 	var path_length = dictJS.path.human_readable_length;
-	document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
+	document.getElementById("walk_length_text").innerHTML = "<i>"+path_length+"</i>";
 	var time_description = dictJS.path.human_readable_time;
-	document.getElementById("time_text").innerHTML = "<i>"+time_description+"</i>";
+	document.getElementById("walk_time_text").innerHTML = "<i>"+time_description+"</i>";
 	var num_of_bridges = dictJS.path.n_ponti[0];
-	document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
+	document.getElementById("walk_ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
 	var bridge_accessibility_name = ["gradini normali",
 																	"nessuna barriera architettonica",
 																	"gradino agevolato",
@@ -109,7 +120,7 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 	var num_bridges_accessible = dictJS.path.n_ponti[1];
 	for (i=0; i<num_bridges_accessible.length; i++){
 		if (num_bridges_accessible[i] > 0){
-			document.getElementById("ponti_text").innerHTML += "<i><br>"+"&emsp;- "+
+			document.getElementById("walk_ponti_text").innerHTML += "<i><br>"+"&emsp;- "+
 																											num_bridges_accessible[i]+ " " +
 																											ponte_sing_plur(num_bridges_accessible[i]) +
 																											" con "+bridge_accessibility_name[i]+
@@ -120,32 +131,19 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 
 function fillResultsWindowPercorsoBoat(dictJS) {
 	var nome_partenza = dictJS.params_research.da;
-	document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
+	document.getElementById("boat_da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 	var nome_arrivo = dictJS.params_research.a;
-	document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
+	document.getElementById("boat_a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 	var path_length = dictJS.path.human_readable_length;
-	document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
+	document.getElementById("boat_length_text").innerHTML = "<i>"+path_length+"</i>";
 	var time_description = dictJS.path.human_readable_time;
-	document.getElementById("time_text").innerHTML = "<i>"+time_description+"</i>";
-	var num_of_bridges = dictJS.path.n_ponti[0];
-	document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
-	var bridge_accessibility_name = ["gradini normali",
-																	"nessuna barriera architettonica",
-																	"gradino agevolato",
-																	"gradino agevolato accessibile con accompagnatore",
-																	"rampa fissa",
-																	"rampa provvisoria da Feb a Nov",
-																	"rampa provvisoria da Set a Giu",
-																	"rampa provvisoria da Mag a Nov"]
-	var num_bridges_accessible = dictJS.path.n_ponti[1];
-	for (i=0; i<num_bridges_accessible.length; i++){
-		if (num_bridges_accessible[i] > 0){
-			document.getElementById("ponti_text").innerHTML += "<i><br>"+"&emsp;- "+
-																											num_bridges_accessible[i]+ " " +
-																											ponte_sing_plur(num_bridges_accessible[i]) +
-																											" con "+bridge_accessibility_name[i]+
-																											"</i>";
-		}
+	document.getElementById("boat_time_text").innerHTML = "<i>"+time_description+"</i>";
+	var min_altezza = dictJS.path.altezza;
+	if (min_altezza >= 100) {
+		document.getElementById("boat_info_text").innerHTML = "<i>Non ci sono altre informazioni particolari</i>";
+	} else {
+		document.getElementById("boat_info_text").innerHTML = "<i>- altezza minima dei ponti attraversati: "+
+																													min_altezza+"m</i>";
 	}
 }
 function ponte_sing_plur(num){

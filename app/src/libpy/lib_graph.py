@@ -271,6 +271,7 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     tot_ponti_accessible = [0,0,0,0,0,0,0,0]
     tot_ponti=0
     last_edge_was_a_bridge = False
+    altezza = np.inf
     for i in range(len(path_nodes)-1):
         isBridge = 0
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
@@ -279,9 +280,10 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
             edge_info_dict['street_type'] = 'canale'
             #print(edge_attuale)
             #edge_info_dict['']
-            speed = np.minimum(speed, edge_attuale['vel_max'])
+            speed = np.minimum(speed, edge_attuale['vel_max']/3.6)
             edge_info_dict['vel_max'] = edge_attuale['vel_max']
             edge_info_dict['solo_remi'] = edge_attuale['solo_remi']
+            altezza = np.minimum(altezza, edge_attuale['altezza'])
             # prendiamo informazioni sulle ordinanze in modo da creare un warning
         else:
 
@@ -311,8 +313,9 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     streets_info['human_readable_length'] = prettify_length(lunghezza)
     streets_info['time'] = time
     streets_info['human_readable_time'] = prettify_time(time)
-    streets_info['n_ponti'] = (tot_ponti, tot_ponti_accessible)
+    streets_info['n_ponti'] = [tot_ponti, tot_ponti_accessible]
     streets_info['shape_list'] = shapes
+    streets_info['altezza'] = altezza
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):

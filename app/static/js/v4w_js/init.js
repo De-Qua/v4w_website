@@ -76,6 +76,7 @@ function initialize_html(){
     // we switch with modus_operandi
     // modus == 0 --> indirizzo, o nulla?
     // modus == 1 --> strada tra A e B
+    console.log("Setting up results window!")
     showResultsWindow(dict_in_JS)
     switch(modus_operandi) {
       case 0:
@@ -86,7 +87,6 @@ function initialize_html(){
       // geo_type == 0 --> marker, un punto solo
       // geo_type == 1 --> poligono
       // e facile aggiungere geo_type se vogliamo piu avanti
-      fillResultsWindow(dict_in_JS);
       console.log("shown a single address result")
       var name_location = dict_in_JS.params_research.da;
       document.getElementById('search_field_1').value = name_location
@@ -148,8 +148,6 @@ function initialize_html(){
       // MODUS OPERANDI == 1 --> PERCORSO DA A a B
       case 1:
       // geo type is not used
-      console.log("Setting up results window!")
-      fillResultsWindow(dict_in_JS);
       console.log("also the search should be ready");
       showSecondSearchbar();
       var nome_partenza = dict_in_JS.params_research.da

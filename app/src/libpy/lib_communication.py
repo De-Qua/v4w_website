@@ -87,15 +87,18 @@ def merged_path_list(path_list):
         'human_readable_length': '',
         'time': 0,
         'human_readable_time':'',
-        'n_ponti': 0,
-        'shape_list': []
+        'n_ponti': [0,[0,0,0,0,0,0,0,0]],
+        'shape_list': [],
+        'altezza': np.inf
         }
     # loop in the list retrieving data
     for path in path_list:
         merged_path['lunghezza'] += path['lunghezza']
         merged_path['time'] += path['time']
-        merged_path['n_ponti'] += path['n_ponti']
+        merged_path['n_ponti'][0] += path['n_ponti'][0]
+        merged_path['n_ponti'][1] = [x+y for x,y in zip(merged_path['n_ponti'][1],path['n_ponti'][1])]
         merged_path['shape_list'] += path['shape_list']
+        merged_path['altezza'] = np.minimum(merged_path['altezza'], path['altezza'])
 
     # calculate new human readable data
     merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
