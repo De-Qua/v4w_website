@@ -70,9 +70,10 @@
 				  <path d="M8 2.25c.909 0 3.188.685 4.254 1.022a.94.94 0 0 1 .656.773c.814 6.424-4.13 9.452-4.91 9.452V2.25z"/>
 				</svg> Protezione dei dati</h3>
 				Non salviamo attivamente nessun dato personale sui server.
-				Al momento salviamo le ricerche effettuate (il testo che l'utente ha inserito) per migliorare l'algoritmo di ricerca nel database).
+				Al momento salviamo le ricerche effettuate (il testo che l'utente ha inserito) per migliorare l'algoritmo di ricerca nel database e alcune informazioni base che vengono sempre mandate dal browser: ip, browser, sistema operativo.
+				Tutti i dati vengono salvati lato app utilizzando il plugin <a href= https://github.com/ashcrow/flask-track-usage>Flask-Track-Usage</a>, questo vuol dire che le informazioni non vengono mandate a nessun servizio esterno che possa analizzare il traffico e i dati degli utenti (ad esempio GoogleAnalytics).
 				I server appartengono a PythonAnywhere (vedi sezione <a href="#tools">Strumenti</a>).
-				Per questo, un cookie di sessione verrà salvato ogni volta che il sito viene visitato.
+				Per il funzionamento del sito, un cookie di sessione verrà salvato ogni volta che il sito viene visitato.
 				Il cookie è visibile dall'inspector del browser nella sezione <i>Storage</i> e come potete vedere, non salva nulla riguardante i dati personali o di posizione.
 				Se l'utente sceglie di usare la propria posizione, il browser usa le impostazioni di default dell'utente, e nel caso venga negata, lancia semplicemente un'errore.
 				Se l'utente non condivide la propria posizione, non viene usata per altri scopi.
