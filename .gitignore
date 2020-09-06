@@ -142,3 +142,4 @@ error/*
 
 # database
 *.db-journal
+trackusage.db

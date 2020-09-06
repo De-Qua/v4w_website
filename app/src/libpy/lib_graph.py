@@ -259,7 +259,17 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     shapes = []
     time=0
     lunghezza = 0.0
-    n_ponti=0
+    # ponti can have 8 accessible values:
+    # 0: not accessible (i.e. bridge with steps)
+    # 1: flat (i.e. no bridge)
+    # 2: gradino_aggevolato
+    # 3: gradino_aggevolato_con_accompagnatore
+    # 4: rampa_fissa
+    # 5: rampa_provvisoria da feb a nov
+    # 6: rampa_provvisoria da set a giu
+    # 7: rampa_provvisoria da mag a nov
+    tot_ponti_accessible = [0,0,0,0,0,0,0,0]
+    tot_ponti=0
     last_edge_was_a_bridge = False
     for i in range(len(path_nodes)-1):
         isBridge = 0
@@ -276,10 +286,12 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
         else:
 
             isBridge = edge_attuale['ponte']
+            accessibleLevel = edge_attuale['accessible']
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
                 if not last_edge_was_a_bridge:
-                    n_ponti += 1
+                    tot_ponti += 1
+                    tot_ponti_accessible[accessibleLevel] += 1
                 last_edge_was_a_bridge = True
             else:
                 edge_info_dict['street_type'] = 'calle'
@@ -299,7 +311,7 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     streets_info['human_readable_length'] = prettify_length(lunghezza)
     streets_info['time'] = time
     streets_info['human_readable_time'] = prettify_time(time)
-    streets_info['n_ponti'] = n_ponti
+    streets_info['n_ponti'] = (tot_ponti, tot_ponti_accessible)
     streets_info['shape_list'] = shapes
     return streets_info
 
