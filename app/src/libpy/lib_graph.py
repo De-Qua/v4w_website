@@ -262,8 +262,8 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     # ponti can have 8 accessible values:
     # 0: not accessible (i.e. bridge with steps)
     # 1: flat (i.e. no bridge)
-    # 2: gradino_aggevolato
-    # 3: gradino_aggevolato_con_accompagnatore
+    # 2: gradino_agevolato
+    # 3: gradino_agevolato_con_accompagnatore
     # 4: rampa_fissa
     # 5: rampa_provvisoria da feb a nov
     # 6: rampa_provvisoria da set a giu

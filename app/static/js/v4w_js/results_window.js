@@ -70,6 +70,14 @@ function fillResultsWindowSingleAddress(dictJS) {
 }
 
 function fillResultsWindowPercorso(dictJS) {
+	if (dictJS.params_research.by_boat == "on") {
+		fillResultsWindowPercorsoBoat(dictJS);
+	} else {
+		fillResultsWindowPercorsoWalk(dictJS);
+	}
+}
+
+function fillResultsWindowPercorsoWalk(dictJS) {
 	var nome_partenza = dictJS.params_research.da;
 	document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
 	var nome_arrivo = dictJS.params_research.a;
@@ -82,8 +90,8 @@ function fillResultsWindowPercorso(dictJS) {
 	document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
 	var bridge_accessibility_name = ["gradini normali",
 																	"nessuna barriera architettonica",
-																	"gradino aggevolato",
-																	"gradino aggevolato accessibile con accompagnatore",
+																	"gradino agevolato",
+																	"gradino agevolato accessibile con accompagnatore",
 																	"rampa fissa",
 																	"rampa provvisoria da Feb a Nov",
 																	"rampa provvisoria da Set a Giu",
@@ -100,6 +108,36 @@ function fillResultsWindowPercorso(dictJS) {
 	}
 }
 
+function fillResultsWindowPercorsoBoat(dictJS) {
+	var nome_partenza = dictJS.params_research.da;
+	document.getElementById("da_text").innerHTML = "<i>"+nome_partenza+"</i>";
+	var nome_arrivo = dictJS.params_research.a;
+	document.getElementById("a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
+	var path_length = dictJS.path.human_readable_length;
+	document.getElementById("length_text").innerHTML = "<i>"+path_length+"</i>";
+	var time_description = dictJS.path.human_readable_time;
+	document.getElementById("time_text").innerHTML = "<i>"+time_description+"</i>";
+	var num_of_bridges = dictJS.path.n_ponti[0];
+	document.getElementById("ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
+	var bridge_accessibility_name = ["gradini normali",
+																	"nessuna barriera architettonica",
+																	"gradino agevolato",
+																	"gradino agevolato accessibile con accompagnatore",
+																	"rampa fissa",
+																	"rampa provvisoria da Feb a Nov",
+																	"rampa provvisoria da Set a Giu",
+																	"rampa provvisoria da Mag a Nov"]
+	var num_bridges_accessible = dictJS.path.n_ponti[1];
+	for (i=0; i<num_bridges_accessible.length; i++){
+		if (num_bridges_accessible[i] > 0){
+			document.getElementById("ponti_text").innerHTML += "<i><br>"+"&emsp;- "+
+																											num_bridges_accessible[i]+ " " +
+																											ponte_sing_plur(num_bridges_accessible[i]) +
+																											" con "+bridge_accessibility_name[i]+
+																											"</i>";
+		}
+	}
+}
 function ponte_sing_plur(num){
 	if (num == 1) {
 		return "ponte"
