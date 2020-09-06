@@ -1,5 +1,5 @@
 from flask import render_template, request, send_from_directory
-from app import app, db
+from app import app, db, t, getCurrentVersion
 from app.forms import FeedbackForm
 import os
 import git
@@ -12,6 +12,7 @@ import pdb
 import app.src.interface as interface
 from app.src.libpy import lib_graph
 import traceback
+from flask import g
 
 # Useful paths
 folder = os.getcwd()
@@ -37,9 +38,12 @@ html_file = 'dequa_map.html'
 app.logger.setLevel(1)
 app.logger.info("ready to go!")
 
-
+@t.include
 @app.route('/info', methods=['GET', 'POST'])
 def index():
+    # add version to the track usage
+    g.track_var["version"] = getCurrentVersion()
+    # do everything
     app.logger.info('Prova info')
     app.logger.error('Prova error')
     app.logger.debug('Prova debug')
@@ -62,8 +66,12 @@ def marketingfalso():
     #get list of feedback files
     return render_template('marketing.html')
 
+@t.include
 @app.route('/', methods=['GET', 'POST'])
 def navigation():
+    # add version to the track usage
+    g.track_var["version"] = getCurrentVersion()
+    # do everything
     form = FeedbackForm()
     try:
         arguments_GET_request = request.args

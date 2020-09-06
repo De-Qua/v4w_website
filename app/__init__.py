@@ -10,25 +10,30 @@ from flask_migrate import Migrate
 import sqlalchemy as sa
 from sqlalchemy import MetaData
 from flask_mail import Mail
+from flask_track_usage import TrackUsage
+from flask_track_usage.storage.sql import SQLStorage
 
 # version of the software
 version = "0.1.1"
+def getCurrentVersion():
+    return version
+
+#
+# Create Flask app
+#
 
 app = Flask(__name__)
 app.config.from_object(Config)
-# add Email
+
+#
+# Email setup
+#
 email = Mail(app)
-#function to retrieve the version
-def getCurrentVersion():
-    return version
-# metadata per magheggio di slalchemy per database sqlite
-naming_convention = {
-    "ix": 'ix_%(column_0_label)s',
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(column_0_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s"
-}
+
+
+#
+# Model setup
+#
 # Crea un modello base per scrivere in modo più leggibile i repr delle classi
 class BaseModel(Model):
     def __repr__(self) -> str:
@@ -51,6 +56,18 @@ class BaseModel(Model):
             return f"<{self.__class__.__name__}({','.join(field_strings)})>"
         return f"<{self.__class__.__name__} {id(self)}>"
 
+#
+# Database setup
+#
+# metadata per magheggio di slalchemy per database sqlite
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+# create database for data
 db = SQLAlchemy(app,metadata=MetaData(naming_convention=naming_convention),model_class=BaseModel)
 migrate = Migrate(app=app,db=db)
 #altre magie per sqlalchemy per sqlite
@@ -59,6 +76,15 @@ with app.app_context():
         migrate.init_app(app, db, render_as_batch=True)
     else:
         migrate.init_app(app, db)
+# create database for tracking usage
+# track_db = SQLAlchemy(app,metadata=MetaData(bind="trackusage"))
+
+#
+# TrackUsage setup
+#
+user_store = SQLStorage(engine=db.get_engine(bind="trackusage"))
+t = TrackUsage(app,[user_store])
+
 from app import routes, errors, models
 
 if not os.path.exists('logs'):
