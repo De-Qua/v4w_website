@@ -57,7 +57,16 @@ function fillResultsWindow(dictJS) {
 }
 
 function fillResultsWindowSingleAddress(dictJS) {
-	
+	var name_location = dictJS.params_research.da;
+	document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
+	switch (dict_in_JS.partenza[0].geotype) {
+		case 0:
+			document.getElementById("type_text").innerHTML = "<i>indirizzo</i>";
+			break;
+		case 1:
+      document.getElementById("type_text").innerHTML = "<i>area</i>";
+			break;
+	}
 }
 
 function fillResultsWindowPercorso(dictJS) {

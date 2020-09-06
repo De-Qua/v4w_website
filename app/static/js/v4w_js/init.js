@@ -86,6 +86,7 @@ function initialize_html(){
       // geo_type == 1 --> poligono
       // e facile aggiungere geo_type se vogliamo piu avanti
       showResultsWindow('single_address');
+      fillResultsWindow(dict_in_JS);
       console.log("shown a single address result")
       var name_location = dict_in_JS.params_research.da;
       document.getElementById('search_field_1').value = name_location
@@ -96,7 +97,7 @@ function initialize_html(){
       if (dict_in_JS.start_type == 'unique') {
         document.getElementById('hidden_start_coord').value = dict_in_JS.partenza[0].coordinate;
       }
-      document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
+
       switch(geo_type) {
         case -2:
         // do nothing - pagina senza ricerca_ind
@@ -110,7 +111,6 @@ function initialize_html(){
         // coordinate
         var coords_location = dict_in_JS.partenza[0].coordinate;
         marker_location = L.marker(coords_location, markerOptions);
-        document.getElementById("type_text").innerHTML = "<i>indirizzo</i>";
         // Popup se uno clicca sul marker
         marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
         // aggiungi il marker sulla mappa
@@ -131,8 +131,7 @@ function initialize_html(){
         // var polygon = L.polygon([
         // 		dict_in_JS.partenza[0].shape
         // ], polygonOptions).addTo(mymap);
-        // var group = new L.featureGroup([polygon]);
-        document.getElementById("type_text").innerHTML = "<i>area</i>";
+        // var group = new L.featureGroup([polygon
         console.log("geojson: "+ dict_in_JS.partenza[0].geojson);
         // Per qualche motivo dice che il geojson è fatto male
         var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson);
