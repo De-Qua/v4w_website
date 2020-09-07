@@ -5,6 +5,7 @@ import numpy as np
 import pdb
 import json
 from app.src.libpy import lib_graph
+import pdb
 
 def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locations_candidates, params_research, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """

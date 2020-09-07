@@ -78,7 +78,7 @@ function fillResultsWindow(dictJS) {
 }
 
 function fillResultsWindowSingleAddress(dictJS) {
-	var name_location = dictJS.params_research.da;
+	var name_location = dictJS.partenza[0].nome;
 	document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
 	switch (dict_in_JS.partenza[0].geotype) {
 		case 0:
