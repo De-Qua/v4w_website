@@ -33,11 +33,13 @@ function changeMap(currentMap) {
 
 function addMarkerStart(latlng) {
 	marker_start.setLatLng(latlng);
+	marker_start.bindPopup("Partenza!")
 	marker_start.addTo(mymap);
 }
 
 function addMarkerEnd(latlng) {
 	marker_end.setLatLng(latlng);
+	marker_start.bindPopup("Arrivo!")
 	marker_end.addTo(mymap);
 }
 
