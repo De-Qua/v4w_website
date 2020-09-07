@@ -123,7 +123,7 @@ function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, 
 	// check if there was an already selected end
 	var end_coord = dict_in_JS.params_research.end_coord;
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
-		new_site_to_go = "/?partenza="+escape(cur_result_name).replace(/%20/g, "+")+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+escape(searched_end).replace(/%20/g, "+")+"&end_coord="+end_coord+stringBoxes;
+		new_site_to_go = "/?partenza="+encodeURI(cur_result_name).replace(/%20/g, "+")+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+encodeURI(searched_end).replace(/%20/g, "+")+"&end_coord="+end_coord+stringBoxes;
     // document.getElementById("search_field_1").value = cur_result_name
     // document.getElementById("start_coord").value = "LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
   }
@@ -134,7 +134,7 @@ function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, 
 		// vecchia Versione
 		//new_site_to_go = "/?partenza="+escape(strt_name).replace(/%20/g, "+")+"&start_coord=LatLng("+strt_coords[0]+", "+strt_coords[1]+")&arrivo="+escape(cur_result_name).replace(/%20/g, "+")+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes;
 		// nuova!
-		new_site_to_go = "/?partenza="+escape(strt_name).replace(/%20/g, "+")+"&start_coord="+escape(strt_coords)+")&arrivo="+escape(cur_result_name).replace(/%20/g, "+")+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes;
+		new_site_to_go = "/?partenza="+encodeURI(strt_name).replace(/%20/g, "+")+"&start_coord="+encodeURI(strt_coords)+")&arrivo="+encodeURI(cur_result_name).replace(/%20/g, "+")+"&end_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")"+stringBoxes;
     // document.getElementById("search_field_1").value = strt_name
     // document.getElementById("start_coord").value = "LatLng("+strt_coords[0]+", "+strt_coords[1]+")";
     // document.getElementById("search_field_2").value = cur_result_name
