@@ -1,9 +1,0 @@
-function showSettingsWindow() {
-	document.getElementById("mapid").style.opacity = 0.3;
-	document.getElementById("dequa_setting_window").style.display = "inline";
-}
-
-function hideSettingsWindow() {
-	document.getElementById("mapid").style.opacity = 1.0;
-	document.getElementById("dequa_setting_window").style.display = "none";
-}
