@@ -99,9 +99,9 @@ function fillResultsWindowPercorso(dictJS) {
 }
 
 function fillResultsWindowPercorsoWalk(dictJS) {
-	var nome_partenza = dictJS.params_research.da;
+	var nome_partenza = dictJS.partenza[0].nome;
 	document.getElementById("walk_da_text").innerHTML = "<i>"+nome_partenza+"</i>";
-	var nome_arrivo = dictJS.params_research.a;
+	var nome_arrivo = dictJS.arrivo[0].nome;
 	document.getElementById("walk_a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 	var path_length = dictJS.path.human_readable_length;
 	document.getElementById("walk_length_text").innerHTML = "<i>"+path_length+"</i>";
@@ -130,9 +130,9 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 }
 
 function fillResultsWindowPercorsoBoat(dictJS) {
-	var nome_partenza = dictJS.params_research.da;
+	var nome_partenza = dictJS.partenza[0].nome;
 	document.getElementById("boat_da_text").innerHTML = "<i>"+nome_partenza+"</i>";
-	var nome_arrivo = dictJS.params_research.a;
+	var nome_arrivo = dictJS.arrivo[0].nome;
 	document.getElementById("boat_a_text").innerHTML = "<i>"+nome_arrivo+"</i>";
 	var path_length = dictJS.path.human_readable_length;
 	document.getElementById("boat_length_text").innerHTML = "<i>"+path_length+"</i>";

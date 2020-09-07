@@ -58,6 +58,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			};
 		} else {
       // card.onclick = function() {fillForm(this, what_are_we_doing, searched_end, start_found); document.getElementById("form_id").submit();}
+			// passare come parametro dict_in_JS (o almeno params_research)
 			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
 			card.onmouseover = function() {showHighlight(this)};
 			card.onmouseout = function() {clearHighlight(this);};
@@ -81,6 +82,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		var marker = L.marker([cur_result_coords[0], cur_result_coords[1]],curMarkerOptions);
 
 		// markerPopup.setLatLng([cur_result_coords[0], cur_result_coords[1]]);
+		// passare come parametro params_research (o dict_in_JS)
 		var markerNextStep = getNextStep(marker.getLatLng(), what_are_we_doing, cur_result_name, searched_end, start_found)
 
 		marker.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description+"<br><a href='"+markerNextStep+"' class='btn btn-sm btn-light v4wbtn' style='font-size: 0.8em;color:inherit;'>Dequa!</a></div>");
@@ -118,8 +120,10 @@ function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, 
 	var clicked_coords = [element.lat, element.lng];
 	var new_site_to_go = "";
   var stringBoxes = retrieveBoxesSituationAsAString();
+	// check if there was an already selected end
+	var end_coord = dict_in_JS.params_research.end_coord;
 	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
-		new_site_to_go = "/?partenza="+escape(cur_result_name).replace(/%20/g, "+")+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+escape(searched_end).replace(/%20/g, "+")+"&end_coord="+stringBoxes;
+		new_site_to_go = "/?partenza="+escape(cur_result_name).replace(/%20/g, "+")+"&start_coord=LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")&arrivo="+escape(searched_end).replace(/%20/g, "+")+"&end_coord="+end_coord+stringBoxes;
     // document.getElementById("search_field_1").value = cur_result_name
     // document.getElementById("start_coord").value = "LatLng("+clicked_coords[0]+", "+clicked_coords[1]+")";
   }
