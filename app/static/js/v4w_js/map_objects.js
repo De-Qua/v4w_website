@@ -39,7 +39,7 @@ function addMarkerStart(latlng) {
 
 function addMarkerEnd(latlng) {
 	marker_end.setLatLng(latlng);
-	marker_start.bindPopup("Arrivo!")
+	marker_end.bindPopup("Arrivo!")
 	marker_end.addTo(mymap);
 }
 
