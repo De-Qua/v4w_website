@@ -110,9 +110,12 @@ function initialize_html(){
         case 0:
         // coordinate
         var coords_location = dict_in_JS.partenza[0].coordinate;
+        var cur_result_name = dict_in_JS.partenza[0].nome;
+        var cur_result_description = dict_in_JS.partenza[0].descrizione;
+        // TODO: usare funzione addMarkerLocation in map_objects.js
         marker_location = L.marker(coords_location, markerOptions);
         // Popup se uno clicca sul marker
-        marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
+        marker_location.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description);
         // aggiungi il marker sulla mappa
         marker_location.addTo(mymap);
         var group = new L.featureGroup([marker_location]);

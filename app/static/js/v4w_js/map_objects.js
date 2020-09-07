@@ -66,3 +66,11 @@ function clearHighlight(card) {
 	card.childNodes[0].style.background = "rgb(247, 247, 247)";
 	card.childNodes[1].style.background = "rgb(255, 255, 255)";
 }
+
+function addMarkerLocation(dictJS) {
+	marker_location = L.marker(coords_location, markerOptions);
+	// Popup se uno clicca sul marker
+	marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
+	// aggiungi il marker sulla mappa
+	marker_location.addTo(mymap);
+}
