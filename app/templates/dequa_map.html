@@ -258,17 +258,18 @@
 							<div class="row space_above">
 								<div class="col-12">
 									<div id="nav_buttons" style="display: none">
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" checked><img src="/static/icons/pedone.svg" class="icon"></input></label>
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting"><img src="/static/icons/carretto.svg" class="icon"></input></label>
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting"><img src="/static/icons/barchin.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" class="chb" checked><img src="/static/icons/pedone.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg" class="icon"></input></label>
+										<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb" ><img src="/static/icons/barchin.svg" class="icon"></input></label>
 										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
 										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
 									</div>
-									<!-- <script>
-									if(typeof dict_in_JS !== 'undefined'){
-									checkTheBoxesThatNeedToBeChecked(dict_in_JS);
-								};
-							</script> -->
+									<script>
+										$(".chb").change(function(){
+		                  $(".chb").prop('checked',false);
+		                  $(this).prop('checked',true);
+	              		});
+									</script>
 						</div>
 						<!-- <div class="col-1">
 						<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
