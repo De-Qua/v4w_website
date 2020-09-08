@@ -10,7 +10,7 @@
 <meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
 <!-- autori -->
 <meta name="author" content="Dequa">
-<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <!-- <link rel="stylesheet" href="/static/css/owl.carousel.min.css">
 <link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
 <link rel="stylesheet" href="/static/css/w3s.css">
@@ -46,667 +46,687 @@
 <script src="/static/js/easy-button.js"></script>
 <script src="/static/js/leaflet.markercluster.js"></script>
 <script src="/static/js/leaflet-color-markers.js"></script>
-<body onbeforeunload="HandleBackFunctionality()">
+
+<body>
 	<!-- Initialize popover -->
 	<script>
-	$(function () {
-		$('[data-toggle="popover"]').popover()
-	})
+		$(function() {
+			$('[data-toggle="popover"]').popover()
+		});
 
+		// Funzione per eliminare la rotella e ristabilire la corretta opacità della mappa quando si clicca il pulsante indietro dopo una ricerca
+		$(window).bind("pageshow", function(event) {
+			$("#loading").hide();
+			$("#mapid").fadeTo("fast", 1)
+		});
+	</script>
 
-	// sembra funzionare semplicemente per l'esistenza di questo HandleBackFunctionality,
-	// ma in realtà non printa nulla a console, forse non entra mai, ma sparisce la rotella
-	// MISTERO
-	function HandleBackFunctionality()
-	{
-		/*
-		if (document.getElementById("loading").style.display = "inline") {
-		document.getElementById("loading").style.display = "none";
-		document.getElementById("mapid").style.opacity = 1;
-	}
-	console.log('tolto la rotella');
-	*/
-}
-
-</script>
-
-<!-- Container con sidebar e mappa -->
-<div id=container>
-	<div id="sidebar" style="display: none;">
-		<div class=sidebar-wrapper>
-			<div class="card" id="features">
-				<div id="result_title" class="card-header"><h3><b>Risultati</b>
-					<a onclick="hideSidebar()">
-						<button type="button" class="btn btn-sm btn-outline-secondary float-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
-					</a>
+	<!-- Container con sidebar e mappa -->
+	<div id=container>
+		<div id="sidebar" style="display: none;">
+			<div class=sidebar-wrapper>
+				<div class="card" id="features">
+					<div id="result_title" class="card-header">
+						<h3><b>Risultati</b>
+							<a onclick="hideSidebar()">
+								<button type="button" class="btn btn-sm btn-outline-secondary float-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
+						</a>
+					</div>
 				</div>
-			</div>
-			<div class="sidebar-table">
-				<div class="possibilities" id="possibilitiesFather"><!-- se vogliamo il carosello owl-carousel owl-theme -->
+				<div class="sidebar-table">
+					<div class="possibilities" id="possibilitiesFather">
+						<!-- se vogliamo il carosello owl-carousel owl-theme -->
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="loader" style="display:none;" id="loading">
-		<!-- <img id="loading_gif" src="/static/assets/loading.gif"> -->
-		<div class="spinner-border text-warning" role="status">
-			<span class="sr-only">Loading...</span>
+		<div class="loader" style="display:none;" id="loading">
+			<!-- <img id="loading_gif" src="/static/assets/loading.gif"> -->
+			<div class="spinner-border text-warning" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
 		</div>
-	</div>
 
-	<!-- DIV CON LA MAPPA -->
-	<div class="map-container leaflet-container leaflet-retina leaflet-fade-anim" tabindex="0" id="mapcontainer">
-		<div id="mapid">
-			<script>
-			// Create a variable with already both layer
-			var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				minZoom: 10,
-				maxZoom: 19,
-				minNativeZoom: 10,
-				maxNativeZoom: 19,
-				zoomControl: false,
-				attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-			});
-			var esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-				minZoom: 10,
-				maxZoom: 19,
-				minNativeZoom: 10,
-				maxNativeZoom: 19,
-				zoomControl: false,
-				attribution: 'DeQua | Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-			});
+		<!-- DIV CON LA MAPPA -->
+		<div class="map-container leaflet-container leaflet-retina leaflet-fade-anim" tabindex="0" id="mapcontainer">
+			<div id="mapid">
+				<script>
+					// Create a variable with already both layer
+					var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+						minZoom: 10,
+						maxZoom: 19,
+						minNativeZoom: 10,
+						maxNativeZoom: 19,
+						zoomControl: false,
+						attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+					});
+					var esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+						minZoom: 10,
+						maxZoom: 19,
+						minNativeZoom: 10,
+						maxNativeZoom: 19,
+						zoomControl: false,
+						attribution: 'DeQua | Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+					});
 
-			var baseMaps = {
-				"OpenStreetMap": osm,
-				"ESRIMap": esri
-			}
-			var whichmap = "OpenStreetMap";
+					var baseMaps = {
+						"OpenStreetMap": osm,
+						"ESRIMap": esri
+					}
+					var whichmap = "OpenStreetMap";
 
-			var mymap = L.map('mapid',{
-				layers: baseMaps[whichmap]
-			});
+					var mymap = L.map('mapid', {
+						layers: baseMaps[whichmap]
+					});
 
-			var possibilitiesLayer = L.markerClusterGroup();
+					var possibilitiesLayer = L.markerClusterGroup();
 
-			var highlightPane = mymap.createPane("highlightPane");
-			highlightPane.style.zIndex = 700;
-			var highlight = L.geoJson(null,{pane: "highlightPane"}).addTo(mymap);
-			var highlightStyle = {
-				stroke: false,
-				fillColor: "#ffb400",
-				fillOpacity: 0.9,
-				radius: 10,
-				className: 'blinking',
-				pane: "highlightPane"
-			};
+					var highlightPane = mymap.createPane("highlightPane");
+					highlightPane.style.zIndex = 700;
+					var highlight = L.geoJson(null, {
+						pane: "highlightPane"
+					}).addTo(mymap);
+					var highlightStyle = {
+						stroke: false,
+						fillColor: "#ffb400",
+						fillOpacity: 0.9,
+						radius: 10,
+						className: 'blinking',
+						pane: "highlightPane"
+					};
 
-			// Create markers for start and end
-			var marker_start = L.marker([],{icon: greenIcon});
-			var marker_end = L.marker([],{icon:redIcon});
+					// Create markers for start and end
+					var marker_start = L.marker([], {
+						icon: greenIcon
+					});
+					var marker_end = L.marker([], {
+						icon: redIcon
+					});
 
-			var popup = L.popup();
+					var popup = L.popup();
 
-			//L.control.layers(baseMaps).addTo(mymap);
-			// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			// minZoom: 12,
-			// maxZoom: 19,
-			// minNativeZoom: 12,
-			// maxNativeZoom: 19,
-			// zoomControl: false,
-			// attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-			// }).addTo(mymap);
-			//OpenStreetMap_DE = L.tileLayer.provider('Stamen.Watercolor').addTo(mymap);
-			// Zoom buttons to the bottom right
-			mymap.zoomControl.setPosition('bottomright');
-			var loc_control = L.control.locate({
-				position: 'bottomright',
-				strings: {
-					title: "Show me where I am, yo!"
-				},
-				showCompass:true
-			}).addTo(mymap);
-			var scale = L.control.scale().addTo(mymap);
-			</script>
-		</div>
-		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
-		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
+					//L.control.layers(baseMaps).addTo(mymap);
+					// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					// minZoom: 12,
+					// maxZoom: 19,
+					// minNativeZoom: 12,
+					// maxNativeZoom: 19,
+					// zoomControl: false,
+					// attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+					// }).addTo(mymap);
+					//OpenStreetMap_DE = L.tileLayer.provider('Stamen.Watercolor').addTo(mymap);
+					// Zoom buttons to the bottom right
+					mymap.zoomControl.setPosition('bottomright');
+					var loc_control = L.control.locate({
+						position: 'bottomright',
+						strings: {
+							title: "Show me where I am, yo!"
+						},
+						showCompass: true
+					}).addTo(mymap);
+					var scale = L.control.scale().addTo(mymap);
+				</script>
+			</div>
+			<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+			<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
 
-		<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
-		<div class="leaflet-top col no-gutters" id="searchbar">
-			<!-- button works because of this -->
-			<div class="row">
-				<div class="col-lg-5 col-md-6">
-					<div class="row">
-						<div class="leaflet-control col-md-12">
-							<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
-								<!-- PRIMA RIGA: BARRA DI RICERCA -->
-								<div class="row">
-									<!-- A sinistra la barra di ricerca -->
-									<div class="col-10">
-										<div class="input-group">
-											<div class="input-group-prepend">
-												<button class="input-group-text btn bg-white border-right-0 border" type="button" id="startFromWhereIAMbtn">
-													<i class="fa fa-bullseye"></i>
-												</button>
-												<script>
-												document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
-												</script>
+			<!-- leaflet top lo mantiene in alto e sopra lo schermo, lg-4 resposnive -->
+			<div class="leaflet-top col no-gutters" id="searchbar">
+				<!-- button works because of this -->
+				<div class="row">
+					<div class="col-lg-5 col-md-6">
+						<div class="row">
+							<div class="leaflet-control col-md-12">
+								<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
+									<!-- PRIMA RIGA: BARRA DI RICERCA -->
+									<div class="row">
+										<!-- A sinistra la barra di ricerca -->
+										<div class="col-10">
+											<div class="input-group">
+												<div class="input-group-prepend">
+													<button class="input-group-text btn bg-white border-right-0 border" type="button" id="startFromWhereIAMbtn">
+														<i class="fa fa-bullseye"></i>
+													</button>
+													<script>
+														document.getElementById('startFromWhereIAMbtn').onclick = function() {
+															copyMyPositionAsStart(mymap);
+														};
+													</script>
+												</div>
+												<input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="useristypingin('search_field_1')">
+												<!-- A hidden input takes the coordinates for the start location and we can store them here: it will never be visible -->
+												<input type="text" name="start_coord" id="hidden_start_coord" style="display: none">
+												<div class="input-group-append">
+													<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_1_x" onclick="clearField('search_field_1')">
+														<i class="fa fa-times"></i>
+													</button>
+												</div>
 											</div>
-											<input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="useristypingin('search_field_1')">
-											<!-- A hidden input takes the coordinates for the start location and we can store them here: it will never be visible -->
-											<input type="text" name="start_coord" id="hidden_start_coord" style="display: none">
-											<div class="input-group-append">
-												<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_1_x" onclick="clearField('search_field_1')">
-													<i class="fa fa-times"></i>
-												</button>
-											</div>
+											<!-- <input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1"> -->
 										</div>
-										<!-- <input type="text"  placeholder="cerca.." name="partenza" class="form-control" id="search_field_1"> -->
-									</div>
-									<!-- A destra il pulsante per cercare -->
-									<div class="col-1 align-self-center">
-										<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;"></button>
-										<!-- <div id="start_from_my_location" style="display: none">
+										<!-- A destra il pulsante per cercare -->
+										<div class="col-1 align-self-center">
+											<button class="btn btn-sm btn-light v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><img src="/static/img/dequa_logo_v2.png" style="width:20px;margin-left: -3px;"></button>
+											<!-- <div id="start_from_my_location" style="display: none">
 										<button class="btn btn-sm btn-light v4wbtn" type=button id="startFromWhereIAMbtn"><i class="fa fa-fw fa-location-arrow"></i></button>
 										<script>
 										document.getElementById('startFromWhereIAMbtn').onclick = function() { copyMyPositionAsStart(mymap); };
 									</script>
 								</div> -->
-							</div>
-						</div>
-
-						<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
-						<div class="row">
-							<div class="col align-self-center">
-								<!-- inizialmente mostriamo il bottone -->
-								<div class="button-plus" id="add-searchfield">
-									<a onclick="showSecondSearchbar()">
-										<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><img src="/static/icons/iconfinder_path_2969396.svg" class="icon fa-fw p-0"></button>
-									</a>
-								</div>
-							</div>
-						</div>
-
-						<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
-						<div class="container-search-field" id="second-search-field" style="display: none">
-							<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
-							<div class="row">
-								<div class="col-10">
-									<div class="input-group">
-										<div class="input-group-prepend">
-											<button class="input-group-text btn bg-white border-right-0 border" type="button" onclick="hideSecondSearchbar()">
-												<i class="fa fa-minus-square-o"></i>
-											</button>
-										</div>
-										<input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="useristypingin('search_field_2')">
-										<!-- A hidden input takes the coordinates for the end location and we can store them here: it will never be visible -->
-										<input type="text" name="end_coord" id="hidden_end_coord" style="display: none">
-										<div class="input-group-append">
-											<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_2_x" onclick="clearField('search_field_2')">
-												<i class="fa fa-times"></i>
-											</button>
 										</div>
 									</div>
-									<!-- <input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2"> -->
-								</div>
-								<div class="col-1 align-self-center">
-									<button type=button onclick="swapDirections()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-exchange fa-rotate-90"></i></button>
-								</div>
-							</div>
-							<!-- TERZA RIGA: BOTTONI + trova la strada-->
-							<div class="row space_above">
-								<div class="col-12">
-									<div id="nav_buttons" style="display: none">
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" class="chb" checked><img src="/static/icons/pedone.svg" class="icon"></input></label>
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg" class="icon"></input></label>
-										<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb" ><img src="/static/icons/barchin.svg" class="icon"></input></label>
-										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
-										<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+
+									<!-- SECONDA RIGA: BOTTONE PER AGGIUNGERE LA SECONDA BARRA DI RICERCA -->
+									<div class="row">
+										<div class="col align-self-center">
+											<!-- inizialmente mostriamo il bottone -->
+											<div class="button-plus" id="add-searchfield">
+												<a onclick="showSecondSearchbar()">
+													<button type=button id="btn-plus" class="btn btn-sm btn-light v4wbtn"><img src="/static/icons/iconfinder_path_2969396.svg" class="icon fa-fw p-0"></button>
+												</a>
+											</div>
+										</div>
 									</div>
-									<script>
-										$(".chb").change(function(){
-		                  $(".chb").prop('checked',false);
-		                  $(this).prop('checked',true);
-	              		});
-									</script>
-						</div>
-						<!-- <div class="col-1">
+
+									<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
+									<div class="container-search-field" id="second-search-field" style="display: none">
+										<!-- SECONDA RIGA: BARRA DI RIRCERCA -->
+										<div class="row">
+											<div class="col-10">
+												<div class="input-group">
+													<div class="input-group-prepend">
+														<button class="input-group-text btn bg-white border-right-0 border" type="button" onclick="hideSecondSearchbar()">
+															<i class="fa fa-minus-square-o"></i>
+														</button>
+													</div>
+													<input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="useristypingin('search_field_2')">
+													<!-- A hidden input takes the coordinates for the end location and we can store them here: it will never be visible -->
+													<input type="text" name="end_coord" id="hidden_end_coord" style="display: none">
+													<div class="input-group-append">
+														<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_2_x" onclick="clearField('search_field_2')">
+															<i class="fa fa-times"></i>
+														</button>
+													</div>
+												</div>
+												<!-- <input type="text" name="arrivo" placeholder="fino a.." class="form-control" id="search_field_2"> -->
+											</div>
+											<div class="col-1 align-self-center">
+												<button type=button onclick="swapDirections()" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-exchange fa-rotate-90"></i></button>
+											</div>
+										</div>
+										<!-- TERZA RIGA: BOTTONI + trova la strada-->
+										<div class="row space_above">
+											<div class="col-12">
+												<div id="nav_buttons" style="display: none">
+													<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" class="chb" checked><img src="/static/icons/pedone.svg" class="icon"></input></label>
+													<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg"
+															class="icon"></input></label>
+													<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb"><img src="/static/icons/barchin.svg" class="icon"></input></label>
+													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
+															title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
+													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
+															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+												</div>
+												<script>
+													$(".chb").change(function() {
+														$(".chb").prop('checked', false);
+														$(this).prop('checked', true);
+													});
+												</script>
+											</div>
+											<!-- <div class="col-1">
 						<button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-map-signs"></i></button>
 						<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn">Vai!</button> -->
-						<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-search"></i></button> -->
-						<!-- </div> -->
-					</div>
-					<!-- QUARTA RIGA: TROVA LA STRADA -->
-					<!--
+											<!-- <button type="submit" class="btn btn-sm btn-light v4wbtn"><i class="fa fa-fw fa-search"></i></button> -->
+											<!-- </div> -->
+										</div>
+										<!-- QUARTA RIGA: TROVA LA STRADA -->
+										<!--
 					<div class="row space_above">
 					<div class="col-lg-4">
 					<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
 				</div>
 			</div>
 		-->
-	</div> <!-- Chiudiamo seconde barre varie -->
-	<!-- Hidden fields -->
-	<input type="hidden" name="start_coord" id="start_coord">
-	<input type="hidden" name="end_coord" id="end_coord">
-</form>
-<!-- Bottone per riaprire la sidebar -->
-<div class="container-fluid" id="show-sidebar" style="display:none">
-	<div class="row space_above">
-		<a onclick="showSidebar()">
-			<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
-		</a>
-	</div>
-</div>
-</div>
-</div>
+									</div> <!-- Chiudiamo seconde barre varie -->
+									<!-- Hidden fields -->
+									<input type="hidden" name="start_coord" id="start_coord">
+									<input type="hidden" name="end_coord" id="end_coord">
+								</form>
+								<!-- Bottone per riaprire la sidebar -->
+								<div class="container-fluid" id="show-sidebar" style="display:none">
+									<div class="row space_above">
+										<a onclick="showSidebar()">
+											<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
 
-<div class="row">
-	<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
-	<div class="leaflet-control col-md-8 col-10">
-		<div class="container-fluid" id="results_search" style="display:none;">
-			<!-- PERCORSO TERRA -->
-			<!--
+						<div class="row">
+							<!-- METTIAMO CARD CON RISULTATI SOTTO ALLE BARRE VARIE -->
+							<div class="leaflet-control col-md-8 col-10">
+								<div class="container-fluid" id="results_search" style="display:none;">
+									<!-- PERCORSO TERRA -->
+									<!--
 			<div class="result_div" id="percorso">
 			<p class="results_title">PERCORSO:</p>
 			<p class="results_text">
 			<!-->
-			<div class="card" id="percorso_terra">
-				<div class="card-header container-fluid">
-					<div class="row">
-						<div class="col-9 align-self-center">
-							PERCORSO A PIEDI
-						</div>
-						<div class="col-3 float-right">
-							<!--<a onclick="closeResultsWindow()">-->
-							<a onclick="moveResultsToSidebar()">
-								<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
-							</a>
-						</div>
-					</div>
-				</div>
-				<div class="card-body">
-					DA:<br>
-					<span id="walk_da_text"></span><br>
-					A:<br>
-					<span id="walk_a_text"></span><br>
-					LUNGHEZZA:<br>
-					<span id="walk_length_text"></span><br>
-					TEMPO:<br>
-					<span id="walk_time_text"></span><br>
-					PONTI:<br>
-					<span id="walk_ponti_text"></span><br>
-				</div>
-			</div>
-			<!-- PERCORSO ACQUA -->
-			<div class="card" id="percorso_acqua">
-				<div class="card-header container-fluid">
-					<div class="row">
-						<div class="col-9 align-self-center">
-							PERCORSO IN BARCA
-						</div>
-						<div class="col-3 float-right">
-							<!--<a onclick="closeResultsWindow()">-->
-							<a onclick="moveResultsToSidebar()">
-								<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
-							</a>
-						</div>
-					</div>
-				</div>
-				<div class="card-body">
-					DA:<br>
-					<span id="boat_da_text"></span><br>
-					A:<br>
-					<span id="boat_a_text"></span><br>
-					LUNGHEZZA:<br>
-					<span id="boat_length_text"></span><br>
-					TEMPO:<br>
-					<span id="boat_time_text"></span><br>
-					INFO:<br>
-					<span id="boat_info_text"></span><br>
-				</div>
-			</div>
-			<!-- RICERCA SINGLE -->
-			<!--
+									<div class="card" id="percorso_terra">
+										<div class="card-header container-fluid">
+											<div class="row">
+												<div class="col-9 align-self-center">
+													PERCORSO A PIEDI
+												</div>
+												<div class="col-3 float-right">
+													<!--<a onclick="closeResultsWindow()">-->
+													<a onclick="moveResultsToSidebar()">
+														<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+													</a>
+												</div>
+											</div>
+										</div>
+										<div class="card-body">
+											DA:<br>
+											<span id="walk_da_text"></span><br>
+											A:<br>
+											<span id="walk_a_text"></span><br>
+											LUNGHEZZA:<br>
+											<span id="walk_length_text"></span><br>
+											TEMPO:<br>
+											<span id="walk_time_text"></span><br>
+											PONTI:<br>
+											<span id="walk_ponti_text"></span><br>
+										</div>
+									</div>
+									<!-- PERCORSO ACQUA -->
+									<div class="card" id="percorso_acqua">
+										<div class="card-header container-fluid">
+											<div class="row">
+												<div class="col-9 align-self-center">
+													PERCORSO IN BARCA
+												</div>
+												<div class="col-3 float-right">
+													<!--<a onclick="closeResultsWindow()">-->
+													<a onclick="moveResultsToSidebar()">
+														<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+													</a>
+												</div>
+											</div>
+										</div>
+										<div class="card-body">
+											DA:<br>
+											<span id="boat_da_text"></span><br>
+											A:<br>
+											<span id="boat_a_text"></span><br>
+											LUNGHEZZA:<br>
+											<span id="boat_length_text"></span><br>
+											TEMPO:<br>
+											<span id="boat_time_text"></span><br>
+											INFO:<br>
+											<span id="boat_info_text"></span><br>
+										</div>
+									</div>
+									<!-- RICERCA SINGLE -->
+									<!--
 			<div class="result_div" id="single_address">
 			<p class="results_title">RICERCA:</p>
 			-->
-			<div class="card" id="single_address">
-				<div class="card-header container-fluid">
-					<div class="row">
-						<div class="col-9 align-self-center">
-							RICERCA
-						</div>
-						<div class="col-3 float-right">
-							<!-- <a onclick="closeResultsWindow()"> -->
-							<a onclick="moveResultsToSidebar()">
-								<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
-							</a>
-						</div>
-					</div>
-				</div>
-				<div class="card-body">
-					<p class="results_text">
-						TROVATO:<br>
-						<span id="found_text"></span><br>
-						TIPO:<br>
-						<span id="type_text"></span><br>
-					</p>
-				</div>
-			</div>
-			<!-- NON DOVREBBE APPARIRE -->
-			<!--
+									<div class="card" id="single_address">
+										<div class="card-header container-fluid">
+											<div class="row">
+												<div class="col-9 align-self-center">
+													RICERCA
+												</div>
+												<div class="col-3 float-right">
+													<!-- <a onclick="closeResultsWindow()"> -->
+													<a onclick="moveResultsToSidebar()">
+														<button class="btn btn-sm btn-outline-secondary float-right"><i class="fa fa-close"></i></button>
+													</a>
+												</div>
+											</div>
+										</div>
+										<div class="card-body">
+											<p class="results_text">
+												TROVATO:<br>
+												<span id="found_text"></span><br>
+												TIPO:<br>
+												<span id="type_text"></span><br>
+											</p>
+										</div>
+									</div>
+									<!-- NON DOVREBBE APPARIRE -->
+									<!--
 			<div class="result_div" id="weird">
 			<p class="results_title">STRANO:</p>
 			-->
-			<div class="card" id="weird">
-				<div class="card-header">
-					STRANO
-					<!-- <a onclick="closeResultsWindow()"> -->
-					<a onclick="moveResultsToSidebar()">
-						<button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button>
-					</a>
-				</div>
-				<div class="card-body">
-					<p class="results_text">
-						Non dovrebbe mai apparire.<br>
-						Probabilmente abbiamo sbagliato qualcosa.
-					</p>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<!--</div> chiudiamo leaflet control -->
-</div>
-<div class="col-lg-4">
-	<div class="leaflet-control">
-		<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
-			<h4 class="alert-heading">C'è stato un errore!</h4>
-			<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
-				Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
-				Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
-			</p>
-			<hr>
-			<p class="mb-0" id="errorwindow-explanation">
-			</p>
-			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
-			</button>
-		</div>
-		<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
-			Grazie per il feedback!
-			<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">
-				<span aria-hidden="true">&times;</span>
-			</button>
-		</div>
-		<div class="alert alert-danger alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
-			Ops, qualcosa è andato storto nell'invio del feedback.<br>
-			Per favore prova a reinviarlo.
-			<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">
-				<span aria-hidden="true">&times;</span>
-			</button>
-		</div>
-	</div>
-</div>
-</div>
-</div><!-- chiude leaflet-top -->
-
-<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
-<script>
-L.easyButton('fa fa-map',function(){
-	changeMap(whichmap);
-},{position: 'bottomleft'}).addTo(mymap);
-</script>
-
-<!-- DIV IN BASSO A DESTRA SOPRA LO ZOOM - Zampa per la finestra d'aiuto -->
-<script>
-L.easyButton('<i class="fa fa-question-circle" aria-hidden="true"></i>',function(btn,map){
-	showSettingsWindowNew();
-},{position: 'bottomright'}).addTo(mymap);
-// Functions for setting window
-function showSettingsWindowNew(){
-	document.getElementById("settings-general").style.display = 'block';
-	document.getElementById("settings-help").style.display = 'none';
-	document.getElementById("settings-feedback").style.display = 'none';
-	$('#settingsWindow').modal({show: true});
-};
-
-function showHelpWindowNew(){
-	document.getElementById("settings-general").style.display = 'none';
-	document.getElementById("settings-help").style.display = 'block';
-}
-
-function closeHelpWindowNew(){
-	document.getElementById("settings-help").style.display = 'none';
-}
-
-function showFeedbackWindowNew(){
-	document.getElementById("settings-general").style.display = 'none';
-	document.getElementById("settings-feedback").style.display = 'block';
-	// Dropdown choices:
-	// (0, 'Oggetto non specificato')
-	// (1, 'Indirizzo sbagliato')
-	// (2, 'Strada sbagliata')
-	// (3, 'Problemi di grafica')
-	// (4, 'Proposta di miglioramento')
-	// (5, 'Altro')
-	document.getElementById("category").selectedIndex = 0;
-}
-
-function closeFeedbackWindowNew(){
-	document.getElementById("settings-feedback").style.display = 'none';
-}
-</script>
-
-<!-- SETTING WINDOW: modal -->
-<!-- Modal -->
-<div class="modal fade" id="settingsWindow" tabindex="-1" role="dialog" aria-labelledby="Settings" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered" role="document">
-		<div class="modal-content" id="settings-general">
-			<div class="modal-header">
-				<h5 class="modal-title">DeQua</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<div class="row mb-4">
-					<div class="col-6 text-center">
-						<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showHelpWindowNew()">
-							<i class="fa fa-4x fa-question"></i>
-							<br>
-							<h6 class="mb-0">Aiuto</h6>
-						</button>
+									<div class="card" id="weird">
+										<div class="card-header">
+											STRANO
+											<!-- <a onclick="closeResultsWindow()"> -->
+											<a onclick="moveResultsToSidebar()">
+												<button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button>
+											</a>
+										</div>
+										<div class="card-body">
+											<p class="results_text">
+												Non dovrebbe mai apparire.<br>
+												Probabilmente abbiamo sbagliato qualcosa.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--</div> chiudiamo leaflet control -->
 					</div>
-					<div class="col-6 text-center">
-						<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showFeedbackWindowNew()">
-							<i class="fa fa-4x fa-exclamation-triangle"></i>
-							<br>
-							<h6 class="mb-0">Feedback</h6>
-						</button>
+					<div class="col-lg-4">
+						<div class="leaflet-control">
+							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
+								<h4 class="alert-heading">C'è stato un errore!</h4>
+								<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
+									Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img
+											src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
+									Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
+								</p>
+								<hr>
+								<p class="mb-0" id="errorwindow-explanation">
+								</p>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
+								Grazie per il feedback!
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
+								Ops, qualcosa è andato storto nell'invio del feedback.<br>
+								Per favore prova a reinviarlo.
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						</div>
 					</div>
 				</div>
-				<div class="row">
-					<div class="col-6 text-center">
-						<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="/info" target="_blank">
-							<i class="fa fa-4x fa-user pt-2"></i>
-							<br>
-							<h6 class="mb-0">Info</h6>
-						</a>
-					</div>
-					<div class="col-6 text-center">
-						<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="https://github.com/Lychfindel/v4w_website" target="_blank">
-							<i class="fa fa-4x fa-github pt-2"></i>
-							<br>
-							<h6 class="mb-0 pb-0">GitHub</h6>
-						</a>
-					</div>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<small class="text-muted">Versione alpha</small>
-			</div>
-		</div>
-		<div class="modal-content" id="settings-help" style="display: none">
-			<div class="modal-header">
-				<h5 class="modal-title">DeQua - Aiuto</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeHelpWindowNew()">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<h3> Cerca il tuo indirizzo, o cerca un percorso tra due punti. </h3>
-				<br>
-				Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
-				<br>
-				Ciononostante, le funzionalità di base dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
-				e le strade anche! <br>
-				Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
-				o calcolare il percorso in barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
-				Se trovate qualcosa che non va o volete dirci qualcosa, scriveteci a <a href="mailto:info@dequa.it">info@dequa.it</a>!<br>
-				Se preferite, il form per il feedback si trova nel menu!<br>
-				<br>
-				Buona giornata.<br>
-				I fioi.<br>
-			</div>
-		</div>
-		<div class="modal-content" id="settings-feedback" style="display: none">
-			<div class="modal-header">
-				<h5 class="modal-title">DeQua - Feedback</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeedbackWindowNew()">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<div class="form-group">
-					<small class="form-text text-muted">Nessuno dei campi è obbligatorio e nessuna informazione verrà condivisa con terzi!</small>
-				</div>
-				<div id="formid">
-					<form action="" method="post">
-						{{ form.csrf_token }}
+			</div><!-- chiude leaflet-top -->
 
-						<!-- {{ form.name.label }}
+			<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
+			<script>
+				L.easyButton('fa fa-map', function() {
+					changeMap(whichmap);
+				}, {
+					position: 'bottomleft'
+				}).addTo(mymap);
+			</script>
+
+			<!-- DIV IN BASSO A DESTRA SOPRA LO ZOOM - Zampa per la finestra d'aiuto -->
+			<script>
+				L.easyButton('<i class="fa fa-question-circle" aria-hidden="true"></i>', function(btn, map) {
+					showSettingsWindowNew();
+				}, {
+					position: 'bottomright'
+				}).addTo(mymap);
+				// Functions for setting window
+				function showSettingsWindowNew() {
+					document.getElementById("settings-general").style.display = 'block';
+					document.getElementById("settings-help").style.display = 'none';
+					document.getElementById("settings-feedback").style.display = 'none';
+					$('#settingsWindow').modal({
+						show: true
+					});
+				};
+
+				function showHelpWindowNew() {
+					document.getElementById("settings-general").style.display = 'none';
+					document.getElementById("settings-help").style.display = 'block';
+				}
+
+				function closeHelpWindowNew() {
+					document.getElementById("settings-help").style.display = 'none';
+				}
+
+				function showFeedbackWindowNew() {
+					document.getElementById("settings-general").style.display = 'none';
+					document.getElementById("settings-feedback").style.display = 'block';
+					// Dropdown choices:
+					// (0, 'Oggetto non specificato')
+					// (1, 'Indirizzo sbagliato')
+					// (2, 'Strada sbagliata')
+					// (3, 'Problemi di grafica')
+					// (4, 'Proposta di miglioramento')
+					// (5, 'Altro')
+					document.getElementById("category").selectedIndex = 0;
+				}
+
+				function closeFeedbackWindowNew() {
+					document.getElementById("settings-feedback").style.display = 'none';
+				}
+			</script>
+
+			<!-- SETTING WINDOW: modal -->
+			<!-- Modal -->
+			<div class="modal fade" id="settingsWindow" tabindex="-1" role="dialog" aria-labelledby="Settings" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered" role="document">
+					<div class="modal-content" id="settings-general">
+						<div class="modal-header">
+							<h5 class="modal-title">DeQua</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="row mb-4">
+								<div class="col-6 text-center">
+									<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showHelpWindowNew()">
+										<i class="fa fa-4x fa-question"></i>
+										<br>
+										<h6 class="mb-0">Aiuto</h6>
+									</button>
+								</div>
+								<div class="col-6 text-center">
+									<button class="btn btn-sq btn-default v4wbtn dequa_area" onclick="showFeedbackWindowNew()">
+										<i class="fa fa-4x fa-exclamation-triangle"></i>
+										<br>
+										<h6 class="mb-0">Feedback</h6>
+									</button>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-6 text-center">
+									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="/info" target="_blank">
+										<i class="fa fa-4x fa-user pt-2"></i>
+										<br>
+										<h6 class="mb-0">Info</h6>
+									</a>
+								</div>
+								<div class="col-6 text-center">
+									<a class="btn btn-sq btn-default v4wbtn dequa_area" style="color:inherit;" href="https://github.com/Lychfindel/v4w_website" target="_blank">
+										<i class="fa fa-4x fa-github pt-2"></i>
+										<br>
+										<h6 class="mb-0 pb-0">GitHub</h6>
+									</a>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<small class="text-muted">Versione alpha</small>
+						</div>
+					</div>
+					<div class="modal-content" id="settings-help" style="display: none">
+						<div class="modal-header">
+							<h5 class="modal-title">DeQua - Aiuto</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeHelpWindowNew()">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<h3> Cerca il tuo indirizzo, o cerca un percorso tra due punti. </h3>
+							<br>
+							Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
+							<br>
+							Ciononostante, le funzionalità di base dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
+							e le strade anche! <br>
+							Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
+							o calcolare il percorso in barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
+							Se trovate qualcosa che non va o volete dirci qualcosa, scriveteci a <a href="mailto:info@dequa.it">info@dequa.it</a>!<br>
+							Se preferite, il form per il feedback si trova nel menu!<br>
+							<br>
+							Buona giornata.<br>
+							I fioi.<br>
+						</div>
+					</div>
+					<div class="modal-content" id="settings-feedback" style="display: none">
+						<div class="modal-header">
+							<h5 class="modal-title">DeQua - Feedback</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeedbackWindowNew()">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<small class="form-text text-muted">Nessuno dei campi è obbligatorio e nessuna informazione verrà condivisa con terzi!</small>
+							</div>
+							<div id="formid">
+								<form action="" method="post">
+									{{ form.csrf_token }}
+
+									<!-- {{ form.name.label }}
 						{{ form.name(size=32) }} <br>
 						{% for error in form.name.errors %}
 						<span style="color: red;">[{{ error }}]</span>
 						{% endfor %} -->
-						<div class="form-group">
-							<label class="feedback-label" for="name">Nome</label>
-							<input type="text" class="form-control" id="name" name="name" placeholder="Nome">
-						</div>
-						<!-- <div class="form-group">
+									<div class="form-group">
+										<label class="feedback-label" for="name">Nome</label>
+										<input type="text" class="form-control" id="name" name="name" placeholder="Nome">
+									</div>
+									<!-- <div class="form-group">
 						{{ form.email.label }}
 						{{ form.email(size=32) }} <br>
 						{% for error in form.email.errors %}
 						<span style="color: red;">[{{ error }}]</span>
 						{% endfor %}
 					</div> -->
-					<div class="form-group">
-						<label class="feedback-label" for="email">Email</label>
-						<input type="text" class="form-control" id="email" name="email" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$">
-						<small class="form-text text-muted">La tua mail è sacra: la useremo solo per chiederti chiarimenti o per avvisarti che il problema è risolto.</small>
-					</div>
-					<div class="form-group">
-						<!-- {{ form.category.label }}
+									<div class="form-group">
+										<label class="feedback-label" for="email">Email</label>
+										<input type="text" class="form-control" id="email" name="email" placeholder="Email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$">
+										<small class="form-text text-muted">La tua mail è sacra: la useremo solo per chiederti chiarimenti o per avvisarti che il problema è risolto.</small>
+									</div>
+									<div class="form-group">
+										<!-- {{ form.category.label }}
 						{{ form.category() }}
 						{% for error in form.category.errors %}
 						<span style="color: red;">[{{ error }}]</span>
 						{% endfor %} -->
-						<label class="feedback-label" for="category">Oggetto</label>
-						<select class="form-control" id="category" name="category">
-							{% for num,choice in form.category.choices %}
-							<option value={{num}}>{{choice}}</option>
-							{% endfor %}
-							<!-- <option selected>Oggetto non specificato</option>
+										<label class="feedback-label" for="category">Oggetto</label>
+										<select class="form-control" id="category" name="category">
+											{% for num,choice in form.category.choices %}
+											<option value={{num}}>{{choice}}</option>
+											{% endfor %}
+											<!-- <option selected>Oggetto non specificato</option>
 							<option>Indirizzo sbagliato</option>
 							<option>Strada sbagliata</option>
 							<option>Problemi di grafica</option>
 							<option>Proposta di miglioramento</option>
 							<option>Altro</option> -->
-						</select>
-					</div>
-					<div class="form-group">
-						<div class="row" id="form-search-address" style="display:none;">
-							<div class="col">
-								<!-- {{ form.searched_string.label }}
+										</select>
+									</div>
+									<div class="form-group">
+										<div class="row" id="form-search-address" style="display:none;">
+											<div class="col">
+												<!-- {{ form.searched_string.label }}
 								{{ form.searched_string(size=32) }} -->
-								<label class="feedback-label" for="searched_string">Ricerca</label>
-								<input type="text" class="form-control" id="searched_string" name="searched_string" placeholder="Cosa hai cercato" readonly>
-							</div>
-						</div>
-						<div class="row" id="form-search-path" style="display:none;">
-							<div class="col-6">
-								<label class="feedback-label" for="searched_start">Partenza</label>
-								<input type="text" class="form-control" id="searched_start" name="searched_start" placeholder="La partenza che hai cercato" readonly>
-							</div>
-							<div class="col-6">
-								<label class="feedback-label" for="searched_end">Arrivo</label>
-								<input type="text" class="form-control" id="searched_end" name="searched_end" placeholder="L'arrivo che hai cercato" readonly>
-							</div>
-						</div>
-					</div>
-					<div class="form-group">
-						<!-- {{ form.found_string.label }}
+												<label class="feedback-label" for="searched_string">Ricerca</label>
+												<input type="text" class="form-control" id="searched_string" name="searched_string" placeholder="Cosa hai cercato" readonly>
+											</div>
+										</div>
+										<div class="row" id="form-search-path" style="display:none;">
+											<div class="col-6">
+												<label class="feedback-label" for="searched_start">Partenza</label>
+												<input type="text" class="form-control" id="searched_start" name="searched_start" placeholder="La partenza che hai cercato" readonly>
+											</div>
+											<div class="col-6">
+												<label class="feedback-label" for="searched_end">Arrivo</label>
+												<input type="text" class="form-control" id="searched_end" name="searched_end" placeholder="L'arrivo che hai cercato" readonly>
+											</div>
+										</div>
+									</div>
+									<div class="form-group">
+										<!-- {{ form.found_string.label }}
 						{{ form.found_string(size=32) }} -->
-						<div class="row" id="form-found-address" style="display:none;">
-							<div class="col">
-								<label class="feedback-label" for="found_string">Risultato</label>
-								<input type="text" class="form-control" id="found_string" name="found_string" placeholder="Quello che abbiamo trovato" readonly>
-							</div>
-						</div>
-						<div class="row" id="form-found-path" style="display:none;">
-							<div class="col-6">
-								<label class="feedback-label" for="found_start">Risultato partenza</label>
-								<input type="text" class="form-control" id="found_start" name="found_start" placeholder="La partenza che hai cercato" readonly>
-							</div>
-							<div class="col-6">
-								<label class="feedback-label" for="found_end">Risultato arrivo</label>
-								<input type="text" class="form-control" id="found_end" name="found_end" placeholder="L'arrivo che hai cercato" readonly>
-							</div>
-						</div>
-					</div>
-					<div class="form-group">
-						<!-- {{ form.feedback.label }}<br>
+										<div class="row" id="form-found-address" style="display:none;">
+											<div class="col">
+												<label class="feedback-label" for="found_string">Risultato</label>
+												<input type="text" class="form-control" id="found_string" name="found_string" placeholder="Quello che abbiamo trovato" readonly>
+											</div>
+										</div>
+										<div class="row" id="form-found-path" style="display:none;">
+											<div class="col-6">
+												<label class="feedback-label" for="found_start">Risultato partenza</label>
+												<input type="text" class="form-control" id="found_start" name="found_start" placeholder="La partenza che hai cercato" readonly>
+											</div>
+											<div class="col-6">
+												<label class="feedback-label" for="found_end">Risultato arrivo</label>
+												<input type="text" class="form-control" id="found_end" name="found_end" placeholder="L'arrivo che hai cercato" readonly>
+											</div>
+										</div>
+									</div>
+									<div class="form-group">
+										<!-- {{ form.feedback.label }}<br>
 						{{ form.feedback(cols=50, rows=4) }}<br>
 						{% for error in form.feedback.errors %}
 						<span style="color: red;">[{{ error }}]</span>
 						{% endfor %} -->
-						<label class="feedback-label" for="feedback">Problema o feedback</label>
-						<textarea class="form-control" id="feedback" name="feedback" rows="3"></textarea>
-						<small class="form-text text-muted">Più informazioni ci dai più semplice sarà per noi capire il problema e risolverlo!</small>
-					</div>
-					<input type="hidden" name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
-					<!-- <p>
+										<label class="feedback-label" for="feedback">Problema o feedback</label>
+										<textarea class="form-control" id="feedback" name="feedback" rows="3"></textarea>
+										<small class="form-text text-muted">Più informazioni ci dai più semplice sarà per noi capire il problema e risolverlo!</small>
+									</div>
+									<input type="hidden" name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
+									<!-- <p>
 					{{ form.submit() }}
 				</p> -->
-				<button type="submit" class="btn btn-secondary">Invia</button>
-			</form>
+									<button type="submit" class="btn btn-secondary">Invia</button>
+								</form>
+							</div>
+							<script>
+								function formShowAddressField() {
+									document.getElementById("form-search-path").style.display = 'none';
+									document.getElementById("form-found-path").style.display = 'none';
+									document.getElementById("form-search-address").style.display = 'block';
+									document.getElementById("form-found-address").style.display = 'block';
+								};
+							</script>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-		<script>
-		function formShowAddressField(){
-			document.getElementById("form-search-path").style.display = 'none';
-			document.getElementById("form-found-path").style.display = 'none';
-			document.getElementById("form-search-address").style.display = 'block';
-			document.getElementById("form-found-address").style.display = 'block';
-		};
-		</script>
 	</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div> <!-- Close map container -->
-</div> <!-- Close container -->
-<script>
-var feedbacksent = {{feedbacksent}}
-var popup = L.popup();
-var dict_in_JS = {{results_dictionary | tojson}};
-$( document ).ready(function() {
-	console.log( "DOM ready - initialize HTML!" );
-	initialize_html();
-});
-</script>
+	</div> <!-- Close map container -->
+	</div> <!-- Close container -->
+	<script>
+		var feedbacksent = {
+			{
+				feedbacksent
+			}
+		}
+		var popup = L.popup();
+		var dict_in_JS = {
+			{
+				results_dictionary | tojson
+			}
+		};
+		$(document).ready(function() {
+			console.log("DOM ready - initialize HTML!");
+			initialize_html();
+		});
+	</script>
 </body>
+
 </html>
