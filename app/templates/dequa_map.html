@@ -54,7 +54,7 @@
 			$('[data-toggle="popover"]').popover()
 		});
 
-		// Funzione per eliminare la rotella e ristabilire la corretta opacità della mappa quando si clicca il pulsante indietro dopo una ricerca
+		// Funzione per eliminare la rotella e ristabilire la corretta opacità della mappa quando si clicca il pulsante indietro dopo una ricerca. Grazie a https://stackoverflow.com/a/32566655
 		$(window).bind("pageshow", function(event) {
 			$("#loading").hide();
 			$("#mapid").fadeTo("fast", 1)
