@@ -13,6 +13,7 @@ import app.src.interface as interface
 from app.src.libpy import lib_graph
 import traceback
 from flask import g
+import app.global_variables as global_variables
 
 # Useful paths
 folder = os.getcwd()
@@ -24,8 +25,7 @@ path_pickle_acqua = os.path.join(folder_db,"dequa_ve_acqua_v6_dequa_ve_acqua_050
 app.logger.info("loading the graphs..")
 # Load graph
 #G_un, civici_tpn, coords = lib_graph.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
-G_terra, G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
-G_objects = {'land_graph':G_terra, 'water_graph':G_acqua}
+global_variables.G_terra, global_variables.G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
 
 feedback_folder = os.path.join(folder,"feedback")
 error_folder = os.path.join(folder,"error")
@@ -97,7 +97,7 @@ def navigation():
                 # ma dovrebbe funzionare
         # altrimenti, dobbiamo fare qualocsa
         else:
-            dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research, G_objects)
+            dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research)
             return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
     except Exception as e:
         interface.take_care_of_the_error(request,e,error_folder)

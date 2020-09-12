@@ -17,6 +17,7 @@ import os
 import json
 import pickle
 import traceback
+import app.global_variables as global_variables
 from app import mail
 
 FEEDBACK_FOLDER = 'feedback'
@@ -174,15 +175,30 @@ def ask_yourself(params_research):
         mode="address"
     elif params_research['by_boat'] == "on":
         mode="by_boat"
-    elif params_research['less_bridges'] == "on":
-        mode="less_bridges"
     else:
         mode="path"
-
     return mode
 
+def set_choice_mode(da, a):
+    """
+    set which query needs a choice
+    """
+    start_type = "unique"
+    end_type = "unique"
+    if not da:
+        start_type = "multiple"
+        app.logger.debug("non siamo sicuri di da")
+    if not a:
+        end_type = "multiple"
+        app.logger.debug("non siamo sicuri di a")
+    return start_type, end_type
 
-def find_what_needs_to_be_found(params_research, G_objects):
+def only_by_boat_or_also_by_walk(match_dicts_list, params_research):
+
+    return None, None
+
+
+def find_what_needs_to_be_found(params_research):
     """
     Take care of the whole research (many cases) calling smaller methods.
     """
@@ -191,15 +207,6 @@ def find_what_needs_to_be_found(params_research, G_objects):
     a = params_research['a']
     start_coord = params_research['start_coord']
     end_coord = params_research['end_coord']
-
-
-    G_terra = G_objects['land_graph']
-    G_acqua = G_objects['water_graph']
-    G_terra_array = np.asarray(list(G_terra.nodes))
-    G_acqua_array = np.asarray(list(G_acqua.nodes))
-
-    boat_speed=5/3.6
-    walk_speed=5/3.6
 
     if what_am_I_really_searching_for == "nothing":
         return "None"
@@ -218,108 +225,113 @@ def find_what_needs_to_be_found(params_research, G_objects):
             modus_operandi = 2
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict, params_research, start_type='multiple')
 
-    else:
-
+    else: # we are in path mode
         t0=time.perf_counter()
         match_dict_da = lib_search.give_me_the_dictionary(da, start_coord)
         match_dict_a = lib_search.give_me_the_dictionary(a, end_coord)
-
-        #match_dict_a = dict() #lib_search.give_me_the_dictionary(a)
         app.logger.info('ci ho messo {tot} a calcolare la posizione degli indirizzi'.format(tot=time.perf_counter() - t0))
 
-        if not are_we_sure_of_the_results(match_dict_da) or not are_we_sure_of_the_results(match_dict_a):
-            start_type = "unique"
-            end_type = "unique"
+        da_is_sure = are_we_sure_of_the_results(match_dict_da)
+        a_is_sure = are_we_sure_of_the_results(match_dict_a)
+        if not da_is_sure or not a_is_sure:
             modus_operandi = 2
-            if not are_we_sure_of_the_results(match_dict_da):
-                start_type = "multiple"
-                app.logger.debug("non siamo sicuri di da")
-            if not are_we_sure_of_the_results(match_dict_a):
-                end_type = "multiple"
-                app.logger.debug("non siamo sicuri di a")
-
+            start_type, end_type = set_choice_mode(da_is_sure, a_is_sure)
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, dict_of_end_locations_candidates=match_dict_a, start_type=start_type, end_type=end_type)
-
+            
         else:
-
             app.logger.info("Andiamo a botta sicura! Abbiamo trovato quello che cercavamo e calcoliamo il percorso!")
             app.logger.info("ricerca percorso da {} a {}..".format(da, a))
-
-            if params_research["by_boat"]=='on':
-
-                app.logger.info("andiamo in barca..")
-                min_number_of_rive = 10
-                name_of_rive_as_poi = "vincolo"
-                [start_coord, stop_coord] = lib_search.find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
-                #per tutti gli accessi all'acqua
-                rive_vicine_start, how_many_start = lib_search.find_POI(min_number_of_rive, start_coord, name_of_rive_as_poi)
-                app.logger.info("rive vicine alla partenza: {}".format(how_many_start))
-
-                rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
-                rive_start_nodes_list = lib_search.find_closest_nodes(rive_start_list, G_terra_array)
-                # ritorna la strada con properties e la riva scelta!
-                geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(G_terra, start_coord, rive_start_nodes_list,flag_ponti=params_research["less_bridges"]=="on")
-                if riva_start==-1:
-                    riva_start=start_coord
-                #    rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
-                rive_vicine_stop, how_many_stop = lib_search.find_POI(min_number_of_rive, stop_coord, name_of_rive_as_poi)
-                app.logger.info("rive vicine all'arrivo: {}".format(how_many_stop))
-                rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
-                rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
-                # ritorna la strada con properties e la riva scelta!
-                geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(G_terra, stop_coord, rive_stop_nodes_list,flag_ponti=params_research["less_bridges"]=="on")
-                if riva_stop==-1:
-                    riva_stop=stop_coord
-
-                #print("riva stop", riva_stop)
-                t2=time.perf_counter()
-                # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-                # lista degli archi
-                list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], G_acqua)
-                # aggiungere gli archi!
-                list_of_added_edges = lib_graph.dynamically_add_edges(G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
-                # trova la strada
-                water_streets_info = lib_graph.give_me_the_street(G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True, speed=boat_speed)
-                # app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
-                # togli gli archi
-                lib_graph.dynamically_remove_edges(G_acqua, list_of_added_edges)
-                #print("path, length", strada, length)
-                #trada = add_from_strada_to_porta(strada,match_dict_da[0], match_dict_a[0])
-                app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
-                # 1 significa che stiamo ritornando un percorso da plottare
-                water_streets_info = lib_graph.add_from_strada_to_porta(water_streets_info, match_dict_da[0], match_dict_a[0])
-                # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
-                path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
-                # comprimiamo la lista di dizionari in una lista con un unico dizionario
-                path_list_of_dictionaries = lib_communication.merged_path_list(path_list_of_dictionaries)
-                #path_list_of_dictionaries=[{"strada":strada, "lunghezza":length, "tipo":1},{"strada":start_path, "lunghezza":length, "tipo":0},{"strada":stop_path, "lunghezza":length, "tipo":0}]
-                #final_dict = prepare_our_message_to_javascript(1, da+" "+a,[match_dict_da[0]], path_list_of_dictionaries, [match_dict_a[0]]) # aggiunge da solo "no_path" e "no_end"
-                #print(final_dict)
-                #return render_template(html_file, form=form, results_dictionary=final_dict, feedbacksent=0)
+            if what_am_I_really_searching_for=='by_boat':
+                start_from_water, end_to_water = only_by_boat_or_also_by_walk([match_dict_da[0], match_dict_a[0]], params_research)
+                start_from_water = params_research["da"]=="La Mia Posizione"
+                end_to_water = params_research["a"]=="La Mia Posizione"
+                path_list_of_dictionaries = by_boat_path_calculator([match_dict_da[0], match_dict_a[0]], start_from_water, end_to_water, params_research["less_bridges"]=="on")
 
             else: # cerchiamo per terra
-                app.logger.info("andiamo a piedi..")
-                t0=time.perf_counter()
-                # per i casi in cui abbiamo il civico qui andrà estratta la prima coordinate della shape... Stiamo ritornando la shape in quei casi?!? Servirà a java per disegnare il percorso completo!
-                [start_coord, stop_coord] = lib_search.find_closest_nodes([match_dict_da[0], match_dict_a[0]], G_terra_array)
-                app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
-                if params_research['less_bridges'] == 'on':
-                    f_ponti = True
-                    app.logger.info("con meno ponti possibile!")
-                else:
-                    f_ponti = False
-                t2=time.perf_counter()
-                streets_info = lib_graph.give_me_the_street(G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=walk_speed)
-                #app.logger.debug(streets_info)
-                #print("path, length", strada, length)
-                streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dict_da[0], match_dict_a[0])
-                app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
-                streets_info['tipo']=0
-                # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
-                path_list_of_dictionaries=streets_info
 
+                path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research["less_bridges"]=="on")
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
 
     return final_dict
+
+def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_ponti):
+
+    G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
+    G_acqua_array = np.asarray(list(global_variables.G_acqua.nodes))
+    
+    app.logger.info("andiamo in barca..")
+    min_number_of_rive = 10
+    name_of_rive_as_poi = "vincolo"
+
+    # questo blocco non distingue tra partenza e arrivo, potrebbe anche andare bene, aggiungendo un flag che blocchi la ricerca successiva della riva vicina e setti come riva_start e riva_stop il nodo acqueo piu vicino. Altrimenti bisogna creare un sistema che capisca quale delle due è troppo distante da un nodo terrestre, attivi 2 flag diversi e nei due casi imposti il nodo acqueo più vicino.
+    try:
+        [start_coord] = lib_search.find_closest_nodes([match_dicts_list[0]], G_terra_array, 20)
+        start_from_water = False or start_from_water
+    except:
+        app.logger.info('start_coord is far from land nodes')
+        start_coord = match_dicts_list[0]['coordinate']
+        start_from_water = True
+    try:
+        [stop_coord] = lib_search.find_closest_nodes([match_dicts_list[1]], G_terra_array, 20)
+        end_to_water = False or end_to_water
+    except:
+        app.logger.info('stop_coord is far from land nodes')
+        stop_coord = match_dicts_list[1]['coordinate']
+        end_to_water = True
+        #per tutti gli accessi all'acqua
+    if not start_from_water:
+
+        rive_vicine_start, how_many_start = lib_search.find_POI(min_number_of_rive, start_coord, name_of_rive_as_poi)
+        app.logger.info("rive vicine alla partenza: {}".format(how_many_start))
+        rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
+
+        rive_start_nodes_list = lib_search.find_closest_nodes(rive_start_list, G_terra_array)
+        geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(global_variables.G_terra, start_coord, rive_start_nodes_list,f_ponti)
+    else:
+        riva_start = tuple(start_coord)
+        geojson_path_from_land_to_water = None
+        #    rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
+    if not end_to_water:
+        rive_vicine_stop, how_many_stop = lib_search.find_POI(min_number_of_rive, stop_coord, name_of_rive_as_poi)
+        app.logger.info("rive vicine all'arrivo: {}".format(how_many_stop))
+        rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
+    
+        rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
+        # ritorna la strada con properties e la riva scelta!
+        geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(global_variables.G_terra, stop_coord, rive_stop_nodes_list,f_ponti)
+    else:
+        riva_stop = tuple(stop_coord)
+        geojson_path_from_water_to_land = None
+    #print("riva stop", riva_stop)
+    t2=time.perf_counter()
+    # lista degli archi
+    list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], global_variables.G_acqua)
+    # aggiungere gli archi!
+    list_of_added_edges = lib_graph.dynamically_add_edges(global_variables.G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
+    # trova la strada
+    water_streets_info = lib_graph.give_me_the_street(global_variables.G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True, speed=global_variables.boat_speed)
+    # app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
+    # togli gli archi
+    lib_graph.dynamically_remove_edges(global_variables.G_acqua, list_of_added_edges)
+    app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
+    water_streets_info = lib_graph.add_from_strada_to_porta(water_streets_info, match_dicts_list[0], match_dicts_list[0])
+    # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
+    path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
+    # comprimiamo la lista di dizionari in una lista con un unico dizionario
+    return lib_communication.merged_path_list(path_list_of_dictionaries)
+
+def by_foot_path_calculator(match_dicts_list, f_ponti):
+    app.logger.info("andiamo a piedi..")
+    G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
+    t0=time.perf_counter()
+    [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array)
+    app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
+    t2=time.perf_counter()
+    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed)
+    streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dicts_list[0], match_dicts_list[1])
+    app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
+    streets_info['tipo']=0
+
+    return streets_info
