@@ -170,7 +170,7 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
     return streets_info
 
-def weight_bridge(x,y,dic, bridge_factor=10):
+def weight_bridge(x,y,dic, bridge_factor=100):
     """
     It weights bridges different, so that dijkstra may find the optimal path as a path with less bridges.
     """
@@ -185,7 +185,7 @@ def weight_time(x,y,dic):
     global speed_global
     speed = speed_global/3.6
     # speed = np.min(speed, dic["VEL_MAX"]) ?
-    return dic["length"]
+    return dic["length"]/speed
 
 def weight_motor_boat(x,y,dic):
     """
@@ -209,10 +209,13 @@ def weight_motor_boat(x,y,dic):
         if dic['senso_unic'] != verso:
             #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
 #            pdb.set_trace()
-            return 10000
+            return None
     if dic['solo_remi']:
         #app.logger.debug("le barche a motore non passano per {} !".format(dic))
-        return 10000
+        return None
+    elif dic['vel_max'] == 0:
+        #app.logger.debug("Il canale è chiuso {} !".format(dic))
+        return None
     else:
         max_speed=dic['vel_max']/3.6
         speed=np.minimum(speed_global, max_speed)
@@ -280,13 +283,13 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
             edge_info_dict['street_type'] = 'canale'
             #print(edge_attuale)
             #edge_info_dict['']
-            speed = np.minimum(speed, edge_attuale['vel_max']/3.6)
+            speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             edge_info_dict['vel_max'] = edge_attuale['vel_max']
             edge_info_dict['solo_remi'] = edge_attuale['solo_remi']
             altezza = np.minimum(altezza, edge_attuale['altezza'])
             # prendiamo informazioni sulle ordinanze in modo da creare un warning
         else:
-
+            speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
             accessibleLevel = edge_attuale['accessible']
             if isBridge:
@@ -301,7 +304,7 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
 
             edge_info_dict['bridge'] = isBridge
 
-        time += how_long_does_it_take_from_a_to_b(edge_attuale['length'], speed, isBridge)
+        time += how_long_does_it_take_from_a_to_b(edge_attuale['length'], speed_edge, isBridge)
         lunghezza += edge_attuale['length']
         geojson = {
             "type": "Feature",
@@ -354,10 +357,12 @@ def prettify_time(time):
         return "circa un quarto d'ora"
     elif np.abs(minutes - 30) < range:
         return "mezz'oretta"
+    elif np.abs(minutes - 45) < range:
+        return "tre quarti d'ora"
     elif np.abs(minutes - 60) < range:
         return "un'oretta"
     elif minutes > 60:
-        return "tantissimo. Dove stai andando?"
+        return "tantissimo (circa {} minuti). Dove stai andando?".format(minutes)
     #
     return "circa {} minuti.".format(minutes)
 
