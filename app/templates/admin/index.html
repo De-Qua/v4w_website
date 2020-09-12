@@ -22,10 +22,12 @@
               <p>
                 <a class='btn btn-primary' href="{{ url_for('security.register') }}">Register</a>
               </p>
-              {% endif %}
-              {% if current_user.is_authenticated %}
+              {% elif current_user.has_role('admin') %}
               <h3>You have successfully logged in.</h3>
-              <p>You now have access to the Users view.</p>
+              <p>You are admin!</p>
+              {% elif current_user.has_role('end-user') %}
+              <h3>You have successfully logged in.</h3>
+              <p>You are a end user!</p>
               {% endif %}
           </div>
       </div>

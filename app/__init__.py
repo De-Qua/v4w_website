@@ -15,6 +15,7 @@ from flask_track_usage.storage.sql import SQLStorage
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_security import current_user
+# import flask_monitoringdashboard as dashboard
 
 # version of the software
 version = "0.1.1"
@@ -102,14 +103,18 @@ security = Security(app, user_datastore)
 #
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
 
-from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+from app.views import AdminModelView, StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
 
+admin.add_view(AdminModelView(Users, db.session))
 admin.add_view(StreetModelView(Street, db.session))
 admin.add_view(AreaModelView(Area, db.session))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session))
 admin.add_view(PoiModelView(Poi, db.session))
 
-
+#
+# Dashboard setup
+#
+# dashboard.bind(app)
 
 if not os.path.exists('logs'):
     os.mkdir('logs')

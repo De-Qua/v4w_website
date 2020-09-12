@@ -13,9 +13,9 @@ class AdminModelView(ModelView):
         if not self.is_accessible():
             return redirect(url_for('security.login'))
 
-
-
 class StreetModelView(AdminModelView):
+    def is_accessible(self):
+        return (current_user.has_role('admin'))
     column_searchable_list = ['name', 'name_alt']
     column_filters = ['name_spe', 'name_den', 'score', 'neighborhoods', 'areas']
 
@@ -24,6 +24,8 @@ class AreaModelView(AdminModelView):
     column_filters = ['streets']
 
 class NeighborhoodModelView(AdminModelView):
+    def is_accessible(self):
+        return (current_user.has_role('admin'))
     column_searchable_list = ['name']
     column_filters = ['zipcode']
 
