@@ -70,10 +70,16 @@ function clearHighlight(card) {
 	card.childNodes[1].style.background = "rgb(255, 255, 255)";
 }
 
-function addMarkerLocation(dictJS) {
-	marker_location = L.marker(coords_location, markerOptions);
+function addMarkerLocation(coords, cur_result_name, cur_result_description) {
+	marker_location.setLatLng(coords)
+	// marker_location = L.marker(coords, markerOptions);
 	// Popup se uno clicca sul marker
-	marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
+	marker_location.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description);
 	// aggiungi il marker sulla mappa
 	marker_location.addTo(mymap);
+}
+
+function addPathLines(lines) {
+	pathLines.addData(lines);
+	pathLines.addTo(mymap);
 }

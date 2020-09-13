@@ -45,7 +45,9 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			card.onclick = function () {
 				if (activeCard == this){
 					clearHighlight(this);
-					goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
+					fillForm(this);
+					submitForm();
+					// goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
 				} else{
           if (activeCard != ''){
             clearHighlight(activeCard);
@@ -59,8 +61,9 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		} else {
       // card.onclick = function() {fillForm(this, what_are_we_doing, searched_end, start_found); document.getElementById("form_id").submit();}
 			// passare come parametro dict_in_JS (o almeno params_research)
-			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
-			card.onmouseover = function() {showHighlight(this)};
+			// card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
+			card.onclick = function() {fillForm(this); submitForm();};
+			card.onmouseover = function() {showHighlight(this);};
 			card.onmouseout = function() {clearHighlight(this);};
 		}
 		card.appendChild(card_header)
@@ -114,6 +117,25 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	}
 
 	showSidebar();
+}
+
+function fillForm(element) {
+	console.log("I fill the form with :");
+	console.log(element);
+	var what_are_we_doing = findWhatWeKnow().what_we_know;
+	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
+		$("#search_field_1").val(element.name);
+		$("#hidden_start_coord").val(""+element.lat+","+element.lng);
+	} else if ( what_are_we_doing == "choosing_end") {
+		$("#search_field_2").val(element.name);
+		$("#hidden_end_coord").val(""+element.lat+","+element.lng);
+	}
+	return;
+}
+
+function submitForm() {
+	$('#ricerca_ind').submit();
+	return true
 }
 
 function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, start_found) {
@@ -192,5 +214,45 @@ function areWeUsingBottomBar(){
 		return true;
 	} else{
 		return false;
+	}
+}
+
+function clearAllResults() {
+	removeSidebar();
+	removePossibilitiesLayer();
+	removePathLayer();
+	removeMarkerLocation();
+}
+
+function removeSidebar(){
+  $("#possibilitiesFather").empty();
+	hideSidebar();
+	$("#show-sidebar").hide();
+}
+
+function removePossibilitiesLayer(){
+	highlight.clearLayers();
+	possibilitiesLayer.eachLayer(function(layer) {
+		possibilitiesLayer.removeLayer(layer);
+	});
+	try{
+		mymap.removeLayer(polygon);
+	} catch{
+		console.log("no polygon");
+	};
+}
+
+function removePathLayer(){
+	pathLines.clearLayers();
+	pathGroup.eachLayer(function(layer) {
+		mymap.removeLayer(layer);
+	});
+}
+
+function removeMarkerLocation(){
+	try{
+		mymap.removeLayer(marker_location);
+	} catch{
+		console.log("no marker of single location")
 	}
 }

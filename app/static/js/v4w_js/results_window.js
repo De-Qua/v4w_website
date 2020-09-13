@@ -142,7 +142,7 @@ function fillResultsWindowPercorsoBoat(dictJS) {
 	var time_description = dictJS.path.human_readable_time;
 	document.getElementById("boat_time_text").innerHTML = "<i>"+time_description+"</i>";
 	var min_altezza = dictJS.path.altezza;
-	if (min_altezza >= 100) {
+	if (min_altezza == undefined) {
 		document.getElementById("boat_info_text").innerHTML = "<i>Non ci sono altre informazioni particolari</i>";
 	} else {
 		document.getElementById("boat_info_text").innerHTML = "<i>- altezza minima dei ponti attraversati: "+

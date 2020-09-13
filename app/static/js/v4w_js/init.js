@@ -5,7 +5,12 @@
 
 */
 function initialize_html(){
+  hidePreLoader();
   toggleXbuttons();
+  resetColorSearchFields();
+  clearAllResults();
+  removePathLayer();
+
   document.getElementById("search_field_1").addEventListener("change", clear_hidden_start);
   document.getElementById("search_field_2").addEventListener("change", clear_hidden_end);
   console.log("feedback sent ", feedbacksent);
@@ -31,7 +36,7 @@ function initialize_html(){
   //   document.getElementById('btnMapStart').onclick = function() { copyStartingPosition(address_string); addMarkerStart(e.latlng); popup.remove();};
   //   document.getElementById('btnMapTo').onclick = function() { copyEndingPosition(address_string); addMarkerEnd(e.latlng);popup.remove();};
   // }
-  mymap.on('click', onMapClick);
+
   // HERE WE READ OUR JSON MESSAGE FROM PYTHON
   //var result = JSON.parse({{ results_dictionary | tojson }});
   // var dict_in_JS = {{results_dictionary | tojson}};
@@ -41,7 +46,6 @@ function initialize_html(){
   setValuesInFeedbackWindow(dict_in_JS);
 
   if (dict_in_JS == "None") {
-    mymap.setView([45.435, 12.333], 15);
     hidebothXbuttons();
   } else if ("error" in dict_in_JS) {
     mymap.setView([45.435, 12.333], 15);
@@ -51,23 +55,6 @@ function initialize_html(){
     //alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
 
   } else {
-    mymap.setView([45.435, 12.333], 15);
-    // options for all markers
-    var marker_icon = L.icon({
-      iconUrl: '/static/img/icon_marker_50.png',
-      iconRetinaUrl: '/static/img/icon_marker.png',
-      iconSize: [33, 50],
-      iconAnchor: [16, 49],
-      popupAnchor: [0, -40]
-    });
-
-    // Options for the marker
-    var markerOptions = {
-      clickable: true,
-      // si alza all'hover - non va :(
-      riseOnHover: true,
-      icon: marker_icon
-    }
 
     var modus_operandi = dict_in_JS.modus_operandi;
     console.log("siamo in modus_operandi: " + modus_operandi);
@@ -113,11 +100,12 @@ function initialize_html(){
         var cur_result_name = dict_in_JS.partenza[0].nome;
         var cur_result_description = dict_in_JS.partenza[0].descrizione;
         // TODO: usare funzione addMarkerLocation in map_objects.js
-        marker_location = L.marker(coords_location, markerOptions);
-        // Popup se uno clicca sul marker
-        marker_location.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description);
-        // aggiungi il marker sulla mappa
-        marker_location.addTo(mymap);
+        addMarkerLocation(coords_location, cur_result_name, cur_result_description);
+        // marker_location = L.marker(coords_location, markerOptions);
+        // // Popup se uno clicca sul marker
+        // marker_location.bindPopup("<div class='text-center'><b>"+cur_result_name+"</b><br>"+cur_result_description);
+        // // aggiungi il marker sulla mappa
+        // marker_location.addTo(mymap);
         var group = new L.featureGroup([marker_location]);
         mymap.fitBounds(group.getBounds());
         //mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
@@ -137,7 +125,7 @@ function initialize_html(){
         // var group = new L.featureGroup([polygon
         console.log("geojson: "+ dict_in_JS.partenza[0].geojson);
         // Per qualche motivo dice che il geojson è fatto male
-        var polygon = L.geoJSON(dict_in_JS.partenza[0].geojson);
+        polygon = L.geoJSON(dict_in_JS.partenza[0].geojson);
         polygon.addTo(mymap);
         mymap.fitBounds(polygon.getBounds());
         //mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
@@ -185,30 +173,30 @@ function initialize_html(){
       // here all the stuff when we have path from A to B
       //var punto_di_partenza = L.point(stop_coordx, stop_coordy);
       //var prj = L.Projection.Mercator.unproject(pointM);
-      mymap.setView([45.43, 12.33], 13);
-      var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).setIcon(greenIcon).addTo(mymap);
-      var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).setIcon(redIcon).addTo(mymap);
+      addMarkerStart(dict_in_JS.partenza[0].coordinate);
+      addMarkerEnd(dict_in_JS.arrivo[0].coordinate);
       // the pahts: they are more than one
       var street = dict_in_JS.path;
-      var group = new L.featureGroup([marker_partenza, marker_arrivo]);
+      // var group = new L.featureGroup([marker_partenza, marker_arrivo]);
       //console.log("steets: " + streets);
       path_shapes = street.shape_list;
       //var linestrings = L.geoJSON(path_shapes, {'style':stile});
-      var linestrings = L.geoJSON(path_shapes, {
-        filter: function(feature) {
-          // draw only lines!
-          return feature.geometry.type == "LineString";
-        },
-        style: function(feature) {
-          switch (feature.properties.street_type) {
-            case 'canale': return {color: "#0000ff"};
-            case 'ponte':  return {color: "#ffff00"};
-            case 'calle':  return {color: "#ff0000"};
-          }
-        }
-      }).addTo(mymap);
-      linestrings.addTo(group);
-	mymap.fitBounds(group.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
+      // var linestrings = L.geoJSON(path_shapes, {
+      //   filter: function(feature) {
+      //     // draw only lines!
+      //     return feature.geometry.type == "LineString";
+      //   },
+      //   style: function(feature) {
+      //     switch (feature.properties.street_type) {
+      //       case 'canale': return {color: "#0000ff"};
+      //       case 'ponte':  return {color: "#ffff00"};
+      //       case 'calle':  return {color: "#ff0000"};
+      //     }
+      //   }
+      // }).addTo(mymap);
+      addPathLines(path_shapes);
+      // linestrings.addTo(group);
+	    mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
       // javascript way to call a method in the for loop
       //streets.forEach(drawStreet());
       //alert('YET TO BE DONE');
@@ -219,43 +207,15 @@ function initialize_html(){
       mymap.off('click');
 
       console.log("Setting up possiblities window!")
-      var possibilities = "";
-      var what_we_know = "nothing";
-      var start_found = "";
-      var end_found = "";
-      var tmp_start = dict_in_JS.searched_start;
-      var tmp_end = dict_in_JS.searched_end;
-      console.log("Finished setting up possiblities window!");
-      console.log("checking the boxes");
-      checkTheBoxesThatNeedToBeChecked(dict_in_JS);
-      console.log("done checking the boxes");
+      var allTheThingsWeKnow = findWhatWeKnow()
 
-      if ((dict_in_JS.start_type == 'multiple') && (dict_in_JS.end_type == 'multiple')){
-        possibilities = dict_in_JS.partenza;
-        what_we_know = "choosing_start";
-      } else if ((dict_in_JS.start_type == 'unique') && (dict_in_JS.end_type == 'multiple')) {
-        // scegliamo l'arrivo!
-        // nome e coordinate della partenza vengono passate come dizionario (start_found)
-        possibilities = dict_in_JS.arrivo;
-        start_found = {nome:dict_in_JS.params_research.da, coordinate:dict_in_JS.params_research.start_coord};
-        //start_found = dict_in_JS.partenza[0];
-        what_we_know = "choosing_end";
-        showSecondSearchbar();
-      } else if ((dict_in_JS.start_type == 'multiple') && (dict_in_JS.end_type == 'unique')) {
-        // scegliamo la partenza!
-        // nome e coordinate dell'arrivo vengono passate come dizionario (end_found)
-        possibilities = dict_in_JS.partenza;
-        if (tmp_end) {
-          end_found = {nome:dict_in_JS.params_research.a, coordinate:dict_in_JS.params_research.end_coord};
-          //end_found = dict_in_JS.params_research.a;
-          //end_found = dict_in_JS.arrivo[0];
-          what_we_know = "choosing_start";
-        } else {
-          what_we_know = "address";
-        }
-      } else {
-        what_we_know = "nothing";
-      }
+      var possibilities = allTheThingsWeKnow.possibilities;
+      var what_we_know = allTheThingsWeKnow.what_we_know;
+      var start_found = allTheThingsWeKnow.start_found;
+      var end_found = allTheThingsWeKnow.end_found;
+      var tmp_start = allTheThingsWeKnow.tmp_start;
+      var tmp_end = allTheThingsWeKnow.tmp_end;
+
       console.log("We send this to js: ",markerOptions)
       // showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found, end_found);
       showPossibilitiesWindow(possibilities, markerOptions, mymap, what_we_know, tmp_start, tmp_end, start_found);
@@ -328,6 +288,52 @@ function goToNextStep(nextStep) {
   window.location = nextStep;
 }
 
+function findWhatWeKnow() {
+  var possibilities = "";
+  var what_we_know = "nothing";
+  var start_found = "";
+  var end_found = "";
+  var tmp_start = dict_in_JS.searched_start;
+  var tmp_end = dict_in_JS.searched_end;
+  checkTheBoxesThatNeedToBeChecked(dict_in_JS);
+
+  if ((dict_in_JS.start_type == 'multiple') && (dict_in_JS.end_type == 'multiple')){
+    possibilities = dict_in_JS.partenza;
+    what_we_know = "choosing_start";
+  } else if ((dict_in_JS.start_type == 'unique') && (dict_in_JS.end_type == 'multiple')) {
+    // scegliamo l'arrivo!
+    // nome e coordinate della partenza vengono passate come dizionario (start_found)
+    possibilities = dict_in_JS.arrivo;
+    start_found = {nome:dict_in_JS.params_research.da, coordinate:dict_in_JS.params_research.start_coord};
+    //start_found = dict_in_JS.partenza[0];
+    what_we_know = "choosing_end";
+    showSecondSearchbar();
+  } else if ((dict_in_JS.start_type == 'multiple') && (dict_in_JS.end_type == 'unique')) {
+    // scegliamo la partenza!
+    // nome e coordinate dell'arrivo vengono passate come dizionario (end_found)
+    possibilities = dict_in_JS.partenza;
+    if (tmp_end) {
+      end_found = {nome:dict_in_JS.params_research.a, coordinate:dict_in_JS.params_research.end_coord};
+      //end_found = dict_in_JS.params_research.a;
+      //end_found = dict_in_JS.arrivo[0];
+      what_we_know = "choosing_start";
+    } else {
+      what_we_know = "address";
+    }
+  } else {
+    what_we_know = "nothing";
+  }
+
+  return {
+    possibilities: possibilities,
+    what_we_know: what_we_know,
+    start_found: start_found,
+    end_found: end_found,
+    tmp_start: tmp_start,
+    tmp_end: tmp_end
+  };
+}
+
 //runned by submit
 function drawPreLoader() {
   console.log("set opacity..")
@@ -339,6 +345,11 @@ function drawPreLoader() {
   console.log("done!")
   // setTimeout(console.log("now, ok"), 1000);
   return true;
+}
+
+function hidePreLoader() {
+  $("#loading").hide();
+  $("#mapid").fadeTo("fast", 1)
 }
 
 function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
@@ -356,4 +367,9 @@ function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
   else {
     document.getElementById("walk_setting").checked = false;
   }
+}
+
+function resetColorSearchFields() {
+  $("#search_field_1").css("background-color","#fff")
+  $("#search_field_2").css("background-color","#fff")
 }

@@ -143,3 +143,5 @@ error/*
 # database
 *.db-journal
 trackusage.db
+users.db
+flask_monitoringdashboard.db

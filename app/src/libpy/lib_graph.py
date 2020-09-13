@@ -318,7 +318,7 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     streets_info['human_readable_time'] = prettify_time(time)
     streets_info['n_ponti'] = [tot_ponti, tot_ponti_accessible]
     streets_info['shape_list'] = shapes
-    streets_info['altezza'] = altezza
+    streets_info['altezza'] = altezza if altezza < np.inf else None
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
