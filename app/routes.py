@@ -1,4 +1,4 @@
-from flask import render_template, request, send_from_directory
+from flask import render_template, request, send_from_directory, jsonify
 from app import app, db, t, getCurrentVersion
 from app.forms import FeedbackForm
 import os
@@ -79,8 +79,8 @@ def navigation():
 
         # usiamo questo per dirgli cosa disegnare!
         # assumiamo nulla per ora
-        geo_type = -2
-        f_ponti = False
+        # geo_type = -2
+        # f_ponti = False
 
         # se e stato inviato il form, scriviamo sul feedback file
         # anche questo da spostare su un metodo
@@ -107,7 +107,27 @@ def navigation():
                             "msg": str(e),
                             "traceback": traceback.format_exc()}
         app.logger.info("error: {}".format(traceback.format_exc()))
+
         return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
+
+@app.route('/update_results', methods=['GET'])
+def asynch_navigation():
+    # add version to the track usage
+    # g.track_var["version"] = getCurrentVersion()
+    try:
+        arguments_GET_request = request.args
+        params_research = interface.retrieve_parameters_from_GET(arguments_GET_request)
+        dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research)
+        return jsonify(dictionary_of_stuff_found)
+    except Exception as e:
+        interface.take_care_of_the_error(request,e,error_folder)
+        dictionary_of_err = {"error": True,
+                            "repr": repr(e),
+                            "type": type(e).__name__,
+                            "msg": str(e),
+                            "traceback": traceback.format_exc()}
+        app.logger.info("error: {}".format(traceback.format_exc()))
+        return jsonify(dictionary_of_err)
 
 
 @app.route('/degoogling', methods=['GET', 'POST'])
