@@ -336,10 +336,12 @@ function findWhatWeKnow() {
 
 //runned by submit
 function drawPreLoader() {
-  console.log("set opacity..")
+  // Set opacity
   document.getElementById("mapid").style.opacity = 0.3;
-  console.log("visualizing div..")
+  // draw loading
   document.getElementById("loading").style.display = "inline";
+  // disable buttons
+  disableAllInputs();
   // console.log("drawing preloader..")
   //document.getElementById("loading_gif").src = "/static/assets/loading.gif";
   console.log("done!")
@@ -348,8 +350,21 @@ function drawPreLoader() {
 }
 
 function hidePreLoader() {
+  // hide loading
   $("#loading").hide();
-  $("#mapid").fadeTo("fast", 1)
+  // show map
+  $("#mapid").fadeTo("fast", 1);
+  // enable buttons
+  enableAllInputs();
+}
+
+function disableAllInputs() {
+  $(':button').prop('disabled', true);
+  $("input[type=checkbox]").attr("disabled", true);
+}
+function enableAllInputs() {
+  $(':button').prop('disabled', false);
+  $("input[type=checkbox]").removeAttr("disabled");
 }
 
 function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
