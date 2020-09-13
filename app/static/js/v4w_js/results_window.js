@@ -60,10 +60,10 @@ function closeResultsWindow() {
 function moveResultsToSidebar() {
 	console.log("sposto i risultati nella sidebar")
 	document.getElementById("results_search").style.display = "none";
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("percorso_terra"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("percorso_acqua"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("single_address"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("weird"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_terra"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_acqua"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("single_address"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("weird"));
 	hideSidebar();
 }
 
