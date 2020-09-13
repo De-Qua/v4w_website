@@ -110,10 +110,11 @@ def navigation():
 
         return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
 
+@t.include
 @app.route('/update_results', methods=['GET'])
 def asynch_navigation():
     # add version to the track usage
-    # g.track_var["version"] = getCurrentVersion()
+    g.track_var["version"] = getCurrentVersion()
     try:
         arguments_GET_request = request.args
         params_research = interface.retrieve_parameters_from_GET(arguments_GET_request)
