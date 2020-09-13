@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, url_for, redirect
 from config import Config
 import sys
 import os
@@ -12,6 +12,10 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 from flask_track_usage import TrackUsage
 from flask_track_usage.storage.sql import SQLStorage
+from flask_security import Security, SQLAlchemyUserDatastore
+from flask_admin import Admin
+from flask_security import current_user
+# import flask_monitoringdashboard as dashboard
 
 # version of the software
 version = "0.1.1"
@@ -67,6 +71,7 @@ naming_convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s"
 }
+
 # create database for data
 db = SQLAlchemy(app,metadata=MetaData(naming_convention=naming_convention),model_class=BaseModel)
 migrate = Migrate(app=app,db=db)
@@ -76,16 +81,40 @@ with app.app_context():
         migrate.init_app(app, db, render_as_batch=True)
     else:
         migrate.init_app(app, db)
-# create database for tracking usage
-# track_db = SQLAlchemy(app,metadata=MetaData(bind="trackusage"))
 
 #
 # TrackUsage setup
 #
-user_store = SQLStorage(engine=db.get_engine(bind="trackusage"))
-t = TrackUsage(app,[user_store])
+track_datastore = SQLStorage(engine=db.get_engine(bind="trackusage"))
+t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models
+from app.models import Users, Roles
+from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
+
+#
+# Users setup
+#
+user_datastore = SQLAlchemyUserDatastore(db, Users, Roles)
+security = Security(app, user_datastore)
+
+#
+# Flask-Admin setup
+#
+admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
+
+from app.views import AdminModelView, StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+
+admin.add_view(AdminModelView(Users, db.session))
+admin.add_view(StreetModelView(Street, db.session))
+admin.add_view(AreaModelView(Area, db.session))
+admin.add_view(NeighborhoodModelView(Neighborhood, db.session))
+admin.add_view(PoiModelView(Poi, db.session))
+
+#
+# Dashboard setup
+#
+# dashboard.bind(app)
 
 if not os.path.exists('logs'):
     os.mkdir('logs')

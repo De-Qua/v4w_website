@@ -11,6 +11,8 @@ flask db upgrade
 from app import db
 from datetime import datetime
 from sqlalchemy import CheckConstraint
+from flask_security import RoleMixin, UserMixin
+from flask_sqlalchemy import SQLAlchemy
 
 # # TODO: FUTUREWARNING
 # .format is deprecated
@@ -238,3 +240,31 @@ class PoiCategoryType(db.Model):
     def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
+
+###
+# MODELS FOR USERS
+###
+
+roles_users_table = db.Table('roles_users',
+    db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
+    db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
+    info={'bind_key': 'users'})
+
+class Users(db.Model, UserMixin):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(80))
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Roles', secondary=roles_users_table, backref='user', lazy=True)
+
+class Roles(db.Model, RoleMixin):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+    def __str__(self):
+        return self.name
+    def __hash__(self):
+        return hash(self.name)
