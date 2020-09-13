@@ -14,16 +14,23 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	all_possibilities_div = document.createElement('div');
 	if (areWeUsingBottomBar()){
 		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
+		all_possibilities_div.setAttribute('style', 'height:100%;')
 	}
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
     cur_result_description = possibilities[i].descrizione;
-		card = document.createElement('div');
+		card_col = document.createElement('div');
 		if (areWeUsingBottomBar()){
-			card.setAttribute('class', 'card possibilities_result col-6');
+			card_col.setAttribute('class', 'col-5');
+		}
+		card = document.createElement('div');
+
+		if (areWeUsingBottomBar()){
+			card.setAttribute('class', 'card possibilities_result border border-secondary rounded');
+			card.setAttribute('style', 'height: 100%;')
 		}else{
-			card.setAttribute('class', 'card possibilities_result');
+			card.setAttribute('class', 'card possibilities_result border border-secondary rounded mb-1');
 		}
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
@@ -55,7 +62,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 					activeCard = this;
 					showHighlight(this);
           // move the map over the coordinates
-          mymap.panTo([this.lat,this.lng])
+          mymap.panTo([this.lat,this.lng]);
 				};
 			};
 		} else {
@@ -66,9 +73,10 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			card.onmouseover = function() {showHighlight(this);};
 			card.onmouseout = function() {clearHighlight(this);};
 		}
-		card.appendChild(card_header)
-		card.appendChild(card_body)
-		all_possibilities_div.appendChild(card);
+		card.appendChild(card_header);
+		card.appendChild(card_body);
+		card_col.appendChild(card);
+		all_possibilities_div.appendChild(card_col);
 		// div = document.createElement('div');
 		// div.setAttribute('class', 'possibilities_result');
 		// //div.setAttribute('class', '');
@@ -93,6 +101,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		possibilitiesLayer.addLayer(marker).addTo(map);
 	}
 	document.getElementById("possibilitiesFather").appendChild(all_possibilities_div);
+	document.getElementById("possibilitiesFather").setAttribute("style","height:100%;")
 	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;

@@ -252,6 +252,7 @@ body, html {height: 100%}
 	/*overflow: auto;*/
 	min-height: auto;
 	max-height: auto;
+	height: 100% !important;
 }
 .possibilities_result{
 	border: none;
