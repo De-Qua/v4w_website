@@ -30,9 +30,9 @@ def before_first_request():
         someone_password = 'someone'
         admin_password = 'admin'
         if not user_datastore.get_user('someone'):
-            user_datastore.create_user(email='someone', password=utils.encrypt_password(someone_password))
+            user_datastore.create_user(email='someone', password=utils.hash_password(someone_password))
         if not user_datastore.get_user('admin'):
-            user_datastore.create_user(email='admin', password=utils.encrypt_password(admin_password))
+            user_datastore.create_user(email='admin', password=utils.hash_password(admin_password))
 
         # Commit any database changes; the User and Roles must exist before we can add a Role to the User
         db.session.commit()
