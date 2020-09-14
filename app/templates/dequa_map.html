@@ -300,10 +300,11 @@
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg"
 															class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb"><img src="/static/icons/barchin.svg" class="icon"></input></label>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
-															title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
-															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!">
+														<label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" class="disabled" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label>
+													</span>
+													<!-- <span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
+															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span> -->
 												</div>
 												<script>
 													$(".chb").change(function() {
@@ -487,13 +488,13 @@
 						<div class="leaflet-control">
 							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
 								<h4 class="alert-heading">C'è stato un errore!</h4>
+								<p class="mb-0" id="errorwindow-explanation">
+								</p>
+								<hr>
 								<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
 									Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img
 											src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
 									Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
-								</p>
-								<hr>
-								<p class="mb-0" id="errorwindow-explanation">
 								</p>
 								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 									<span aria-hidden="true">&times;</span>

@@ -364,7 +364,7 @@ function disableAllInputs() {
 }
 function enableAllInputs() {
   $(':button').prop('disabled', false);
-  $("input[type=checkbox]").removeAttr("disabled");
+  $("input[type=checkbox][class!=disabled]").removeAttr("disabled");
 }
 
 function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
