@@ -12,9 +12,10 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	var cur_result_name = '';
   var cur_result_description = '';
 	all_possibilities_div = document.createElement('div');
+	all_possibilities_div.setAttribute('id', 'all_possibilities');
 	if (areWeUsingBottomBar()){
 		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
-		all_possibilities_div.setAttribute('style', 'height:100%;')
+		all_possibilities_div.setAttribute('style', 'height:100%;');
 	}
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
@@ -263,5 +264,19 @@ function removeMarkerLocation(){
 		mymap.removeLayer(marker_location);
 	} catch{
 		console.log("no marker of single location")
+	};
+}
+
+function updateViewsAfterResizeWindow() {
+	results_in_sidebar = $("#possibilitiesFather")[0].childElementCount;
+	if (results_in_sidebar > 0) {
+		if (is_keyboard){
+			hideSidebar();
+			$("#show-sidebar").hide();
+		} else {
+			console.log("Nell'else")
+			showSidebar();
+		}
 	}
+	console.log("View aggiornata!")
 }

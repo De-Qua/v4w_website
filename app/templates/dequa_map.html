@@ -58,6 +58,26 @@
 		$(window).bind("pageshow", function(event) {
 			hidePreLoader()
 		});
+
+		// Funzione per guardare se su mobile è attivata la tastiera (codice modificato da https://stackoverflow.com/a/11650231)
+		var is_keyboard = false;
+		var initial_screen_size = window.innerHeight;
+		/* Android */
+		window.addEventListener("resize", function() {
+			if (isTouchDevice) {
+		    is_keyboard = (window.innerHeight < initial_screen_size);
+
+		    updateViewsAfterResizeWindow();
+			}
+		}, false);
+
+		// /* iOS */
+		// $("input").bind("focus blur",function() {
+	  //   $(window).scrollTop(10);
+	  //   is_keyboard = $(window).scrollTop() > 0;
+	  //   $(window).scrollTop(0);
+	  //   updateViews();
+		// });
 	</script>
 
 	<!-- Container con sidebar e mappa -->
