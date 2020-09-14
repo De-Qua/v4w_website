@@ -5,12 +5,23 @@ class Config(object):
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'dequa.db')
-    SQLALCHEMY_BINDS = {"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db')}
+    SQLALCHEMY_BINDS = {
+        "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
+        "users": 'sqlite:///' + os.path.join(basedir, 'users.db')
+        }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # TrackUsage
     TRACK_USAGE_USE_FREEGEOIP = False
     TRACK_USAGE_INCLUDE_OR_EXCLUDE_VIEWS = 'include'
     TRACK_USAGE_COOKIE = False
+    # Flask-Security
+    SECURITY_PASSWORD_HASH = 'pbkdf2_sha512'
+    SECURITY_PASSWORD_SALT = os.environ.get('SECURITY_PASSWORD_SALT') or 'indovina-indovinello'
+    SECURITY_POST_LOGIN_VIEW = '/admin/'
+    SECURITY_POST_LOGOUT_VIEW = '/admin/'
+    SECURITY_POST_REGISTER_VIEW = '/admin/'
+    SECURITY_REGISTERABLE = True
+    SECURITY_SEND_REGISTER_EMAIL = False
     # Mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER') #"smtps.aruba.it"
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25) #587

@@ -713,7 +713,9 @@
 	<script>
 		var feedbacksent = {{feedbacksent}};
 		var popup = L.popup();
+
 		var dict_in_JS = {{results_dictionary | tojson}};
+
 		$(document).ready(function() {
 			console.log("DOM ready - initialize HTML!");
 			initialize_html();
