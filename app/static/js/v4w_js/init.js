@@ -12,7 +12,8 @@ function initialize_html(){
   moveResultsToMainWindow();
   closeResultsWindow();
   removePathLayer();
-  
+  closeErrorWindow();
+
 
   mymap.on('click', onMapClick);
 
@@ -392,4 +393,8 @@ function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
 function resetColorSearchFields() {
   $("#search_field_1").css("background-color","#fff")
   $("#search_field_2").css("background-color","#fff")
+}
+
+function closeErrorWindow() {
+  $("#errorwindow").hide();
 }

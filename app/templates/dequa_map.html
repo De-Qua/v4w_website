@@ -511,14 +511,17 @@
 								</p>
 								<hr>
 								<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
-									Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img
+									Qua sopra troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img
 											src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
 									Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
 								</p>
-								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<button type="button" class="close" id="close-errorwindow" aria-label="Close">
 									<span aria-hidden="true">&times;</span>
 								</button>
 							</div>
+							<script>
+								$("#close-errorwindow").click(closeErrorWindow());
+							</script>
 							<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
 								Grazie per il feedback!
 								<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">
