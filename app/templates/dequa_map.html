@@ -67,7 +67,7 @@
 			<div class=sidebar-wrapper>
 				<div class="card" id="features">
 					<div id="result_title" class="card-header">
-						<h3><b>Risultati</b>
+						<h3><b>Forse cercavi...</b>
 							<a onclick="hideSidebar()">
 								<button type="button" class="btn btn-sm btn-outline-secondary float-right" id="sidebar-hide-btn"><i class="fa fa-chevron-left"></i></button></h3>
 						</a>
@@ -298,7 +298,9 @@
 								<div class="container-fluid" id="show-sidebar" style="display:none">
 									<div class="row space_above">
 										<a onclick="showSidebar()">
-											<button type=button class="btn btn-sm btn-light v4wbtn"><i class="fa fa-chevron-right"></i></button>
+											<button type=button class="btn btn-sm btn-light v4wbtn">
+												<i class="fa fa-info"></i>
+											</button>
 										</a>
 									</div>
 								</div>
@@ -393,8 +395,11 @@
 											<p class="results_text">
 												TROVATO:<br>
 												<span id="found_text"></span><br>
+												<!-- Tolto temporaneamente (14.09) - da migliorare:
+															il resto del codice (js) e in result_window.js
 												TIPO:<br>
 												<span id="type_text"></span><br>
+												-->
 											</p>
 										</div>
 									</div>
@@ -427,14 +432,22 @@
 						<div class="leaflet-control">
 							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
 								<h4 class="alert-heading">C'è stato un errore!</h4>
-								<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>
-									Qua sotto troverai una breve descrizione del problema… Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa <img
-											src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
-									Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
-								</p>
-								<hr>
-								<p class="mb-0" id="errorwindow-explanation">
-								</p>
+									<!-- Messaggio d'errore! -->
+									<p class="mb-0" id="errorwindow-explanation"></p>
+									<hr>
+									<p>È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!
+										<br> Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:<p>
+										<div style="text-align: center;"> <!-- centra il bottone! -->
+											<button class="btn btn-default v4wbt dequa_area" onclick="closeErrorAndShowFeedbackNew()">
+												<i class="fa fa-2x fa-exclamation-triangle"></i>
+												<p class="mb-0">Feedback</p>
+											</button>
+										</div>
+										<!-- Qua sotto troverai una breve descrizione del problema…
+										Noi abbiamo salvato un report dell'errore e tenteremo di risolverlo, se però vuoi darci più informazioni a riguardo puoi inviarci un <strong>feedback cliccando sulla zampa
+										<img src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
+										Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
+									</p>-->
 								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 									<span aria-hidden="true">&times;</span>
 								</button>
@@ -468,7 +481,8 @@
 
 			<!-- DIV IN BASSO A DESTRA SOPRA LO ZOOM - Zampa per la finestra d'aiuto -->
 			<script>
-				L.easyButton('<i class="fa fa-question-circle" aria-hidden="true"></i>', function(btn, map) {
+			  var stringaButton = '<svg width="1.2em" height="1.2em" viewBox="0 0 16 16" class="bi bi-question-octagon" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.54.146A.5.5 0 0 1 4.893 0h6.214a.5.5 0 0 1 .353.146l4.394 4.394a.5.5 0 0 1 .146.353v6.214a.5.5 0 0 1-.146.353l-4.394 4.394a.5.5 0 0 1-.353.146H4.893a.5.5 0 0 1-.353-.146L.146 11.46A.5.5 0 0 1 0 11.107V4.893a.5.5 0 0 1 .146-.353L4.54.146zM5.1 1L1 5.1v5.8L5.1 15h5.8l4.1-4.1V5.1L10.9 1H5.1z"/><path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/></svg>'
+				L.easyButton(stringaButton, function(btn, map) {
 					showSettingsWindowNew();
 				}, {
 					position: 'bottomright'
@@ -492,22 +506,7 @@
 					document.getElementById("settings-help").style.display = 'none';
 				}
 
-				function showFeedbackWindowNew() {
-					document.getElementById("settings-general").style.display = 'none';
-					document.getElementById("settings-feedback").style.display = 'block';
-					// Dropdown choices:
-					// (0, 'Oggetto non specificato')
-					// (1, 'Indirizzo sbagliato')
-					// (2, 'Strada sbagliata')
-					// (3, 'Problemi di grafica')
-					// (4, 'Proposta di miglioramento')
-					// (5, 'Altro')
-					document.getElementById("category").selectedIndex = 0;
-				}
 
-				function closeFeedbackWindowNew() {
-					document.getElementById("settings-feedback").style.display = 'none';
-				}
 			</script>
 
 			<!-- SETTING WINDOW: modal -->
@@ -561,20 +560,24 @@
 					</div>
 					<div class="modal-content" id="settings-help" style="display: none">
 						<div class="modal-header">
-							<h5 class="modal-title">DeQua - Aiuto</h5>
+							<h5 class="modal-title">Da che parte? DeQua!</h5>
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeHelpWindowNew()">
 								<span aria-hidden="true">&times;</span>
 							</button>
 						</div>
 						<div class="modal-body">
-							<h3> Cerca il tuo indirizzo, o cerca un percorso tra due punti. </h3>
-							<br>
-							Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.<br>
-							<br>
-							Ciononostante, le funzionalità di base dovrebbero esserci: per esempio gli indirizzi dovrebbereo essere trovati e visualizzati correttamente,
-							e le strade anche! <br>
-							Offriamo anche la possibilità di scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
+							<h4> Cerca il tuo indirizzo, o cerca un percorso tra due punti. </h4>
+							Tieni presente che il sito al momento è un cantiere aperto e stiamo lavorando a diverse migliorie, è quindi possibile che alcune cose non funzionino a dovere.
+							<hr>
+							Ciononostante, potrai usare le funzionalità di base: <br>
+							- gli indirizzi vengono trovati e visualizzati correttamente, con grande precisione,
+							e anche strade e campi; <br>
+							- Puoi provare anche a cercare punti di interesse come locali, chiese, musei;<br>
+							- Il calcolo dei percorsi ti aiuterà a muoverti a Venezia seguendo i percorsi più brevi; <br>
+							Puoi anche scegliere la strada con meno ponti (icona col carretto <img src="/static/icons/carretto.svg" class="icon">)
 							o calcolare il percorso in barca (icona col barchino <img src="/static/icons/barchin.svg" class="icon">).<br>
+							Cerca usando il bottone con il logo di DeQua <img src="/static/img/dequa_logo_v2.png" class="icon">!<br>
+							<hr>
 							Se trovate qualcosa che non va o volete dirci qualcosa, scriveteci a <a href="mailto:info@dequa.it">info@dequa.it</a>!<br>
 							Se preferite, il form per il feedback si trova nel menu!<br>
 							<br>

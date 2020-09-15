@@ -58,3 +58,33 @@ function setValuesInFeedbackWindow(JSdict) {
     }
   }
 }
+
+
+function closeErrorAndShowFeedbackNew() {
+	console.log("closing error window");
+	// chiudi la di errore
+	document.getElementById('errorwindow').style.display = 'none';
+	console.log("setting window to show: true using jQuery");
+	// apri la finestra di setting
+	$('#settingsWindow').modal({
+		show: true
+	});
+	showFeedbackWindowNew();
+}
+function showFeedbackWindowNew() {
+	console.log("opening feedback window");
+	document.getElementById("settings-general").style.display = 'none';
+	document.getElementById("settings-feedback").style.display = 'block';
+	// Dropdown choices:
+	// (0, 'Oggetto non specificato')
+	// (1, 'Indirizzo sbagliato')
+	// (2, 'Strada sbagliata')
+	// (3, 'Problemi di grafica')
+	// (4, 'Proposta di miglioramento')
+	// (5, 'Altro')
+	document.getElementById("category").selectedIndex = 0;
+}
+
+function closeFeedbackWindowNew() {
+	document.getElementById("settings-feedback").style.display = 'none';
+}

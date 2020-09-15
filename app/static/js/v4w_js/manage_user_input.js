@@ -102,7 +102,11 @@ function showSecondSearchbar() {
 	document.getElementById("btn-plus").style.display = "none";
 	document.getElementById("second-search-field").style.display = "block";
 	document.getElementById("nav_buttons").style.display = "block";
-	// document.getElementById("start_from_my_location").style.display = "block";
+  // copia il testo della prima barra di ricerca nella secondar
+  document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
+  document.getElementById('search_field_1').value = '';
+  document.getElementById('hidden_end_coord').value = document.getElementById('hidden_start_coord').value;
+	document.getElementById('hidden_start_coord').value = '';
 }
 
 function hideSecondSearchbar() {
@@ -143,7 +147,7 @@ function copyMyPositionAsStart(map) {
 	marker_start.addTo(mymap);
 	document.getElementById('search_field_1').value = 'La Mia Posizione';
 	document.getElementById('hidden_start_coord').value = e.latlng.toString();
-      
+
   //loc_control.start();
 		})
 	 .on('locationerror', function(e){

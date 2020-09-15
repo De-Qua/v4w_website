@@ -83,6 +83,8 @@ function fillResultsWindow(dictJS) {
 function fillResultsWindowSingleAddress(dictJS) {
 	var name_location = dictJS.partenza[0].nome;
 	document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
+	// per il momento non lo scriviamo (14.09) - da migliorare
+	/*
 	switch (dict_in_JS.partenza[0].geotype) {
 		case 0:
 			document.getElementById("type_text").innerHTML = "<i>indirizzo</i>";
@@ -91,6 +93,7 @@ function fillResultsWindowSingleAddress(dictJS) {
       document.getElementById("type_text").innerHTML = "<i>area</i>";
 			break;
 	}
+	*/
 }
 
 function fillResultsWindowPercorso(dictJS) {
