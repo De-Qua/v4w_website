@@ -9,8 +9,9 @@ function initialize_html(){
   toggleXbuttons();
   resetColorSearchFields();
   clearAllResults();
+  closeResultsWindow();
   removePathLayer();
-  
+
   mymap.on('click', onMapClick);
 
   document.getElementById("search_field_1").addEventListener("change", clear_hidden_start);
