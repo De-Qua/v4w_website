@@ -9,8 +9,10 @@ function initialize_html(){
   toggleXbuttons();
   resetColorSearchFields();
   clearAllResults();
+  moveResultsToMainWindow();
   closeResultsWindow();
   removePathLayer();
+  
 
   mymap.on('click', onMapClick);
 

@@ -67,6 +67,14 @@ function moveResultsToSidebar() {
 	hideSidebar();
 }
 
+function moveResultsToMainWindow() {
+	$("#results_search").append($("#percorso_terra"));
+	$("#results_search").append($("#percorso_acqua"));
+	$("#results_search").append($("#single_address"));
+	$("#results_search").append($("#weird"));
+	$("#results_search").show();
+}
+
 function fillResultsWindow(dictJS) {
 	switch (dictJS.modus_operandi) {
 		case 0:
