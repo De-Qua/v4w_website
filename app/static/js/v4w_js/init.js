@@ -10,6 +10,8 @@ function initialize_html(){
   resetColorSearchFields();
   clearAllResults();
   removePathLayer();
+  
+  mymap.on('click', onMapClick);
 
   document.getElementById("search_field_1").addEventListener("change", clear_hidden_start);
   document.getElementById("search_field_2").addEventListener("change", clear_hidden_end);
