@@ -104,13 +104,14 @@ function showSecondSearchbar() {
 	document.getElementById("nav_buttons").style.display = "block";
 }
 
-function click_showSecondSearchBar(){
-    showSecondSearchBar()
+function click_showSecondSearchbar(){
+    showSecondSearchbar();
     // copia il testo della prima barra di ricerca nella secondar
-    document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
-    document.getElementById('search_field_1').value = '';
-    document.getElementById('hidden_end_coord').value = document.getElementById('hidden_start_coord').value;
-    document.getElementById('hidden_start_coord').value = '';
+    swapDirections();
+    // document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
+    // document.getElementById('search_field_1').value = '';
+    // document.getElementById('hidden_end_coord').value = document.getElementById('hidden_start_coord').value;
+    // document.getElementById('hidden_start_coord').value = '';
 }
 
 function hideSecondSearchbar() {
@@ -120,7 +121,13 @@ function hideSecondSearchbar() {
 	document.getElementById("second-search-field").style.display = "none";
 	document.getElementById("nav_buttons").style.display = "none";
 	// document.getElementById("start_from_my_location").style.display = "none";
-	document.getElementById("search_field_2").value = "";
+
+  if ($("#search_field_1").val() == "") {
+    swapDirections();
+  }
+  // elimina contenuto seconda barra
+  $("#search_field_2").value("")
+  $("#hidden_end_coord").value("")
 	return false;
 }
 
