@@ -100,11 +100,14 @@ def merged_path_list(path_list):
             merged_path['n_ponti'][0] += path['n_ponti'][0]
             merged_path['n_ponti'][1] = [x+y for x,y in zip(merged_path['n_ponti'][1],path['n_ponti'][1])]
             merged_path['shape_list'] += path['shape_list']
-            merged_path['altezza'] = np.minimum(merged_path['altezza'], path['altezza'])
+            merged_path['altezza'] = np.minimum(merged_path['altezza'], path['altezza']) if path['altezza'] else np.inf
 
     # calculate new human readable data
     merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
     merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
+
+    # change inf to none because of json
+    merged_path['altezza'] = merged_path['altezza'] if merged_path['altezza'] < np.inf else None
 
     return merged_path
 

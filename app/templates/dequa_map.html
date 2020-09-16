@@ -56,9 +56,28 @@
 
 		// Funzione per eliminare la rotella e ristabilire la corretta opacità della mappa quando si clicca il pulsante indietro dopo una ricerca. Grazie a https://stackoverflow.com/a/32566655
 		$(window).bind("pageshow", function(event) {
-			$("#loading").hide();
-			$("#mapid").fadeTo("fast", 1)
+			hidePreLoader()
 		});
+
+		// Funzione per guardare se su mobile è attivata la tastiera (codice modificato da https://stackoverflow.com/a/11650231)
+		var is_keyboard = false;
+		var initial_screen_size = window.innerHeight;
+		/* Android */
+		window.addEventListener("resize", function() {
+			if (isTouchDevice) {
+		    is_keyboard = (window.innerHeight < initial_screen_size);
+
+		    updateViewsAfterResizeWindow();
+			}
+		}, false);
+
+		// /* iOS */
+		// $("input").bind("focus blur",function() {
+	  //   $(window).scrollTop(10);
+	  //   is_keyboard = $(window).scrollTop() > 0;
+	  //   $(window).scrollTop(0);
+	  //   updateViews();
+		// });
 	</script>
 
 	<!-- Container con sidebar e mappa -->
@@ -74,6 +93,8 @@
 					</div>
 				</div>
 				<div class="sidebar-table">
+					<div class="possibilities" id="resultsSidebar">
+					</div>
 					<div class="possibilities" id="possibilitiesFather">
 						<!-- se vogliamo il carosello owl-carousel owl-theme -->
 					</div>
@@ -120,6 +141,8 @@
 						layers: baseMaps[whichmap]
 					});
 
+					mymap.setView([45.435, 12.333], 15);
+
 					var possibilitiesLayer = L.markerClusterGroup();
 
 					var highlightPane = mymap.createPane("highlightPane");
@@ -137,15 +160,48 @@
 					};
 
 					// Create markers for start and end
-					var marker_start = L.marker([], {
-						icon: greenIcon
+					var marker_start = L.marker([], markerOptions).setIcon(greenIcon);
+
+					var marker_end = L.marker([], markerOptions).setIcon(redIcon);
+
+					var pathLines = L.geoJSON([],{
+		        filter: function(feature) {
+		          // draw only lines!
+		          return feature.geometry.type == "LineString";
+		        },
+		        style: function(feature) {
+		          switch (feature.properties.street_type) {
+		            case 'canale': return {color: "#0000ff"};
+		            case 'ponte':  return {color: "#ffff00"};
+		            case 'calle':  return {color: "#ff0000"};
+		          }
+		        }
+		      });
+
+					var pathGroup = L.featureGroup([marker_start, marker_end, pathLines]);
+					// options for all markers
+					var marker_icon = L.icon({
+						iconUrl: '/static/img/icon_marker_50.png',
+						iconRetinaUrl: '/static/img/icon_marker.png',
+						iconSize: [33, 50],
+						iconAnchor: [16, 49],
+						popupAnchor: [0, -40]
 					});
-					var marker_end = L.marker([], {
-						icon: redIcon
-					});
+
+					// Options for the marker
+					var markerOptions = {
+						clickable: true,
+						// si alza all'hover - non va :(
+						riseOnHover: true,
+						icon: marker_icon
+					}
+					// create marker for location
+					var marker_location = L.marker([],markerOptions)
 
 					var popup = L.popup();
 
+					// polygon for shapes
+					var polygon = L.geoJSON()
 					//L.control.layers(baseMaps).addTo(mymap);
 					// var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 					// minZoom: 12,
@@ -178,7 +234,7 @@
 					<div class="col-lg-5 col-md-6">
 						<div class="row">
 							<div class="leaflet-control col-md-12">
-								<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
+								<form id="ricerca_ind" action="" method="GET">
 									<!-- PRIMA RIGA: BARRA DI RICERCA -->
 									<div class="row">
 										<!-- A sinistra la barra di ricerca -->
@@ -196,7 +252,7 @@
 												</div>
 												<input type="text" class="form-control" placeholder="cerca..." aria-label="" aria-describedby="basic-addon1" name="partenza" id="search_field_1" oninput="useristypingin('search_field_1')">
 												<!-- A hidden input takes the coordinates for the start location and we can store them here: it will never be visible -->
-												<input type="text" name="start_coord" id="hidden_start_coord" style="display: none">
+												<input type="hidden" name="start_coord" id="hidden_start_coord">
 												<div class="input-group-append">
 													<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_1_x" onclick="clearField('search_field_1')">
 														<i class="fa fa-times"></i>
@@ -242,7 +298,7 @@
 													</div>
 													<input type="text" class="form-control" placeholder="fino a..." aria-label="" aria-describedby="basic-addon1" name="arrivo" id="search_field_2" oninput="useristypingin('search_field_2')">
 													<!-- A hidden input takes the coordinates for the end location and we can store them here: it will never be visible -->
-													<input type="text" name="end_coord" id="hidden_end_coord" style="display: none">
+													<input type="hidden" name="end_coord" id="hidden_end_coord">
 													<div class="input-group-append">
 														<button class="input-group-text btn bg-white border-left-0 border" type="button" id="search_field_2_x" onclick="clearField('search_field_2')">
 															<i class="fa fa-times"></i>
@@ -263,10 +319,11 @@
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg"
 															class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb"><img src="/static/icons/barchin.svg" class="icon"></input></label>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
-															title="Percorso accessibile"><input type="checkbox" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label></span>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
-															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span>
+													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!">
+														<label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" class="disabled" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" class="icon"></input></label>
+													</span>
+													<!-- <span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
+															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span> -->
 												</div>
 												<script>
 													$(".chb").change(function() {
@@ -291,9 +348,32 @@
 		-->
 									</div> <!-- Chiudiamo seconde barre varie -->
 									<!-- Hidden fields -->
-									<input type="hidden" name="start_coord" id="start_coord">
-									<input type="hidden" name="end_coord" id="end_coord">
+									<!-- <input type="hidden" name="start_coord" id="start_coord">
+									<input type="hidden" name="end_coord" id="end_coord"> -->
 								</form>
+								<script>
+								$('#ricerca_ind').submit(function(e){
+								    e.preventDefault();
+								    $.ajax({
+								        url: '/update_results',
+								        type: 'get',
+								        data:$('#ricerca_ind').serialize(),
+												beforeSend:function() {
+													window.history.pushState(null,'','?'+$('#ricerca_ind').serialize())
+													drawPreLoader()
+												},
+								        success:function(response){
+							            dict_in_JS = response;
+													initialize_html();
+								        },
+												error:function() {
+													hidePreLoader();
+													$("#errorwindow-explanation").innerHTML = "C'è stato un errore con il server!";
+											    $("#errorwindow").show();
+            						},
+								    });
+								});
+								</script>
 								<!-- Bottone per riaprire la sidebar -->
 								<div class="container-fluid" id="show-sidebar" style="display:none">
 									<div class="row space_above">
@@ -452,6 +532,9 @@
 									<span aria-hidden="true">&times;</span>
 								</button>
 							</div>
+							<script>
+								$("#close-errorwindow").click(closeErrorWindow());
+							</script>
 							<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
 								Grazie per il feedback!
 								<button type="button" class="close" data-dismiss="alert" aria-label="Close" style="top: -5px">

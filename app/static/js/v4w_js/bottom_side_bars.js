@@ -12,18 +12,26 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	var cur_result_name = '';
   var cur_result_description = '';
 	all_possibilities_div = document.createElement('div');
+	all_possibilities_div.setAttribute('id', 'all_possibilities');
 	if (areWeUsingBottomBar()){
 		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
+		all_possibilities_div.setAttribute('style', 'height:100%;');
 	}
 	for (i = 0; i < possibilities.length; i++) {
 		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
     cur_result_description = possibilities[i].descrizione;
-		card = document.createElement('div');
+		card_col = document.createElement('div');
 		if (areWeUsingBottomBar()){
-			card.setAttribute('class', 'card possibilities_result col-6');
+			card_col.setAttribute('class', 'col-5');
+		}
+		card = document.createElement('div');
+
+		if (areWeUsingBottomBar()){
+			card.setAttribute('class', 'card possibilities_result border border-secondary rounded');
+			card.setAttribute('style', 'height: 100%;')
 		}else{
-			card.setAttribute('class', 'card possibilities_result');
+			card.setAttribute('class', 'card possibilities_result border border-secondary rounded mb-1');
 		}
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
@@ -45,7 +53,9 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 			card.onclick = function () {
 				if (activeCard == this){
 					clearHighlight(this);
-					goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
+					fillForm(this);
+					submitForm();
+					// goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));
 				} else{
           if (activeCard != ''){
             clearHighlight(activeCard);
@@ -53,19 +63,21 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 					activeCard = this;
 					showHighlight(this);
           // move the map over the coordinates
-          mymap.panTo([this.lat,this.lng])
+          mymap.panTo([this.lat,this.lng]);
 				};
 			};
 		} else {
       // card.onclick = function() {fillForm(this, what_are_we_doing, searched_end, start_found); document.getElementById("form_id").submit();}
 			// passare come parametro dict_in_JS (o almeno params_research)
-			card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
-			card.onmouseover = function() {showHighlight(this)};
+			// card.onclick = function() {goToNextStep(getNextStep(this, what_are_we_doing, this.name, searched_end, start_found));};
+			card.onclick = function() {fillForm(this); submitForm();};
+			card.onmouseover = function() {showHighlight(this);};
 			card.onmouseout = function() {clearHighlight(this);};
 		}
-		card.appendChild(card_header)
-		card.appendChild(card_body)
-		all_possibilities_div.appendChild(card);
+		card.appendChild(card_header);
+		card.appendChild(card_body);
+		card_col.appendChild(card);
+		all_possibilities_div.appendChild(card_col);
 		// div = document.createElement('div');
 		// div.setAttribute('class', 'possibilities_result');
 		// //div.setAttribute('class', '');
@@ -90,6 +102,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		possibilitiesLayer.addLayer(marker).addTo(map);
 	}
 	document.getElementById("possibilitiesFather").appendChild(all_possibilities_div);
+	document.getElementById("possibilitiesFather").setAttribute("style","height:100%;")
 	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
@@ -114,6 +127,25 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	}
 
 	showSidebar();
+}
+
+function fillForm(element) {
+	console.log("I fill the form with :");
+	console.log(element);
+	var what_are_we_doing = findWhatWeKnow().what_we_know;
+	if (what_are_we_doing == "choosing_start" || what_are_we_doing == "address") {
+		$("#search_field_1").val(element.name);
+		$("#hidden_start_coord").val(""+element.lat+","+element.lng);
+	} else if ( what_are_we_doing == "choosing_end") {
+		$("#search_field_2").val(element.name);
+		$("#hidden_end_coord").val(""+element.lat+","+element.lng);
+	}
+	return;
+}
+
+function submitForm() {
+	$('#ricerca_ind').submit();
+	return true
 }
 
 function getNextStep(element, what_are_we_doing, cur_result_name, searched_end, start_found) {
@@ -193,4 +225,58 @@ function areWeUsingBottomBar(){
 	} else{
 		return false;
 	}
+}
+
+function clearAllResults() {
+	removeSidebar();
+	removePossibilitiesLayer();
+	removePathLayer();
+	removeMarkerLocation();
+}
+
+function removeSidebar(){
+  $("#possibilitiesFather").empty();
+	hideSidebar();
+	$("#show-sidebar").hide();
+}
+
+function removePossibilitiesLayer(){
+	highlight.clearLayers();
+	possibilitiesLayer.eachLayer(function(layer) {
+		possibilitiesLayer.removeLayer(layer);
+	});
+	try{
+		mymap.removeLayer(polygon);
+	} catch{
+		console.log("no polygon");
+	};
+}
+
+function removePathLayer(){
+	pathLines.clearLayers();
+	pathGroup.eachLayer(function(layer) {
+		mymap.removeLayer(layer);
+	});
+}
+
+function removeMarkerLocation(){
+	try{
+		mymap.removeLayer(marker_location);
+	} catch{
+		console.log("no marker of single location")
+	};
+}
+
+function updateViewsAfterResizeWindow() {
+	results_in_sidebar = $("#possibilitiesFather")[0].childElementCount;
+	if (results_in_sidebar > 0) {
+		if (is_keyboard){
+			hideSidebar();
+			$("#show-sidebar").hide();
+		} else {
+			console.log("Nell'else")
+			showSidebar();
+		}
+	}
+	console.log("View aggiornata!")
 }

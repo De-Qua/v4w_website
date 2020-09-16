@@ -60,11 +60,19 @@ function closeResultsWindow() {
 function moveResultsToSidebar() {
 	console.log("sposto i risultati nella sidebar")
 	document.getElementById("results_search").style.display = "none";
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("percorso_terra"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("percorso_acqua"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("single_address"));
-	document.getElementById("possibilitiesFather").appendChild(document.getElementById("weird"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_terra"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_acqua"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("single_address"));
+	document.getElementById("resultsSidebar").appendChild(document.getElementById("weird"));
 	hideSidebar();
+}
+
+function moveResultsToMainWindow() {
+	$("#results_search").append($("#percorso_terra"));
+	$("#results_search").append($("#percorso_acqua"));
+	$("#results_search").append($("#single_address"));
+	$("#results_search").append($("#weird"));
+	$("#results_search").show();
 }
 
 function fillResultsWindow(dictJS) {
@@ -145,7 +153,7 @@ function fillResultsWindowPercorsoBoat(dictJS) {
 	var time_description = dictJS.path.human_readable_time;
 	document.getElementById("boat_time_text").innerHTML = "<i>"+time_description+"</i>";
 	var min_altezza = dictJS.path.altezza;
-	if (min_altezza >= 100) {
+	if (min_altezza == undefined) {
 		document.getElementById("boat_info_text").innerHTML = "<i>Non ci sono altre informazioni particolari</i>";
 	} else {
 		document.getElementById("boat_info_text").innerHTML = "<i>- altezza minima dei ponti attraversati: "+
