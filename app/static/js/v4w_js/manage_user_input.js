@@ -104,8 +104,8 @@ function showSecondSearchbar() {
 	document.getElementById("nav_buttons").style.display = "block";
 }
 
-function click_showSecondSearchBar(){
-    showSecondSearchBar()
+function click_showSecondSearchbar(){
+    showSecondSearchbar()
     // copia il testo della prima barra di ricerca nella secondar
     document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
     document.getElementById('search_field_1').value = '';
