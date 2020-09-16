@@ -102,11 +102,15 @@ function showSecondSearchbar() {
 	document.getElementById("btn-plus").style.display = "none";
 	document.getElementById("second-search-field").style.display = "block";
 	document.getElementById("nav_buttons").style.display = "block";
-  // copia il testo della prima barra di ricerca nella secondar
-  document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
-  document.getElementById('search_field_1').value = '';
-  document.getElementById('hidden_end_coord').value = document.getElementById('hidden_start_coord').value;
-	document.getElementById('hidden_start_coord').value = '';
+}
+
+function click_showSecondSearchBar(){
+    showSecondSearchBar()
+    // copia il testo della prima barra di ricerca nella secondar
+    document.getElementById('search_field_2').value = document.getElementById('search_field_1').value;
+    document.getElementById('search_field_1').value = '';
+    document.getElementById('hidden_end_coord').value = document.getElementById('hidden_start_coord').value;
+    document.getElementById('hidden_start_coord').value = '';
 }
 
 function hideSecondSearchbar() {
