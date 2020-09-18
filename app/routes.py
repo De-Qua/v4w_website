@@ -38,6 +38,7 @@ html_file = 'dequa_map.html'
 app.logger.setLevel(1)
 app.logger.info("ready to go!")
 
+# cos'e il t.include?
 @t.include
 @app.route('/info', methods=['GET', 'POST'])
 def index():
@@ -53,18 +54,46 @@ def index():
     app.logger.log(20,'Prova log info')
     return render_template('info.html')
 
+# cos'e il t.include?
+
+# info sub-pages
+@app.route('/comesiusa', methods=['GET', 'POST'])
+def howto():
+    app.logger.info('Come si usa page + 1')
+    return render_template('info/comesiusa.html')
+
+@app.route('/howitsmade', methods=['GET', 'POST'])
+def howitsmade():
+    app.logger.info('How its made page + 1')
+    return render_template('info/howitsmade.html')
+
+@app.route('/idee', methods=['GET', 'POST'])
+def idea():
+    app.logger.info('idea page + 1')
+    return render_template('info/idee.html')
+
+@app.route('/chisiamo', methods=['GET', 'POST'])
+def aboutus():
+    app.logger.info('aboutus page + 1')
+    return render_template('info/aboutus.html')
+
+@app.route('/partecipare', methods=['GET', 'POST'])
+def participation():
+    app.logger.info('participation page + 1')
+    return render_template('info/partecipare.html')
+
+@app.route('/contatti', methods=['GET', 'POST'])
+def contact():
+    app.logger.info('contact page + 1')
+    return render_template('info/contatti.html')
+
+# feedback
 @app.route('/r2d2', methods=['GET', 'POST'])
 def feedback():
     app.logger.info('Pagina di feedback aperta')
     #get list of feedback files
     feedback_dict = interface.get_feedback_from_server()
     return render_template('feedback.html', feedback_dict = feedback_dict)
-
-@app.route('/tuttofinto', methods=['GET', 'POST'])
-def marketingfalso():
-    app.logger.info('Pagina di marketing')
-    #get list of feedback files
-    return render_template('marketing.html')
 
 @t.include
 @app.route('/', methods=['GET', 'POST'])

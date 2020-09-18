@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+	<title>Demo - De Qua</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- we should think about SEO, keywords, descriptions, ecc... -->
+	<meta name="description" content="Find your way through Venice - Trova la tua strada a Venezia">
+	<!-- penso che ora non venga più usata la tag keyword -->
+  <meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
+	<!-- autori -->
+	<meta name="author" content="Dequa">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+	<link rel="stylesheet" href="/static/css/product.css" >
+  <link rel="icon" href="/static/img/dequa_logo_v2.png">
+
+<body>
+
+  <!-- NAVBAR (expand at md, taken from Bootstrap Example)-->
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark" style='margin-bottom:0px;'>
+    <a class="navbar-brand" href="#">DeQua</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExample04">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Torna alla Mappa </span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/info">Info Home</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="/comesiusa">Come si usa?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/howitsmade">Com'è fatto?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/idee">Idee per il futuro</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/partecipare">Partecipare</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/contatti">Contatti</a>
+        </li>
+    </div>
+  </nav>
+
+	<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
+		<div class="col-md-5 p-lg-5 mx-auto my-5">
+			<h1 class="display-4 font-weight-normal">Ma cosa fa DeQua?</h1>
+			<p class="lead font-weight-normal">Tante cose di cui avrai assolutamente bisogno.<br>Scoprile qua sotto!</p>
+		</div>
+		<div class="product-device shadow-sm d-none d-md-block"></div>
+		<div class="product-device product-device-2 shadow-sm d-none d-md-block"></div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4 p-3 order-md-1">
+			<p class="lead font-weight-normal p-4">Chi ha detto che è difficile trovare indirizzi a Venezia? Aspetta, dov'era il 3027b?</p>
+		</div>
+		<div class="col-md-8 p-3 order-md-2">
+			<video width="100%" autoplay muted loop>
+				<source src="/static/vids/indirizzo.webm" type="video/webm">
+			</video>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4 p-3 order-md-1 order-2" >
+			<video autoplay loop muted width=100%>
+				<source src="/static/vids/sestiere_crop.webm" type="video/webm">
+			</video>
+		</div>
+		<div class="col-md-8 p-3 order-md-2 order-1">
+			<p class="lead font-weight-normal p-4">A me piacerebbe capire questa cosa dei sestieri, ad esempio, dov'è Dorsoduro? Lo confondo sempre con Santa Croce..</p>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4 p-3 order-md-1 order-sm-1">
+			<p class="lead font-weight-normal p-4">Prima a destra, seconda a sinistra, e poi chiedi ancora! Con tutte queste calli e callette mi perdo sempre! Ma una mappa con il percorso, no?</p>
+		</div>
+		<div class="col-md-8 p-3 order-md-2 order-sm-2">
+			<video width="100%" autoplay muted loop>
+				<source src="/static/vids/percorso.webm" type="video/webm">
+			</video>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4 p-3 order-md-1 order-2">
+			<video autoplay loop muted width=100%>
+				<source type="video/webm" src="/static/vids/barca_crop.webm">
+			</video>
+		</div>
+		<div class="col-md-8 p-3 order-md-2 order-1">
+			<p class="lead font-weight-normal p-4">Oggi con questa bella giornata quasi quasi mi faccio un giro in barchino! Aspetta che guardo che non mi ricordo mai il senso unico..</p>
+		</div>
+	</div>
+
+	<div class="table competitors m-4 p-1">
+		<div class="row p-1">
+			<div class="col-4">
+				<b>Feature</b>
+			</div>
+			<div class="col-2">
+				<b>DeQua</b>
+			</div>
+			<div class="col-2">
+				<b>Google Maps</b>
+			</div>
+			<div class="col-2">
+				<b>2Gis</b>
+			</div>
+			<div class="col-2">
+				<b>OpenStreetMaps</b>
+			</div>
+		</div>
+		<hr class="thicker">
+		<div class="row">
+			<div class="col-4">
+				Indirizzi in centro storico
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:gray">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-slash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M11.354 4.646a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:gray">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-slash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M11.354 4.646a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-4">
+				Percorsi a piedi
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:gray">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-slash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M11.354 4.646a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:gray">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-slash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M11.354 4.646a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-4">
+				Scelta percorso con meno ponti
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-4">
+				Percorsi in barca
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-4">
+				Open Source
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+		</div>
+		<hr>
+		<div class="row">
+			<div class="col-4">
+				Made in Venice
+			</div>
+			<div class="col-2" style="color:green">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-check" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+				  <path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+			<div class="col-2" style="color:red">
+				<svg width="2em" height="2em" viewBox="0 0 16 16" class="bi bi-x" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+		</div>
+
+	</div>
+
+</body>
+</html>
