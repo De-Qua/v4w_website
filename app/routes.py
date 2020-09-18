@@ -129,7 +129,7 @@ def navigation():
             dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research)
             return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
     except Exception as e:
-        interface.take_care_of_the_error(request,e,error_folder)
+        interface.take_care_of_the_error(request, e, error_folder)
         dictionary_of_err = {"error": True,
                             "repr": repr(e),
                             "type": type(e).__name__,

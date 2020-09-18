@@ -36,7 +36,7 @@ def get_feedback_from_server():
             cur_fb_content_as_text = content_file.read()
             cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
         feedback_files_contents.append(cur_fb_content_as_text)
-        #feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
+        feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
 
     feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
     return feedback_dict
@@ -81,12 +81,12 @@ def write_feedback(form, feedback_folder):
     curr_time = datetime.datetime.now()
     file_feedback = os.path.join(feedback_folder,"dequa_fb_"+curr_time.strftime("%Y%m%d-%H%M%S.%f")+".md")
     mdfile = '<h1>***** DEQUA FEEDBACK ***** </h1>\n'
-    mdfile += '<h2>Website version</h2>\n'
+    mdfile += '<h4>Website version</h4>\n'
     mdfile += getCurrentVersion()+'\n'
-    mdfile += '<h2>Time</h2>\n'
+    mdfile += '<h4>Time</h2>\n'
     mdfile += curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
     category = dict(form.category.choices).get(form.category.data)
-    mdfile += '<h2>Category</h2>\n'
+    mdfile += '<h4>Category</h4>\n'
     mdfile += category+'\n'
     dict_data_title = {
         'name': 'Name',
@@ -102,10 +102,10 @@ def write_feedback(form, feedback_folder):
     for (data,title) in dict_data_title.items():
         value = form[data].data
         if value:
-            mdfile += '<h2>'+title+'</h2>\n'
+            mdfile += '<h4>'+title+'</h4>\n'
             mdfile += value+'\n'
     # write json file
-    mdfile += '<h2>JSON</h2>\n'
+    mdfile += '<h4>JSON</h4>\n'
     dictJson = json.loads(form['dictJS'].data)
     mdfile += json.dumps(dictJson,indent=2)
     with open(file_feedback,'w+') as f:
@@ -237,7 +237,7 @@ def find_what_needs_to_be_found(params_research):
             modus_operandi = 2
             start_type, end_type = set_choice_mode(da_is_sure, a_is_sure)
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a], match_dict_da, params_research, dict_of_end_locations_candidates=match_dict_a, start_type=start_type, end_type=end_type)
-            
+
         else:
             app.logger.info("Andiamo a botta sicura! Abbiamo trovato quello che cercavamo e calcoliamo il percorso!")
             app.logger.info("ricerca percorso da {} a {}..".format(da, a))
@@ -260,7 +260,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
 
     G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
     G_acqua_array = np.asarray(list(global_variables.G_acqua.nodes))
-    
+
     app.logger.info("andiamo in barca..")
     min_number_of_rive = 10
     name_of_rive_as_poi = "vincolo"
@@ -297,7 +297,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
         rive_vicine_stop, how_many_stop = lib_search.find_POI(min_number_of_rive, stop_coord, name_of_rive_as_poi)
         app.logger.info("rive vicine all'arrivo: {}".format(how_many_stop))
         rive_stop_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_stop]
-    
+
         rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
         # ritorna la strada con properties e la riva scelta!
         geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(global_variables.G_terra, stop_coord, rive_stop_nodes_list,f_ponti)

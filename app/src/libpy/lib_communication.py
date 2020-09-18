@@ -6,6 +6,7 @@ import pdb
 import json
 from app.src.libpy import lib_graph
 import pdb
+import re
 
 def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locations_candidates, params_research, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """
@@ -115,4 +116,50 @@ def parseFeedbackFile(file_content_as_text):
     """
     Parse the content of the file we wrote and creates a dict to pass to js.
     """
+    title = get_title_from_feedback_text(file_content_as_text)
+    json_to_be_drawn = get_json_from_feedback_text(file_content_as_text)
+    infos = get_infos_from_feedback_text(file_content_as_text)
+
+    contents_dict = {'title':title,
+                        'infos':infos,
+                        'json_to_be_drawn':json_to_be_drawn}
+
+    return contents_dict
     #pdb.set_trace()
+
+def get_title_from_feedback_text(text):
+    """
+    Extract the title between the <h1>/</h1> tags
+    """
+    indices_h1 = [m.start() for m in re.finditer('h1>', text)]
+    if len(indices_h1) > 0:
+        title = text[indices_h1[0]+4:indices_h1[1]-2]
+    else:
+        return "title not found"
+
+    return title[5:-6]
+
+def get_json_from_feedback_text(text):
+    """
+    Extract the json object (after <h2>JSON</h2>), loads and returns it
+    """
+    ind_json = text.find('JSON')
+    if ind_json > 0:
+        json_obj = json.loads(text[ind_json+9:])
+    else:
+        return "json not found"
+
+    return json_obj
+
+def get_infos_from_feedback_text(text):
+    """
+    Temporary version to be improved. Just takes everything between title and json.
+    """
+    ind_title_end = text.find('</h1>')
+    ind_json_start = text.find('JSON')
+    if ind_title_end > 0 and ind_json_start > 0:
+        infos = text[ind_title_end+5:ind_json_start-4]
+    else:
+        return "something wrong but too lazy to document it properly: either title or json missing in the feedback file"
+
+    return infos

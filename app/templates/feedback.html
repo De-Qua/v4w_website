@@ -7,6 +7,14 @@
 		<meta name="robots" content="noindex">
 		<meta name="googlebot" content="noindex">
     <link rel="icon" href="/static/img/dequa_logo_v2.png">
+    <link rel="stylesheet" href="/static/css/leaflet.css">
+    <link rel="stylesheet" href="/static/css/L.Control.Locate.min.css">
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="/static/js/leaflet.js"></script>
+    <script src="/static/js/L.Control.Locate.min.js"></script>
+    <!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
+    <script src="/static/js/leaflet-providers.js"></script>
     <title>DeQua Feedback</title>
     <!-- Bootstrap core CSS -->
 		<link href="/static/css/bootstrap.css" rel="stylesheet">
@@ -26,19 +34,45 @@
 				</div>
 			</div>
 
-			<div class="feedbacks" id="feedback_container">
+      <div class="feedbacks" id="feedback_container">
         <div class="row" id="feedback_row">
-          <div class="col-3 fb-col" id="left_col">
-          </div>
-          <div class="col-9 fb-col" id="right_col">
+          <div class="col-md-3 fb-col" id="left_col"></div>
+          <div class="col-md-5" id="map_feedback" style='width:100%; height:30em;'>asdas</div>
+          <div class="col-md-4 fb-col" id="right_col"></div>
         </div>
-			</div><!-- END OF FEEDBACK CONTAINER -->
+      </div>
+
+      <script>
+        var fb_map = L.map('map_feedback').setView([45.435, 12.333], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					minZoom: 10,
+					maxZoom: 19,
+					minNativeZoom: 10,
+					maxNativeZoom: 19,
+					zoomControl: false,
+					attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+				}).addTo(fb_map);
+      </script>
 		</div><!-- END OF BIG CONTAINER (whole page) -->
 
 	</body>
   <script>
     var fb_names = feedback_dict_in_JS.fb_names;
     var fb_contents = feedback_dict_in_JS.fb_contents;
+    var fb_dicts = feedback_dict_in_JS.fb_dicts;
+    var pathLines = L.geoJSON([],{
+      filter: function(feature) {
+        // draw only lines!
+        return feature.geometry.type == "LineString";
+      },
+      style: function(feature) {
+        switch (feature.properties.street_type) {
+          case 'canale': return {color: "#0000ff"};
+          case 'ponte':  return {color: "#ffff00"};
+          case 'calle':  return {color: "#ff0000"};
+        }
+      }
+    });
     for (i=0; i<fb_names.length; i++) (function(i){
       var div_left_col = document.createElement("div");
       var div_right_col = document.createElement("div");
@@ -48,9 +82,13 @@
       div_container.id = "fb_content" + i; // we need id to toggle the visibility (or at least I think)
       div_container.style.display = "none";
       var item_text = document.createElement("div");
-      item_text.innerHTML = fb_contents[i];
+      item_text.innerHTML = "<h3>" + fb_dicts[i]['title'] + "</h3>" + "<br> infos: " + fb_dicts[i]['infos'] + "<br> json: " + fb_dicts[i]['json_to_be_drawn'];
 
-
+      // prepara i json
+      var lines = fb_dicts[i]['json_to_be_drawn'];
+      console.log('lines:' + lines);
+      div_container.json_lines = lines;
+      console.log('container attribute ' + div_container.json_lines);
       // the content of the file is a hidden div that
       var list_item = document.createElement("div");
       list_item.classList.add("fb_name");
@@ -98,7 +136,12 @@
         console.log("coloring the list " + el_id);
         document.getElementById(list_id).style.color = "blue";
       }
-
+      pathLines.clearLayers();
+      // draw the lines
+      var lines = document.getElementById(el_id).json_lines.path.shape_list;
+      pathLines.addData(lines);
+    	pathLines.addTo(fb_map);
+      fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
     }
   </script>
   <script>
