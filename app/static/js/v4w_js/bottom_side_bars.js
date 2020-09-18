@@ -18,11 +18,12 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		all_possibilities_div.setAttribute('style', 'height:100%;');
 	}
 	for (i = 0; i < possibilities.length; i++) {
-		cur_result_name = get_icon() + " " + possibilities[i].nome;
+		var description_dict = possibilities[i].descrizione;
+		cur_result_name = get_icon(description_dict) + " " + possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
 		// cur_result_description e un dizionario con tante informazioni:
 		// da quello creiamo una string fatta bene
-    cur_result_description = get_description_as_string(possibilities[i].descrizione);
+    cur_result_description = get_description_as_string(description_dict);
 
 
 		card_col = document.createElement('div');
@@ -133,42 +134,110 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 }
 
 function get_description_as_string(description_dict) {
+	description_string = 'sconosciuto';
 	if (description_dict['modelName'] == 'Poi'){
-			console.log('I m showing a Poi')
-			known_type = translate_type(description_dict['type'])
-			description_string = description_dict['address'] +<br> known_type
-		}
+			console.log('I m showing a Poi');
+			known_type = translate_type(description_dict['type']);
+			description_string = known_type + '<br><small><i>' + description_dict['address'] + '</i></small>';
+	}
 	else if (description_dict['modelName'] == 'Location') {
-			console.log('I m showing a Location')
-			description_string = description_dict['address']
-		}
-	return description_string
+			console.log('I m showing a Location');
+			description_string = description_dict['address'];
+	}
+	else if (description_dict['modelName'] == 'Neighborhood') {
+			description_string = 'Sestiere';
+	}
+	else if (description_dict['modelName'] == 'Area') {
+			description_string = 'Zona';
+	}
+	else if (description_dict['modelName'] == 'Street') {
+			description_string = 'Campo o Calle';
+	}
+	return description_string;
 }
 
-function translate_type(description_dict['type']){
-
-
+function translate_type(unformatted_type){
+	var string_input = String(unformatted_type);
+	var descr = 'indefinito';
+	console.log('unformatted_type: ' + unformatted_type);
+	if (string_input.includes("ferry")) {
+		descr = 'fermata del battello';
+	}
+	else if (string_input.includes('pharmacy')) {
+		descr = 'farmacia';
+	}
+	else if (string_input.includes('restaurant')) {
+		descr = 'ristorante';
+	}
+	else if (string_input.includes('bank')) {
+		descr = 'banca';
+	}
+	else if (string_input.includes('bar')) {
+		descr = 'bar';
+	}
+	else if (string_input.includes('kebab')) {
+		descr = 'kebab';
+	}
+	else if (string_input.includes('pub')) {
+		descr = 'pub';
+	}
+	else if (string_input.includes('osteria')) {
+		descr = 'osteria';
+	}
+	else if (string_input.includes('ice_cream')) {
+		descr = 'gelateria';
+	}
+	else if (string_input.includes('cafe')) {
+		descr = 'caffe-bar';
+	}
+	else if (string_input.includes('place_of_worship') || string_input.includes('church')) {
+		descr = 'chiesa';
+	}
+	return descr;
 }
 
 // dalla descrizione del nome scegliamo un'icona appropriata
 function get_icon(description_dict){
+	console.log('choosing icon for a result of the type: ' + description_dict['modelName']);
 	icon = '<i class="fa fa-map-marker" aria-hidden="true"></i>'; // il default marker
-	if (description_dict['modelName'] == 'Location') {
+	/*if (description_dict['modelName'] == 'Location') {
 		icon = '<i class="fa fa-map-pin" aria-hidden="true"></i>';
-	}
-	else if (description_dict['modelName'] == 'Street') {
+	}*/
+	if (description_dict['modelName'] == 'Street') {
 		icon = '<i class="fa fa-road" aria-hidden="true"></i>';
 	}
-	else if (description_dict['modelName'] == 'Area' or description_dict['modelName'] == 'Neighborhood') {
+	else if ((description_dict['modelName'] == 'Area') || (description_dict['modelName'] == 'Neighborhood')) {
 		icon = '<i class="fa fa-map-o" aria-hidden="true"></i>';
 	}
-	else if (description_dict['modelName'] == 'POI') {
-		if (description_dict['type'][0] == '') {
-
-
+	else if (description_dict['modelName'] == 'Poi') {
+		var descr = translate_type(description_dict['type'][0]);
+		console.log('choosing icon for ' + descr);
+		if (descr == 'fermata del battello') {
+			icon = '<svg width="21" height="23" viewBox="0 0 21 23" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.0013 2.64151V3.64151H9.00132V2.64151H11.0013ZM10.0013 9.75151L15.3813 11.5215L17.7713 12.3015L16.6513 16.2715C16.1113 15.9715 15.7113 15.5615 15.5113 15.3315L14.0013 13.6015L12.4913 15.3215C12.1513 15.7215 11.2113 16.6415 10.0013 16.6415C8.79132 16.6415 7.85133 15.7215 7.51133 15.3215L6.00133 13.6015L4.49132 15.3215C4.29133 15.5515 3.89132 15.9515 3.35132 16.2515L2.22132 12.2915L4.62133 11.5015L10.0013 9.75151ZM13.0013 0.64151H7.00133V3.64151H4.00133C2.90133 3.64151 2.00132 4.54151 2.00132 5.64151V10.2615L0.711325 10.6815C0.583079 10.7209 0.463997 10.7855 0.361074 10.8716C0.25815 10.9576 0.173459 11.0634 0.111975 11.1826C0.0504916 11.3019 0.0134544 11.4322 0.00303922 11.5659C-0.00737601 11.6997 0.00904062 11.8342 0.0513249 11.9615L1.95133 18.6415H2.00132C3.60133 18.6415 5.02133 17.7615 6.00133 16.6415C6.98133 17.7615 8.40132 18.6415 10.0013 18.6415C11.6013 18.6415 13.0213 17.7615 14.0013 16.6415C14.9813 17.7615 16.4013 18.6415 18.0013 18.6415H18.0513L19.9413 11.9615C20.0213 11.7015 20.0013 11.4215 19.8813 11.1815C19.7613 10.9415 19.5413 10.7615 19.2813 10.6815L18.0013 10.2615V5.64151C18.0013 4.54151 17.1013 3.64151 16.0013 3.64151H13.0013V0.64151ZM4.00133 9.61151V5.64151H16.0013V9.61151L10.0013 7.64151L4.00133 9.61151ZM14.0013 19.3215C12.7813 20.1715 11.3913 20.6015 10.0013 20.6015C8.61132 20.6015 7.22132 20.1715 6.00133 19.3215C4.78133 20.1715 3.39132 20.6415 2.00132 20.6415H0.00132499V22.6415H2.00132C3.38132 22.6415 4.74133 22.2915 6.00133 21.6515C7.26132 22.2915 8.63132 22.6215 10.0013 22.6215C11.3713 22.6215 12.7413 22.3015 14.0013 21.6515C15.2613 22.3015 16.6213 22.6415 18.0013 22.6415H20.0013V20.6415H18.0013C16.6113 20.6415 15.2213 20.1715 14.0013 19.3215Z" fill="#4A4A4A"/></svg>';
+		}
+		else if (descr == 'farmacia') {
+			icon = '<i class="fa fa-plus" aria-hidden="true"></i>';
+		}
+		else if (descr == 'ristorante') {
 			icon = '<i class="fas fa-utensils"></i>'; // ristorante
+		}
+		else if (descr == 'pizzeria') {
 			icon = '<i class="fas fa-pizza-slice"></i>'; //pizzeria
+		}
+		else if (descr == 'gelateria') {
+			icon = '<i class="fa fa-cutlery" aria-hidden="true"></i>';
+		}
+		else if (descr == 'bar') {
+			icon = '<i class="fa fa-beer" aria-hidden="true"></i>';
+		}
+		else if (descr == 'negozio') {
 			icon = '<i class="fas fa-shopping-bag"></i>'; //negozio
+		}
+		else if (descr == 'caffe-bar') {
+			icon = '<i class="fa fa-coffee" aria-hidden="true"></i>';
+		}
+		else if (descr == 'chiesa') {
+			icon = '<i class="fa fa-home" aria-hidden="true"></i>';
 		}
 	}
 
