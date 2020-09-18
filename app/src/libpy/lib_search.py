@@ -362,9 +362,12 @@ def find_address_in_db(input_string):
     else:
         for address, score in zip(address_list,score_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
-            geo_type, coordinates, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
+
+            # address ritornato da fetch_coordinates e' l'elemento del database di location
+            # quindi e' voluto che venga sostituito, in modo che poi nel dizionario abbiamo le infomazioni.
+            geo_type, coordinates, polygon_shape, address = fetch_coordinates(address, number, isThereaCivico)
             if geo_type>=0:
-                nome=str(address)+ " " + str(number)
+                nome=str(address) # address sostitutio ha gia il numero, non serve piu aggiungerlo!
                 # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
                 # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
                 # shape = transform(lambda x,y:(y,x), shape)
@@ -472,8 +475,11 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         polygon_shape = None
 
     print("print del fetch", geo_type, coords, polygon_shape)
-    # return geo_type, coords, polygon_shape_as_list, polygon_shape
-    return geo_type, coords, polygon_shape
+    # coords e' solo le coordinate di actual location che e' l'elemento del DATABASE
+    # ora ci serve actual_location per le info, descrizione e ID
+    # coords non ci serve piu mi sa perche si puo sempre ricavare da actual_location
+    # TODO: BETA
+    return geo_type, coords, polygon_shape, actual_location
 
 """
 da gestire piu poligoni, piu centroidi, multipoligoni e alieni

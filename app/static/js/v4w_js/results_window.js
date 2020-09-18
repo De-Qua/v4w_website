@@ -89,8 +89,9 @@ function fillResultsWindow(dictJS) {
 }
 
 function fillResultsWindowSingleAddress(dictJS) {
-	var name_location = dictJS.partenza[0].nome;
-	document.getElementById("found_text").innerHTML = "<i>"+name_location+"</i>";
+	var description_dict = dictJS.partenza[0].descrizione;
+	console.log("trying to show single address information")
+	document.getElementById("found_text").innerHTML = get_icon(description_dict) + " " + dictJS.partenza[0].nome + "<br><i>" + get_description_as_string(description_dict) + "</i>";
 	// per il momento non lo scriviamo (14.09) - da migliorare
 	/*
 	switch (dict_in_JS.partenza[0].geotype) {

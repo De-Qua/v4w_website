@@ -68,15 +68,15 @@ class Location(db.Model):
     # cosa ritorniamo da __str__
     def __str__(self):
         if self.housenumber and self.street:
-            return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+            return "{neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
         else:
             return "({neighborhood}) {lat},{lon}".format(neighborhood=self.neighborhood.name,lat=self.latitude,lon=self.longitude)
     def get_description(self):
         try:
             if self.housenumber:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name)
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
             else:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name)
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
         except:
             return self.__repr__()
 """
@@ -137,7 +137,7 @@ class Street(db.Model):
     def get_description(self):
         try:
             all_neighb = [n.name for n in self.neighborhoods.all()]
-            return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
+            return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb, zipcode=self.neighborhood.zipcode)
             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
         except:
             return self.__repr__()
