@@ -265,16 +265,19 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     min_number_of_rive = 10
     name_of_rive_as_poi = "vincolo"
 
-    # questo blocco non distingue tra partenza e arrivo, potrebbe anche andare bene, aggiungendo un flag che blocchi la ricerca successiva della riva vicina e setti come riva_start e riva_stop il nodo acqueo piu vicino. Altrimenti bisogna creare un sistema che capisca quale delle due è troppo distante da un nodo terrestre, attivi 2 flag diversi e nei due casi imposti il nodo acqueo più vicino.
+    # questo blocco non distingue tra partenza e arrivo, potrebbe anche andare bene,
+    # aggiungendo un flag che blocchi la ricerca successiva della riva vicina e setti come riva_start e riva_stop il nodo acqueo piu vicino.
+    # Altrimenti bisogna creare un sistema che capisca quale delle due è troppo distante da un nodo terrestre,
+    # attivi 2 flag diversi e nei due casi imposti il nodo acqueo più vicino.
     try:
-        [start_coord] = lib_search.find_closest_nodes([match_dicts_list[0]], G_terra_array, 20)
+        [start_coord] = lib_search.find_closest_nodes([match_dicts_list[0]], G_terra_array, global_variables.min_dist_to_go_by_boat)
         start_from_water = False or start_from_water
     except:
         app.logger.info('start_coord is far from land nodes')
         start_coord = match_dicts_list[0]['coordinate']
         start_from_water = True
     try:
-        [stop_coord] = lib_search.find_closest_nodes([match_dicts_list[1]], G_terra_array, 20)
+        [stop_coord] = lib_search.find_closest_nodes([match_dicts_list[1]], G_terra_array, global_variables.min_dist_to_go_by_boat)
         end_to_water = False or end_to_water
     except:
         app.logger.info('stop_coord is far from land nodes')
@@ -326,7 +329,7 @@ def by_foot_path_calculator(match_dicts_list, f_ponti):
     app.logger.info("andiamo a piedi..")
     G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
     t0=time.perf_counter()
-    [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array)
+    [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array, global_variables.min_dist_to_suggest_boat)
     app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
     t2=time.perf_counter()
     streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed)

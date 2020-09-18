@@ -286,14 +286,15 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
             speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             edge_info_dict['vel_max'] = edge_attuale['vel_max']
             edge_info_dict['solo_remi'] = edge_attuale['solo_remi']
+            edge_info_dict['larghezza'] = edge_attuale['larghezza']
             altezza = np.minimum(altezza, edge_attuale['altezza'])
             # prendiamo informazioni sulle ordinanze in modo da creare un warning
         else:
             speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
-            accessibleLevel = edge_attuale['accessible']
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
+                accessibleLevel = edge_attuale['accessible']
                 if not last_edge_was_a_bridge:
                     tot_ponti += 1
                     tot_ponti_accessible[accessibleLevel] += 1
