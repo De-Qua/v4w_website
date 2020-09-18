@@ -13,7 +13,7 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint
 from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
-
+import pdb
 # # TODO: FUTUREWARNING
 # .format is deprecated
 # dovremmo cambiare a
@@ -74,9 +74,9 @@ class Location(db.Model):
     def get_description(self):
         try:
             if self.housenumber:
-                return "({street}) {neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name)
             else:
-                return "{street} ({neighborhood})".format(street=self.street.name,neighborhood=self.neighborhood.name)
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name)
         except:
             return self.__repr__()
 """
@@ -96,7 +96,7 @@ class Area(db.Model):
     def __str__(self):
         return self.name
     def get_description(self):
-        return self.name
+        return fillDictionary(modelName='Area', id=self.id, name=self.name)
 """
 Strade intere (senza numeri)
 Hanno:
@@ -137,7 +137,8 @@ class Street(db.Model):
     def get_description(self):
         try:
             all_neighb = [n.name for n in self.neighborhoods.all()]
-            return "{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
+            return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
+            #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
         except:
             return self.__repr__()
 """
@@ -160,7 +161,8 @@ class Neighborhood(db.Model):
     def __str__(self):
         return self.name
     def get_description(self):
-        return "{name} {zipcode}".format(name=self.name,zipcode=self.zipcode)
+        return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
+
 
 """
 POI = Punti di Interesse
@@ -197,10 +199,11 @@ class Poi(db.Model):
             self.types.remove(type)
     def is_type(self,type):
         return self.types.filter(poi_types.c.type_id==type.id).count() > 0
+
     def get_description(self):
         try:
-            return "{name}<br>Address: {address}<br>Type: {types})".format(
-            name=self.name, address=self.location, types=', '.join([t.__str__() for t in self.types.all()]))
+            types=[t.__str__() for t in self.types.all()]
+            return fillDictionary(modelName='Poi', id=self.id, name=self.name, type=types, address="{}".format(self.location))
         except:
             return self.__repr__()
     def __repr__(self):
@@ -240,6 +243,25 @@ class PoiCategoryType(db.Model):
     def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
+
+
+
+def fillDictionary(**kwargs):
+    dict_description = {
+        'modelName': '', # nome della tabella
+        'id': '',
+        'name': '',
+        'neighborhood':[],
+        'address': '',
+        'housenumber':'',
+        'type':[],
+        'zipcode':''
+    }
+    #pdb.set_trace()
+    for key, value in kwargs.items():
+        if key in dict_description.keys():
+            dict_description[key] = value
+    return dict_description
 
 ###
 # MODELS FOR USERS

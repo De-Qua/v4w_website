@@ -18,9 +18,13 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		all_possibilities_div.setAttribute('style', 'height:100%;');
 	}
 	for (i = 0; i < possibilities.length; i++) {
-		cur_result_name = possibilities[i].nome;
+		cur_result_name = get_icon() + " " + possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
-    cur_result_description = possibilities[i].descrizione;
+		// cur_result_description e un dizionario con tante informazioni:
+		// da quello creiamo una string fatta bene
+    cur_result_description = get_description_as_string(possibilities[i].descrizione);
+
+
 		card_col = document.createElement('div');
 		if (areWeUsingBottomBar()){
 			card_col.setAttribute('class', 'col-5');
@@ -36,7 +40,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
     card.name = cur_result_name;
-    card.description = cur_result_description;
+    card.description = cur_result_description
 
 		card_header = document.createElement('div');
 		card_header.setAttribute('class','card-header');
@@ -47,8 +51,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		//card_header.onclick = function() {stopPropagation();};
 		card_body = document.createElement('div');
 		card_body.setAttribute('class','card-body');
-		card_body.innerHTML = '<h6 class="card-subtitle text-muted">Descrizione:</h6>'
-													+ '<p class="card-text">'+cur_result_description+'</p>';
+		card_body.innerHTML = '<p class="card-text">'+cur_result_description+'</p>';
 		if (isTouchDevice){
 			card.onclick = function () {
 				if (activeCard == this){
@@ -127,6 +130,49 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	}
 
 	showSidebar();
+}
+
+function get_description_as_string(description_dict) {
+	if (description_dict['modelName'] == 'Poi'){
+			console.log('I m showing a Poi')
+			known_type = translate_type(description_dict['type'])
+			description_string = description_dict['address'] +<br> known_type
+		}
+	else if (description_dict['modelName'] == 'Location') {
+			console.log('I m showing a Location')
+			description_string = description_dict['address']
+		}
+	return description_string
+}
+
+function translate_type(description_dict['type']){
+
+
+}
+
+// dalla descrizione del nome scegliamo un'icona appropriata
+function get_icon(description_dict){
+	icon = '<i class="fa fa-map-marker" aria-hidden="true"></i>'; // il default marker
+	if (description_dict['modelName'] == 'Location') {
+		icon = '<i class="fa fa-map-pin" aria-hidden="true"></i>';
+	}
+	else if (description_dict['modelName'] == 'Street') {
+		icon = '<i class="fa fa-road" aria-hidden="true"></i>';
+	}
+	else if (description_dict['modelName'] == 'Area' or description_dict['modelName'] == 'Neighborhood') {
+		icon = '<i class="fa fa-map-o" aria-hidden="true"></i>';
+	}
+	else if (description_dict['modelName'] == 'POI') {
+		if (description_dict['type'][0] == '') {
+
+
+			icon = '<i class="fas fa-utensils"></i>'; // ristorante
+			icon = '<i class="fas fa-pizza-slice"></i>'; //pizzeria
+			icon = '<i class="fas fa-shopping-bag"></i>'; //negozio
+		}
+	}
+
+	return icon
 }
 
 function fillForm(element) {
