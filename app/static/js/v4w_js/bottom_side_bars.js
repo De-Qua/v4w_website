@@ -135,7 +135,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 }
 
 function get_description_as_string(description_dict) {
-	description_string = 'sconosciuto';
+	description_string = 'località';
 	if (description_dict['modelName'] == 'Poi'){
 			console.log('I m showing a Poi');
 			known_type = translate_type(description_dict['type']);
