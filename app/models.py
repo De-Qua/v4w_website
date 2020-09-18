@@ -135,12 +135,12 @@ class Street(db.Model):
     def __str__(self):
         return self.name
     def get_description(self):
-        try:
-            all_neighb = [n.name for n in self.neighborhoods.all()]
-            return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb, zipcode=self.neighborhood.zipcode)
+#        try:
+        all_neighb = [n.name for n in self.neighborhoods.all()]
+        return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
-        except:
-            return self.__repr__()
+#        except:
+#            return self.__repr__()
 """
 Sestieri:
  - name: nome del sestiere (consideriamo anche Sant'Elena e le isole)
