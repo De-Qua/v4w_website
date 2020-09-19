@@ -354,6 +354,8 @@
 								<script>
 								$('#ricerca_ind').submit(function(e){
 								    e.preventDefault();
+										$("#search_field_1").blur();
+										$("#search_field_2").blur();
 								    $.ajax({
 								        url: '/update_results',
 								        type: 'get',
