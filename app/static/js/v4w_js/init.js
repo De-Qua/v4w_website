@@ -202,7 +202,7 @@ function initialize_html(){
       // }).addTo(mymap);
       addPathLines(path_shapes);
       // linestrings.addTo(group);
-      if (is_keyboard){
+      if (is_touch_device){
         mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
       }
       else{
