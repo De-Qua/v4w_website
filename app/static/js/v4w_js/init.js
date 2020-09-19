@@ -203,7 +203,7 @@ function initialize_html(){
       addPathLines(path_shapes);
       // linestrings.addTo(group);
       if (is_touch_device){
-        mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [10, 50], paddingBottomRight: [10,50]});
+        mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [10, 60], paddingBottomRight: [10,60]});
       }
       else{
 	       mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
