@@ -202,7 +202,12 @@ function initialize_html(){
       // }).addTo(mymap);
       addPathLines(path_shapes);
       // linestrings.addTo(group);
-	    mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
+      if (is_touch_device){
+        mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [10, 200], paddingBottomRight: [20,10]});
+      }
+      else{
+	       mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [300, 10], paddingBottomRight: [10,10]});
+      }
       // javascript way to call a method in the for loop
       //streets.forEach(drawStreet());
       //alert('YET TO BE DONE');
