@@ -1,52 +1,57 @@
 <!DOCTYPE html>
 <html>
-<title>De Qua</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+	<title>De Qua</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- we should think about SEO, keywords, descriptions, ecc... -->
-<meta name="description" content="Find your way through Venice - Trova la tua strada a Venezia">
-<!-- penso che ora non venga più usata la tag keyword -->
-<meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
-<!-- autori -->
-<meta name="author" content="Dequa">
-<link rel="stylesheet" href="/static/css/bootstrap.min.css">
-<!-- <link rel="stylesheet" href="/static/css/owl.carousel.min.css">
-<link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
-<link rel="stylesheet" href="/static/css/w3s.css">
-<link rel="stylesheet" href="/static/css/s.css">
-<link rel="stylesheet" href="/static/css/easy-button.css">
-<link rel="stylesheet" href="/static/css/MarkerCluster.css">
-<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
-<link rel="icon" href="/static/img/dequa_logo_v2.png">
+	<!-- we should think about SEO, keywords, descriptions, ecc... -->
+	<meta name="description" content="Find your way through Venice - Trova la tua strada a Venezia">
+	<!-- penso che ora non venga più usata la tag keyword -->
+	<meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
+	<!-- autori -->
+	<meta name="author" content="Dequa">
+	<!-- Metadati per preview -->
+	<meta property="og:title" content="DeQua">
+	<meta property="og:description" content="Find your way through Venice - Trova la tua strada a Venezia">
+	<meta property="og:url" content="https://www.dequa.it">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+	<!-- <link rel="stylesheet" href="/static/css/owl.carousel.min.css">
+	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
+	<link rel="stylesheet" href="/static/css/w3s.css">
+	<link rel="stylesheet" href="/static/css/s.css">
+	<link rel="stylesheet" href="/static/css/easy-button.css">
+	<link rel="stylesheet" href="/static/css/MarkerCluster.css">
+	<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
+	<link rel="icon" href="/static/img/dequa_logo_v2.png">
 
-<link rel="stylesheet" href="/static/css/leaflet.css">
-<!-- Make sure you put this AFTER Leaflet's CSS -->
-<link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
-<!-- <script src="https://kit.fontawesome.com/c02ec4320e.js" crossorigin="anonymous"></script> -->
-<link rel="stylesheet" href="/static/css/L.Control.Locate.min.css">
+	<link rel="stylesheet" href="/static/css/leaflet.css">
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+	<link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
+	<!-- <script src="https://kit.fontawesome.com/c02ec4320e.js" crossorigin="anonymous"></script> -->
+	<link rel="stylesheet" href="/static/css/L.Control.Locate.min.css">
 
 
-<!-- Make sure you put this AFTER Leaflet's CSS -->
-<script src="/static/js/leaflet.js"></script>
-<script src="/static/js/L.Control.Locate.min.js"></script>
-<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
-<script src="/static/js/leaflet-providers.js"></script>
-<!-- Our own (little) javascript library. -->
-<script src="/static/js/v4w_js/feedback.js"></script>
-<script src="/static/js/v4w_js/manage_user_input.js"></script>
-<script src="/static/js/v4w_js/bottom_side_bars.js"></script>
-<script src="/static/js/v4w_js/map_objects.js"></script>
-<script src="/static/js/v4w_js/results_window.js"></script>
-<script src="/static/js/v4w_js/init.js"></script>
-<!-- BOOTSTARP -->
-<script src="/static/js/jquery-3.5.1.min.js"></script>
-<script src="/static/js/bootstrap.bundle.min.js"> </script>
-<!--<script src="/static/js/owl.carousel.min.js"></script>-->
-<script src="/static/js/easy-button.js"></script>
-<script src="/static/js/leaflet.markercluster.js"></script>
-<script src="/static/js/leaflet-color-markers.js"></script>
-
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+	<script src="/static/js/leaflet.js"></script>
+	<script src="/static/js/L.Control.Locate.min.js"></script>
+	<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
+	<script src="/static/js/leaflet-providers.js"></script>
+	<!-- Our own (little) javascript library. -->
+	<script src="/static/js/v4w_js/feedback.js"></script>
+	<script src="/static/js/v4w_js/manage_user_input.js"></script>
+	<script src="/static/js/v4w_js/bottom_side_bars.js"></script>
+	<script src="/static/js/v4w_js/map_objects.js"></script>
+	<script src="/static/js/v4w_js/results_window.js"></script>
+	<script src="/static/js/v4w_js/init.js"></script>
+	<!-- BOOTSTARP -->
+	<script src="/static/js/jquery-3.5.1.min.js"></script>
+	<script src="/static/js/bootstrap.bundle.min.js"> </script>
+	<!--<script src="/static/js/owl.carousel.min.js"></script>-->
+	<script src="/static/js/easy-button.js"></script>
+	<script src="/static/js/leaflet.markercluster.js"></script>
+	<script src="/static/js/leaflet-color-markers.js"></script>
+</head>
 <body>
 	<!-- Initialize popover -->
 	<script>
