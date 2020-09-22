@@ -29,7 +29,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 
 		card_col = document.createElement('div');
 		if (areWeUsingBottomBar()){
-			card_col.setAttribute('class', 'col-5');
+			card_col.setAttribute('class', 'col-7');
 		}
 		card = document.createElement('div');
 
