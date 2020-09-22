@@ -158,9 +158,9 @@ def asynch_navigation():
                             "traceback": traceback.format_exc()}
         app.logger.info("error: {}".format(traceback.format_exc()))
         # in case of error, reload the page
-        return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
+        #return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
 
-        #return jsonify(dictionary_of_err)
+        return jsonify(dictionary_of_err)
 
 
 @app.route('/degoogling', methods=['GET', 'POST'])
