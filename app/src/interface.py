@@ -285,14 +285,16 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
         end_to_water = True
         #per tutti gli accessi all'acqua
     if not start_from_water:
-
+        # classico vecchio - strada fino alla riva, poi strada in barca
         rive_vicine_start, how_many_start = lib_search.find_POI(min_number_of_rive, start_coord, name_of_rive_as_poi)
         app.logger.info("rive vicine alla partenza: {}".format(how_many_start))
         rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
 
         rive_start_nodes_list = lib_search.find_closest_nodes(rive_start_list, G_terra_array)
         geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(global_variables.G_terra, start_coord, rive_start_nodes_list,f_ponti)
-    else:
+    if start_from_water or riva_start==-1:
+        # usiamo le coordinate come riva di Partenza
+        # che poi viene collegato all'arco piu vicino nel grafo acqueo
         riva_start = tuple(start_coord)
         geojson_path_from_land_to_water = None
         #    rive_vicine_stop=Poi.query.join(poi_types).join(PoiCategoryType).join(PoiCategory).filter_by(name="vincolo").join(Location).filter(and_(db.between(Location.longitude,stop_coord[0]-proximity[0],stop_coord[0]+proximity[0]),db.between(Location.latitude,stop_coord[1]-proximity[1],stop_coord[1]+proximity[1]))).all()
@@ -304,7 +306,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
         rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
         # ritorna la strada con properties e la riva scelta!
         geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(global_variables.G_terra, stop_coord, rive_stop_nodes_list,f_ponti)
-    else:
+    if end_to_water or riva_stop==-1:
         riva_stop = tuple(stop_coord)
         geojson_path_from_water_to_land = None
     #print("riva stop", riva_stop)

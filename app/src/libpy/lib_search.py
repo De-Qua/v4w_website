@@ -236,6 +236,8 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
     """
     length_paths=[]
     paths=[]
+    if not rive_list:
+        app.logger.debug("nessuna riva trovata, non posso findare nessuna path")
     for riva in rive_list:
         try:
             path, length = lib_graph.calculate_path_wkt(G_un, coords_start, riva, lib_graph.weight_bridge)
@@ -243,6 +245,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
             paths.append(path)
             #     print("percorso calcolato per questa riva: ", bool(path) )
         except:
+            app.logger.debug("errore nel calculate path")
             continue
 
     if paths:
@@ -257,6 +260,7 @@ def find_path_to_closest_riva(G_un, coords_start, rive_list,flag_ponti=True):
         path_info = lib_graph.give_me_the_street(G_un, coords_start, chosen_riva, flag_ponti)
     else:
         app.logger.debug("le rive vicine non sono raggiungibili")
+        app.logger.debug("probabilmente sei in un punto speciale in cui le rive sono distanti e non c'e nessuna riva raggiungibile a piedi (es. Murano e rive a Venezia)")
         chosen_riva=-1
         path_info={'lunghezza':0,
                    'human_readable_length':0,

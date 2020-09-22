@@ -126,13 +126,13 @@ def connect_land_to_water(graph, node_and_dists_dict, coord_riva):
     return [(node_and_dists_dict['first_node'], coord_riva), (node_and_dists_dict['second_node'], coord_riva)]
 
 def create_edge(graph, first_node, last_node, length=0, linestring=None, vel_max=20, vel_max_mp=20, solo_remi=0,
-larghezza=10, altezza=1000, senso_unico=None, h_su_start=0,h_su_end=24, h_closed_start=None, h_closed_end=None, nome=""):
+larghezza=10, altezza=1000, senso_unico=None, h_su_start=0, h_su_end=24, dt_start=24, dt_end=24, h_closed_start=None, h_closed_end=None, nome=""):
     """
     """
     graph.add_edge(first_node, last_node)
     attrs_edge = {(first_node, last_node): {'length':length, 'Wkt':linestring, 'vel_max':vel_max, 'solo_remi':solo_remi,
         'larghezza':larghezza, 'senso_unic':senso_unico,'h_su_start':h_su_start,'h_su_end':h_su_end,
-        'h_closed_start':h_closed_start, 'h_closed_end':h_closed_end, 'nome':nome, 'altezza':altezza}}
+        'h_closed_start':h_closed_start, 'h_closed_end':h_closed_end, 'nome':nome, 'altezza':altezza, 'dt_start':dt_start, 'dt_end':dt_end}}
     nt.set_edge_attributes(graph, attrs_edge)
 
 def dynamically_remove_edges(G,list_of_edges):
@@ -195,8 +195,8 @@ def weight_motor_boat(x,y,dic):
     actual_hour=int(datetime.datetime.now().strftime("%H"))
     #if dic['altezza']<1000:
         #app.logger.info("Stai passando sotto un ponte alto {} metri".format(dic['altezza']))
-
-    if dic['senso_unic'] is not None and dic['h_su_start']<=actual_hour and dic['h_su_end']>actual_hour:
+    #if (dic['senso_unic'] is not None) and (dic['h_su_start']<=actual_hour<dic['h_su_end']):
+    if (dic['senso_unic'] is not None) and (dic['h_su_start'] <= actual_hour < dic['h_su_end']):
         verso=None
         line=mapping(shapely.wkt.loads(dic['Wkt']))
         first_point_in_linestring = line['coordinates'][0]
@@ -210,6 +210,8 @@ def weight_motor_boat(x,y,dic):
             #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
 #            pdb.set_trace()
             return None
+    if dic['dt_start'] <= actual_hour < dic['dt_end']:
+        return None
     if dic['solo_remi']:
         #app.logger.debug("le barche a motore non passano per {} !".format(dic))
         return None
