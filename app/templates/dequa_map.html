@@ -540,12 +540,16 @@
 										<img src="/static/img/dequa_logo_v2.png" style="width:12px;"></strong> in basso a destra. <br>
 										Se hai boresso, puoi anche segnalare il bug su <a href="https://github.com/Lychfindel/v4w_website/issues" target="_" class="alert-link">github <i class="fa fa-github"></i></a> aprendo una issue!
 									</p>-->
-								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<button type="button" class="close" data-hide="alert" aria-label="Close">
 									<span aria-hidden="true">&times;</span>
 								</button>
 							</div>
 							<script>
-								$("#close-errorwindow").click(closeErrorWindow());
+							$(function(){
+								$("[data-hide]").on("click", function(){
+									$(this).closest("." + $(this).attr("data-hide")).hide();
+								});
+							});
 							</script>
 							<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
 								Grazie per il feedback!
