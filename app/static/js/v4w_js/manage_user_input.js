@@ -74,6 +74,13 @@ function toggleXbuttons() {
 function clearField(field_id) {
   document.getElementById(field_id).value = '';
   console.log("cleared " + field_id + " field");
+  /* not working - ci serve?
+  if (document.getElementById(field_id).backgroundColor == 'red')
+  {
+    console.log("restoring white background for " + field_id + " field");
+    document.getElementById(field_id).backgroundColor = 'white';
+  }
+  */
   var button_id = field_id + "_x";
   hidefornowtheX(button_id);
 }

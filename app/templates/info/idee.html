@@ -12,6 +12,7 @@
 	<meta name="author" content="Dequa">
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
   <link rel="stylesheet" href="/static/css/s.css" >
+	<link rel="stylesheet" href="/static/css/dequa.css" >
   <link rel="stylesheet" href="/static/font-awesome-4.7.0/css/font-awesome.min.css">
 
   <link rel="icon" href="/static/img/dequa_logo_v2.png">
@@ -57,7 +58,124 @@
   <div class="text-container">
     <h1 style='text-align:center; margin-bottom:1.5em;'>Cosa bolle in pentola?</h1>
 
-    <p>Da fare..</p>
-    </div>
+    Abbiamo diverse idee che ci piacerebbe implementare, ma a volte è molto difficile capire la priorità e l'importanza di ciascuna di esse..<br>
+		Per questo cerchiamo di lavorare in maniera trasparente e ci affidiamo a voi, cercando di sviluppare un modello democratico per la scelta delle prossime idee da essere implementate.
+		In questa pagina trovi le principali direzioni in cui il nostro lavoro potrebbe svilupparsi.
+		Idealmente verranno fatte tutte, realisticamente i tempi e i modi in cui verranno fatte divergeranno.
+		L'idea di questa pagina è di dare la possibilità a tutti di esprimere i propri gusti o opinioni sulle idee a cui stiamo lavorando.
+		<br>
+		Per motivi tecnici dobbiamo limitare alcune libertà, e inizialmente la piattaforma ti consente di votare in maniera positiva o negativa una delle nostre idee.
+		Prossimamente è probabile che la piattaforma si evolva e vengano aggiunte nuove funzionalità come commenti o introduzione di idee proprie, per ora abbiamo deciso di partire con questo piccolo esperimento.
+		<br><br>
+		<h4>Cosa posso fare?</h4>
+		Leggi le idee e clicca sulla freccetta in alto se ti piace o sulla freccetta in basso se non ti piace.
+		Le idee che sono più votate avranno una priorità più alta in fase di sviluppo.
+
+		Al momento puoi votare più volte e non controlliamo quante.
+		Sinceramente non vediamo il motivo di controllare, ci affidiamo al vostro buon senso.
+		<br>
+
+		Grazie.
+		<br>
+		<br>
+
+		<div class="idee-container p-2">
+			<div class="row">
+				<div class="col-md-6 p-1"><!-- IDEA col -->
+					<div class="row dq-idea">
+						<div class="col-2 p-1">
+							<!-- freccette e punti -->
+							<button class="btn dq-btn-vote" onclick="upvote(acqua_alta_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
+							</svg></button>
+							<div class="vote_num pl-3" id="acqua_alta_num">0
+							</div>
+							<button class="btn dq-btn-vote" onclick="downvote(acqua_alta_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
+							</svg></button>
+						</div>
+						<div class="col-10 p-1">
+							<!-- idea's text -->
+							<h4>Acqua alta</h4>
+							asciutto
+						</div>
+					</div><!-- end row within a column -->
+				</div>
+				<div class="col-md-6 p-1"><!-- IDEA col -->
+					<div class="row dq-idea">
+						<div class="col-2 p-1">
+							<!-- freccette e punti -->
+							<button class="btn dq-btn-vote" onclick="upvote(trasporti_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
+							</svg></button>
+							<div class="vote_num pl-3" id="trasporti_num">0
+							</div>
+							<button class="btn dq-btn-vote" onclick="downvote(trasporti_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
+							</svg></button>
+						</div>
+						<div class="col-10 p-1">
+							<!-- idea's text -->
+							<h4>Mezzi pubblici</h4>
+							trasporti
+						</div>
+					</div><!-- end row within a column -->
+				</div>
+				<div class="col-md-6 p-1"><!-- IDEA col -->
+					<div class="row dq-idea">
+						<div class="col-2 p-1">
+							<!-- freccette e punti -->
+							<button class="btn dq-btn-vote" onclick="upvote(handicap_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
+							</svg></button>
+							<div class="vote_num pl-3" id="handicap_num">0
+							</div>
+							<button class="btn dq-btn-vote" onclick="downvote(handicap_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
+							</svg></button>
+						</div>
+						<div class="col-10 p-1">
+							<!-- idea's text -->
+							<h4>Accessibilità</h4>
+							percorsi alternativi
+						</div>
+					</div><!-- end row within a column -->
+				</div>
+				<div class="col-md-6 p-1"><!-- IDEA col -->
+					<div class="row dq-idea">
+						<div class="col-2 p-1">
+							<!-- freccette e punti -->
+							<button class="btn dq-btn-vote" onclick="upvote(boat_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
+							</svg></button>
+							<div class="vote_num pl-3" id="boat_num">0
+							</div>
+							<button class="btn dq-btn-vote" onclick="downvote(boat_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
+							</svg></button>
+						</div>
+						<div class="col-10 p-1">
+							<!-- idea's text -->
+							<h4>Personalizzazione Barca</h4>
+							scegli i tuoi parametri
+						</div>
+					</div><!-- end row within a column -->
+				</div>
+
+			</div><!-- end big row -->
+		</div><!-- end container idee -->
+
+		<br>
+		<p>Hai un'idea migliore? <a href="/contatti">Contattaci!</a>
+
+	</div><!-- big container -->
+	<script>
+	function upvote(div_with_num) {
+		div_with_num.innerHTML = Number(div_with_num.innerHTML) + 1;
+	}
+	function downvote(div_with_num) {
+		div_with_num.innerHTML = Number(div_with_num.innerHTML) - 1;
+	}
+	</script>
   </body>
 </html>
