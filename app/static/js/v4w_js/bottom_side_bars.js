@@ -15,7 +15,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	all_possibilities_div.setAttribute('id', 'all_possibilities');
 	if (areWeUsingBottomBar()){
 		all_possibilities_div.setAttribute('class', 'scrollable-wrapper row flex-row flex-nowrap');
-		all_possibilities_div.setAttribute('style', 'height:100%;');
+		all_possibilities_div.setAttribute('style', 'min-height:100%;');
 	}
 	for (i = 0; i < possibilities.length; i++) {
 		var description_dict = possibilities[i].descrizione;
