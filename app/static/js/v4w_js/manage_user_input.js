@@ -160,7 +160,7 @@ function copyEndingPosition(address_string) {
 }
 
 function copyMyPositionAsStart(map) {
-    map.locate().on('locationfound', function(e){
+    map.locate().once('locationfound', function(e){
 	marker_start.setLatLng(e.latlng);
 	marker_start.addTo(mymap);
 	document.getElementById('search_field_1').value = 'La Mia Posizione';
