@@ -91,6 +91,7 @@ t = TrackUsage(app,[track_datastore])
 from app import routes, errors, models
 from app.models import Users, Roles
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
+from app.models import FlaskUsage
 
 #
 # Users setup
@@ -103,8 +104,11 @@ security = Security(app, user_datastore)
 #
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
 
-from app.views import AdminModelView, StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+from app.views import AdminModelView, UsageModelView, StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
 
+
+
+admin.add_view(UsageModelView(FlaskUsage, db.session))
 admin.add_view(AdminModelView(Users, db.session))
 admin.add_view(StreetModelView(Street, db.session))
 admin.add_view(AreaModelView(Area, db.session))

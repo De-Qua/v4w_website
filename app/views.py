@@ -8,10 +8,13 @@ from flask_admin.contrib.sqla import ModelView
 class AdminModelView(ModelView):
     def is_accessible(self):
         return (current_user.is_active and current_user.is_authenticated)
-
     def _handle_view(self, name):
         if not self.is_accessible():
             return redirect(url_for('security.login'))
+
+class UsageModelView(AdminModelView):
+    def is_accessible(self):
+        return (current_user.has_role('admin'))
 
 class StreetModelView(AdminModelView):
     def is_accessible(self):

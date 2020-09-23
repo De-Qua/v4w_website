@@ -290,3 +290,29 @@ class Roles(db.Model, RoleMixin):
         return self.name
     def __hash__(self):
         return hash(self.name)
+
+###
+# FLASK USAGE
+###
+class FlaskUsage(db.Model):
+    __tablename__ = 'flask_usage'
+    __bind_key__ = 'trackusage'
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(128))
+    ua_browser = db.Column(db.String(16))
+    ua_language = db.Column(db.String(16))
+    ua_platform = db.Column(db.String(16))
+    ua_version = db.Column(db.String(16))
+    blueprint = db.Column(db.String(16))
+    view_args = db.Column(db.String(64))
+    status = db.Column(db.Integer)
+    remote_addr = db.Column(db.String(24))
+    xforwardedfor = db.Column(db.String(24))
+    authorization = db.Column(db.Boolean)
+    ip_info = db.Column(db.String(1024))
+    path = db.Column(db.String(32))
+    speed = db.Column(db.Float)
+    datetime = db.Column(db.DateTime)
+    username = db.Column(db.String(128))
+    track_var = db.Column(db.String(128))
