@@ -45,3 +45,4 @@ class PoiModelView(AdminModelView):
     column_editable_list = ['types', 'score', 'opening_hours', 'wheelchair', 'toilets',
                 'toilets_wheelchair', 'atm']
     column_exclude_list = ['osm_type', 'osm_id']
+    column_editable_list = ['name_alt', 'score']
