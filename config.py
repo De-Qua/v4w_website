@@ -1,6 +1,9 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
+    # Version
+    VERSION = '0.1.3'
+    # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \

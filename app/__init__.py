@@ -17,17 +17,18 @@ from flask_admin import Admin
 from flask_security import current_user
 # import flask_monitoringdashboard as dashboard
 
-# version of the software
-version = "0.1.1"
-def getCurrentVersion():
-    return version
-
 #
 # Create Flask app
 #
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# version of the software
+def getCurrentVersion():
+    return app.config.get('VERSION')
+    
+__version__ = getCurrentVersion()
 
 #
 # Email setup
