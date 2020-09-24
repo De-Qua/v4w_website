@@ -160,7 +160,6 @@ def take_care_of_the_error(request,err,error_folder):
     # save info in a md file
     with open(file_error_md,'w+') as f:
         f.write(mdfile)
-
     # send an email with the error
     # if app.debug:# if not app.debug:
     #     mail.send_email_to_ourself(subject="[ERROR] "+ str(err),html_body=mdfile)

@@ -21,6 +21,7 @@ import app.global_variables as global_variables
 
 # IMPORT OUR LIBRARIES
 from app.src.libpy import lib_graph
+from app import custom_errors
 
 def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", maxNumOfAttempts=10, searchTimeOut=2):
     """
@@ -155,7 +156,7 @@ def find_closest_nodes(dict_list,G_array, MIN_DIST_FOR_THE_CLOSEST_NODE=100):
         # se la distanza e troppo grande, salutiamo i campagnoli
         if closest_dist>MIN_DIST_FOR_THE_CLOSEST_NODE:
             app.logger.error("Sei troppo distante da Venezia, cosa ci fai là?? (il punto del grafo piu vicino dista {} metri)".format(closest_dist))
-            raise Exception("Non abbiamo trovato nulla qua - magari cercavi di andare fuori venezia?")
+            raise custom_errors.UserError("Non abbiamo trovato nulla qua - magari cercavi di andare fuori venezia o forse vorresti andare in barca?")
         nodes_list.append((G_array[closest_id][0], G_array[closest_id][1]))
 
     return nodes_list#, dists
@@ -362,7 +363,7 @@ def find_address_in_db(input_string):
     # dammi coordinate, del punto o del poligono
     if not address_list:
         app.logger.warning("Non abbiamo trovato nulla nel database!")
-        raise Exception("Non abbiamo trovato nessuna corrispondenza con {} sicuro di aver scritto bene?".format(input_string))
+        raise custom_errors.UserError("Non abbiamo trovato nessuna corrispondenza con {} sicuro di aver scritto bene?".format(input_string))
     else:
         for address, score in zip(address_list,score_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
@@ -399,7 +400,7 @@ def find_address_in_db(input_string):
 
         if not result_dict:
             app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
-            raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
+            raise custom_errors.UserError("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
         # once upon a time there was a sort_results! why? nobody knows
         app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
     return result_dict
@@ -544,7 +545,7 @@ def sort_results(res_list):
             new_res_list.append(res)
     if not new_res_list:
         app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))
-        raise Exception("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
+        raise custom_errors.UserError("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
     return new_res_list
 
 """

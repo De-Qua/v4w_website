@@ -132,9 +132,16 @@ function hideSecondSearchbar() {
   if ($("#search_field_1").val() == "") {
     swapDirections();
   }
-  // elimina contenuto seconda barra
-  $("#search_field_2").value("")
-  $("#hidden_end_coord").value("")
+  else {
+    // elimina contenuto seconda barra
+    console.log("second bar was full, we remove " + $("#search_field_2").val());
+    $("#search_field_2").val("");
+    //document.getElementById("search_field_2").value = "";
+    $("#hidden_end_coord").val("");
+    //document.getElementById("hidden_end_coord").value = "";
+    console.log("second bar was full, we removed and now is " + $("#search_field_2").val());
+  }
+
 	return false;
 }
 
@@ -160,7 +167,7 @@ function copyEndingPosition(address_string) {
 }
 
 function copyMyPositionAsStart(map) {
-    map.locate().once('locationfound', function(e){
+  map.locate().once('locationfound', function(e){
 	marker_start.setLatLng(e.latlng);
 	marker_start.addTo(mymap);
 	document.getElementById('search_field_1').value = 'La Mia Posizione';

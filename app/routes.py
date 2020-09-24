@@ -14,7 +14,7 @@ from app.src.libpy import lib_graph
 import traceback
 from flask import g
 import app.global_variables as global_variables
-
+from app import custom_errors
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
@@ -57,37 +57,44 @@ def index():
 # cos'e il t.include?
 
 # info sub-pages
+@t.include
 @app.route('/comesiusa', methods=['GET', 'POST'])
 def howto():
     app.logger.info('Come si usa page + 1')
     return render_template('info/comesiusa.html')
 
+@t.include
 @app.route('/howitsmade', methods=['GET', 'POST'])
 def howitsmade():
     app.logger.info('How its made page + 1')
     return render_template('info/howitsmade.html')
 
+@t.include
 @app.route('/idee', methods=['GET', 'POST'])
 def idea():
     app.logger.info('idea page + 1')
     return render_template('info/idee.html')
 
+@t.include
 @app.route('/chisiamo', methods=['GET', 'POST'])
 def aboutus():
     app.logger.info('aboutus page + 1')
     return render_template('info/aboutus.html')
 
+@t.include
 @app.route('/partecipare', methods=['GET', 'POST'])
 def participation():
     app.logger.info('participation page + 1')
     return render_template('info/partecipare.html')
 
+@t.include
 @app.route('/contatti', methods=['GET', 'POST'])
 def contact():
     app.logger.info('contact page + 1')
     return render_template('info/contatti.html')
 
 # feedback
+@t.include
 @app.route('/r2d2', methods=['GET', 'POST'])
 def feedback():
     app.logger.info('Pagina di feedback aperta')
@@ -128,6 +135,7 @@ def navigation():
         else:
             dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research)
             return render_template(html_file, form=form, results_dictionary=dictionary_of_stuff_found, feedbacksent=0)
+
     except Exception as e:
         interface.take_care_of_the_error(request, e, error_folder)
         dictionary_of_err = {"error": True,
@@ -135,8 +143,7 @@ def navigation():
                             "type": type(e).__name__,
                             "msg": str(e),
                             "traceback": traceback.format_exc()}
-        app.logger.info("error: {}".format(traceback.format_exc()))
-
+        #app.logger.info("error: {}".format(traceback.format_exc()))
         return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
 
 @t.include
