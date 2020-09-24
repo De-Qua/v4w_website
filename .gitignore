@@ -145,3 +145,4 @@ error/*
 trackusage.db
 users.db
 flask_monitoringdashboard.db
+dequa.db

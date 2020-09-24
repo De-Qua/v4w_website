@@ -597,24 +597,28 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
                 final_matches.append((m,s))
     else:
         # andrà implementata qui la ricerca nei poi, che fa un check delle corssipondenze con le keyword e fa la query invece di Poi.query.all() filtrando sui types di poi
+        dict_final_matches = {}
         tables_where_to_look = [Neighborhood, Street, Poi] #[Street, Poi, Neighborhood]
         for table in tables_where_to_look:
             matches_table = process.extractBests(word, table.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
             for m,s in matches_table:
-                final_matches.append((m,s))
-            if any([score>=threshold for match,score in final_matches]):
+                #final_matches.append((m,s))
+                dict_final_matches[m] = s
+            #if any([score>=threshold for match,score in final_matches]):
+            if any([score>=threshold for score in dict_final_matches.values()]):
                 break
-        # matches_street = process.extractBests(word,Street.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-        # for m,s in matches_street:
-        #     final_matches.append((m,s))
-        # if not any([score>=threshold for match,score in final_matches]):
-        #     matches_poi = process.extractBests(word,Poi.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-        #     for m,s in matches_poi:
-        #         final_matches.append((m,s))
-        # if not any([score>=threshold for match,score in final_matches]):
-        #     matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
-        #     for m,s in matches_neigh:
-        #         final_matches.append((m,s))
+            # search in alternative names
+            dict_alt_names = create_dict_alternative_names(table)
+            if dict_alt_names:
+                matches_table = process.extractBests(word, dict_alt_names, scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
+                for match_string,s,m in matches_table:
+                    #final_matches.append((m,s))
+                    if (m not in dict_final_matches.keys()) or dict_final_matches[m] < s:
+                        dict_final_matches[m] = s
+                #if any([score>=threshold for match,score in final_matches]):
+                if any([score>=threshold for score in dict_final_matches.values()]):
+                    break
+        final_matches = [(m,s) for m,s in dict_final_matches.items()]
     final_matches.sort(key=takeSecond, reverse=True)
     if any([score>=threshold for match,score in final_matches]):
         exact=True
@@ -625,6 +629,14 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
 
     return [match for match,score in final_matches], [score for match,score in final_matches], exact
 
+def create_dict_alternative_names(table_where_to_search):
+    if table_where_to_search == Street:
+        list_alt_name = [(s, s.name_alt) for s in Street.query.filter(Street.name_alt.isnot(None)).all()]
+        dict_alt_name = dict(list_alt_name)
+    else:
+        dict_alt_name = {}
+
+    return dict_alt_name
 # finto, per ora non serve a nulla
 # teoricamente puo essere utile, ma magari anche no
 def get_parameters():
