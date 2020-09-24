@@ -584,6 +584,7 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
 
     Troviamo la corrispondenza con fuzzy, estraggo l'indice, per poter estrarre il match e la provenienza
     """
+    #raise custom_errors.DeveloperError("fasullissimo")
     exact = False
     n_limit = 15
     score_cutoff = 50
@@ -631,7 +632,7 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
     return [match for match,score in final_matches], [score for match,score in final_matches], exact
 
 def create_dict_alternative_names(table_where_to_search):
-    
+
     if table_where_to_search in global_variables.tables_with_alt_name:
         list_alt_name = [(s, s.name_alt) for s in table_where_to_search.query.filter(table_where_to_search.name_alt.isnot(None)).all()]
         dict_alt_name = dict(list_alt_name)

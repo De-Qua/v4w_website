@@ -57,19 +57,28 @@ function initialize_html(){
     mymap.setView([45.435, 12.333], 15);
     console.log("error: " + dict_in_JS.msg)
     document.getElementById("errorwindow-explanation").innerHTML = dict_in_JS.msg;
-    document.getElementById("errorwindow").style.display = 'block';
+    var err_win = document.getElementById("errorwindow");
+    err_win.style.display = 'block';
     if (dict_in_JS.type == 'UserError') {
-      document.getElementById("errorwindow").style.addClass("dq-btn-alert-red");
+      if (err_win.classList.contains("dq-btn-alert-red")){
+        err_win.classList.remove("dq-btn-alert-red");
+      }
+      err_win.classList.add("dq-btn-alert-yellow");
       document.getElementById("error-text").innerHTML = "Se pensi che non sia per questo che la ricerca non ha funzionato, lasciaci un feedback spiegandoci il problema!";
     }
     else if (dict_in_JS.type == 'DeveloperError') {
-      document.getElementById("errorwindow").style.color = var(--dq-red-1);
-      document.getElementById("errorwindow").style.backgroundColor = var(--dq-red-4);
-      document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:"
+      if (err_win.classList.contains("dq-btn-alert-yellow")) {
+        err_win.classList.remove("dq-btn-alert-yellow");
+      }
+      err_win.classList.add("dq-btn-alert-red");
+      document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:";
     }
     else {
-      document.getElementById("errorwindow").style.color = var(--dq-red-1);
-      document.getElementById("errorwindow").style.backgroundColor = var(--dq-red-4);
+      if (err_win.classList.contains("dq-btn-alert-yellow")) {
+        err_win.classList.remove("dq-btn-alert-yellow");
+      }
+      err_win.classList.add("dq-btn-alert-red");
+      document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:";
     }
     //alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
 

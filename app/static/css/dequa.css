@@ -37,20 +37,21 @@
 
  /* BUTTONS */
 .dq-btn-alert-red {
-  color: var(--dq-red-4);
-  background-color: var(--dq-red-1);
-  border-color: var(--dq-red-2);
+  color: var(--dq-red-4) !important;
+  background-color: var(--dq-red-1) !important;
+  border-color: var(--dq-red-2) !important;
 }
 
 .dq-btn-alert-yellow {
-  color: var(--dq-yellow-4);
-  background-color: var(--dq-yellow-1);
-  border-color: var(--dq-yellow-2);
+  color: var(--dq-yellow-4) !important;
+  background-color: var(--dq-yellow-1) !important;
+  border-color: var(--dq-yellow-2) !important;
 }
 
 .dq-btn {
-  background-color: var(--dq-blue-2);
-  color: var(--dq-yellow-2);
+  color: var(--dq-yellow-4) !important;
+  background-color: var(--dq-blue-1) !important;
+  border-color: var(--dq-blue-2) !important;
 }
 .dq-btn-vote {
 
