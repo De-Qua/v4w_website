@@ -17,6 +17,7 @@ from shapely.ops import transform
 from sqlalchemy import and_
 import re
 import geopy.distance
+import app.global_variables as global_variables
 
 # IMPORT OUR LIBRARIES
 from app.src.libpy import lib_graph
@@ -77,7 +78,6 @@ def find_POI(N, coordinates, searchPoiCategory="", searchPoiCategoryType="", max
         foundEnough = True
         app.logger.warning("we could not find close POIs, we just take them all! they are {}. Check out if this should happen!".format(len(POI)))
 
-    #pdb.set_trace()
     if foundEnough:
         coordinates_as_shapely_points = [shapely.geometry.Point(_poi.location.latitude, _poi.location.longitude) for _poi in POI]
         distance_list = [poi_point.distance(shapely.geometry.Point(coordinates)) for poi_point in coordinates_as_shapely_points]
@@ -630,8 +630,9 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
     return [match for match,score in final_matches], [score for match,score in final_matches], exact
 
 def create_dict_alternative_names(table_where_to_search):
-    if table_where_to_search == Street:
-        list_alt_name = [(s, s.name_alt) for s in Street.query.filter(Street.name_alt.isnot(None)).all()]
+    
+    if table_where_to_search in global_variables.tables_with_alt_name:
+        list_alt_name = [(s, s.name_alt) for s in table_where_to_search.query.filter(table_where_to_search.name_alt.isnot(None)).all()]
         dict_alt_name = dict(list_alt_name)
     else:
         dict_alt_name = {}
