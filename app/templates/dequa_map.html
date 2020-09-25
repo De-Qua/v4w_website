@@ -20,6 +20,7 @@
 	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
 	<link rel="stylesheet" href="/static/css/w3s.css">
 	<link rel="stylesheet" href="/static/css/s.css">
+	<link rel="stylesheet" href="/static/css/dequa.css">
 	<link rel="stylesheet" href="/static/css/easy-button.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.css">
 	<link rel="stylesheet" href="/static/css/MarkerCluster.Default.css">
@@ -83,6 +84,9 @@
 	  //   $(window).scrollTop(0);
 	  //   updateViews();
 		// });
+
+		// Variabile per prendere facilmente lo stile css di dequa
+		var style = getComputedStyle(document.body);
 	</script>
 
 	<!-- Container con sidebar e mappa -->
@@ -522,7 +526,7 @@
 					</div>
 					<div class="col-lg-4">
 						<div class="leaflet-control">
-							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
+							<div class="alert alert-dq-red alert-dismissible fade show" role="alert" id="errorwindow" style="display:none">
 								<h4 class="alert-heading" id="errorTitle">C'è stato un errore!</h4>
 									<!-- Messaggio d'errore! -->
 									<p class="mb-0" id="errorwindow-explanation"></p>
@@ -551,13 +555,13 @@
 								});
 							});
 							</script>
-							<div class="alert alert-success alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
+							<div class="alert alert-dq-green alert-dismissible fade show" role="alert" id="feedbackmessagewindow-success" style="display:none">
 								Grazie per il feedback!
 								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">
 									<span aria-hidden="true">&times;</span>
 								</button>
 							</div>
-							<div class="alert alert-danger alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
+							<div class="alert alert-dq-red alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
 								Ops, qualcosa è andato storto nell'invio del feedback.<br>
 								Per favore prova a reinviarlo.
 								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">

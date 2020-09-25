@@ -111,7 +111,7 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	console.log("We are doing: "+ what_are_we_doing);
 	if (what_are_we_doing == "address") {
 		document.getElementById("search_field_1").value = searched_start;
-		document.getElementById("search_field_1").style.backgroundColor = "#f44";
+		document.getElementById("search_field_1").style.backgroundColor = style.getPropertyValue("--dq-red-2");
     console.log('@showPossibilitiesWindow[address]: show X button in first search field');
     nowitstimetoshowtheX('search_field_1_x');
 	} else {
@@ -120,12 +120,12 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 		//document.getElementById("search_field_2").value = searched_end;
 		if (what_are_we_doing == "choosing_start") {
       document.getElementById("search_field_1").value = searched_start;
-			document.getElementById("search_field_1").style.backgroundColor = "#f44";
+			document.getElementById("search_field_1").style.backgroundColor = style.getPropertyValue("--dq-red-2");
       document.getElementById("search_field_2").value = searched_end;
 		} else if (what_are_we_doing == "choosing_end") {
       document.getElementById("search_field_1").value = start_found.nome;
       document.getElementById("search_field_2").value = searched_end;
-			document.getElementById("search_field_2").style.backgroundColor = "#f44";
+			document.getElementById("search_field_2").style.backgroundColor = style.getPropertyValue("--dq-red-2");
 		}
     console.log('@showPossibilitiesWindow[choosing_start/choosing_end]: show both X buttons');
     showbothXbuttons();

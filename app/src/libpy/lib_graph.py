@@ -17,6 +17,8 @@ from shapely.geometry import mapping
 import geopy.distance
 import datetime
 
+from app import custom_errors
+
 speed_global=2
 
 
@@ -244,7 +246,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
     except NetworkXNoPath:
         # exeption --> raise exception
         app.logger.info("Non esiste un percorso tra i due nodi")
-        raise Exception("Non esiste un percorso tra A e B. Devi forse andare in barca?")
+        raise custom_errors.UserError("Non esiste un percorso tra A e B. Devi forse andare in barca?")
 
     return path_nodes, length_path #json.dumps(x_tot), length_path
 

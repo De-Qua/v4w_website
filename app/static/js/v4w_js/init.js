@@ -60,24 +60,24 @@ function initialize_html(){
     var err_win = document.getElementById("errorwindow");
     err_win.style.display = 'block';
     if (dict_in_JS.type == 'UserError') {
-      if (err_win.classList.contains("dq-btn-alert-red")){
-        err_win.classList.remove("dq-btn-alert-red");
+      if (err_win.classList.contains("alert-dq-red")){
+        err_win.classList.remove("alert-dq-red");
       }
-      err_win.classList.add("dq-btn-alert-yellow");
+      err_win.classList.add("alert-dq-yellow");
       document.getElementById("error-text").innerHTML = "Se pensi che non sia per questo che la ricerca non ha funzionato, lasciaci un feedback spiegandoci il problema!";
     }
     else if (dict_in_JS.type == 'DeveloperError') {
-      if (err_win.classList.contains("dq-btn-alert-yellow")) {
-        err_win.classList.remove("dq-btn-alert-yellow");
+      if (err_win.classList.contains("alert-dq-yellow")) {
+        err_win.classList.remove("alert-dq-yellow");
       }
-      err_win.classList.add("dq-btn-alert-red");
+      err_win.classList.add("alert-dq-red");
       document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:";
     }
     else {
-      if (err_win.classList.contains("dq-btn-alert-yellow")) {
-        err_win.classList.remove("dq-btn-alert-yellow");
+      if (err_win.classList.contains("alert-dq-yellow")) {
+        err_win.classList.remove("alert-dq-yellow");
       }
-      err_win.classList.add("dq-btn-alert-red");
+      err_win.classList.add("alert-dq-red");
       document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:";
     }
     //alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)

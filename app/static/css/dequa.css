@@ -7,45 +7,51 @@
  */
 
  /* COLORS */
- /* Palette URL: http://paletton.com/#uid=7171J0ko2tKevH8jIxzsQqguQkG */
+ /* Palette URL: https://paletton.com/#uid=7171J0ko2tK5LSAgJBeu1n-Gpe+ */
  :root {
    --dq-yellow-0: #EDBD3B; /*   base  */	/* Main Primary color */
-   --dq-yellow-1: #FFE08C; /*  chiaro */
-   --dq-yellow-2: #FFD462; /*    |    */
-   --dq-yellow-3: #D19E15; /*    |    */
-   --dq-yellow-4: #A57A06; /*  scuro  */
+   --dq-yellow-1: #FFF3D1; /*  chiaro */
+   --dq-yellow-2: #FFDB7A; /*    |    */
+   --dq-yellow-3: #BC8C0C; /*    |    */
+   --dq-yellow-4: #775700; /*  scuro  */
 
    --dq-green-0: #2EBB38; /*   base  */	/* Main Secondary color (1) */
-   --dq-green-1: #79DD80; /*  chiaro */
-   --dq-green-2: #4ECB56; /*    |    */
-   --dq-green-3: #10A51A; /*    |    */
-   --dq-green-4: #05820D; /*  scuro  */
+   --dq-green-1: #C5F1C8; /*  chiaro */
+   --dq-green-2: #65D36C; /*    |    */
+   --dq-green-3: #099412; /*    |    */
+   --dq-green-4: #005E06; /*  scuro  */
 
    --dq-red-0: #ED403B;	/*   base  */
-   --dq-red-1: #FF8E8C; /*  chiaro */
-   --dq-red-2: #FF6662; /*    |    */
-   --dq-red-3: #D11A15; /*    |    */
-   --dq-red-4: #A50A06; /*  scuro  */
+   --dq-red-1: #FFD2D1; /*  chiaro */
+   --dq-red-2: #FF7D7A; /*    |    */
+   --dq-red-3: #BC100C; /*    |    */
+   --dq-red-4: #770300; /*  scuro  */
 
    --dq-blue-0: #3944A4; /*   base  */	/* Main Complement color */
-   --dq-blue-1: #7D85CE; /*  chiaro */
-   --dq-blue-2: #545DB4; /*    |    */
-   --dq-blue-3: #202B90; /*    |    */
-   --dq-blue-4: #131C72; /*  scuro  */
+   --dq-blue-1: #C6C9EA; /*  chiaro */
+   --dq-blue-2: #6971BF; /*    |    */
+   --dq-blue-3: #182382; /*    |    */
+   --dq-blue-4: #070E52; /*  scuro  */
 
  }
 
  /* BUTTONS */
-.dq-btn-alert-red {
-  color: var(--dq-red-4) !important;
-  background-color: var(--dq-red-1) !important;
-  border-color: var(--dq-red-2) !important;
+.alert-dq-red {
+  color: var(--dq-red-4);
+  background-color: var(--dq-red-1);
+  border-color: var(--dq-red-2);
 }
 
-.dq-btn-alert-yellow {
-  color: var(--dq-yellow-4) !important;
-  background-color: var(--dq-yellow-1) !important;
-  border-color: var(--dq-yellow-2) !important;
+.alert-dq-yellow {
+  color: var(--dq-yellow-4);
+  background-color: var(--dq-yellow-1);
+  border-color: var(--dq-yellow-2);
+}
+
+.dq-btn-alert-green {
+  color: var(--dq-green-4) !important;
+  background-color: var(--dq-green-1) !important;
+  border-color: var(--dq-green-2) !important;
 }
 
 .dq-btn {
