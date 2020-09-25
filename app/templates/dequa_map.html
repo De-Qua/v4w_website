@@ -10,11 +10,28 @@
 	<!-- penso che ora non venga più usata la tag keyword -->
 	<meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
 	<!-- autori -->
-	<meta name="author" content="Dequa">
+	<meta name="author" content="DeQua">
 	<!-- Metadati per preview -->
 	<meta property="og:title" content="DeQua">
 	<meta property="og:description" content="Find your way through Venice - Trova la tua strada a Venezia">
 	<meta property="og:url" content="https://www.dequa.it">
+
+	<link rel="manifest" href="manifest.json" />
+	<!-- ios support -->
+	<link rel="apple-touch-icon" href="/static/pwa/icon-72x72.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-96x96.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-128x128.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-144x144.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-152x152.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-192x192.png" />
+	<link rel="apple-touch-icon" href="/static/pwa/icon-256x256.png" />
+	<meta name="apple-mobile-web-app-status-bar" content="#EDBD3B" />
+	<meta name="theme-color" content="#EDBD3B" />
+	<!-- Meta Tag Specifici per OS Windows -->
+	<meta name="application-name" content="DeQua" />
+	<meta name="msapplication-TileImage" content="images/icons/icon-144x144.png">
+	<meta name="msapplication-TileColor" content="#EDBD3B">
+
 
 	<!-- <link rel="stylesheet" href="/static/css/owl.carousel.min.css">
 	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
@@ -33,7 +50,8 @@
 	<!-- <script src="https://kit.fontawesome.com/c02ec4320e.js" crossorigin="anonymous"></script> -->
 	<link rel="stylesheet" href="/static/css/L.Control.Locate.min.css">
 
-
+	<!-- launch the service worker for the PWA -->
+	<script src="/static/js/app.js" async></script>
 	<!-- Make sure you put this AFTER Leaflet's CSS -->
 	<script src="/static/js/leaflet.js"></script>
 	<script src="/static/js/L.Control.Locate.min.js"></script>

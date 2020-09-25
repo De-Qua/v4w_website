@@ -54,7 +54,22 @@ def index():
     app.logger.log(20,'Prova log info')
     return render_template('info.html')
 
-# cos'e il t.include?
+# manifest.json serve per la PWA
+@t.include
+@app.route('/manifest.json', methods=['GET', 'POST'])
+def manifest():
+    app.logger.info('manifest ')
+    return render_template('manifest.json')
+
+# for the javascript file I need to fetch from a different folder
+# not templates anymore
+from flask import make_response, send_from_directory
+@app.route('/serviceWorker.js')
+def serviceworker():
+    response=make_response(send_from_directory('static/js',filename='serviceWorker.js'))
+    #change the content header file
+    response.headers['Content-Type'] = 'application/javascript'
+    return response
 
 # info sub-pages
 @t.include
