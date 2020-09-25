@@ -31,6 +31,8 @@ function initialize_html(){
     document.getElementById("feedbackmessagewindow-success").style.display = 'block';
     break;
   }
+  // reset feedbacksent variable
+  feedbacksent = 0;
 
 
   // function onMapClick(e) {
