@@ -15,10 +15,11 @@
 	<meta property="og:title" content="DeQua">
 	<meta property="og:description" content="Find your way through Venice - Trova la tua strada a Venezia">
 	<meta property="og:url" content="https://www.dequa.it">
-	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+
 	<!-- <link rel="stylesheet" href="/static/css/owl.carousel.min.css">
 	<link rel="stylesheet" href="/static/css/owl.theme.default.min.css"> -->
 	<link rel="stylesheet" href="/static/css/w3s.css">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/static/css/s.css">
 	<link rel="stylesheet" href="/static/css/dequa.css">
 	<link rel="stylesheet" href="/static/css/easy-button.css">
@@ -534,7 +535,7 @@
 									<p id="error-text">È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!
 										<br> Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:</p>
 										<div style="text-align: center;"> <!-- centra il bottone! -->
-											<button class="btn btn-default v4wbt dequa_area" onclick="closeErrorAndShowFeedbackNew()">
+											<button id="errorFbButton" class="btn btn-default v4wbt alert-dq-red dequa_area" onclick="closeErrorAndShowFeedbackNew()">
 												<i class="fa fa-2x fa-exclamation-triangle"></i>
 												<p class="mb-0">Feedback</p>
 											</button>
