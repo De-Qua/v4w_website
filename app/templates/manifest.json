@@ -29,8 +29,8 @@
       "type": "image/png"
     },
     {
-      "src": "/static/pwa/icon-128x182.png",
-      "sizes": "128x182",
+      "src": "/static/pwa/icon-128x128.png",
+      "sizes": "128x128",
       "type": "image/png"
     },
     {
