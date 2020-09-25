@@ -48,16 +48,16 @@
   border-color: var(--dq-yellow-2);
 }
 
-.dq-btn-alert-green {
-  color: var(--dq-green-4) !important;
-  background-color: var(--dq-green-1) !important;
-  border-color: var(--dq-green-2) !important;
+.alert-dq-green {
+  color: var(--dq-green-4);
+  background-color: var(--dq-green-1);
+  border-color: var(--dq-green-2);
 }
 
 .dq-btn {
-  color: var(--dq-yellow-4) !important;
-  background-color: var(--dq-blue-1) !important;
-  border-color: var(--dq-blue-2) !important;
+  color: var(--dq-yellow-4);
+  background-color: var(--dq-blue-1);
+  border-color: var(--dq-blue-2);
 }
 .dq-btn-vote {
 
