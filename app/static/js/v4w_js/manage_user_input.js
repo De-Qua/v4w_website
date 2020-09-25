@@ -105,10 +105,10 @@ function showbothXbuttons() {
 /* Show the second search bar field - to calculate the path */
 function showSecondSearchbar() {
 	// document.getElementById("searchbtn").style.display = "none";
-	document.getElementById("add-searchfield").style.display = "none";
-	document.getElementById("btn-plus").style.display = "none";
-	document.getElementById("second-search-field").style.display = "block";
-	document.getElementById("nav_buttons").style.display = "block";
+  $("#add-searchfield").hide();
+  $("#btn-plus").hide();
+  $("#second-search-field").show();
+  $("#nav_buttons").show();
 }
 
 function click_showSecondSearchbar(){
@@ -121,26 +121,30 @@ function click_showSecondSearchbar(){
     // document.getElementById('hidden_start_coord').value = '';
 }
 
-function hideSecondSearchbar() {
-	// document.getElementById("searchbtn").style.display = "block";
-	document.getElementById("add-searchfield").style.display = "block";
-	document.getElementById("btn-plus").style.display = "block";
-	document.getElementById("second-search-field").style.display = "none";
-	document.getElementById("nav_buttons").style.display = "none";
-	// document.getElementById("start_from_my_location").style.display = "none";
-
+function click_hideSecondSearchbar(){
   if ($("#search_field_1").val() == "") {
     swapDirections();
   }
-  else {
-    // elimina contenuto seconda barra
-    console.log("second bar was full, we remove " + $("#search_field_2").val());
-    $("#search_field_2").val("");
-    //document.getElementById("search_field_2").value = "";
-    $("#hidden_end_coord").val("");
-    //document.getElementById("hidden_end_coord").value = "";
-    console.log("second bar was full, we removed and now is " + $("#search_field_2").val());
-  }
+  deleteSecondSearchbar();
+  hideSecondSearchbar();
+}
+
+function deleteSecondSearchbar() {
+  // elimina contenuto seconda barra
+  console.log("second bar was full, we remove " + $("#search_field_2").val());
+  $("#search_field_2").val("");
+  $("#hidden_end_coord").val("");
+
+  console.log("second bar was full, we removed and now is " + $("#search_field_2").val());
+}
+
+function hideSecondSearchbar() {
+	// document.getElementById("searchbtn").style.display = "block";
+  $("#second-search-field").hide();
+  $("#nav_buttons").hide();
+  $("#add-searchfield").show();
+  $("#btn-plus").show();
+	// document.getElementById("start_from_my_location").style.display = "none";
 
 	return false;
 }
