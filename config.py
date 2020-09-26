@@ -10,7 +10,8 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'dequa.db')
     SQLALCHEMY_BINDS = {
         "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
-        "users": 'sqlite:///' + os.path.join(basedir, 'users.db')
+        "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
+        "ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db')
         }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # TrackUsage

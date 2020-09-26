@@ -9,6 +9,7 @@ from app.src.libpy.lib_communication import prepare_our_message_to_javascript, p
 import pdb
 from app.src.libpy import lib_graph, lib_communication, lib_search
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
+from app.models import Ideas
 from sqlalchemy import and_
 from app import app, db, getCurrentVersion
 from app.forms import FeedbackForm
@@ -60,6 +61,52 @@ def retrieve_parameters_from_GET(arguments_GET_request):
 
     return params_dict
 
+def initialize_votes():
+    """
+    Check and returns votes for each idea in the database (a dict of dictionaries).
+    """
+    all_ideas = Ideas.query.all()
+    ideas_votes_dict = dict()
+    #names_list = []
+    for idea in all_ideas:
+        cur_idea_votes_dict = {'id':idea.get_id(), 'title':idea.get_title(), 'description':idea.get_description(), 'cur_num':idea.get_num_of_votes()}
+        ideas_votes_dict[idea.get_title()] = cur_idea_votes_dict
+        #names_list.append(idea.get_title())
+
+    #ideas_votes_dict['names'] = names_list
+    return ideas_votes_dict
+
+def update_votes_db(fake_dict):
+    """
+    Updates the votes of the new ideas we want to implement: the numbers are stored in the database.
+    """
+    # terribile ma temporaneo - non capisco come evitare questo immutable_multi_dict
+    print("Dict: ", fake_dict)
+    fake_list = list(fake_dict.keys())
+    print("List: ", fake_list)
+    text = fake_list[0]
+
+    action, ideas_title, num = text.split("/")
+    num_from_js = int(num)
+
+    cur_idea = Ideas.query.filter_by(idea_title=ideas_title).one()
+    num_before_vote = cur_idea.get_num_of_votes()
+    if num_before_vote != num_from_js:
+        print("js and python do not coincide! I trust python and our database")
+    if action == 'upvote':
+        cur_num = num_before_vote + 1
+    elif action == 'downvote':
+        cur_num = num_before_vote - 1
+    else:
+        print("what? ", action)
+    cur_idea.set_num_of_votes(cur_num)
+    # quando abbiamo finito di settare, committiamo
+    db.session.commit()
+    print("ideas_name: {}, num: {}".format(ideas_title, cur_num))
+    response_dict = {'idea':ideas_title, 'cur_num':cur_num}
+
+    return response_dict
+
 def take_care_of_the_feedback(form, feedback_folder):
     """
     Wrapper that try to validate and write the feedback
@@ -72,7 +119,6 @@ def take_care_of_the_feedback(form, feedback_folder):
         else:
             app.logger.info('errore nel feedback')
             return -1
-
 
 def write_feedback(form, feedback_folder):
     """

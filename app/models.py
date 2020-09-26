@@ -316,3 +316,44 @@ class FlaskUsage(db.Model):
     datetime = db.Column(db.DateTime)
     username = db.Column(db.String(128))
     track_var = db.Column(db.String(128))
+
+####
+# TABELLA INIZIATIVE E VOTI
+####
+class Ideas(db.Model):
+    __tablename__ = 'Ideas' # nome della tabella nel file ideas.db
+    __bind_key__ = 'ideas' # bind per SQLAlchemy del file ideas.db
+
+    id = db.Column(db.Integer(), primary_key=True)
+    idea_title = db.Column(db.String(128))
+    idea_short_description = db.Column(db.String(256))
+    num_of_votes = db.Column(db.Integer)
+    # basic methods
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          title=self.idea_title,
+                          description=self.idea_short_description,
+                          votes=self.num_of_votes
+                          )
+    def __str__(self):
+        return "{}, {}".format(self.idea_title, slef.idea_short_description)
+    # get and set
+    def get_id(self):
+        return self.id
+    def get_title(self):
+        return self.idea_title
+    def set_title(self, new_title):
+        self.idea_title = new_title
+    def get_description(self):
+        return self.idea_short_description
+    def set_description(self, new_description):
+        self.idea_short_description = new_description
+    def get_num_of_votes(self):
+        return self.num_of_votes
+    def set_num_of_votes(self, new_num):
+        self.num_of_votes = new_num
+    # up- or down-vote
+    def upvote(self):
+        self.num_of_votes += 1
+    def downvote(self):
+        self.num_of_votes -= 1

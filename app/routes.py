@@ -184,6 +184,55 @@ def asynch_navigation():
 
         return jsonify(dictionary_of_err)
 
+@t.include
+@app.route('/update_votes', methods=['GET'])
+def asynch_update_votes():
+    """
+    Updates the votes on the new ideas that we plan to implement
+    """
+    # add version to the track usage
+    g.track_var["version"] = getCurrentVersion()
+    try:
+        args_dict = request.args.to_dict()
+        updated = interface.update_votes_db(args_dict);
+        return updated
+    except Exception as e:
+        interface.take_care_of_the_error(request,e,error_folder)
+        dictionary_of_err = {"error": True,
+                            "repr": repr(e),
+                            "type": type(e).__name__,
+                            "msg": str(e),
+                            "traceback": traceback.format_exc()}
+        app.logger.info("error: {}".format(traceback.format_exc()))
+        # in case of error, reload the page
+        #return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
+
+        return jsonify(dictionary_of_err)
+
+@t.include
+@app.route('/initialize_votes', methods=['GET'])
+def asynch_initialize_votes():
+    """
+    Updates the votes on the new ideas that we plan to implement
+    """
+    # add version to the track usage
+    g.track_var["version"] = getCurrentVersion()
+    try:
+        ideas_votes = interface.initialize_votes();
+        return ideas_votes
+    except Exception as e:
+        interface.take_care_of_the_error(request,e,error_folder)
+        dictionary_of_err = {"error": True,
+                            "repr": repr(e),
+                            "type": type(e).__name__,
+                            "msg": str(e),
+                            "traceback": traceback.format_exc()}
+        app.logger.info("error: {}".format(traceback.format_exc()))
+        # in case of error, reload the page
+        #return render_template(html_file, form=form, results_dictionary=dictionary_of_err, feedbacksent=0)
+
+        return jsonify(dictionary_of_err)
+
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
 
