@@ -6,7 +6,7 @@
   <div class="text-container">
     <h1 style='text-align:center; margin-bottom:1.5em;'>Cosa bolle in pentola?</h1>
 
-    Abbiamo diverse idee che ci piacerebbe implementare, ma a volte è molto difficile capire la priorità e l'importanza di ciascuna di esse..<br>
+	  Abbiamo diverse idee che ci piacerebbe implementare, ma a volte è molto difficile capire la priorità e l'importanza di ciascuna di esse..<br>
 		Per questo cerchiamo di lavorare in maniera trasparente e ci affidiamo a voi, cercando di sviluppare un modello democratico per la scelta delle prossime idee da essere implementate.
 		In questa pagina trovi le principali direzioni in cui il nostro lavoro potrebbe svilupparsi.
 		Idealmente verranno fatte tutte, realisticamente i tempi e i modi in cui verranno fatte divergeranno.
@@ -33,39 +33,41 @@
 					<div class="row dq-idea">
 						<div class="col-2 p-1">
 							<!-- freccette e punti -->
-							<button class="btn dq-btn-vote" onclick="upvote(acqua_alta_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="acqua_alta_idea_up" onclick="upvote(acqua_alta_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
 							</svg></button>
-							<div class="vote_num pl-3" id="acqua_alta_num">0
+							<div class="vote_num pl-3" id="acqua_alta_idea">0
 							</div>
-							<button class="btn dq-btn-vote" onclick="downvote(acqua_alta_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="acqua_alta_idea_down" onclick="downvote(acqua_alta_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
 							</svg></button>
 						</div>
 						<div class="col-10 p-1">
 							<!-- idea's text -->
 							<h4>Acqua alta</h4>
-							asciutto
+							Integrare la previsione in tempo reale delle maree, in modo da calcolare i percorsi alternativi che ti facciano arrivare asciutto a destinazione.
+							Non solo una strada alternativa a piedi, ma anche in barca, in modo da evitare i ponti sotto i quali non si passa
+							(+ funzione per personalizzare l'altezza della propria barca più avanti)
 						</div>
 					</div><!-- end row within a column -->
 				</div>
-				<div class="col-md-6 p-1"><!-- IDEA col -->
+				<div class="col-md-6 p-1"> <!-- IDEA col -->
 					<div class="row dq-idea">
 						<div class="col-2 p-1">
 							<!-- freccette e punti -->
-							<button class="btn dq-btn-vote" onclick="upvote(trasporti_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="trasporti_idea_up" onclick="upvote(trasporti_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
 							</svg></button>
-							<div class="vote_num pl-3" id="trasporti_num">0
+							<div class="vote_num pl-3" id="trasporti_idea">0
 							</div>
-							<button class="btn dq-btn-vote" onclick="downvote(trasporti_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="trasporti_idea_down" onclick="downvote(trasporti_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
 							</svg></button>
 						</div>
 						<div class="col-10 p-1">
 							<!-- idea's text -->
 							<h4>Mezzi pubblici</h4>
-							trasporti
+							Integrare i vaporetti nella ricerca del percorso!
 						</div>
 					</div><!-- end row within a column -->
 				</div>
@@ -73,12 +75,12 @@
 					<div class="row dq-idea">
 						<div class="col-2 p-1">
 							<!-- freccette e punti -->
-							<button class="btn dq-btn-vote" onclick="upvote(handicap_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="handicap_idea_up" onclick="upvote(handicap_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
 							</svg></button>
-							<div class="vote_num pl-3" id="handicap_num">0
+							<div class="vote_num pl-3" id="handicap_idea">0
 							</div>
-							<button class="btn dq-btn-vote" onclick="downvote(handicap_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="handicap_idea_down" onclick="downvote(handicap_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
 							</svg></button>
 						</div>
@@ -93,12 +95,12 @@
 					<div class="row dq-idea">
 						<div class="col-2 p-1">
 							<!-- freccette e punti -->
-							<button class="btn dq-btn-vote" onclick="upvote(boat_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="boat_idea_up" onclick="upvote(boat_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-up-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 9a.5.5 0 0 1-.374-.832l4-4.5a.5.5 0 0 1 .748 0l4 4.5A.5.5 0 0 1 12 11H4z"/>
 							</svg></button>
-							<div class="vote_num pl-3" id="boat_num">0
+							<div class="vote_num pl-3" id="boat_idea">0
 							</div>
-							<button class="btn dq-btn-vote" onclick="downvote(boat_num)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							<button class="btn dq-btn-vote" id="boat_idea_down" onclick="downvote(boat_idea)"><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-caret-down-square-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 							  <path fill-rule="evenodd" d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm4 4a.5.5 0 0 0-.374.832l4 4.5a.5.5 0 0 0 .748 0l4-4.5A.5.5 0 0 0 12 6H4z"/>
 							</svg></button>
 						</div>
@@ -117,13 +119,112 @@
 		<p>Hai un'idea migliore? <a href="/contatti">Contattaci!</a>
 
 	</div><!-- big container -->
+
+	<!-- jquery per l'ajax dei voti -->
+	<script src="/static/js/jquery-3.5.1.min.js"></script>
 	<script>
-	function upvote(div_with_num) {
-		div_with_num.innerHTML = Number(div_with_num.innerHTML) + 1;
+		function initialize_votes() {
+			$.ajax({
+					url: '/initialize_votes',
+					type: 'get',
+					data: "initialize_votes",
+					beforeSend:function() {
+						console.log("ajaxing for the initialization..");
+					},
+					success:function(response){
+						console.log(response);
+						//var names_list = response.names;
+						for (var idea_tag in response)
+						{
+							var cur_idea_obj = response[idea_tag];
+							var cur_idea_div = document.getElementById(cur_idea_obj.title); // title in python è l'id in js
+							cur_idea_div.innerHTML = Number(cur_idea_obj.cur_num);
+							console.log("updated " + cur_idea_obj.idea + "! yo!");
+						}
+
+					},
+					error:function() {
+						console.log("error");
+					},
+			});
+		}
+		// al momento upvote manda una stringa (upvote/idea_title/numero di voti)
+		// è molto caotico perchè div_with_num.id su html è in realtà quello che su python3
+		// è chiamato idea_title (la colonna della tabella nel database)
+		// da migliorare
+		// il numero di voti è passato, ma da python viene controllato e,
+		// in caso di dubbi, usato quello del database
+		function upvote(div_with_num) {
+			$.ajax({
+					url: '/update_votes',
+					type: 'get',
+					data: "upvote/" + div_with_num.id + "/" + div_with_num.innerHTML,
+					beforeSend:function() {
+						console.log("ajaxing..");
+						console.log(div_with_num.id + "/" + div_with_num.innerHTML);
+					},
+					success:function(response){
+						console.log(response);
+						div_with_num.innerHTML = Number(response.cur_num);
+						console.log("updated " + response.idea + "! yo!");
+					},
+					error:function() {
+						console.log("error");
+					},
+			});
+			// update status plus/minus
+			updateStatusButtonsVote(div_with_num, 1);
 	}
+	// si sono la stessa cosa, ma temporaneamente per imparare sono staccate
 	function downvote(div_with_num) {
-		div_with_num.innerHTML = Number(div_with_num.innerHTML) - 1;
+		$.ajax({
+				url: '/update_votes',
+				type: 'get',
+				data: "downvote/" + div_with_num.id + "/" + div_with_num.innerHTML,
+				beforeSend:function() {
+					console.log("ajaxing..");
+					console.log(div_with_num.id + "/" + div_with_num.innerHTML);
+				},
+				success:function(response){
+					console.log(response);
+					div_with_num.innerHTML = Number(response.cur_num);
+					console.log("updated " + response.idea + "! yo!");
+				},
+				error:function() {
+					console.log("error");
+				},
+		});
+		updateStatusButtonsVote(div_with_num, -1);
+	}
+
+	// enable/disable up/down arrows
+	function updateStatusButtonsVote(div, vote){
+		up_arrow = "#" + div.id + "_up";
+		down_arrow = "#" + div.id + "_down";
+		// è stata premuto up
+		if (vote == 1) {
+			// down era già stato premuto
+			if ($(down_arrow).prop("disabled")) {
+				$(down_arrow).prop("disabled",false);
+			} else { // il conto dei voti era 0
+				$(up_arrow).prop("disabled",true);
+			}
+		} else if (vote == -1) { // è stata premuto down
+			// up era già stato premuto
+			if ($(up_arrow).prop("disabled")) {
+				$(up_arrow).prop("disabled",false);
+			} else { // il conto dei voti era 0
+				$(down_arrow).prop("disabled",true);
+			}
+		} else {
+			console.log("Non faccio nulla: il voto non è né +1 né -1...")
+		}
 	}
 	</script>
-
+	<script>
+		$(document).ready(function() {
+			console.log("DOM ready - initialize votes!");
+			initialize_votes();
+		});
+	</script>
 {% endblock %}

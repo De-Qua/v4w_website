@@ -27,7 +27,7 @@ app.config.from_object(Config)
 # version of the software
 def getCurrentVersion():
     return app.config.get('VERSION')
-    
+
 __version__ = getCurrentVersion()
 
 #
@@ -93,6 +93,7 @@ from app import routes, errors, models
 from app.models import Users, Roles
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import FlaskUsage
+from app.models import Ideas
 
 #
 # Users setup
