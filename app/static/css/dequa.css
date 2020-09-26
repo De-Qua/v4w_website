@@ -108,6 +108,9 @@
   background-color: var(--dq-yellow-0);
   color: var(--dq-yellow-4);
   font-size: 0.75rem;
+  position:absolute;
+  bottom:0;
+  width: 100%;
 }
 .dq-navbar {
   background-color: var(--dq-yellow-0);
