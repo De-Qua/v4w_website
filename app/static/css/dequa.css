@@ -35,7 +35,7 @@
 
  }
 
- /* BUTTONS */
+ /* ALERTS */
 .alert-dq-red {
   color: var(--dq-red-4);
   background-color: var(--dq-red-1);
@@ -52,6 +52,31 @@
   color: var(--dq-green-4);
   background-color: var(--dq-green-1);
   border-color: var(--dq-green-2);
+}
+
+/* BUTTONS */
+.btn-dq-yellow {
+  color: var(--dq-yellow-4);
+  background-color: var(--dq-yellow-2);
+  border-color: var(--dq-yellow-3);
+}
+
+.btn-dq-red{
+  color: var(--dq-red-4);
+  background-color: var(--dq-red-2);
+  border-color: var(--dq-red-3);
+}
+
+.btn-dq-green {
+  color: var(--dq-green-4);
+  background-color: var(--dq-green-2);
+  border-color: var(--dq-green-3);
+}
+
+.btn-dq-blue {
+  color: var(--dq-blue-4);
+  background-color: var(--dq-blue-2);
+  border-color: var(--dq-blue-3);
 }
 
 .dq-btn {
