@@ -58,12 +58,17 @@ function closeResultsWindow() {
 	document.getElementById("weird").style.display = "none";
 }
 function moveResultsToSidebar() {
-	console.log("sposto i risultati nella sidebar")
-	document.getElementById("results_search").style.display = "none";
-	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_terra"));
-	document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_acqua"));
-	document.getElementById("resultsSidebar").appendChild(document.getElementById("single_address"));
-	document.getElementById("resultsSidebar").appendChild(document.getElementById("weird"));
+	console.log("sposto i risultati nella sidebar");
+	$("#resultsSidebar").append($("#percorso_terra"));
+	$("#resultsSidebar").append($("#percorso_acqua"));
+	$("#resultsSidebar").append($("#single_address"));
+	$("#resultsSidebar").append($("#weird"));
+	$("#results_search").hide();
+	// document.getElementById("results_search").style.display = "none";
+	// document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_terra"));
+	// document.getElementById("resultsSidebar").appendChild(document.getElementById("percorso_acqua"));
+	// document.getElementById("resultsSidebar").appendChild(document.getElementById("single_address"));
+	// document.getElementById("resultsSidebar").appendChild(document.getElementById("weird"));
 	hideSidebar();
 }
 

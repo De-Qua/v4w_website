@@ -380,7 +380,7 @@ function removePossibilitiesLayer(){
 	});
 	try{
 		mymap.removeLayer(polygon);
-	} catch{
+	} catch(e){
 		console.log("no polygon");
 	};
 }
@@ -395,19 +395,23 @@ function removePathLayer(){
 function removeMarkerLocation(){
 	try{
 		mymap.removeLayer(marker_location);
-	} catch{
+	} catch(e){
 		console.log("no marker of single location")
 	};
 }
 
 function updateViewsAfterResizeWindow() {
-	results_in_sidebar = $("#possibilitiesFather")[0].childElementCount;
-	if (results_in_sidebar > 0) {
+	possibilities_in_sidebar = $("#possibilitiesFather")[0].childElementCount > 0;
+	results_in_sidebar = $("#percorso_terra").is(":visible") || $("#percorso_acqua").is(":visible") || $("#single_address").is(":visible");
+	console.log("in sidebar: possibilities: "+possibilities_in_sidebar+" results: "+results_in_sidebar)
+	if (possibilities_in_sidebar || results_in_sidebar) {
 		if (is_keyboard){
+			console.log("nascondo la sidebar");
 			hideSidebar();
+			console.log("nascondo il bottone");
 			$("#show-sidebar").hide();
 		} else {
-			console.log("Nell'else")
+			console.log("Nell'else");
 			showSidebar();
 		}
 	}
