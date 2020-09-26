@@ -449,3 +449,11 @@ function changePositionSidebar() {
 		$(".possibilities_result").addClass('mb-1').css('height','');
 	}
 }
+
+function setSidebarTitle(dictJS) {
+	if (dictJS.modus_operandi == 2) {
+		$("#result_title_text").html("Forse cercavi...");
+	} else {
+		$("#result_title_text").html("Informazioni");
+	}
+}
