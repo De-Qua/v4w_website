@@ -13,6 +13,7 @@ function initialize_html(){
   closeResultsWindow();
   removePathLayer();
   closeErrorWindow();
+  addSocialButton();
 
 
   mymap.on('click', onMapClick);
