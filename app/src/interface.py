@@ -168,14 +168,14 @@ def ask_yourself(params_research):
     """
     In search for the truth, we try to find out if you are looking for the happiness, an address or a path from A to B.
     """
-    if params_research['da'] == "":
-        mode="nothing"
-    elif params_research['a'] == "":
-        mode="address"
+    if not(params_research['da']) and not(params_research['a']):
+        mode = "nothing"
+    elif not(params_research['da']) or not(params_research['a']):
+        mode = "address"
     elif params_research['by_boat'] == "on":
-        mode="by_boat"
+        mode = "by_boat"
     else:
-        mode="path"
+        mode = "path"
     return mode
 
 def set_choice_mode(da, a):
@@ -206,6 +206,12 @@ def find_what_needs_to_be_found(params_research):
     a = params_research['a']
     start_coord = params_research['start_coord']
     end_coord = params_research['end_coord']
+
+    if not(da) and a:
+        da = a
+        a = ""
+        start_coord = end_coord
+        end_coord = ""
 
     if what_am_I_really_searching_for == "nothing":
         return "None"
