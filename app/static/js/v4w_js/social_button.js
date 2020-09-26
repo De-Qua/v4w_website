@@ -3,7 +3,7 @@ function addSocialButton(mymap) {
   console.log("launching dynamic script for social button");
   console.log("dynamic scripts are async by default --> https://javascript.info/script-async-defer");
   let script = document.createElement('script');
-  script.src = "https://static.addtoany.com/menu/page.js";
+  script.src = "/static/js/v4w_js/add2any_smaller.js";
   document.body.append(script); // (*)
   console.log("now checking the social button situation!");
   //console.log(document.getElementById("social_button"));
