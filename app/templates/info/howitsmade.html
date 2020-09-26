@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html>
-	<title>De Qua</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<head>
+		<title>Come è fatto? | De Qua</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<!-- we should think about SEO, keywords, descriptions, ecc... -->
-	<meta name="description" content="Find your way through Venice - Trova la tua strada a Venezia">
-	<!-- penso che ora non venga più usata la tag keyword -->
-  <meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere">
-	<!-- autori -->
-	<meta name="author" content="Dequa">
-
-  <link rel="stylesheet" href="/static/css/s.css" >
-	<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
-  <link rel="icon" href="/static/img/dequa_logo_v2.png">
+		<!-- ******************** -->
+		<!-- ** BEGIN SEO PART ** -->
+		<meta name="description" content="Come è costruito? Cosa c'è dietro alla fantastica ricerca? Scopri i meccanismi di DeQua dietro le quinte!">
+		<!-- penso che ora non venga più usata la tag keyword -->
+		<meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere, Barca">
+		<!-- autori -->
+		<meta name="author" content="DeQua">
+		<!-- Metadati per preview -->
+		<meta property="og:title" content="DeQua">
+		<meta property="og:description" content="Come è costruito? Cosa c'è dietro alla fantastica ricerca? Scopri i meccanismi di DeQua dietro le quinte!">
+		<meta property="og:url" content="https://www.dequa.it/howitsmade">
+		<!-- *** END SEO PART *** -->
+		<!-- ******************** -->
+		<link rel="stylesheet" href="/static/css/dequa.css" >
+		<link rel="stylesheet" href="/static/css/s.css" >
+		<link rel="stylesheet" href="/static/css/bootstrap.min.css" >
+		<link rel="icon" href="/static/img/dequa_logo_v2.png">
+	</head>
   <body>
 		<!-- NAVBAR (expand at md, taken from Bootstrap Example)-->
 	  <nav class="navbar navbar-expand-md navbar-dark bg-dark" style='margin-bottom:10px;'>
@@ -61,10 +70,41 @@
         Per questo possiamo calcolare percorsi a piedi, percorsi con meno ponti, percorsi in barca a remi, percorsi in barca a motore, percorsi in caso di acqua alta e molto altro ancora.
       </p>
 
+			<h3><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-code-slash" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			  <path fill-rule="evenodd" d="M4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0zm-.999-3.124a.5.5 0 0 1 .33.625l-4 13a.5.5 0 0 1-.955-.294l4-13a.5.5 0 0 1 .625-.33z"/>
+			</svg> Sul funzionamento basico e la barra degli indirizzi</h3>
+      <p>
+				La pagina principale di DeQua è la mappa, che viene servita da Flask - un framework che ci permette di avere il backend in python.
+				Le ricerche sono implementate attraverso un semplice form con qualche campo extra rispetto a quelli visibili per salvare coordinate e altri valori,
+				la cui richiesta viene gestita in maniera asincrona usando ajax per evitare di richiedere in continuazione i dati delle mappe da OSM.
+				Usando un GET per le ricerche, i parametri vengono passati sulla barra degli indirizzi, rendendoli (1) trasparenti all'utente e (2) facili da condividere.
+				Infatti condividendo il link completo, (ad esempio <a href="https://www.dequa.it/?partenza=fondamenta%20san%20girolamo&start_coord=&arrivo=campo%20san%20barnaba&end_coord=&walk=on">
+					https://www.dequa.it/?partenza=fondamenta%20san%20girolamo&start_coord=&arrivo=campo%20san%20barnaba&end_coord=&walk=on</a> per andare da fondamenta San Girolamo a campo San Barnaba),
+				la persona che riceve il link vede la strada disegnata sulla mappa!
+				<br>
+				Come si può immaginare, <code>partenza=?</code> e <code>arrivo=?</code> sono i campi per la ricerca, <code>start</code> e <code>end_coord</code> le coordinate in termini di latitudine e longitudine e <code>walk=on</code> indica il percorso a piedi
+				(se te lo stai chiedendo sì, togliendo <code>walk=on</code> e mettendo <code>boat=on</code> ottieni il percorso in barca! <a href="https://www.dequa.it/?partenza=fondamenta%20san%20girolamo&start_coord=&arrivo=campo%20san%20barnaba&end_coord=&boat=on">la prova qui</a>)
+				<br>
+				Stiamo lavorando all'idea di creare delle API con cui chiunque possa fare delle richieste ordinate per ottenere informazioni sulle coordinate e i percorsi!
+				Per quello serve ancora un po' di pazienza, se siete interessati, <a href="/contatti">scriveteci pure</a>.
+			</p>
+
+			<h3><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-geo-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+			  <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999zm2.493 8.574a.5.5 0 0 1-.411.575c-.712.118-1.28.295-1.655.493a1.319 1.319 0 0 0-.37.265.301.301 0 0 0-.057.09V14l.002.008a.147.147 0 0 0 .016.033.617.617 0 0 0 .145.15c.165.13.435.27.813.395.751.25 1.82.414 3.024.414s2.273-.163 3.024-.414c.378-.126.648-.265.813-.395a.619.619 0 0 0 .146-.15.148.148 0 0 0 .015-.033L12 14v-.004a.301.301 0 0 0-.057-.09 1.318 1.318 0 0 0-.37-.264c-.376-.198-.943-.375-1.655-.493a.5.5 0 1 1 .164-.986c.77.127 1.452.328 1.957.594C12.5 13 13 13.4 13 14c0 .426-.26.752-.544.977-.29.228-.68.413-1.116.558-.878.293-2.059.465-3.34.465-1.281 0-2.462-.172-3.34-.465-.436-.145-.826-.33-1.116-.558C3.26 14.752 3 14.426 3 14c0-.599.5-1 .961-1.243.505-.266 1.187-.467 1.957-.594a.5.5 0 0 1 .575.411z"/>
+			</svg> Sulla ricerca degli indirizzi</h3>
+      <p>
+				Per riuscire a trovare tutto quello che ci serve, usiamo varie fonti e abbiamo creato una ricerca ad-hoc per cercare di capire gli utenti.
+				Per gli indirizzi civici, i canali, le piazze, i ponti, le calli, le rive e i posti barca usiamo gli <a href="https://www.comune.venezia.it/it/content/open-data">OpenData del Comune di Venezia</a>,
+				mentre per i punti di interesse (POI) usiamo quelli disponibili da OSM (caricati dagli utenti nella maggior parte).
+				La ricerca viene fatta in python usando <code>fuzzywuzzy</code> che, a parte ad avere un nome bellissimo, ci permette di correggere typos e trovare diverse soluzioni con nomi simili.
+				Distinguere piazza san marco dal sestiere san marco da un indirizzo nel sestiere di san marco non è facile, così come gestire 12 diverse calli del forno, ma ci stiamo provando,
+				e con l'opzione di visualizzare risultati multipli in caso di incertezza riusciamo a farti trovare quasi tutto!
+			</p>
+
       <h3><svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-shield-shaded" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" d="M5.443 1.991a60.17 60.17 0 0 0-2.725.802.454.454 0 0 0-.315.366C1.87 7.056 3.1 9.9 4.567 11.773c.736.94 1.533 1.636 2.197 2.093.333.228.626.394.857.5.116.053.21.089.282.11A.73.73 0 0 0 8 14.5c.007-.001.038-.005.097-.023.072-.022.166-.058.282-.111.23-.106.525-.272.857-.5a10.197 10.197 0 0 0 2.197-2.093C12.9 9.9 14.13 7.056 13.597 3.159a.454.454 0 0 0-.315-.366c-.626-.2-1.682-.526-2.725-.802C9.491 1.71 8.51 1.5 8 1.5c-.51 0-1.49.21-2.557.491zm-.256-.966C6.23.749 7.337.5 8 .5c.662 0 1.77.249 2.813.525a61.09 61.09 0 0 1 2.772.815c.528.168.926.623 1.003 1.184.573 4.197-.756 7.307-2.367 9.365a11.191 11.191 0 0 1-2.418 2.3 6.942 6.942 0 0 1-1.007.586c-.27.124-.558.225-.796.225s-.526-.101-.796-.225a6.908 6.908 0 0 1-1.007-.586 11.192 11.192 0 0 1-2.417-2.3C2.167 10.331.839 7.221 1.412 3.024A1.454 1.454 0 0 1 2.415 1.84a61.11 61.11 0 0 1 2.772-.815z"/>
         <path d="M8 2.25c.909 0 3.188.685 4.254 1.022a.94.94 0 0 1 .656.773c.814 6.424-4.13 9.452-4.91 9.452V2.25z"/>
-      </svg> Protezione dei dati</h3>
+      </svg> Sulla protezione dei dati</h3>
       <p>
         Non salviamo attivamente nessun dato personale sui server.
         Al momento salviamo le ricerche effettuate (il testo che l'utente ha inserito) per migliorare l'algoritmo di ricerca nel database e alcune informazioni base che vengono sempre mandate dal browser: ip, browser, sistema operativo.
@@ -104,7 +144,7 @@
             <div class="card-body">
               <h5 class="card-title">Atom</h5>
               <p class="card-text">Un editor di testo con codice libero sviluppato da <a href="https://github.com/">github</a> che permettere a diverse persone di lavorare <a href="https://teletype.atom.io/">in contemporanea.</a></p>
-              <a href="https://atom.io/" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://atom.io/" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -114,7 +154,7 @@
             <div class="card-body">
               <h5 class="card-title">PythonAnywhere</h5>
               <p class="card-text">Un servizio che permette di sviluppare un sito in python. Ultimamente stanno aggiungendo supporto per l'insegnamento! Fornisce un server con python installato, per cui non ha codice aperto, a quanto sappiamo. I server usati soddisfano <a href="https://blog.pythonanywhere.com/162/">i criteri europei pre la privacy</a>, ma al momento sono in America. Stiamo lavorando per migliorare questo aspetto.</p>
-              <a href="https://www.pythonanywhere.com" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://www.pythonanywhere.com" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -124,7 +164,7 @@
             <div class="card-body">
               <h5 class="card-title">OpenData Comune di Venezia</h5>
               <p class="card-text">Il nostro comune mette a disposizione un sacco di dati di ottima qualità sulla nostra città! Grazie mille!</p>
-              <a href="https://www.comune.venezia.it/it/content/open-data" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://www.comune.venezia.it/it/content/open-data" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -134,7 +174,7 @@
             <div class="card-body">
               <h5 class="card-title">OpenStreetMap</h5>
               <p class="card-text">Con uno sforzo enorme per mappare tutto il mondo, OSM mette a disposizione tutte le mappe di tutto il mondo per tutti completamente gratis! Non è fantastico?</p>
-              <a href="https://www.openstreetmap.org" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://www.openstreetmap.org" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -144,7 +184,7 @@
             <div class="card-body">
               <h5 class="card-title">Github</h5>
               <p class="card-text">Uno spazio dove ospitiamo il nostro codice che usa <a href="https://git-scm.com/">git</a> per il meccanismo di controllo della versione. Purtroppo, solo parzialmente a codice aperto.</p>
-              <a href="https://github.com/" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://github.com/" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -154,7 +194,7 @@
             <div class="card-body">
               <h5 class="card-title">Leaflet</h5>
               <p class="card-text">Fantastica libreria JavaScript con codice aperto che fa magie disegnando tutto quello che vogliamo sopra le nostre mappe!</p>
-              <a href="https://leafletjs.com/" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://leafletjs.com/" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -164,7 +204,7 @@
             <div class="card-body">
               <h5 class="card-title">Bootstrap</h5>
               <p class="card-text">Fantastica libreria HTML/CSS/Javascript con codice aperto per adattare il nostro sito a telefoni e computer!</p>
-              <a href="https://getbootstrap.com" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://getbootstrap.com" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>
@@ -174,7 +214,7 @@
             <div class="card-body">
               <h5 class="card-title">QGIS</h5>
               <p class="card-text">Programma con codice aperto per la gestione di file geografici che ci permette di manipolare i file del comune e costruire le reti di strutture a Venezia!</p>
-              <a href="https://getbootstrap.com" class="btn btn-primary">dacci un'occhiata!</a>
+              <a href="https://getbootstrap.com" class="btn-dq btn-dq-primary">dacci un'occhiata!</a>
             </div>
           </div>
         </div>

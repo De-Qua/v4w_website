@@ -184,7 +184,6 @@ def asynch_navigation():
 
         return jsonify(dictionary_of_err)
 
-
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
 
