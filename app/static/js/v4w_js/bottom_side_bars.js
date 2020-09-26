@@ -400,19 +400,27 @@ function removeMarkerLocation(){
 	};
 }
 
-function updateViewsAfterResizeWindow() {
+function isSidebarEmpty(){
 	possibilities_in_sidebar = $("#possibilitiesFather")[0].childElementCount > 0;
-	results_in_sidebar = $("#percorso_terra").is(":visible") || $("#percorso_acqua").is(":visible") || $("#single_address").is(":visible");
-	console.log("in sidebar: possibilities: "+possibilities_in_sidebar+" results: "+results_in_sidebar)
-	if (possibilities_in_sidebar || results_in_sidebar) {
+	res_land_in_sidebar = $("#percorso_terra").css('display') != 'none';
+	res_water_in_sidebar = $("#percorso_acqua").css('display') != 'none';
+	res_address_in_sidebar = $("#single_address").css('display') != 'none';
+	return !(possibilities_in_sidebar || res_land_in_sidebar || res_water_in_sidebar || res_address_in_sidebar)
+}
+
+
+
+function updateSidebarAfterResizeWindow() {
+	if (!isSidebarEmpty()) {
 		if (is_keyboard){
 			console.log("nascondo la sidebar");
 			hideSidebar();
 			console.log("nascondo il bottone");
-			$("#show-sidebar").hide();
+			document.getElementById("show-sidebar").style.display = 'none';
 		} else {
 			console.log("Nell'else");
-			showSidebar();
+			document.getElementById("show-sidebar").style.display = 'block';
+			// showSidebar();
 		}
 	}
 	console.log("View aggiornata!")
@@ -420,10 +428,12 @@ function updateViewsAfterResizeWindow() {
 
 function changePositionSidebar() {
 	// It is bottombar but it is still on the side
-	if ($("#sidebar").css('display') != 'none') {
-		showSidebar();
-	} else {
-		hideSidebar();
+	if (!isSidebarEmpty()){
+		if ($("#sidebar").css('display') != 'none') {
+			showSidebar();
+		} else {
+			hideSidebar();
+		}
 	}
 	console.log("change position of sidebar")
 	if (is_bottom_bar) {

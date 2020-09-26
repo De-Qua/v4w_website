@@ -184,3 +184,8 @@ function copyMyPositionAsStart(map) {
 				alert("Location access denied.");
 		});
 }
+
+function updateViewsAfterResizeWindow(){
+  updateSidebarAfterResizeWindow();
+  updateButtonsAfterResizeWindow();
+}
