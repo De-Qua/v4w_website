@@ -13,6 +13,7 @@ function initialize_html(){
   closeResultsWindow();
   removePathLayer();
   closeErrorWindow();
+  addSocialButton();
 
 
   mymap.on('click', onMapClick);
@@ -104,7 +105,8 @@ function initialize_html(){
     // modus == 0 --> indirizzo, o nulla?
     // modus == 1 --> strada tra A e B
     console.log("Setting up results window!")
-    showResultsWindow(dict_in_JS)
+    showResultsWindow(dict_in_JS);
+    setSidebarTitle(dict_in_JS);
     switch(modus_operandi) {
       case 0:
       // here all the stuff we can do when only one address is searched
@@ -116,7 +118,7 @@ function initialize_html(){
       // e facile aggiungere geo_type se vogliamo piu avanti
       console.log("shown a single address result")
       var name_location = dict_in_JS.params_research.da;
-      document.getElementById('search_field_1').value = name_location
+      document.getElementById('search_field_1').value = name_location;
       if (name_location.length > 0) {
         nowitstimetoshowtheX('search_field_1_x');
       }

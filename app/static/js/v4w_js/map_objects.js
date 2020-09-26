@@ -83,3 +83,19 @@ function addPathLines(lines) {
 	pathLines.addData(lines);
 	pathLines.addTo(mymap);
 }
+
+function updateButtonsAfterResizeWindow(){
+	if (is_keyboard){
+		scale_button.remove();
+		loc_control.remove();
+		map_button.remove();
+		settings_button.remove();
+		social_button.remove();
+	} else {
+		scale_button.addTo(mymap);
+		loc_control.addTo(mymap);
+		map_button.addTo(mymap);
+		settings_button.addTo(mymap);
+		addSocialButton();
+	}
+}
