@@ -19,8 +19,9 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 	}
 	for (i = 0; i < possibilities.length; i++) {
 		var description_dict = possibilities[i].descrizione;
-		cur_result_title = get_icon(description_dict) + " " + possibilities[i].nome;
-		cur_result_name = possibilities[i].nome
+		cur_result_icon = get_icon(description_dict);
+		cur_result_title = possibilities[i].nome;
+		cur_result_name = possibilities[i].nome;
 		cur_result_coords = possibilities[i].coordinate;
 		// cur_result_description e un dizionario con tante informazioni:
 		// da quello creiamo una string fatta bene
@@ -28,16 +29,16 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
 
 
 		card_col = document.createElement('div');
+		card_col.setAttribute('class', 'card_column')
 		if (areWeUsingBottomBar()){
-			card_col.setAttribute('class', 'col-7');
+			card_col.classList.add('col-7','col-sm-5');
 		}
 		card = document.createElement('div');
-
+		card.setAttribute('class', 'card possibilities_result border border-secondary rounded');
 		if (areWeUsingBottomBar()){
-			card.setAttribute('class', 'card possibilities_result border border-secondary rounded');
 			card.setAttribute('style', 'height: 100%;')
 		}else{
-			card.setAttribute('class', 'card possibilities_result border border-secondary rounded mb-1');
+			card.classList.add('mb-1');
 		}
 		card.lat = cur_result_coords[0];
 		card.lng = cur_result_coords[1];
@@ -45,11 +46,22 @@ function showPossibilitiesWindow(possibilities, markerOptions, map, what_are_we_
     card.description = cur_result_description
 
 		card_header = document.createElement('div');
-		card_header.setAttribute('class','card-header');
-		card_header.innerHTML = '<div class="row">'
-														+'<div class="col-12 align-self-center"><h6 class="card-title"><strong>'+cur_result_title+'</strong></h6></div>'
-														//+'<div class="col-1 align-self-center " style="z-index: 10"><button class="btn btn-sm btn-light v4wbtn pull-right" onclick="showResultLocation()"><i class="fa fa-map-marker"></i></button></div>'
-														+'</div>';
+		card_header.setAttribute('class','card-header p-2');
+		/* Versione con icona e titolo in due colonne */
+		card_header.innerHTML = '<h6 class="card-title p-1 m-1 row flex-nowrap">'
+														+'<div class="col-2 p-0">'
+														+cur_result_icon
+														+'</div>'
+														+'<div class="col-10 p-0 ml-2 align-self-center">'
+														+'<strong>'+cur_result_title+'</strong>'
+														+'</div>'
+														+'</h6>';
+		/* versione con icona e titolo in un'unica stringa */
+		card_header.innerHTML = '<h6 class="card-title p-1 m-1 row flex-nowrap">'
+														+'<div class="col p-0 align-self-center">'
+														+cur_result_icon+'&ensp;<strong>'+cur_result_title+'</strong>'
+														+'</div>'
+														+'</h6>';
 		//card_header.onclick = function() {stopPropagation();};
 		card_body = document.createElement('div');
 		card_body.setAttribute('class','card-body');
@@ -341,7 +353,7 @@ function restoreMapForBottomBar(){
 }
 
 function areWeUsingBottomBar(){
-	if ((window.innerWidth < 812) && (window.innerWidth < window.innerHeight)){
+	if ((window.innerWidth < 812) && (window.innerWidth <= window.innerHeight)){
 		return true;
 	} else{
 		return false;
@@ -400,4 +412,26 @@ function updateViewsAfterResizeWindow() {
 		}
 	}
 	console.log("View aggiornata!")
+}
+
+function changePositionSidebar() {
+	// It is bottombar but it is still on the side
+	if ($("#sidebar").css('display') != 'none') {
+		showSidebar();
+	} else {
+		hideSidebar();
+	}
+	console.log("change position of sidebar")
+	if (is_bottom_bar) {
+		$("#all_possibilities").addClass('scrollable-wrapper row flex-row flex-nowrap');
+		$("#all_possibilities").css('minHeight','100%');
+		$(".card_column").addClass('col-7 col-sm-5');
+		$(".possibilities_result").removeClass('mb-1').css('height','100%');
+
+	} else { // Is is sidebar but is is still on the bottom
+		$("#all_possibilities").removeClass('scrollable-wrapper row flex-row flex-nowrap');
+		$("#all_possibilities").css('minHeight','');
+		$(".card_column").removeClass('col-7 col-sm-5');
+		$(".possibilities_result").addClass('mb-1').css('height','');
+	}
 }

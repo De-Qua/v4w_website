@@ -398,9 +398,10 @@ body, html {height: 100%}
 .scrollable-wrapper{
 	overflow-x: auto;
 }
-#result_title{
-	padding-top: 0;
-	padding-bottom: 0;
+.sidebar-title{
+	height: 50px;
+	background-color: rgb(247, 247, 247);
+	border-bottom: 1px solid rgba(0,0,0,.125);
 }
 .sidebar-table {
   position: absolute;
