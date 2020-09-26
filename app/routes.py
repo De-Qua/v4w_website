@@ -45,14 +45,14 @@ def index():
     # add version to the track usage
     g.track_var["version"] = getCurrentVersion()
     # do everything
-    app.logger.info('Prova info')
-    app.logger.error('Prova error')
-    app.logger.debug('Prova debug')
-    app.logger.warning('Prova warning')
-    app.logger.critical('Prova critical')
-    app.logger.log(10,'Prova log debug')
-    app.logger.log(20,'Prova log info')
-    return render_template('info.html')
+    # app.logger.info('Prova info')
+    # app.logger.error('Prova error')
+    # app.logger.debug('Prova debug')
+    # app.logger.warning('Prova warning')
+    # app.logger.critical('Prova critical')
+    # app.logger.log(10,'Prova log debug')
+    # app.logger.log(20,'Prova log info')
+    return render_template('info/info.html')
 
 # manifest.json serve per la PWA
 @t.include

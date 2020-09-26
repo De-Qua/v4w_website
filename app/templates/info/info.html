@@ -1,0 +1,101 @@
+{% extends 'info/info_base.html' %}
+{% block title %}
+	DeQua | Info
+{% endblock %}
+{% block body %}
+	<div class="imgbg">
+		<img src="/static/img/info_cover.jpg" width="100%">
+	</div>
+
+	<div class="text-container">
+		<h1 style="text-align:center; font-size:2rem;">Come muoversi a Venezia, spiegato bene <br><span style="font-size:1.3rem">Trova gli indirizzi e calcola il percorso a piedi o in barca</span></h1>
+		<br>
+		<p>
+		Benvenuto nella versione di sviluppo (quindi non ancora perfettamente funzionante) di DeQua, un nuovo servizio per la mobilità a Venezia.
+		DeQua ha diverse caratteristiche che lo rendono unico:
+		<ul>
+			<li> Permette di visualizzare qualunque indirizzo del centro storico con alta precisione, oltre a migliaia di calli, campi, ponti e punti di interesse come locali, musei e chiese; </li>
+		  <li> Permette di calcolare percorsi per muoversi in città, sia a piedi che in barca; </li>
+			<li> Permette di calcolare percorsi minimizzando il numero di ponti, un primo passo verso un servizio per l'accessibilità</li>
+		</ul>
+		Oltre a questi servizi, stiamo progettando tante altre funzioni, cosa ne diresti se durante i giorni di acqua alta, DeQua ti aiutasse a trovare i percorsi in cui puoi passare all'asciutto?
+		E se ti indicasse i ponti troppo bassi per passare con la barca? Se invece ti permettesse di creare e visualizzare degli eventi in modo da condividerli con gli amici, o sapere cosa succede questa sera intorno a te?
+		Le idee sono tante, e ancora non sappiamo quali realizzeremo, ma DeQua diventerà presto uno strumento fondamentale per muoversi a Venezia!
+		</p>
+		<p>
+			Clicca su una categoria qua sotto per saperne di più!
+		</p>
+		<!-- Bootstrap grid con le sottopagine -->
+		<div class="boot_grid">
+			<div class="row p-2">
+				<div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/comesiusa">
+						<button class="btn-dq btn-dq-primary p-3">
+							<svg width="3.5em" height="3.5em" viewBox="0 0 16 16" class="bi bi-geo" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path d="M11 4a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+							  <path d="M7.5 4h1v9a.5.5 0 0 1-1 0V4z"/>
+							  <path fill-rule="evenodd" d="M6.489 12.095a.5.5 0 0 1-.383.594c-.565.123-1.003.292-1.286.472-.302.192-.32.321-.32.339 0 .013.005.085.146.21.14.124.372.26.701.382.655.246 1.593.408 2.653.408s1.998-.162 2.653-.408c.329-.123.56-.258.701-.382.14-.125.146-.197.146-.21 0-.018-.018-.147-.32-.339-.283-.18-.721-.35-1.286-.472a.5.5 0 1 1 .212-.977c.63.137 1.193.34 1.61.606.4.253.784.645.784 1.182 0 .402-.219.724-.483.958-.264.235-.618.423-1.013.57-.793.298-1.855.472-3.004.472s-2.21-.174-3.004-.471c-.395-.148-.749-.336-1.013-.571-.264-.234-.483-.556-.483-.958 0-.537.384-.929.783-1.182.418-.266.98-.47 1.611-.606a.5.5 0 0 1 .595.383z"/>
+							</svg>
+							<h3>Come si usa?</h3>
+						</button>
+					</a>
+				</div>
+				<div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/howitsmade">
+						<button class="btn-dq btn-dq-primary p-3">
+							<svg width="3.5em" height="3.5em" viewBox="0 0 16 16" class="bi bi-gear-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 0 0-5.86 2.929 2.929 0 0 0 0 5.858z"/>
+							</svg>
+							<h3 id="tools">Com'è fatto? (tecnico)</h3>
+						</button>
+					</a>
+				</div>
+				<div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/chisiamo">
+						<button class="btn-dq btn-dq-primary p-3">
+							<svg width="3.5em" height="3.5em" viewBox="0 0 16 16" class="bi bi-person-circle" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path d="M13.468 12.37C12.758 11.226 11.195 10 8 10s-4.757 1.225-5.468 2.37A6.987 6.987 0 0 0 8 15a6.987 6.987 0 0 0 5.468-2.63z"/>
+							  <path fill-rule="evenodd" d="M8 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+							  <path fill-rule="evenodd" d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"/>
+							</svg>
+							<h3 id="tools">Chi Siamo?</h3>
+						</button>
+					</a>
+				</div>
+				<!-- <div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/idee">
+						<button class="btn btn-primary p-3">
+							<svg width="4em" height="4em" viewBox="0 0 16 16" class="bi bi-hourglass-split" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0c0 .701.478 1.236 1.011 1.492A3.5 3.5 0 0 1 11.5 13s-.866-1.299-3-1.48V8.35z"/>
+							</svg>
+							<h2 id="tools">Idee per il futuro!</h2>
+						</button>
+					</a>
+				</div>-->
+				<div class='col-lg-2'></div>
+				<div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/partecipare">
+						<button class="btn-dq btn-dq-primary p-3">
+							<svg width="3.5em" height="3.5em" viewBox="0 0 16 16" class="bi bi-person-plus-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.5-3a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+							  <path fill-rule="evenodd" d="M13 7.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0v-2z"/>
+							</svg>
+							<h3 id="tools">Voglio partecipare!</h3>
+						</button>
+					</a>
+				</div>
+				<div class="col-lg-4 col-md-6 p-1" style="text-align: center;">
+					<a href="/contatti">
+						<button class="btn-dq btn-dq-primary p-3">
+							<svg width="3.5em" height="3.5em" viewBox="0 0 16 16" class="bi bi-envelope-open" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+							  <path fill-rule="evenodd" d="M8.47 1.318a1 1 0 0 0-.94 0l-6 3.2A1 1 0 0 0 1 5.4v.818l5.724 3.465L8 8.917l1.276.766L15 6.218V5.4a1 1 0 0 0-.53-.882l-6-3.2zM15 7.388l-4.754 2.877L15 13.117v-5.73zm-.035 6.874L8 10.083l-6.965 4.18A1 1 0 0 0 2 15h12a1 1 0 0 0 .965-.738zM1 13.117l4.754-2.852L1 7.387v5.73zM7.059.435a2 2 0 0 1 1.882 0l6 3.2A2 2 0 0 1 16 5.4V14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5.4a2 2 0 0 1 1.059-1.765l6-3.2z"/>
+							</svg>
+							<h3 id="tools">Contatti</h3>
+						</button>
+					</a>
+				</div>
+				<div class='col-lg-2'></div>
+			</div>
+		</div>
+	</div><!-- END TEXT CONTAINER -->
+{% endblock %}
