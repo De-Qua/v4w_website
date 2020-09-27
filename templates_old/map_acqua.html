@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+	<title>De Qua</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/static/css/w3s.css">
+	<link rel="stylesheet" href="/static/css/s.css">
+	<link rel="icon" href="/static/img/dequa_logo_v1.png">
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+		 integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+		 crossorigin=""/>
+	 <!-- Make sure you put this AFTER Leaflet's CSS -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
+	<!-- Make sure you put this AFTER Leaflet's CSS -->
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+		 integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+		 crossorigin=""></script>
+	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+	<!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
+	<script src="/static/js/leaflet-providers.js"></script>
+	<!-- Our own (little) javascript library. -->
+	<script src="/static/js/v4w.js"></script>
+<body>
+
+	<div class="loader" style="display:none;" id="loading">
+		<img id="loading_gif">
+	</div>
+
+	<!-- DIV CON LA MAPPA -->
+	<div id="mapid">
+		<script>
+			var whichmap = "osm";
+			var mymap = L.map('mapid');
+			var OpenStreetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			minZoom: 12,
+	    maxZoom: 19,
+	    minNativeZoom: 12,
+	    maxNativeZoom: 19,
+			zoomControl: false,
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(mymap);
+			//OpenStreetMap_DE = L.tileLayer.provider('Stamen.Watercolor').addTo(mymap);
+			// Zoom buttons to the bottom right
+			mymap.zoomControl.setPosition('bottomright');
+			// a random marker to show a markers are used
+			//var marker = L.marker([45.43, 12.33]).addTo(mymap);
+			//var marker;
+			//var circle;
+			L.control.locate({
+		    position: 'bottomright',
+		    strings: {
+		        title: "Show me where I am, yo!"
+		    }
+				}).addTo(mymap);
+			var feedbackjs = {{feedbacksent}};
+		</script>
+	</div>
+
+		<!-- DIV IN ALTO A SINISTRA - QUI LA BARRA DI RICERCA -->
+		<!-- per essere cliccato e usato da telefono, deve stare fuori dalla mappa! Se no l'utente clicca la mappa e non la barra di ricerca! -->
+		<div class="leaflet-top leaflet-left" id="searchbar">
+			<div class="searchfield leaflet-control w3-medium">
+				<form id="ricerca_ind" action="" method="GET" onsubmit="drawPreLoader()">
+					<input type="text"  placeholder="cerca.." name="partenza">
+					<button class="btn srcbtn v4wbtn" type="submit" form="ricerca_ind" id="searchbtn"><i class="fa fa-search"></i></button>
+
+
+					<!-- inizialmente mostriamo il bottone -->
+					<a onclick="showSecondSearchbar()">
+						<div class="button-plus" id="add-searchfield">
+							<button type=button id="btn-plus" class="fa fa-plus btn v4wbtn pad-left"></button>
+						</div>
+					</a>
+					<!-- quando uno preme, nascondiamo il bottone e mostriamo il secondo campo di ricerca -->
+					<div class="container-search-field" id="second-search-field" style="display: none">
+							<div class="form-group has-feedback">
+								<input id="searchbox_end" type="text" name="arrivo" placeholder="fino a.." class="form-control">
+								<button type=button onclick="hideSecondSearchbar()" class="fa fa-close btn v4wbtn pad-left"></button>
+							</div>
+					</div><br>
+					<!-- Aggiungiamo un bottone per il percorso sotto -->
+					<div class="calculate-path-cointainer button-plus" id="calc-button" style="display: none">
+
+						<button type="submit" class="btn v4wbtn">Trova la strada &nbsp; <i class="fa fa-search"></i></button>
+
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- DIV IN ALTO A DESTRA - QUI IL PULSANTE DI AIUTO e DI FEEDBACK-->
+		<div class="leaflet-top leaflet-right onlyMap">
+			<a onclick="showHelpWindow()">
+				<div class="leaflet-control w3-medium">
+					<button class="btn v4wbtn"><i class="fa fa-question"></i></button>
+				</div>
+			</a>
+			<a onclick="showFeedbackWindow()">
+				<div class="leaflet-control w3-medium">
+					<button class="btn v4wbtn"><i class="fa fa-exclamation-triangle"></i></button>
+				</div>
+			</a>
+		</div>
+
+		<!-- DIV IN BASSO A SINISTRA - TIPO MAPPA -->
+		<div class="leaflet-bottom leaflet-left onlyMap">
+			<a onclick="changeMap(whichmap)">
+				<div class="leaflet-control maptype w3-medium">
+					<button class="btn v4wbtn mapbtn"><i class="fa fa-map"></i></button>
+				</div>
+			</a>
+		</div>
+		<!-- DIV IN BASSO A DESTRA - GEO-LOCALIZZZIONE
+		<div class="leaflet-bottom leaflet-right">
+			<a onclick="locateUser(mymap, marker, circle)">
+				<div class="leaflet-control aboveZoom w3-medium">
+					<button class="btn v4wbtn"><i class="fa fa-location-arrow"></i></button>
+				</div>
+			</a>
+		</div>
+		-->
+
+	<div class="helpwindowpopup" id="helpwindow">
+		<a onclick="closeHelpWindow()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
+		<p class="w3-medium"><b>COSA POSSO FARE?</b></p><br>
+		<p class="w3-small">Cerca il tuo indirizzo, inserendo SESTIERE e NUMERO CIVICO.<br>
+		<br>
+		Ad esempio, Cannaregio 5218.<br>
+		<br>
+		Al momento, alcuni indirizzi non sono trovabili usando un'area della città (ad esempio Santa Marta), ma bisogna usare il sestiere (esempio precedente, Dorsoduro).<br>
+			Nel caso in cui l'indirizzo effettivamente non sia stato trovato, contattateci a <a href="mailto:info@dequa.it">info@dequa.it!</a><br>
+		Se preferite, il form per il feedback si trova nel bottone sotto col triangolo!<br>
+		<br>
+		Buona giornata.<br>
+		I fioi.<br>
+
+		<br>
+		<a onclick="closeHelpWindow()"><button class="btn closebutton">HO CAPITO</button></a>
+		</p>
+
+	</div>
+	<div class="feedbackwindowpopup" id="feedbackwindow" style="display: none">
+		<a onclick="changeFeedbackandClose()"><button class="btn v4wbtn Xbtn"><i class="fa fa-close"></i></button></a>
+		<p class="w3-medium"><b>INVIA FEEDBACK</b></p><br>
+		<div id="formid">
+		<form action="" method="post">
+			{{ form.hidden_tag() }}
+			<p>
+				{{ form.name.label }}
+				{{ form.name(size=32) }} <br>
+				{% for error in form.name.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+				{{ form.email.label }}
+				{{ form.email(size=32) }} <br>
+				{% for error in form.email.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+				{{ form.category.label }}
+				{{ form.category() }}
+				{% for error in form.category.errors %}
+		    	<span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+			</p>
+			<p>
+				{{ form.searched_string.label }}
+				{{ form.searched_string(size=32) }}
+			</p>
+			<p>
+				{{ form.found_string.label }}
+				{{ form.found_string(size=32) }}
+			</p>
+			<p>
+		    {{ form.feedback.label }}<br>
+		    {{ form.feedback(cols=50, rows=4) }}<br>
+		    {% for error in form.feedback.errors %}
+		    <span style="color: red;">[{{ error }}]</span>
+		    {% endfor %}
+		  </p>
+			<p>
+				{{ form.submit() }}
+			</p>
+		</form>
+		</div>
+		<div id="grazieid">
+			<p> Grazie per il tuo feedback! </p>
+		</div>
+
+	</div>
+
+
+<script>
+    closeHelpWindow();
+    closeFeedbackWindow();
+    toggleFeedbackWindowLayout();
+
+		// HERE WE READ OUR JSON MESSAGE FROM PYTHON
+		//var result = JSON.parse({{ results_dictionary | tojson }});
+		var dict_in_JS = {{results_dictionary | tojson}};
+		if (dict_in_JS == "None") {
+			mymap.setView([45.43, 12.33], 13);
+		}
+		else {
+
+			// options for all markers
+			var marker_icon = L.icon({
+				iconUrl: '/static/img/icon_marker_50.png',
+				iconRetinaUrl: '/static/img/icon_marker.png',
+				iconSize: [33, 50],
+				iconAnchor: [16, 49],
+				popupAnchor: [16, 16]
+			});
+
+			// Options for the marker
+			var markerOptions = {
+				 title: "Abbiamo trovato {{start_name}}",
+				 clickable: true,
+				 // si alza all'hover - non va :(
+				 riseOnHover: true,
+				 icon: marker_icon
+			}
+
+			var modus_operandi = dict_in_JS.modus_operandi;
+			console.log("siamo in modus_operandi: " + modus_operandi);
+			var geo_type = dict_in_JS.partenza[0].geotype;
+			console.log("geo_type in questo caso = " + geo_type);
+			// we switch with modus_operandi
+			// modus == 0 --> indirizzo, o nulla?
+			// modus == 1 --> strada tra A e B
+			switch(modus_operandi) {
+				case 0:
+					// here all the stuff we can do when only one address is searched
+					// NEW VERSION with geo_type
+					// geo_type == -2 --> pagina senza ricerca
+					// geo_type == -1 --> trovato nulla, pazienza
+					// geo_type == 0 --> marker
+					// geo_type == 1 --> poligono
+					// e facile aggiungere geo_type se vogliamo piu avanti
+					switch(geo_type) {
+						case -2:
+							// do nothing - pagina senza ricerca_ind
+							mymap.setView([45.43, 12.33], 13);
+							break;
+						case -1:
+							// code block
+							alert('non abbiamo trovato nulla! Sicuro di aver scritto giusto? Riprova');
+							break;
+						case 0:
+							// coordinate
+							var coords_location = dict_in_JS.partenza[0].coordinate;
+							marker_location = L.marker(coords_location, markerOptions);
+							var name_location = dict_in_JS.partenza[0].nome;
+							// Popup se uno clicca sul marker
+							marker_location.bindPopup("Abbiamo trovato " + name_location).openPopup();
+							// aggiungi il marker sulla mappa
+							marker_location.addTo(mymap);
+							var group = new L.featureGroup([marker_location]);
+							mymap.fitBounds(group.getBounds());
+							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 18);
+							break;
+						case 1:
+							// DISEGNA POLIGONO
+							var polygonOptions = {
+
+								 title: "Evidenziato " + name_location,
+								 clickable: true,
+								 // si alza all'hover - non va :(
+								 riseOnHover: true
+							}
+							var polygon = L.polygon([
+									dict_in_JS.partenza[0].shape
+							], polygonOptions).addTo(mymap);
+							var group = new L.featureGroup([polygon]);
+							mymap.fitBounds(group.getBounds());
+							//mymap.setView([{{start_coordx}}, {{start_coordy}}], 17);
+							break;
+						default:
+							// do nothing
+							console.log("caso default. strano. guarda nello switch che valore ha geo_type");
+							break;
+						}
+					break;
+				case 1:
+					console.log("drawing the streets!")
+					// here all the stuff when we have path from A to B
+			    //var punto_di_partenza = L.point(stop_coordx, stop_coordy);
+			    //var prj = L.Projection.Mercator.unproject(pointM);
+					mymap.setView([45.43, 12.33], 13);
+			    var marker_partenza = L.marker([dict_in_JS.partenza[0].coordinate[0], dict_in_JS.partenza[0].coordinate[1]], markerOptions).addTo(mymap);
+			    var marker_arrivo = L.marker([dict_in_JS.arrivo[0].coordinate[0], dict_in_JS.arrivo[0].coordinate[1]], markerOptions).addTo(mymap);
+					// the pahts: they are more than one
+					var streets = dict_in_JS.path;
+					var colors = ["red", "blue"];
+					var group = new L.featureGroup([marker_partenza, marker_arrivo]);
+					var path_coords;
+					var path_type;
+					var linecolor;
+					console.log("steets: " + streets);
+					for (i in streets) {
+						street = streets[i];
+						console.log("street: " + street);
+						path_coords = street.strada;
+						path_type = street.tipo;
+						// diamo in pasto alla polyline l'ennesimo colore
+						// create a polyline that will be drawn
+						console.log("path_cordds: " + path_coords);
+						console.log("path_type: " + path_type);
+						linecolor = colors[path_type];
+						console.log("colors:" + colors);
+						console.log("disegniamo in " + linecolor);
+						var current_polyline = new L.Polyline(path_coords, {
+								color: colors[path_type],
+								weight: 3,
+								opacity: 0.5,
+								smoothFactor: 4
+						});
+						console.log("created polyline");
+						current_polyline.addTo(mymap);
+						console.log("added polyline to map");
+
+						// set the view correctly - we use a group because getBounds on Polyline sembra non andare
+						current_polyline.addTo(group)
+
+					}
+					// javascript way to call a method in the for loop
+					//streets.forEach(drawStreet());
+					mymap.fitBounds(group.getBounds());
+					//alert('YET TO BE DONE');
+					break;
+				break;
+		 	}//closing switch modus_operandi
+		}
+
+
+</script>
+
+
+</body>
+</html>

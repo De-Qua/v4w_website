@@ -17,6 +17,8 @@ self.addEventListener("install", installEvent => {
   )
 })
 
+
+
 // self.addEventListener('fetch', (evt) => {
 //   console.log('[ServiceWorker] fetching...');
 //   return ("/static/js/v4w_js/init.js");
@@ -30,27 +32,7 @@ self.addEventListener("install", installEvent => {
 //   );
 // });
 
-// codelabs
-self.addEventListener('fetch', event => {
-  console.log('Fetch intercepted for:', event.request.url);
-  console.log('event.request: ' +  (event.request));
-  console.log('caches.match: ' +  caches.match(event.request));
-  if (event.request.url=="http://127.0.0.1:5000/info") {
-    console.log("richiesta pagina info!");
-    event.respondWith("/idee");
-  }
-  else {
-    console.log("richiesta che non è la pagina info, ma " + event.request.url);
-    event.respondWith(caches.match(event.request)
-      .then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return fetch(event.request);
-        })
-      );
-    }
-});
+
 
 //offline cookbook
 // self.addEventListener('fetch', function(event) {
@@ -75,20 +57,9 @@ self.addEventListener('fetch', event => {
 //   )
 // })
 
-self.addEventListener('activate', activateEvent => {
-  console.log('[ServiceWorker] Activate');
-  activateEvent.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(keyList.map((key) => {
-        if (key !== assets) {
-          console.log('[ServiceWorker] Removing old cache...', key);
-          return caches.delete(key);
-        }
-      }));
-    })
-  );
-  self.clients.claim();
-});
+
+
+
 /* copiando i tutorial, non so servano per storare in cache tutto
 "/css/dequa.css",
 "/css/s.css",

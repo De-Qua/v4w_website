@@ -66,7 +66,7 @@ def manifest():
 from flask import make_response, send_from_directory
 @app.route('/serviceWorker.js')
 def serviceworker():
-    response=make_response(send_from_directory('static/js',filename='serviceWorker.js'))
+    response=make_response(send_from_directory('',filename='serviceWorker.js'))
     #change the content header file
     response.headers['Content-Type'] = 'application/javascript'
     return response
