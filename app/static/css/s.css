@@ -7,6 +7,15 @@ body, html {height: 100%}
 	background-size: cover;
 }
 
+.icon-btn {
+    font-size: 12px;
+    position: absolute;
+    color: black;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+      }
+
 .card-img-top {
 	object-fit: cover;
 	max-height: 11rem;
