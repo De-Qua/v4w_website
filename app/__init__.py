@@ -15,6 +15,7 @@ from flask_track_usage.storage.sql import SQLStorage
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_security import current_user
+from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
 #

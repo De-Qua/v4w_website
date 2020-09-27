@@ -1,0 +1,10 @@
+# robots.txt basic
+# same behaviour for all bots:
+# allowing the crawling, but closing up some parts (?)
+
+User-agent: *
+Disallow: /admin
+Disallow: /security
+Disallow: /src
+
+Sitemap: /sitemap.xml

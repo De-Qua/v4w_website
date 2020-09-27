@@ -34,3 +34,6 @@ class Config(object):
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') # QUA INSERIRE LA PASSWORD DELL'ACCOUNT
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') #"info@dequa.it"
     ADMINS = ['info@dequa.it']
+    # Sitemap
+    SITEMAP_URL_SCHEME = 'HTTPS'
+    SITEMAP_INCLUDE_RULES_WITHOUT_PARAMS = False # se True, lista tutte (anche admin ecc) le pagine sulla sitemap 

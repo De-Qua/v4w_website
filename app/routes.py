@@ -59,7 +59,14 @@ def index():
 @app.route('/manifest.json', methods=['GET', 'POST'])
 def manifest():
     app.logger.info('manifest ')
-    return render_template('manifest.json')
+    return render_template('public/manifest.json')
+
+# manifest.json serve per la PWA
+@t.include
+@app.route('/robots.txt', methods=['GET', 'POST'])
+def robots():
+    app.logger.info('robots.txt ')
+    return render_template('public/robots.txt')
 
 # for the javascript file I need to fetch from a different folder
 # not templates anymore
@@ -246,6 +253,60 @@ def degoogle_us_please():
     else:
         app.logger.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
+
+# generatore di sitemap preso da github
+# full file here
+# https://gist.github.com/Julian-Nash/aa3041b47183176ca9ff81c8382b655a
+# il generatore aveva anche pagine dinamiche (come post dei blog)
+# ignoro cosa siano le pagine dinamiche in realtà, nel caso ci serve,
+# uno zip con il file originale è su nextcloud
+# https://next.eclabs.de/f/105048 <-- link interno
+@app.route("/sitemap")
+@app.route("/sitemap/")
+@app.route("/sitemap.xml")
+def sitemap():
+    """
+        Route to dynamically generate a sitemap of your website/application.
+        lastmod and priority tags omitted on static pages.
+        lastmod included on dynamic content such as blog posts.
+    """
+    from flask import make_response, request, render_template
+    import datetime
+    from urllib.parse import urlparse
+
+    host_components = urlparse(request.host_url)
+    host_base = host_components.scheme + "://" + host_components.netloc
+
+    # aggiungo mille if in modo che siano facili da togliere, ma può essere che alla lunga
+    # sia da cambiare qualcosa
+    # Static routes with static content
+    static_urls = list()
+    for rule in app.url_map.iter_rules():
+        if not str(rule).startswith("/admin") and not str(rule).startswith("/user"):
+            # no pagine ajax
+            if not ("/update" in str(rule) or "/initialize" in str(rule)):
+                # no service worker or manifest
+                if not (".js" in str(rule)): # .js esiste in .json !
+                    # no login or logout
+                    if not ("log" in str(rule) or "register" in str(rule)):
+                        #no feedback and degoogling
+                        if not ("r2d2" in str(rule) or "degoogling" in str(rule)):
+                            #no sè stesso
+                            if not ("sitemap" in str(rule)):
+                                if "GET" in rule.methods and len(rule.arguments) == 0:
+                                    url = {
+                                        "loc": f"{host_base}{str(rule)}"
+                                        # c'è un modo furbo per sapere il lastmod dai file? sicuramente
+                                        # "lastmod": file .date_published.strftime("%Y-%m-%dT%H:%M:%SZ")
+                                    }
+                                    static_urls.insert(0, url) # insert invece di append per avere l'ordine che mi paice di piu con la home sopra
+
+    xml_sitemap = render_template("public/sitemap.xml", static_urls=static_urls, host_base=host_base)
+    response = make_response(xml_sitemap)
+    response.headers["Content-Type"] = "application/xml"
+
+    return response
+
 
 # check webhook github signature
 def is_valid_signature(x_hub_signature, data, private_key):
