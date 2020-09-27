@@ -1,4 +1,4 @@
-from flask import render_template, request, send_from_directory, jsonify
+from flask import render_template, request, send_from_directory, jsonify, make_response
 from app import app, db, t, getCurrentVersion
 from app.forms import FeedbackForm
 import os
@@ -15,6 +15,8 @@ import traceback
 from flask import g
 import app.global_variables as global_variables
 from app import custom_errors
+import datetime
+from urllib.parse import urlparse
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
@@ -61,7 +63,7 @@ def manifest():
     app.logger.info('manifest ')
     return render_template('public/manifest.json')
 
-# manifest.json serve per la PWA
+# robots.txt serve per difenderci dai robot curiosi che vagano nell'internet
 @t.include
 @app.route('/robots.txt', methods=['GET', 'POST'])
 def robots():
@@ -270,9 +272,6 @@ def sitemap():
         lastmod and priority tags omitted on static pages.
         lastmod included on dynamic content such as blog posts.
     """
-    from flask import make_response, request, render_template
-    import datetime
-    from urllib.parse import urlparse
 
     host_components = urlparse(request.host_url)
     host_base = host_components.scheme + "://" + host_components.netloc
@@ -281,25 +280,44 @@ def sitemap():
     # sia da cambiare qualcosa
     # Static routes with static content
     static_urls = list()
+    # for rule in app.url_map.iter_rules():
+    #     if not str(rule).startswith("/admin") and not str(rule).startswith("/user"):
+    #         # no pagine ajax
+    #         if not ("/update" in str(rule) or "/initialize" in str(rule)):
+    #             # no service worker or manifest
+    #             if not (".js" in str(rule)): # .js esiste in .json !
+    #                 # no login or logout
+    #                 if not ("log" in str(rule) or "register" in str(rule) or "verify" in str(rule)):
+    #                     #no feedback and degoogling
+    #                     if not ("r2d2" in str(rule) or "degoogling" in str(rule)):
+    #                         #no sè stesso
+    #                         if not ("sitemap" in str(rule)):
+    #                             if "GET" in rule.methods and len(rule.arguments) == 0:
+    #                                 url = {
+    #                                     "loc": f"{host_base}{str(rule)}"
+    #                                     # c'è un modo furbo per sapere il lastmod dai file? sicuramente
+    #                                     # "lastmod": file .date_published.strftime("%Y-%m-%dT%H:%M:%SZ")
+    #                                 }
+    #                                 static_urls.insert(0, url) # insert invece di append per avere l'ordine che mi paice di piu con la home sopra
+
+    # lista di url da non mappare
+    urls_to_not_map = ["/admin", "/user", # no pagine di admin e di utenti
+                       "/update", "/initialize", # no ajax
+                       ".js", # no service worker o manifest
+                       "log", "register", "verify", # no login, logout, registrazione
+                       "r2d2", "degoogling", # no feedback e degoogling
+                       "robots.txt", # no file per i robot
+                       "sitemap"] # no se stesso
+
     for rule in app.url_map.iter_rules():
-        if not str(rule).startswith("/admin") and not str(rule).startswith("/user"):
-            # no pagine ajax
-            if not ("/update" in str(rule) or "/initialize" in str(rule)):
-                # no service worker or manifest
-                if not (".js" in str(rule)): # .js esiste in .json !
-                    # no login or logout
-                    if not ("log" in str(rule) or "register" in str(rule)):
-                        #no feedback and degoogling
-                        if not ("r2d2" in str(rule) or "degoogling" in str(rule)):
-                            #no sè stesso
-                            if not ("sitemap" in str(rule)):
-                                if "GET" in rule.methods and len(rule.arguments) == 0:
-                                    url = {
-                                        "loc": f"{host_base}{str(rule)}"
-                                        # c'è un modo furbo per sapere il lastmod dai file? sicuramente
-                                        # "lastmod": file .date_published.strftime("%Y-%m-%dT%H:%M:%SZ")
-                                    }
-                                    static_urls.insert(0, url) # insert invece di append per avere l'ordine che mi paice di piu con la home sopra
+        if not(any(url in str(rule) for url in urls_to_not_map)):
+            if "GET" in rule.methods and len(rule.arguments) == 0:
+                url = {
+                    "loc": f"{host_base}{str(rule)}"
+                    # c'è un modo furbo per sapere il lastmod dai file? sicuramente
+                    # "lastmod": file .date_published.strftime("%Y-%m-%dT%H:%M:%SZ")
+                }
+                static_urls.insert(0, url) # insert invece di append per avere l'ordine che mi paice di piu con la home sopra
 
     xml_sitemap = render_template("public/sitemap.xml", static_urls=static_urls, host_base=host_base)
     response = make_response(xml_sitemap)

@@ -7,4 +7,4 @@ Disallow: /admin
 Disallow: /security
 Disallow: /src
 
-Sitemap: /sitemap.xml
+Sitemap: https://www.dequa.it/sitemap.xml
