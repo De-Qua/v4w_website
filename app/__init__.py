@@ -107,16 +107,19 @@ security = Security(app, user_datastore)
 #
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
 
-from app.views import AdminModelView, UsageModelView, StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+from app.views import AdminModelView, UserModelView, UsageModelView, IdeasModelView
+from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
 
 
-
+admin.add_view(UserModelView(Users, db.session))
+admin.add_view(AdminModelView(Roles, db.session))
+admin.add_view(StreetModelView(Street, db.session, category="Map"))
+admin.add_view(AreaModelView(Area, db.session, category="Map"))
+admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
+admin.add_view(PoiModelView(Poi, db.session, category="Map"))
+admin.add_view(IdeasModelView(Ideas, db.session))
 admin.add_view(UsageModelView(FlaskUsage, db.session))
-admin.add_view(AdminModelView(Users, db.session))
-admin.add_view(StreetModelView(Street, db.session))
-admin.add_view(AreaModelView(Area, db.session))
-admin.add_view(NeighborhoodModelView(Neighborhood, db.session))
-admin.add_view(PoiModelView(Poi, db.session))
+
 
 #
 # Dashboard setup

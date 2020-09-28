@@ -13,13 +13,20 @@ class AdminModelView(ModelView):
             return redirect(url_for('security.login'))
     can_edit = True
 
+class UserModelView(ModelView):
+    column_list = ['email', 'roles', 'active', 'confirmed_at']
+    column_exclude_list = ['password']
+    # column_hide_backrefs = False
+
 class UsageModelView(AdminModelView):
-    def is_accessible(self):
-        return (current_user.has_role('admin'))
+    column_default_sort = ('datetime', True)
+    column_searchable_list = ['url', 'ua_browser', 'path', 'track_var']
+    column_exclude_list = ['blueprint', 'view_args', 'status', 'remote_addr',
+                           'xforwardedfor', 'authorization', 'ip_info']
+    column_filters = ['url', 'ua_browser', 'ua_language', 'path', 'track_var']
+    can_edit = False
 
 class StreetModelView(AdminModelView):
-    def is_accessible(self):
-        return (current_user.has_role('admin'))
     column_searchable_list = ['name', 'name_alt']
     column_editable_list = ['name_alt', 'score']
     column_exclude_list = ['shape']
@@ -46,3 +53,6 @@ class PoiModelView(AdminModelView):
                 'toilets_wheelchair', 'atm']
     column_exclude_list = ['osm_type', 'osm_id']
     column_editable_list = ['name_alt', 'score']
+
+class IdeasModelView(AdminModelView):
+    column_default_sort = ('num_of_votes', True)

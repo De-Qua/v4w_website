@@ -10,6 +10,7 @@ import pdb
 from app.src.libpy import lib_graph, lib_communication, lib_search
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
 from app.models import Ideas
+from app.models import Feedbacks, Errors
 from sqlalchemy import and_
 from app import app, db, getCurrentVersion
 from app.forms import FeedbackForm
@@ -113,25 +114,50 @@ def take_care_of_the_feedback(form, feedback_folder):
     """
     if form.is_submitted():
         if form.validate_on_submit():
-            all_good = write_feedback(form, feedback_folder)
+            db_feedback = save_feedback_in_db(form, feedback_folder)
+            all_good = write_feedback(db_feedback)
+
             app.logger.info("feedback inviato")
             return 1
         else:
             app.logger.info('errore nel feedback')
             return -1
 
-def write_feedback(form, feedback_folder):
+def save_feedback_in_db(form, feedback_folder):
+    """
+    Save the feedback in the db.
+    """
+    fb = Feedbacks()
+    fb.version = getCurrentVersion()
+    fb.datetime = datetime.datetime.now()
+    fb.name = form['name'].data
+    fb.email = form['email'].data
+    fb.category = dict(form.category.choices).get(form.category.data)
+    fb.searched_string = form['searched_string'].data
+    fb.searched_start = form['searched_start'].data
+    fb.searched_end = form['searched_end'].data
+    fb.found_string = form['found_string'].data
+    fb.found_start = form['found_start'].data
+    fb.found_end = form['found_end'].data
+    fb.feedback = form['feedback'].data
+    fb.json = form['dictJS'].data
+    fb.report = os.path.join(feedback_folder,"dequa_fb_"+fb.datetime.strftime("%Y%m%d-%H%M%S.%f")+".md")
+    db.session.add(fb)
+    db.session.commit()
+    return fb
+
+def write_feedback(feedback):
     """
     Just writes the feedback to the given file as markdown.
     """
-    curr_time = datetime.datetime.now()
-    file_feedback = os.path.join(feedback_folder,"dequa_fb_"+curr_time.strftime("%Y%m%d-%H%M%S.%f")+".md")
+    curr_time = feedback.datetime
+    file_feedback = feedback.report
     mdfile = '<h1>***** DEQUA FEEDBACK ***** </h1>\n'
     mdfile += '<h4>Website version</h4>\n'
-    mdfile += getCurrentVersion()+'\n'
+    mdfile += feedback.version+'\n'
     mdfile += '<h4>Time</h2>\n'
     mdfile += curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
-    category = dict(form.category.choices).get(form.category.data)
+    category = feedback.category
     mdfile += '<h4>Category</h4>\n'
     mdfile += category+'\n'
     dict_data_title = {
@@ -146,13 +172,13 @@ def write_feedback(form, feedback_folder):
         'feedback': 'Comments',
     }
     for (data,title) in dict_data_title.items():
-        value = form[data].data
+        value = getattr(feedback,data)
         if value:
             mdfile += '<h4>'+title+'</h4>\n'
             mdfile += value+'\n'
     # write json file
     mdfile += '<h4>JSON</h4>\n'
-    dictJson = json.loads(form['dictJS'].data)
+    dictJson = json.loads(feedback.json)
     mdfile += json.dumps(dictJson,indent=2)
     with open(file_feedback,'w+') as f:
         f.write(mdfile)

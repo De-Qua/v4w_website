@@ -279,7 +279,7 @@ class Users(db.Model, UserMixin):
     password = db.Column(db.String(80))
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
-    roles = db.relationship('Roles', secondary=roles_users_table, backref='user', lazy=True)
+    roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
 
 class Roles(db.Model, RoleMixin):
     __bind_key__ = 'users'
@@ -357,3 +357,43 @@ class Ideas(db.Model):
         self.num_of_votes += 1
     def downvote(self):
         self.num_of_votes -= 1
+
+######
+# TABELLE PER FEEDBACK E ERRORI
+######
+class Feedbacks(db.Model):
+    __tablename__ = "Feedbacks"
+    __bind_key__ = "feed_err"
+
+    id = db.Column(db.Integer(), primary_key=True)
+    version = db.Column(db.String(16))
+    datetime = db.Column(db.DateTime)
+    name = db.Column(db.String(128))
+    email = db.Column(db.String(128))
+    category = db.Column(db.String(256))
+    searched_string = db.Column(db.String(128))
+    searched_start = db.Column(db.String(128))
+    searched_end = db.Column(db.String(128))
+    found_string = db.Column(db.String(128))
+    found_start = db.Column(db.String(128))
+    found_end = db.Column(db.String(128))
+    feedback = db.Column(db.String(512))
+    json = db.Column(db.String())
+    report = db.Column(db.String(256))
+    solved = db.Column(db.Boolean, default=False)
+
+class Errors(db.Model):
+    __tablename__ = "Errors"
+    __bind_key__ = "feed_err"
+
+    id = db.Column(db.Integer(), primary_key=True)
+    version = db.Column(db.String(16))
+    datetime = db.Column(db.DateTime)
+    error_type = db.Column(db.String(256))
+    error_message = db.Column(db.String(256))
+    url = db.Column(db.String(256))
+    method = db.Column(db.String(256))
+    browser = db.Column(db.String(256))
+    pickle = db.Column(db.String(256))
+    report = db.Column(db.String(256))
+    solved = db.Column(db.Boolean, default=False)
