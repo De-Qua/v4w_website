@@ -148,3 +148,4 @@ flask_monitoringdashboard.db
 dequa.db
 ideas.db
 feed_err.db
+*.db
