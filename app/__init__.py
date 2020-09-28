@@ -95,6 +95,7 @@ from app.models import Users, Roles
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import FlaskUsage
 from app.models import Ideas
+from app.models import Errors, Feedbacks
 
 #
 # Users setup
@@ -109,7 +110,7 @@ admin = Admin(app, name='Admin', base_template='admin_master.html', template_mod
 
 from app.views import AdminModelView, UserModelView, UsageModelView, IdeasModelView
 from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
-
+from app.views import ErrorsModelView, FeedbacksModelView
 
 admin.add_view(UserModelView(Users, db.session))
 admin.add_view(AdminModelView(Roles, db.session))
@@ -119,6 +120,8 @@ admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
 admin.add_view(PoiModelView(Poi, db.session, category="Map"))
 admin.add_view(IdeasModelView(Ideas, db.session))
 admin.add_view(UsageModelView(FlaskUsage, db.session))
+admin.add_view(ErrorsModelView(Errors, db.session))
+admin.add_view(FeedbacksModelView(Feedbacks, db.session))
 
 
 #

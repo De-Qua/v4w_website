@@ -56,3 +56,20 @@ class PoiModelView(AdminModelView):
 
 class IdeasModelView(AdminModelView):
     column_default_sort = ('num_of_votes', True)
+
+class ErrorsModelView(AdminModelView):
+    column_default_sort = ('datetime', True)
+    column_editable_list = ['solved']
+    column_filters = ['method', 'error_type', 'url', 'browser', 'solved']
+    column_searchable_list = ['method', 'error_type', 'error_message',
+                            'url', 'method', 'browser']
+
+
+class FeedbacksModelView(AdminModelView):
+    column_default_sort = ('datetime', True)
+    column_editable_list = ['solved']
+    column_filters = ['version', 'category', 'solved']
+    column_searchable_list = ['version', 'category',
+                              'searched_string', 'searched_start', 'searched_end',
+                              'found_string', 'found_start', 'found_end',
+                              'feedback']

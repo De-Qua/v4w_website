@@ -188,12 +188,37 @@ def write_feedback(feedback):
 
 def take_care_of_the_error(request,err,error_folder):
     """
-    Wrapper that write the error log
+    Wrapper that save and write the error log
+    """
+    error_db = save_error_in_db(request, err, error_folder)
+    save_error_pickle(error_db, err, request)
+    write_error(error_db)
+    return
+
+def save_error_in_db(request,err,error_folder):
+    """
+    Wrapper that save the error in the db
     """
     curr_time = datetime.datetime.now()
     file_error_name = os.path.join(error_folder,"dequa_err_"+curr_time.strftime("%Y%m%d-%H%M%S.%f"))
-    file_error_pickle = file_error_name+".err"
-    file_error_md = file_error_name+".md"
+    er = Errors()
+    er.version = getCurrentVersion()
+    er.datetime = curr_time
+    er.error_type = type(err).__name__
+    er.error_message = str(err)
+    er.url = request.url
+    er.method = request.method
+    er.browser = request.user_agent.string
+    er.pickle = file_error_name+".err"
+    er.report = file_error_name+".md"
+    db.session.add(er)
+    db.session.commit()
+    return er
+
+def save_error_pickle(error,err,request):
+    curr_time = error.datetime
+    file_error_pickle = error.pickle
+    file_error_md = error.report
     request_to_save = {
         'headers': request.headers.to_wsgi_list(),
         'method': request.method,
@@ -203,34 +228,36 @@ def take_care_of_the_error(request,err,error_folder):
         'form': request.form,
     }
     error_info = {
-        'time': curr_time,
-        'version': getCurrentVersion(),
+        'time': error.datetime,
+        'version': error.version,
         'request': request_to_save,
         'error': err,
         'traceback': traceback.format_exc(),
-        'markdown': file_error_md
+        'markdown': error.report
     }
     # save info in a pickle file
-    pickle.dump(error_info, open(file_error_pickle,"wb"))
+    pickle.dump(error_info, open(error.pickle,"wb"))
+
+def write_error(error):
     mdfile = '<h1>***** DEQUA ERROR ***** </h1>\n'
     mdfile += '<h2>Website version</h2>\n'
-    mdfile += getCurrentVersion()+'\n'
+    mdfile += error.version+'\n'
     mdfile += '<h2>Time</h2>\n'
-    mdfile += curr_time.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
+    mdfile += error.datetime.strftime("%Y-%m-%d %H:%M:%S.%f")+"\n"
     mdfile += '<h2>Error type</h2>\n'
-    mdfile += type(err).__name__+'\n'
+    mdfile += error.error_type+'\n'
     mdfile += '<h2>Error message</h2>\n'
-    mdfile += str(err)+'\n'
+    mdfile += error.error_message+'\n'
     mdfile += '<h2>URL</h2>\n'
-    mdfile += request.url+'\n'
+    mdfile += error.url+'\n'
     mdfile += '<h2>Method</h2>\n'
-    mdfile += request.method+'\n'
+    mdfile += error.method+'\n'
     mdfile += '<h2>Browser</h2>\n'
-    mdfile += request.user_agent.string+'\n'
+    mdfile += error.browser+'\n'
     mdfile += '<h2>Pickle file</h2>'
-    mdfile += file_error_pickle+'\n'
+    mdfile += error.pickle+'\n'
     # save info in a md file
-    with open(file_error_md,'w+') as f:
+    with open(error.report,'w+') as f:
         f.write(mdfile)
     # send an email with the error
     # if app.debug:# if not app.debug:
