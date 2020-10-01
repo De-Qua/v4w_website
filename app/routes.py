@@ -184,6 +184,13 @@ def asynch_navigation():
 
         return jsonify(dictionary_of_err)
 
+@t.include
+@app.route('/offline')
+def offline():
+    app.logger.info('loading offline page')
+    return render_template('offline.html')
+
+
 @app.route('/degoogling', methods=['GET', 'POST'])
 def degoogle_us_please():
 

@@ -3,7 +3,9 @@ const assets = [
     "/static/js/bootleaf.js",
     "/static/js/easy-button.js",
     "/static/js/v4w_js/init.js",
-    "/idee"
+    "/idee",
+    "/offline", 
+    "/"
   ];
 
 self.addEventListener("install", installEvent => {
@@ -11,53 +13,37 @@ self.addEventListener("install", installEvent => {
     installEvent.waitUntil(
       caches.open(staticDequa).then(
         function(cache) {
-          console.log("[ServiceWorker] cached ");
-		return cache.addAll(assets)
-    })
-  )
+	    cache_prom=cache.addAll(assets).then((res)=>{
+		console.log("[ServiceWorker] cached ");
+		return res
+	    })
+	    return cache_prom 
+	})
+    )
 })
 
+// offline page, esempio testato!
+//self.addEventListener('fetch', (evt) => {
+//  if (evt.request.mode !== 'navigate') {
+//    return;
+//  }
+//    evt.respondWith(fetch(evt.request).catch(() => {
+//	console.log("intercepted fetch for ", evt.request);
+//	return caches.open(staticDequa).then((cache) => {
+//            return cache.match('\offline');
+//      });
+//    })
+//  );
+//});
 
-
-// self.addEventListener('fetch', (evt) => {
-//   console.log('[ServiceWorker] fetching...');
-//   return ("/static/js/v4w_js/init.js");
-//   evt.respondWith(fetch(evt.request).catch(() => {
-//     console.log("a");
-//     return caches.open(staticDequa).then((cache) => {
-//       console.log("b");
-//       return cache.match("/static/js/v4w_js/init.js");
-//     });
-//   })
-//   );
-// });
-
-
-
-//offline cookbook
-// self.addEventListener('fetch', function(event) {
-//   event.respondWith(
-//     caches.open('app').then(function(cache) {
-//       return cache.match(event.request).then(function (response) {
-//         return response || fetch(event.request).then(function(response) {
-//           cache.put(event.request, response.clone());
-//           return response;
-//         });
-//       });
-//     })
-//   );
-// });
-
-//
-// self.addEventListener("fetch", fetchEvent => {
-//   fetchEvent.respondWith(
-//     caches.match(fetchEvent.request).then(res => {
-//       return res || fetch(fetchEvent.request)
-//     })
-//   )
-// })
-
-
+self.addEventListener('fetch', function(event) {
+    event.respondWith(
+	caches.match(event.request).then(function(response) {
+	    console.log("responding with ", response);
+	    return response || fetch(event.request);
+	})
+    );
+});
 
 
 /* copiando i tutorial, non so servano per storare in cache tutto
