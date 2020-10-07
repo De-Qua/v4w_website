@@ -60,6 +60,7 @@
     var fb_names = feedback_dict_in_JS.fb_names;
     var fb_contents = feedback_dict_in_JS.fb_contents;
     var fb_dicts = feedback_dict_in_JS.fb_dicts;
+    var markers_group = L.layerGroup();
     var pathLines = L.geoJSON([],{
       filter: function(feature) {
         // draw only lines!
@@ -85,9 +86,12 @@
       item_text.innerHTML = "<h3>" + fb_dicts[i]['title'] + "</h3>" + "<br> infos: " + fb_dicts[i]['infos'] + "<br> json: " + fb_dicts[i]['json_to_be_drawn'];
 
       // prepara i json
+      // qui vengono salvati i dati sul container in modo da poterli avere
+      // dentro il metodo del toggle
       var lines = fb_dicts[i]['json_to_be_drawn'];
       console.log('lines:' + lines);
       div_container.json_lines = lines;
+      div_container.marker_partenza = fb_dicts[i].json_to_be_drawn.partenza;
       console.log('container attribute ' + div_container.json_lines);
       // the content of the file is a hidden div that
       var list_item = document.createElement("div");
@@ -137,10 +141,14 @@
         document.getElementById(list_id).style.color = "blue";
       }
       pathLines.clearLayers();
+      // un bel modo barbaro per eliminare i marker
+      // sicuramente c'è una soluzione migliore
+      markers_group = L.layerGroup();
       // draw the lines
       var lines = document.getElementById(el_id).json_lines.path.shape_list;
       pathLines.addData(lines);
     	pathLines.addTo(fb_map);
+      var marker = document.getElementById(el_id).json_lines.path.shape_list;
       fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
     }
   </script>

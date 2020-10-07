@@ -379,6 +379,8 @@ class Feedbacks(db.Model):
     found_end = db.Column(db.String(128))
     feedback = db.Column(db.String(512))
     json = db.Column(db.String())
+    start_coord = db.Column(db.String())
+    end_coord = db.Column(db.String())
     report = db.Column(db.String(256))
     solved = db.Column(db.Boolean, default=False)
 

@@ -18,7 +18,16 @@ function closeFeedbackWindow() {
 }
 
 function setValuesInFeedbackWindow(JSdict) {
-  if (JSdict == "None"){
+	// in any case, we set the start and end_coords (worst case they are "")
+	// we copy the values from the hidden fields for the search
+	// the field with "_fb" are inside the feedback form, so they will be sent
+	// along with the feedback form, I hope
+	console.log("copying hidden field to the feedback hidden field");
+	$('#hidden_start_coord_fb').val($('#hidden_start_coord').val());
+	$('#hidden_end_coord_fb').val($('#hidden_end_coord').val());
+
+
+	if (JSdict == "None"){
     return
   } else if ("error" in JSdict){
     return
@@ -83,6 +92,10 @@ function showFeedbackWindowNew() {
 	// (4, 'Proposta di miglioramento')
 	// (5, 'Altro')
 	document.getElementById("category").selectedIndex = 0;
+	// we copy the hidden_coords
+	console.log("@showFeedbackWindowNew: copying hidden field to the feedback hidden field");
+	$('#hidden_start_coord_fb').val($('#hidden_start_coord').val());
+	$('#hidden_end_coord_fb').val($('#hidden_end_coord').val());
 }
 
 function closeFeedbackWindowNew() {

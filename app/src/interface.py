@@ -141,6 +141,8 @@ def save_feedback_in_db(form, feedback_folder):
     fb.found_end = form['found_end'].data
     fb.feedback = form['feedback'].data
     fb.json = form['dictJS'].data
+    fb.start_coord = form['start_coord_fb'].data
+    fb.end_coord = form['end_coord_fb'].data
     fb.report = os.path.join(feedback_folder,"dequa_fb_"+fb.datetime.strftime("%Y%m%d-%H%M%S.%f")+".md")
     db.session.add(fb)
     db.session.commit()
