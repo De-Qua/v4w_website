@@ -1,4 +1,4 @@
-from flask import render_template, request, send_from_directory, jsonify
+from flask import render_template, request, send_from_directory, jsonify, make_response
 from app import app, db, t, getCurrentVersion
 from app.forms import FeedbackForm
 import os
@@ -15,6 +15,8 @@ import traceback
 from flask import g
 import app.global_variables as global_variables
 from app import custom_errors
+import datetime
+from urllib.parse import urlparse
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
@@ -37,6 +39,16 @@ if not os.path.exists(error_folder):
 html_file = 'dequa_map.html'
 app.logger.setLevel(1)
 app.logger.info("ready to go!")
+
+# lista di url da non mappare dopo il merge cambia anche site_map in modo che ne usiamo uno comune
+urls_to_not_map = ["/admin", "/user", # no pagine di admin e di utenti
+                   "/update", "/initialize", # no ajax
+                   ".js", # no service worker o manifest
+                   "log", "register", "verify", # no login, logout, registrazione
+                   "r2d2", "degoogling", # no feedback e degoogling
+                   "robots.txt", # no file per i robot
+                   "sitemap"] # no se stesso
+dirs_to_not_cache = ["static/files", "static/vids"]
 
 # cos'e il t.include?
 @t.include
@@ -205,6 +217,32 @@ def degoogle_us_please():
         app.logger.info('grazie per aver aperto find_address')
         return render_template('degoogling.html')
 
+@app.route("/files_to_cache")
+def files_to_cache():
+    """
+    Route to analyze the website and extract the files that needs to be cached 
+    """
+    urls_to_cache = list()
+    host_components = urlparse(request.host_url)
+    host_base = host_components.scheme + "://" + host_components.netloc
+    for rule in app.url_map.iter_rules():
+        if not(any(url in str(rule) for url in urls_to_not_map)):
+            if "GET" in rule.methods and len(rule.arguments) == 0:
+                urls_to_cache.append(str(rule))
+    static_path = os.path.join(folder,"app","static")
+    static_folders = [(dirpath, filenames) for (dirpath, dirnames, filenames) in  os.walk(static_path)]
+    for static_folder in static_folders:
+        relative_path = os.path.relpath(static_folder[0], os.path.join(folder, "app"))
+        print(relative_path)
+        for static_file in static_folder[1]:
+            if relative_path not in dirs_to_not_cache:
+                urls_to_cache.append(os.path.join(relative_path, static_file))
+    urls_to_cache.append("static/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf?v=4.7.0")
+    urls_to_cache.append("static/font-awesome-4.7.0/fonts/fontawesome-webfont.woff?v=4.7.0")
+    urls_to_cache.append("static/font-awesome-4.7.0/fonts/fontawesome-webfont.woff2?v=4.7.0")
+    return jsonify(urls_to_cache)
+
+    
 # check webhook github signature
 def is_valid_signature(x_hub_signature, data, private_key):
     # x_hub_signature and data are from the webhook payload

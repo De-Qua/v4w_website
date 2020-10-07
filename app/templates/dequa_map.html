@@ -414,7 +414,8 @@
 								        },
 												error:function() {
 													hidePreLoader();
-													$("#errorwindow-explanation").innerHTML = "C'è stato un errore con il server!";
+													$("#errorwindow-explanation").html("Le ricerche non funzionano offline! Riprova quando hai una connessione attiva");
+													console.log("OFFLINE o ERRORE DAL SERVER: " + document.getElementById("errorwindow-explanation").innerHTML());
 											    $("#errorwindow").show();
             						},
 								    });
