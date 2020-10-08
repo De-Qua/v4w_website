@@ -36,9 +36,9 @@
 
       <div class="feedbacks" id="feedback_container">
         <div class="row" id="feedback_row">
-          <div class="col-md-3 fb-col" id="left_col"></div>
+          <div class="col-md-3 fb-col" id="left_col" style="overflow:auto;"></div>
           <div class="col-md-5" id="map_feedback" style='width:100%; height:30em;'>asdas</div>
-          <div class="col-md-4 fb-col" id="right_col"></div>
+          <div class="col-md-4 fb-col" id="right_col" style="overflow:auto;"></div>
         </div>
       </div>
 
@@ -57,9 +57,7 @@
 
 	</body>
   <script>
-    var fb_names = feedback_dict_in_JS.fb_names;
-    var fb_contents = feedback_dict_in_JS.fb_contents;
-    var fb_dicts = feedback_dict_in_JS.fb_dicts;
+    var fb_dicts = feedback_dict_in_JS;
     var markers_group = L.layerGroup();
     var pathLines = L.geoJSON([],{
       filter: function(feature) {
@@ -74,7 +72,9 @@
         }
       }
     });
-    for (i=0; i<fb_names.length; i++) (function(i){
+    var cur_feed_dict;
+    for (i=0; i<fb_dicts.length; i++) (function(i){
+      cur_feed_dict = fb_dicts[i];
       var div_left_col = document.createElement("div");
       var div_right_col = document.createElement("div");
       // a div contains the text (this will later be better made, with maps and all)
@@ -83,20 +83,31 @@
       div_container.id = "fb_content" + i; // we need id to toggle the visibility (or at least I think)
       div_container.style.display = "none";
       var item_text = document.createElement("div");
-      item_text.innerHTML = "<h3>" + fb_dicts[i]['title'] + "</h3>" + "<br> infos: " + fb_dicts[i]['infos'] + "<br> json: " + fb_dicts[i]['json_to_be_drawn'];
+      // text we show
+      item_text.innerHTML = "<p style='text-align:right'>" + cur_feed_dict.datetime + "</p>" +
+                            "<hr><h4>DeQua Feedback " + i + "</h4>" +
+                            "<hr><h5>Categoria:</h5>" + cur_feed_dict.category +
+                            "<hr><h5>Feedback:</h5>" + cur_feed_dict.feedback +
+                            "<hr><h5>Trovato</h5><b>indirizzo:</b>" + cur_feed_dict.found_string +
+                            "<br>o <b>partenza:</b> " + cur_feed_dict.found_start + "<b>arrivo:</b> " + cur_feed_dict.found_end +
+                            "<br><hr><h5>Cercato</h5><b>indirizzo:</b>" + + cur_feed_dict.searched_string +
+                            "<br>o <b>partenza:</b> " + cur_feed_dict.searched_start + "<b>arrivo:</b> " + cur_feed_dict.searched_end +
+                            "<br><hr><h6>Coordinate (se disponibili)</h6> <b>partenza:</b> " + cur_feed_dict.start_coord + "<b>arrivo:</b> " + cur_feed_dict.end_coord +
+                            "<hr><h6>Json</h6> <p style='font-size:0.5rem'>" + cur_feed_dict.json + "</p>";
 
       // prepara i json
       // qui vengono salvati i dati sul container in modo da poterli avere
       // dentro il metodo del toggle
-      var lines = fb_dicts[i]['json_to_be_drawn'];
+      var lines = cur_feed_dict.json;
       console.log('lines:' + lines);
       div_container.json_lines = lines;
-      div_container.marker_partenza = fb_dicts[i].json_to_be_drawn.partenza;
+      div_container.marker_partenza = cur_feed_dict.start_coord;
+      div_container.marker_arrivo = cur_feed_dict.end_coord;
       console.log('container attribute ' + div_container.json_lines);
       // the content of the file is a hidden div that
       var list_item = document.createElement("div");
       list_item.classList.add("fb_name");
-      list_item.innerHTML = fb_names[i];
+      list_item.innerHTML = "dq-fb " + cur_feed_dict.datetime;
       list_item.id = "fb_name" + i;
       list_item.onclick = function() { toggle_content(div_container.id, list_item.id); };
 
@@ -145,9 +156,17 @@
       // sicuramente c'è una soluzione migliore
       markers_group = L.layerGroup();
       // draw the lines
-      var lines = document.getElementById(el_id).json_lines.path.shape_list;
-      pathLines.addData(lines);
-    	pathLines.addTo(fb_map);
+      var lines = document.getElementById(el_id).json_lines;
+      if (lines)
+      {
+        var street_paths = lines.path.shape_list;
+        pathLines.addData(street_paths);
+      	pathLines.addTo(fb_map);
+        // TODO add dynamic marker - using groups?
+        //var marker_start = L.marker([lines.partenza[0].coordinate[0], lines.partenza[0].coordinate[1]]);
+        //marker_start.addTo(fb_map);
+      }
+      //if (document.getElementById(el_id).marker_partenza)
       //var marker = document.getElementById(el_id).path.shape_list;
       fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
     }
@@ -155,7 +174,7 @@
   <script>
     var fb_names = feedback_dict_in_JS.fb_names;
     // set the html for the counter
-    document.getElementById('fb_count').innerHTML = "Ci sono " + fb_names.length + " files di feedback";
+    document.getElementById('fb_count').innerHTML = "Ci sono " + fb_dicts.length + " files di feedback";
   </script>
 
 </html>

@@ -28,20 +28,42 @@ def get_feedback_from_server():
     """
     Check for feedback files in the server, returns their names and their contents, in a dictionary for js.
     """
-    feedback_files_names = os.listdir(FEEDBACK_FOLDER)
-    feedback_files_names.sort()
-    feedback_files_contents = []
-    feedback_files_contents_as_dicts = []
-    for fb_file in feedback_files_names:
-        full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
-        with open(full_path, 'r') as content_file:
-            cur_fb_content_as_text = content_file.read()
-            cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
-        feedback_files_contents.append(cur_fb_content_as_text)
-        feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
+    # now we have a db!
+    feedback_dicts = fetch_feedbacks_from_db() # probabilmente possiamo copiare il codice di sotto qua sopra, ma è ancora in testing
 
-    feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
-    return feedback_dict
+    # non ci serve più guardare le cartelle e fare robe strane per parsare
+    # feedback_files_names = os.listdir(FEEDBACK_FOLDER)
+    # feedback_files_names.sort()
+    # feedback_files_contents = []
+    # feedback_files_contents_as_dicts = []
+    # for fb_file in feedback_files_names:
+    #     full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
+    #     with open(full_path, 'r') as content_file:
+    #         cur_fb_content_as_text = content_file.read()
+    #         cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
+    #     feedback_files_contents.append(cur_fb_content_as_text)
+    #     feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
+    #
+    # # we do not really need fb_contents, but we need to also edit the feedback.html page to avoid using the contents as they are
+    # feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
+
+    return feedback_dicts
+
+def fetch_feedbacks_from_db():
+    """
+    Fetch the feedback list from db, returns their names and their contents as dictionary.
+    """
+    all_feedbacks = Feedbacks.query.all()
+    feedback_dicts = []
+    for feed in all_feedbacks:
+        cur_feed_dict = {'name':feed.name, 'category':feed.category,
+            'searched_start':feed.searched_start, 'searched_end':feed.searched_end, 'searched_string':feed.searched_string,
+            'found_start':feed.found_start, 'found_end':feed.found_end, 'found_string':feed.found_string,
+            'start_coord':feed.start_coord, 'end_coord':feed.end_coord,
+            'feedback':feed.feedback, 'json':json.loads(feed.json), 'datetime':feed.datetime.strftime("%d-%m-%Y %H:%M:%S"),
+            'report':feed.report, 'solved':feed.solved}
+        feedback_dicts.append(cur_feed_dict)
+    return feedback_dicts
 
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
@@ -154,7 +176,7 @@ def write_feedback(feedback):
     """
     curr_time = feedback.datetime
     file_feedback = feedback.report
-    mdfile = '<h1>DEQUA FEEDBACK</h1>\n'
+    mdfile = '<h1>***** DEQUA FEEDBACK *****</h1>\n'
     mdfile += '<h4>Website version</h4>\n'
     mdfile += feedback.version+'\n'
     mdfile += '<h4>Time</h2>\n'
