@@ -154,7 +154,7 @@ def write_feedback(feedback):
     """
     curr_time = feedback.datetime
     file_feedback = feedback.report
-    mdfile = '<h1>***** DEQUA FEEDBACK ***** </h1>\n'
+    mdfile = '<h1>DEQUA FEEDBACK</h1>\n'
     mdfile += '<h4>Website version</h4>\n'
     mdfile += feedback.version+'\n'
     mdfile += '<h4>Time</h2>\n'
@@ -172,6 +172,8 @@ def write_feedback(feedback):
         'found_start': 'Result start',
         'found_end': 'Result end',
         'feedback': 'Comments',
+        'start_coord': 'Start Coordinate',
+        'end_coord': 'End Coordinate'
     }
     for (data,title) in dict_data_title.items():
         value = getattr(feedback,data)

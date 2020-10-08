@@ -148,7 +148,7 @@
       var lines = document.getElementById(el_id).json_lines.path.shape_list;
       pathLines.addData(lines);
     	pathLines.addTo(fb_map);
-      var marker = document.getElementById(el_id).json_lines.path.shape_list;
+      //var marker = document.getElementById(el_id).path.shape_list;
       fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
     }
   </script>
