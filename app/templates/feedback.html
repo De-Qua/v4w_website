@@ -23,6 +23,17 @@
 	<body>
     <script>var feedback_dict_in_JS = {{feedback_dict | tojson}};</script>
 
+    <script>
+      // marker stuff
+      var marker_icon = L.icon({
+        iconUrl: '/static/img/icon_marker_50.png',
+        iconRetinaUrl: '/static/img/icon_marker.png',
+        iconSize: [33, 50],
+        iconAnchor: [16, 49],
+        popupAnchor: [0, -40]
+      });
+    </script>
+
 		<div class="container">
 			<div class="header_feedback">
 				<div class="row">
@@ -37,7 +48,7 @@
       <div class="feedbacks" id="feedback_container">
         <div class="row" id="feedback_row">
           <div class="col-md-3 fb-col" id="left_col" style="overflow:auto;"></div>
-          <div class="col-md-5" id="map_feedback" style='width:100%; height:30em;'>asdas</div>
+          <div class="col-md-5" id="map_feedback" style='width:100%; height:30em;'></div>
           <div class="col-md-4 fb-col" id="right_col" style="overflow:auto;"></div>
         </div>
       </div>
@@ -59,6 +70,7 @@
   <script>
     var fb_dicts = feedback_dict_in_JS;
     var markers_group = L.layerGroup();
+    var markers_as_geojson = L.geoJSON([]);
     var pathLines = L.geoJSON([],{
       filter: function(feature) {
         // draw only lines!
@@ -89,10 +101,10 @@
                             "<hr><h5>Categoria:</h5>" + cur_feed_dict.category +
                             "<hr><h5>Feedback:</h5>" + cur_feed_dict.feedback +
                             "<hr><h5>Trovato</h5><b>indirizzo:</b>" + cur_feed_dict.found_string +
-                            "<br>o <b>partenza:</b> " + cur_feed_dict.found_start + "<b>arrivo:</b> " + cur_feed_dict.found_end +
+                            "<br>o <b>partenza:</b> " + cur_feed_dict.found_start + "<br><b>arrivo:</b> " + cur_feed_dict.found_end +
                             "<br><hr><h5>Cercato</h5><b>indirizzo:</b>" + + cur_feed_dict.searched_string +
-                            "<br>o <b>partenza:</b> " + cur_feed_dict.searched_start + "<b>arrivo:</b> " + cur_feed_dict.searched_end +
-                            "<br><hr><h6>Coordinate (se disponibili)</h6> <b>partenza:</b> " + cur_feed_dict.start_coord + "<b>arrivo:</b> " + cur_feed_dict.end_coord +
+                            "<br>o <b>partenza:</b> " + cur_feed_dict.searched_start + "<br><b>arrivo:</b> " + cur_feed_dict.searched_end +
+                            "<br><hr><h6>Coordinate (se disponibili)</h6> <b>partenza:</b> " + cur_feed_dict.start_coord + "<br><b>arrivo:</b> " + cur_feed_dict.end_coord +
                             "<hr><h6>Json</h6> <p style='font-size:0.5rem'>" + cur_feed_dict.json + "</p>";
 
       // prepara i json
@@ -100,7 +112,7 @@
       // dentro il metodo del toggle
       var lines = cur_feed_dict.json;
       console.log('lines:' + lines);
-      div_container.json_lines = lines;
+      div_container.json_obj = lines;
       div_container.marker_partenza = cur_feed_dict.start_coord;
       div_container.marker_arrivo = cur_feed_dict.end_coord;
       console.log('container attribute ' + div_container.json_lines);
@@ -152,23 +164,58 @@
         document.getElementById(list_id).style.color = "blue";
       }
       pathLines.clearLayers();
-      // un bel modo barbaro per eliminare i marker
-      // sicuramente c'è una soluzione migliore
-      markers_group = L.layerGroup();
-      // draw the lines
-      var lines = document.getElementById(el_id).json_lines;
-      if (lines)
-      {
-        var street_paths = lines.path.shape_list;
-        pathLines.addData(street_paths);
-      	pathLines.addTo(fb_map);
-        // TODO add dynamic marker - using groups?
-        //var marker_start = L.marker([lines.partenza[0].coordinate[0], lines.partenza[0].coordinate[1]]);
-        //marker_start.addTo(fb_map);
+      markers_group.clearLayers();
+      markers_as_geojson.clearLayers();
+      var cur_obj_with_data = document.getElementById(el_id);
+      // here the json file
+      var json_obj = cur_obj_with_data.json_obj;
+      // creating markaers.
+      var marker_start;
+      if (json_obj !== 'None') {
+
+        console.log("got the object: creating markers..");
+        if (cur_obj_with_data.marker_partenza != 0)
+        {
+          console.log("marker start from coords: " + cur_obj_with_data.marker_partenza);
+          marker_start = L.marker([cur_obj_with_data.marker_partenza[0], cur_obj_with_data.marker_partenza[1]], {icon: marker_icon});
+        }
+        else {
+          console.log("marker start from json: " + json_obj.partenza[0]);
+          marker_start = L.marker([json_obj.partenza[0].coordinate[0], json_obj.partenza[0].coordinate[1]], {icon: marker_icon});
+        }
+        var marker_end;
+        if (cur_obj_with_data.marker_end != undefined)
+        {
+          console.log("marker end from coord: " + cur_obj_with_data.marker_end);
+          marker_end = L.marker([cur_obj_with_data.marker_end[0], cur_obj_with_data.marker_end[1]], {icon: marker_icon});
+        }
+        else {
+          console.log("marker end from json: " + json_obj.arrivo);
+          if (json_obj.arrivo != "no_end") {
+            console.log("marker end really exists in the json:" + json_obj.arrivo[0].coordinate[0]);
+            marker_end = L.marker([json_obj.arrivo[0].coordinate[0], json_obj.arrivo[0].coordinate[1]], {icon: marker_icon});
+          }
+        }
+        // draw marker
+        marker_start.addTo(markers_group);
+        if (typeof marker_end != 'undefined')
+        { marker_end.addTo(markers_group); }
+        console.log("marker start", + marker_start);
+        console.log('markers_group', + markers_group);
+        var geojson_markers = markers_group.toGeoJSON();
+        markers_as_geojson.addData(geojson_markers);
+        markers_as_geojson.addTo(fb_map);
+        fb_map.fitBounds(markers_as_geojson.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]})
+        // draw the lines
+        if (typeof json_obj.path.shape_list !== 'undefined')
+        {
+          //console.log("do not print this if undefined: " + json_obj.path.shape_list);
+          var street_paths = json_obj.path.shape_list;
+          pathLines.addData(street_paths);
+        	pathLines.addTo(fb_map);
+          fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
+        }
       }
-      //if (document.getElementById(el_id).marker_partenza)
-      //var marker = document.getElementById(el_id).path.shape_list;
-      fb_map.fitBounds(pathLines.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]});
     }
   </script>
   <script>

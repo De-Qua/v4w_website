@@ -56,13 +56,20 @@ def fetch_feedbacks_from_db():
     all_feedbacks = Feedbacks.query.all()
     feedback_dicts = []
     for feed in all_feedbacks:
+        start_coord_as_num = 0
+        end_coord_as_num = 0
+        if len(feed.start_coord) > 0:
+            start_coord_as_num = [ float(a) for a in feed.start_coord.split(",") ]
+        if len(feed.end_coord) > 0:
+            end_coord_as_num = [ float(a) for a in feed.end_coord.split(",") ]
         cur_feed_dict = {'name':feed.name, 'category':feed.category,
             'searched_start':feed.searched_start, 'searched_end':feed.searched_end, 'searched_string':feed.searched_string,
             'found_start':feed.found_start, 'found_end':feed.found_end, 'found_string':feed.found_string,
-            'start_coord':feed.start_coord, 'end_coord':feed.end_coord,
+            'start_coord':start_coord_as_num, 'end_coord':end_coord_as_num,
             'feedback':feed.feedback, 'json':json.loads(feed.json), 'datetime':feed.datetime.strftime("%d-%m-%Y %H:%M:%S"),
             'report':feed.report, 'solved':feed.solved}
         feedback_dicts.append(cur_feed_dict)
+        print(feed.start_coord)
     return feedback_dicts
 
 def retrieve_parameters_from_GET(arguments_GET_request):
