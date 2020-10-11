@@ -32,6 +32,14 @@
         iconAnchor: [16, 49],
         popupAnchor: [0, -40]
       });
+
+      // Options for the marker
+      var markerOptions = {
+        clickable: true,
+        // si alza all'hover - non va :(
+        riseOnHover: true,
+        icon: marker_icon
+      }
     </script>
 
 		<div class="container">
@@ -64,12 +72,19 @@
 					attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 				}).addTo(fb_map);
       </script>
+      <!-- var layerGroup = L.layerGroup().addTo(map);
+
+      // create markers
+      L.marker().addTo(layerGroup);
+
+      // remove all the markers in one go
+      layerGroup.clearLayers(); -->
 		</div><!-- END OF BIG CONTAINER (whole page) -->
 
 	</body>
   <script>
     var fb_dicts = feedback_dict_in_JS;
-    var markers_group = L.layerGroup();
+    var markers_group = L.featureGroup(); //L.layerGroup();
     var markers_as_geojson = L.geoJSON([]);
     var pathLines = L.geoJSON([],{
       filter: function(feature) {
@@ -170,6 +185,7 @@
       // here the json file
       var json_obj = cur_obj_with_data.json_obj;
       // creating markaers.
+      // create marker for location
       var marker_start;
       if (json_obj !== 'None') {
 
@@ -177,23 +193,24 @@
         if (cur_obj_with_data.marker_partenza != 0)
         {
           console.log("marker start from coords: " + cur_obj_with_data.marker_partenza);
-          marker_start = L.marker([cur_obj_with_data.marker_partenza[0], cur_obj_with_data.marker_partenza[1]], {icon: marker_icon});
+          marker_start = L.marker([cur_obj_with_data.marker_partenza[0], cur_obj_with_data.marker_partenza[1]], markerOptions);
+          console.log(markerOptions);
         }
         else {
           console.log("marker start from json: " + json_obj.partenza[0]);
-          marker_start = L.marker([json_obj.partenza[0].coordinate[0], json_obj.partenza[0].coordinate[1]], {icon: marker_icon});
+          marker_start = L.marker([json_obj.partenza[0].coordinate[0], json_obj.partenza[0].coordinate[1]], markerOptions);
         }
         var marker_end;
         if (cur_obj_with_data.marker_end != undefined)
         {
           console.log("marker end from coord: " + cur_obj_with_data.marker_end);
-          marker_end = L.marker([cur_obj_with_data.marker_end[0], cur_obj_with_data.marker_end[1]], {icon: marker_icon});
+          marker_end = L.marker([cur_obj_with_data.marker_end[0], cur_obj_with_data.marker_end[1]], markerOptions);
         }
         else {
           console.log("marker end from json: " + json_obj.arrivo);
           if (json_obj.arrivo != "no_end") {
             console.log("marker end really exists in the json:" + json_obj.arrivo[0].coordinate[0]);
-            marker_end = L.marker([json_obj.arrivo[0].coordinate[0], json_obj.arrivo[0].coordinate[1]], {icon: marker_icon});
+            marker_end = L.marker([json_obj.arrivo[0].coordinate[0], json_obj.arrivo[0].coordinate[1]], markerOptions);
           }
         }
         // draw marker
@@ -202,10 +219,11 @@
         { marker_end.addTo(markers_group); }
         console.log("marker start", + marker_start);
         console.log('markers_group', + markers_group);
-        var geojson_markers = markers_group.toGeoJSON();
-        markers_as_geojson.addData(geojson_markers);
-        markers_as_geojson.addTo(fb_map);
-        fb_map.fitBounds(markers_as_geojson.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]})
+        //var geojson_markers = markers_group.toGeoJSON();
+        //markers_as_geojson.addData(geojson_markers);
+        //markers_as_geojson.addTo(fb_map);
+        markers_group.addTo(fb_map);
+        fb_map.fitBounds(markers_group.getBounds(), {paddingTopLeft: [10, 10], paddingBottomRight: [10,10]})
         // draw the lines
         if (typeof json_obj.path.shape_list !== 'undefined')
         {
