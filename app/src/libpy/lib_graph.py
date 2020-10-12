@@ -16,6 +16,7 @@ import shapely, shapely.wkt
 from shapely.geometry import mapping
 import geopy.distance
 import datetime
+import app.global_variables as global_variables
 
 from app import custom_errors
 
@@ -158,7 +159,7 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
     elif flag_ponti:
         weight_func=weight_bridge
     else:
-        weight_func=weight_time
+        weight_func= weight_high_tide ###temporary! weight_time
 
     global speed_global
     speed_global=speed
@@ -188,6 +189,27 @@ def weight_time(x,y,dic):
     speed = speed_global/3.6
     # speed = np.min(speed, dic["VEL_MAX"]) ?
     return dic["length"]/speed
+
+def weight_high_tide(x,y,dic):
+    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
+    if dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
+        return 100000
+    else
+        weight_time(x,y,dic)
+
+def weight_high_tide_low_boots(x,y,dic):
+    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
+    if dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide+global_variables.height_low_boots: # ci diamo un margine per non mandare la gente nella merda
+        return 100000
+    else
+        weight_time(x,y,dic)
+
+def weight_high_tide_high_boots(x,y,dic):
+    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
+    if dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide+global_variables.height_high_boots: # ci diamo un margine per non mandare la gente nella merda
+        return 100000
+    else
+        weight_time(x,y,dic)
 
 def weight_motor_boat(x,y,dic):
     """
@@ -252,7 +274,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
 
 
 
-def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
+def go_again_through_the_street(G, path_nodes, speed, water_flag=False, tide_flag=False):
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
@@ -296,6 +318,9 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
         else:
             speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
+            if tideflag:
+                if edge_attuale['min_tide']<=global_variables.actual_tide:
+                    edge_info_dict['wet_warning'] = True;
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
                 accessibleLevel = edge_attuale['accessible']
