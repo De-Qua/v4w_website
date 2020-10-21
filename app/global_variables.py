@@ -10,7 +10,8 @@ min_dist_to_suggest_boat=60
 # tabelle in cui cercare anche per il nome alternativo
 tables_with_alt_name=[Street, Poi]
 
-current_tide = 105
+tideflag = True
+current_tide = 110
 safety_diff_tide = 5
 
 height_low_boots = 40
