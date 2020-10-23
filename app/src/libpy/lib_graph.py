@@ -21,7 +21,11 @@ import app.global_variables as global_variables
 from app import custom_errors
 
 speed_global=2
-
+# variabili per aiutarci a scegliere le funzioni peso
+# (la funzione peso se no non ci avrebbe accesso)
+flag_ponti_glob = False
+flag_tide_glob = False
+water_flag_glob = False
 
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
@@ -148,20 +152,25 @@ def dynamically_remove_edges(G,list_of_edges):
 
     return
 
-def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False):
+def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False):
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
+    global flag_ponti_glob, water_flag_glob, flag_tide_glob
+    flag_ponti_glob = flag_ponti
+    water_flag_glob = water_flag
+    flag_tide_glob = flag_tide
+
     path_nodes = []
     streets_info = {}
     if water_flag:
-        weight_func=weight_motor_boat
+        weight_func = weight_motor_boat
+    elif flag_tide_glob:
+        weight_func = weight_high_tide #(dentro decide se ha ponti o no)
     elif flag_ponti:
-        weight_func=weight_bridge
-    elif global_variables.tideflag:
-        weight_func = weight_high_tide
+        weight_func = weight_bridge
     else:
-        weight_func = weight_time# ###temporary! weight_time
+        weight_func = weight_time # ###temporary! weight_time
 
     global speed_global
     speed_global=speed
@@ -194,14 +203,22 @@ def weight_time(x,y,dic):
 
 def weight_high_tide(x,y,dic):
 
+    global flag_ponti_glob
+    print("\n\n***\nvariabile globale flag ponti: ", flag_ponti_glob)
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta
     if not dic['max_tide']:
         # do something even if we don't have the level of the ground
-        return weight_time(x,y,dic)
+        if flag_ponti_glob:
+            return weight_bridge(x,y,dic)
+        else:
+            return weight_time(x,y,dic)
     elif dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
         return 100000
     else:
-        return weight_time(x,y,dic)
+        if flag_ponti_glob:
+            return weight_bridge(x,y,dic)
+        else:
+            return weight_time(x,y,dic)
 
 def weight_high_tide_low_boots(x,y,dic):
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta

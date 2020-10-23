@@ -353,7 +353,7 @@ def find_what_needs_to_be_found(params_research):
 
             else: # cerchiamo per terra
 
-                path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research["less_bridges"]=="on")
+                path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research)
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
@@ -431,14 +431,16 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     # comprimiamo la lista di dizionari in una lista con un unico dizionario
     return lib_communication.merged_path_list(path_list_of_dictionaries)
 
-def by_foot_path_calculator(match_dicts_list, f_ponti):
+def by_foot_path_calculator(match_dicts_list, params_research):
     app.logger.info("andiamo a piedi..")
     G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
     t0=time.perf_counter()
     [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array, global_variables.min_dist_to_suggest_boat)
     app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
     t2=time.perf_counter()
-    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed)
+    f_ponti = params_research["less_bridges"]=="on"
+    f_tide = params_research["with_tide"]=="on"
+    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed, flag_tide=f_tide)
     streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dicts_list[0], match_dicts_list[1])
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     streets_info['tipo']=0
