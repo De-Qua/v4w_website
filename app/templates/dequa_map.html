@@ -230,11 +230,17 @@
 		          return feature.geometry.type == "LineString";
 		        },
 		        style: function(feature) {
-		          switch (feature.properties.street_type) {
-		            case 'canale': return {color: "#0000ff"};
-		            case 'ponte':  return {color: "#ffff00"};
-		            case 'calle':  return {color: "#ff0000"};
+							col = "#ffffff"
+							switch (feature.properties.street_type) {
+		            case 'canale': col = "#0000ff"; break;
+		            case 'ponte':  col = "#ffff00"; break;
+		            case 'calle':  col = "#ff0000"; break;
 		          }
+							switch (feature.properties.wet_warning) {
+								case 'wet': col = '#6de3f7'; break;
+								case 'under_water': col = '#0905ff'; break;
+							}
+							return {color: col}
 		        }
 		      });
 

@@ -183,7 +183,7 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
     #   raise Exception("No street found between {} and {}".format(coords_start, coords_end))
     # else:
     if path_nodes:
-        streets_info = go_again_through_the_street(G,path_nodes,speed,water_flag)
+        streets_info = go_again_through_the_street(G,path_nodes,speed,water_flag,flag_tide)
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
     return streets_info
 
@@ -206,7 +206,7 @@ def weight_time(x,y,dic):
 
 def weight_high_tide(x,y,dic):
 
-    global flag_ponti_glob
+    global flag_ponti_glob, tide_level_glob
     print("\n\n***\nvariabile globale flag ponti: ", flag_ponti_glob)
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta
     if not dic['max_tide']:
@@ -216,7 +216,8 @@ def weight_high_tide(x,y,dic):
         else:
             return weight_time(x,y,dic)
     elif dic['max_tide']<tide_level_glob+global_variables.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
-        return 100000
+        cm_under_water = tide_level_glob+global_variables.safety_diff_tide - dic['max_tide']
+        return 10000 * cm_under_water
     else:
         if flag_ponti_glob:
             return weight_bridge(x,y,dic)
@@ -304,6 +305,7 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False, tide_fla
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
+    global tide_level_glob
     # edges_info diventera un array di geojson - ogni edge e un geojson
     # ogni edge avra prpoperty che determinera come viene disegnato
     # link qua --> https://leafletjs.com/examples/geojson/
@@ -344,12 +346,17 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False, tide_fla
         else:
             speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
-            if global_variables.tideflag:
-                if not edge_attuale['min_tide']:
-                    # do something even if we don't have the level of the ground
-                    edge_info_dict['wet_warning'] = True;
-                elif edge_attuale['min_tide']<=global_variables.current_tide:
-                    edge_info_dict['wet_warning'] = True;
+            if tide_flag:
+                edge_info_dict['wet_warning'] = 'dry'
+                if isBridge:
+                    edge_info_dict['wet_warning'] = 'dry'
+                elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
+                    edge_info_dict['wet_warning'] = 'wet';
+                elif edge_attuale['max_tide'] <= tide_level_glob:
+                    edge_info_dict['wet_warning'] = 'under_water';
+                elif edge_attuale['min_tide'] <= tide_level_glob:
+                    edge_info_dict['wet_warning'] = 'wet';
+
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
                 accessibleLevel = edge_attuale['accessible']
