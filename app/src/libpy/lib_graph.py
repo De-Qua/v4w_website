@@ -26,6 +26,7 @@ speed_global=2
 flag_ponti_glob = False
 flag_tide_glob = False
 water_flag_glob = False
+tide_level_glob = global_variables.current_tide
 
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
@@ -152,14 +153,16 @@ def dynamically_remove_edges(G,list_of_edges):
 
     return
 
-def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False):
+def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False, tide_level=None):
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
-    global flag_ponti_glob, water_flag_glob, flag_tide_glob
+    global flag_ponti_glob, water_flag_glob, flag_tide_glob, tide_level_glob
     flag_ponti_glob = flag_ponti
     water_flag_glob = water_flag
     flag_tide_glob = flag_tide
+    if tide_level:
+        tide_level_glob = tide_level
 
     path_nodes = []
     streets_info = {}
@@ -212,7 +215,7 @@ def weight_high_tide(x,y,dic):
             return weight_bridge(x,y,dic)
         else:
             return weight_time(x,y,dic)
-    elif dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
+    elif dic['max_tide']<tide_level_glob+global_variables.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
         return 100000
     else:
         if flag_ponti_glob:
@@ -222,14 +225,14 @@ def weight_high_tide(x,y,dic):
 
 def weight_high_tide_low_boots(x,y,dic):
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta
-    if dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide+global_variables.height_low_boots: # ci diamo un margine per non mandare la gente nella merda
+    if dic['max_tide']<tide_level_glob+global_variables.safety_diff_tide+global_variables.height_low_boots: # ci diamo un margine per non mandare la gente nella merda
         return 100000
     else:
         return weight_time(x,y,dic)
 
 def weight_high_tide_high_boots(x,y,dic):
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta
-    if dic['max_tide']<global_variables.current_tide+global_variables.safety_diff_tide+global_variables.height_high_boots: # ci diamo un margine per non mandare la gente nella merda
+    if dic['max_tide']<tide_level_glob+global_variables.safety_diff_tide+global_variables.height_high_boots: # ci diamo un margine per non mandare la gente nella merda
         return 100000
     else:
         return weight_time(x,y,dic)

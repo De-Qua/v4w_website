@@ -388,9 +388,8 @@
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" class="chb" checked><img src="/static/icons/pedone.svg" alt="walking icon" class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg" alt="luggage icon" class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb"><img src="/static/icons/barchin.svg" alt="barchin icon" class="icon"></input></label>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!">
-														<label class="btn btn-sm btn-light v4wbtn" title="Percorso accessibile"><input type="checkbox" class="" form="ricerca_ind" name="tide" id="tide_setting"><img src="/static/icons/carrozzina.svg" alt="wheelchair icon" class="icon"></input></label>
-													</span>
+													<label class="btn btn-sm btn-light v4wbtn" title="Acqua alta"><input type="checkbox" class="" form="ricerca_ind" name="tide" id="tide_setting"><img src="/static/icons/tide.svg" alt="wheelchair icon" class="icon"></input></label>
+													<input type="number" step="1" name="tide_level" id="tide_level" placeholder="auto" style="display: none; width: 50px"></input>
 													<!-- <span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
 															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span> -->
 												</div>
@@ -398,6 +397,13 @@
 													$(".chb").change(function() {
 														$(".chb").prop('checked', false);
 														$(this).prop('checked', true);
+													});
+													$("#tide_setting").change(function() {
+														if ($("#tide_setting").is(':checked')) {
+															$("#tide_level").show();
+														} else {
+															$("#tide_level").hide();
+														}
 													});
 												</script>
 											</div>

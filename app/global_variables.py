@@ -13,7 +13,7 @@ tables_with_alt_name=[Street, Poi]
 dati_json_previsione = 'app/src/static/json/dati_previsione_marea'
 dati_json_livello = 'app/src/static/json/livello_marea_5_min'
 tideflag = True
-current_tide = 110
+current_tide = 80
 safety_diff_tide = 5
 
 height_low_boots = 40

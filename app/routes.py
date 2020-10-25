@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle_terra = os.path.join(folder_db,"dequa_ve_terra_v11_2410_pickle_4326VE")
+path_pickle_terra = os.path.join(folder_db,"dequa_ve_terra_v11_2510_pickle_4326VE")
 path_pickle_acqua = os.path.join(folder_db,"dequa_ve_acqua_v7_1609_pickle_4326VE")
 
 # Logging

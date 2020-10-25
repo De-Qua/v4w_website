@@ -58,8 +58,8 @@ def retrieve_parameters_from_GET(arguments_GET_request):
     params_dict['less_bridges'] = arguments_GET_request.get('lazy', default='off', type=str)
     params_dict['by_boat'] = arguments_GET_request.get('boat', default='off', type=str)
     params_dict['with_tide'] = arguments_GET_request.get('tide', default='off', type=str)
+    params_dict['tide_level'] = arguments_GET_request.get('tide_level', default=None, type=int)
     params_dict['by_ambulance'] = arguments_GET_request.get('ambu', default='off', type=str)
-
     return params_dict
 
 def initialize_votes():
@@ -440,7 +440,12 @@ def by_foot_path_calculator(match_dicts_list, params_research):
     t2=time.perf_counter()
     f_ponti = params_research["less_bridges"]=="on"
     f_tide = params_research["with_tide"]=="on"
-    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed, flag_tide=f_tide)
+    tide_level = params_research["tide_level"]
+    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord,
+                                                flag_ponti=f_ponti,
+                                                speed=global_variables.walk_speed,
+                                                flag_tide=f_tide,
+                                                tide_level=tide_level)
     streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dicts_list[0], match_dicts_list[1])
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     streets_info['tipo']=0
