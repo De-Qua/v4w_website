@@ -21,6 +21,7 @@ import pickle
 import traceback
 import app.global_variables as global_variables
 from app import mail
+from flask import g
 
 FEEDBACK_FOLDER = 'feedback'
 
@@ -315,7 +316,10 @@ def find_what_needs_to_be_found(params_research):
     if what_am_I_really_searching_for == "nothing":
         return "None"
 
-    elif what_am_I_really_searching_for == "address":
+    # Save the global variables that we need to save
+    save_global_variables(params_research)
+
+    if what_am_I_really_searching_for == "address":
         app.logger.debug('ricerca singolo indirizzo: {}'.format(da) )
         t0 = time.perf_counter()
         match_dict = lib_search.give_me_the_dictionary(da, start_coord)
@@ -451,3 +455,33 @@ def by_foot_path_calculator(match_dicts_list, params_research):
     streets_info['tipo']=0
 
     return streets_info
+
+def save_global_variables(params_research):
+    """
+    Function to save all the necessary global variables in flask g
+    """
+    high_tide_file = 'high_tide_level.json'
+    pdb.set_trace()
+    g.flag_ponti = params_research['less_bridges'] == 'on'
+    g.flag_tide = params_research['with_tide'] == 'on'
+    g.water_flag = params_research['by_boat'] == 'on'
+    # if tide_level in params_research use that one, otherwise read the current tide level
+    g.tide_level = params_research['tide_level']
+    if not g.tide_level:
+        g.tide_level = get_current_tide_level()
+    g.speed = 5
+    return
+
+def get_current_tide_level():
+    high_tide_file = 'high_tide_level.json'
+    tide_level_dict = None
+    while not tide_level_dict:
+        try:
+            with open(os.path.join(os.getcwd(), high_tide_file),'r') as stream:
+                tide_level_dict = json.load(stream)
+        except:
+            app.logger.debug('Error in reading tide file')
+            time.sleep(0.001)
+    tide_level_value = tide_level_dict.get('valore', None)
+    tide_level = float(tide_level_value[:-2]) if tide_level_value else None
+    return tide_level
