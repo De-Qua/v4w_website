@@ -7,6 +7,7 @@ import json
 from app.src.libpy import lib_graph
 import pdb
 import re
+from flask import g
 
 def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locations_candidates, params_research, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """
@@ -79,10 +80,12 @@ def correct_coordinates_for_leaflet(dic,shift_xy = [-0.000015, +0.000015]):
         corrected_polygon = None
     return np.ndarray.tolist(corrected_coords), corrected_polygon
 
-def merged_path_list(path_list):
+def info_path_to_dictionary(path_list):
     """
     Merge a list of paths in one single dictionary
     """
+    if not type(path_list) == list:
+        path_list = [path_list]
     # define a new empty dict
     merged_path = {
         'lunghezza': 0,
@@ -91,7 +94,11 @@ def merged_path_list(path_list):
         'human_readable_time':'',
         'n_ponti': [0,[0,0,0,0,0,0,0,0]],
         'shape_list': [],
-        'altezza': np.inf
+        'altezza': np.inf,
+        'tide_level': 0,
+        'm_wet': 0,
+        'm_under_water': 0,
+        'human_readable_tide': '',
         }
     # loop in the list retrieving data
     for path in path_list:
@@ -102,13 +109,18 @@ def merged_path_list(path_list):
             merged_path['n_ponti'][1] = [x+y for x,y in zip(merged_path['n_ponti'][1],path['n_ponti'][1])]
             merged_path['shape_list'] += path['shape_list']
             merged_path['altezza'] = np.minimum(merged_path['altezza'], path['altezza']) if path['altezza'] else np.inf
-
+            merged_path['m_wet'] += path.get('m_wet', 0)
+            merged_path['m_under_water'] += path.get('m_under_water', 0)
     # calculate new human readable data
     merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
     merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
 
     # change inf to none because of json
     merged_path['altezza'] = merged_path['altezza'] if merged_path['altezza'] < np.inf else None
+
+    # tide info
+    merged_path['tide_level'] = g.tide_level
+    merged_path['human_readable_tide'] = lib_graph.prettify_tide(merged_path['m_wet'], merged_path['m_under_water'])
 
     return merged_path
 

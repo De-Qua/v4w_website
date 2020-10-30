@@ -420,6 +420,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     #print("riva stop", riva_stop)
     t2=time.perf_counter()
     # lista degli archi
+    pdb.set_trace()
     list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], site_parameters.G_acqua)
     # aggiungere gli archi!
     list_of_added_edges = lib_graph.dynamically_add_edges(site_parameters.G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
@@ -434,7 +435,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
     path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
     # comprimiamo la lista di dizionari in una lista con un unico dizionario
-    return lib_communication.merged_path_list(path_list_of_dictionaries)
+    return lib_communication.info_path_to_dictionary(path_list_of_dictionaries)
 
 def by_foot_path_calculator(match_dicts_list, params_research):
     app.logger.info("andiamo a piedi..")
@@ -456,7 +457,7 @@ def by_foot_path_calculator(match_dicts_list, params_research):
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     streets_info['tipo']=0
 
-    return streets_info
+    return lib_communication.info_path_to_dictionary([streets_info])
 
 def save_request_variables(params_research):
     """

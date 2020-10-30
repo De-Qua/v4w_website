@@ -127,6 +127,15 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 	document.getElementById("walk_length_text").innerHTML = "<i>"+path_length+"</i>";
 	var time_description = dictJS.path.human_readable_time;
 	document.getElementById("walk_time_text").innerHTML = "<i>"+time_description+"</i>";
+	var tide_description = dictJS.path.human_readable_tide;
+	document.getElementById("walk_tide_text").innerHTML = "<i>"+tide_description+"</i>";
+	if (tide_description) {
+		$("#walk_tide_text").show();
+		$("#high_tide_title").show();
+	} else{
+		$("#walk_tide_text").hide();
+		$("#high_tide_title").hide();
+	}
 	var num_of_bridges = dictJS.path.n_ponti[0];
 	document.getElementById("walk_ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";
 	var bridge_accessibility_name = ["gradini normali",

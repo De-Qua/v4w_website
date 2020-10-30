@@ -150,7 +150,7 @@ def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, w
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
-    pdb.set_trace()
+    #pdb.set_trace()
     g.water_flag = water_flag
     app.logger.debug("set request water flag to {}".format(water_flag))
     g.flag_tide = flag_tide
@@ -359,6 +359,8 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
     tot_ponti=0
     last_edge_was_a_bridge = False
     altezza = np.inf
+    m_wet = 0
+    m_under_water = 0
     for i in range(len(path_nodes)-1):
         isBridge = 0
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
@@ -376,16 +378,20 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
         else:
             speed_edge = np.minimum(site_parameters.walk_speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
-            if g.tide_flag:
+            # tide info
+            # if g.tide_flag:
+            edge_info_dict['wet_warning'] = 'dry'
+            if isBridge:
                 edge_info_dict['wet_warning'] = 'dry'
-                if isBridge:
-                    edge_info_dict['wet_warning'] = 'dry'
-                elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
-                    edge_info_dict['wet_warning'] = 'wet';
-                elif edge_attuale['max_tide'] <= g.tide_level:
-                    edge_info_dict['wet_warning'] = 'under_water';
-                elif edge_attuale['min_tide'] <= g.tide_level:
-                    edge_info_dict['wet_warning'] = 'wet';
+            elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
+                edge_info_dict['wet_warning'] = 'wet';
+                m_wet += edge_attuale['length']
+            elif edge_attuale['max_tide'] <= g.tide_level:
+                edge_info_dict['wet_warning'] = 'under_water';
+                m_under_water += edge_attuale['length']
+            elif edge_attuale['min_tide'] <= g.tide_level:
+                edge_info_dict['wet_warning'] = 'wet';
+                m_wet += edge_attuale['length']
 
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
@@ -415,6 +421,8 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
     streets_info['n_ponti'] = [tot_ponti, tot_ponti_accessible]
     streets_info['shape_list'] = shapes
     streets_info['altezza'] = altezza if altezza < np.inf else None
+    streets_info['m_wet'] = m_wet
+    streets_info['m_under_water'] = m_under_water
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
@@ -422,7 +430,7 @@ def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
 
 def prettify_length(length):
     """
-    It returns a string describing the amount of time.
+    It returns a string describing the length.
     """
     range = 0.15
     if length < (1000 - range*1000):
@@ -461,6 +469,17 @@ def prettify_time(time):
         return "tantissimo (circa {} minuti). Dove stai andando?".format(minutes)
     #
     return "circa {} minuti.".format(minutes)
+
+def prettify_tide(wet,under_water):
+    """
+    It returns a string describing the length of path with high tide.
+    """
+    if not wet and not under_water:
+        return None
+    elif not under_water:
+        return f"dovresti passare, ma per {wet:.0f} metri probabilmente troverai dell'acqua nelle calli"
+    else:
+        return f"Fai attenizione! Il percorso probabilmente sarà sott'acqua per {under_water:.0f} metri"
 
 def add_from_strada_to_porta(path, da, a):
     """
