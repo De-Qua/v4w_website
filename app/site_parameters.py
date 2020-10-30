@@ -10,11 +10,12 @@ min_dist_to_suggest_boat=60
 # tabelle in cui cercare anche per il nome alternativo
 tables_with_alt_name=[Street, Poi]
 # un altro script su pythonanywhere aggiornerà questi dati
-dati_json_previsione = 'app/src/static/json/dati_previsione_marea'
-dati_json_livello = 'app/src/static/json/livello_marea_5_min'
+
 tideflag = True
 current_tide = 80
 safety_diff_tide = 5
 
 height_low_boots = 40
 height_high_boots = 75
+
+high_tide_file = 'high_tide_level.json'

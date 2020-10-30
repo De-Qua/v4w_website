@@ -17,7 +17,7 @@ from shapely.ops import transform
 from sqlalchemy import and_
 import re
 import geopy.distance
-import app.global_variables as global_variables
+import app.site_parameters as site_parameters
 
 # IMPORT OUR LIBRARIES
 from app.src.libpy import lib_graph
@@ -633,7 +633,7 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
 
 def create_dict_alternative_names(table_where_to_search):
 
-    if table_where_to_search in global_variables.tables_with_alt_name:
+    if table_where_to_search in site_parameters.tables_with_alt_name:
         list_alt_name = [(s, s.name_alt) for s in table_where_to_search.query.filter(table_where_to_search.name_alt.isnot(None)).all()]
         dict_alt_name = dict(list_alt_name)
     else:
