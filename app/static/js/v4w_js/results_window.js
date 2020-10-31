@@ -127,14 +127,25 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 	document.getElementById("walk_length_text").innerHTML = "<i>"+path_length+"</i>";
 	var time_description = dictJS.path.human_readable_time;
 	document.getElementById("walk_time_text").innerHTML = "<i>"+time_description+"</i>";
-	var tide_description = dictJS.path.human_readable_tide;
-	document.getElementById("walk_tide_text").innerHTML = "<i>"+tide_description+"</i>";
-	if (tide_description) {
-		$("#walk_tide_text").show();
-		$("#high_tide_title").show();
-	} else{
+	// we check what python tells us about the tide
+	// we make a condition to satisfy - if yes, we add the information of the tide
+	// in the legend (high_tide_legend)
+	// and in the result window (walk_tide_text and high_tide_title)
+	var m_under_water = dictJS.path.m_under_water;
+	var m_wet = dictJS.path.m_wet;
+	// condition to be satisfied for writing down (attento all'acqua)
+	var enoughWaterToJustifyNeedForExplanation = (m_wet > 10)
+	if (enoughWaterToJustifyNeedForExplanation) {
+			var tide_description = dictJS.path.human_readable_tide;
+			document.getElementById("walk_tide_text").innerHTML = "<i>"+tide_description+"</i><br>";
+			$("#walk_tide_text").show();
+			$("#high_tide_title").show();
+			$("#tide_legend").show()
+	}
+	else{
 		$("#walk_tide_text").hide();
 		$("#high_tide_title").hide();
+		$("#tide_legend").hide();
 	}
 	var num_of_bridges = dictJS.path.n_ponti[0];
 	document.getElementById("walk_ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";

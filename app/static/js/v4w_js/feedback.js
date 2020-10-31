@@ -18,9 +18,9 @@ function closeFeedbackWindow() {
 }
 
 function setValuesInFeedbackWindow(JSdict) {
-  if (JSdict == "None"){
+  if (JSdict == "None") {
     return
-  } else if ("error" in JSdict){
+  } else if ("error" in JSdict) {
     return
   } else {
     // values we found

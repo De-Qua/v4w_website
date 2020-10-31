@@ -314,7 +314,9 @@ def find_what_needs_to_be_found(params_research):
         end_coord = ""
 
     if what_am_I_really_searching_for == "nothing":
-        return "None"
+        tide_level = get_current_tide_level();
+        only_tide_level_dict = {"only_tide_level":tide_level}
+        return only_tide_level_dict
 
     # Save the global variables that we need to save
     save_request_variables(params_research)
