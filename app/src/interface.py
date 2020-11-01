@@ -448,13 +448,11 @@ def by_foot_path_calculator(match_dicts_list, params_research):
     t2=time.perf_counter()
     f_ponti = params_research["less_bridges"]=="on"
     f_tide = params_research["with_tide"]=="on"
-    tide_level = params_research["tide_level"]
     app.logger.debug("Calculating street by foot..")
     streets_info = lib_graph.give_me_the_street(site_parameters.G_terra, start_coord, stop_coord,
                                                 flag_ponti=f_ponti,
                                                 speed=site_parameters.walk_speed,
-                                                flag_tide=f_tide,
-                                                tide_level=tide_level)
+                                                flag_tide=f_tide)
     streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dicts_list[0], match_dicts_list[1])
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     streets_info['tipo']=0
@@ -471,8 +469,9 @@ def save_request_variables(params_research):
     g.tide_flag = params_research['with_tide'] == 'on'
     # if tide_level in params_research use that one, otherwise read the current tide level
     g.tide_level = params_research['tide_level']
+    g.tide_level_current = get_current_tide_level()
     if not g.tide_level:
-        g.tide_level = get_current_tide_level()
+        g.tide_level = g.tide_level_current
     if g.water_flag:
         g.speed = site_parameters.boat_speed
     else:
@@ -492,5 +491,5 @@ def get_current_tide_level():
             app.logger.debug('Error in reading tide file')
             time.sleep(0.001)
     tide_level_value = tide_level_dict.get('valore', None)
-    tide_level = float(tide_level_value[:-2]) if tide_level_value else None
+    tide_level = int(float(tide_level_value[:-2])*100) if tide_level_value else None
     return tide_level

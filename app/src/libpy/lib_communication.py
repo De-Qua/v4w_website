@@ -96,6 +96,7 @@ def info_path_to_dictionary(path_list):
         'shape_list': [],
         'altezza': np.inf,
         'tide_level': 0,
+        'tide_level_current': 0,
         'm_wet': 0,
         'm_under_water': 0,
         'human_readable_tide': '',
@@ -120,6 +121,7 @@ def info_path_to_dictionary(path_list):
 
     # tide info
     merged_path['tide_level'] = g.tide_level
+    merged_path['tide_level_current'] = g.tide_level_current
     merged_path['human_readable_tide'] = lib_graph.prettify_tide(merged_path['m_wet'], merged_path['m_under_water'])
 
     return merged_path

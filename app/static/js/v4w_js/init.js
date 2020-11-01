@@ -64,7 +64,7 @@ function initialize_html(){
   else if ("only_tide_level" in dict_in_JS) {
     mymap.setView([45.435, 12.333], 15);
     console.log("tutto normale, ma con l'indicazione dell'acqua alta");
-    var tide_in_cm = parseFloat(dict_in_JS.only_tide_level) * 100;
+    var tide_in_cm = dict_in_JS.only_tide_level;
     $('#tide_level_input').val(tide_in_cm);
   }
   /**

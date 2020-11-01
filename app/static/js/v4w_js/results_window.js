@@ -131,21 +131,35 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 	// we make a condition to satisfy - if yes, we add the information of the tide
 	// in the legend (high_tide_legend)
 	// and in the result window (walk_tide_text and high_tide_title)
+	// always show info about current tide and tide for the path
+	var tide_current = dictJS.path.tide_level_current;
+	var tide_path = dictJS.path.tide_level;
+	$("#tide_level_current").show();
+	$("#tide_level_current").html("Livello attuale: "+tide_current+"cm");
+	if ((dictJS.params_research.with_tide == 'on') && (tide_current != tide_path)){
+		$("#tide_level_path").html("Livello per la ricerca: "+tide_path+"cm<br>");
+		$("#tide_level_path").show();
+	} else {
+		$("#tide_level_path").hide();
+	}
 	var m_under_water = dictJS.path.m_under_water;
 	var m_wet = dictJS.path.m_wet;
 	// condition to be satisfied for writing down (attento all'acqua)
-	var enoughWaterToJustifyNeedForExplanation = (m_wet > 10)
+	var enoughWaterToJustifyNeedForExplanation = (m_wet > 10);
 	if (enoughWaterToJustifyNeedForExplanation) {
 			var tide_description = dictJS.path.human_readable_tide;
 			document.getElementById("walk_tide_text").innerHTML = "<i>"+tide_description+"</i><br>";
 			$("#walk_tide_text").show();
 			$("#high_tide_title").show();
-			$("#tide_legend").show()
+			$("#tide_legend").show();
+
 	}
 	else{
 		$("#walk_tide_text").hide();
 		$("#high_tide_title").hide();
 		$("#tide_legend").hide();
+		// $("#tide_level_current").hide();
+		// $("#tide_level_path").hide();
 	}
 	var num_of_bridges = dictJS.path.n_ponti[0];
 	document.getElementById("walk_ponti_text").innerHTML = "<i>strada con "+num_of_bridges+" "+ponte_sing_plur(num_of_bridges)+"</i>";

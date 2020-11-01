@@ -146,7 +146,7 @@ def dynamically_remove_edges(G,list_of_edges):
 
     return
 
-def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False, tide_level=None):
+def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False):
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
@@ -361,6 +361,7 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
     altezza = np.inf
     m_wet = 0
     m_under_water = 0
+    used_tide = g.tide_level if g.tide_flag else g.tide_level_current
     for i in range(len(path_nodes)-1):
         isBridge = 0
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
@@ -386,10 +387,10 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
             elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
                 edge_info_dict['wet_warning'] = 'wet';
                 m_wet += edge_attuale['length']
-            elif edge_attuale['max_tide'] <= g.tide_level:
+            elif edge_attuale['max_tide'] <= used_tide:
                 edge_info_dict['wet_warning'] = 'under_water';
                 m_under_water += edge_attuale['length']
-            elif edge_attuale['min_tide'] <= g.tide_level:
+            elif edge_attuale['min_tide'] <= used_tide:
                 edge_info_dict['wet_warning'] = 'wet';
                 m_wet += edge_attuale['length']
 
