@@ -14,6 +14,7 @@ function initialize_html(){
   removePathLayer();
   closeErrorWindow();
   addSocialButton();
+  openHighTideAlertIfNeeded();
 
 
   mymap.on('click', onMapClick);

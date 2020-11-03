@@ -56,6 +56,12 @@
   border-color: var(--dq-green-2);
 }
 
+.alert-dq-blue {
+  color: var(--dq-blue-4);
+  background-color: var(--dq-blue-1);
+  border-color: var(--dq-blue-2);
+}
+
 /* BUTTONS */
 .btn-dq {
   opacity: 0.88;

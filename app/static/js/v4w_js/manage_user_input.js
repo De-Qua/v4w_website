@@ -189,3 +189,24 @@ function updateViewsAfterResizeWindow(){
   updateSidebarAfterResizeWindow();
   updateButtonsAfterResizeWindow();
 }
+
+function openHighTideAlertIfNeeded(){
+  if (!("path" in dict_in_JS)) {
+    console.log("this is the first access: no high tide warning");
+  }
+  else if ((dict_in_JS.path.tide_level_current >= 80) && (dict_in_JS.params_research.with_tide == 'off')){
+  	console.log("opening high tide warning window");
+    document.getElementById("current_tide_in_alert").innerHTML = dict_in_JS.path.tide_level_current;
+	  document.getElementById("high_tide_window-warning").style.display = 'block';
+  }
+  else {
+    console.log("This should never happen");
+    $("#high_tide_window-warning").hide()
+  }
+}
+
+function on_path_calculated_recalc(){
+  if ("path" in dict_in_JS){
+    $('#ricerca_ind').submit()
+  }
+}

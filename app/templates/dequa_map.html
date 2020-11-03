@@ -403,6 +403,7 @@
 													$(".chb").change(function() {
 														$(".chb").prop('checked', false);
 														$(this).prop('checked', true);
+														on_path_calculated_recalc();
 													});
 													// questo visualizza la marea quando uno clicca - ma se la pagina viene caricata con la marea, no!
 													$("#tide_setting").change(function() {
@@ -411,6 +412,7 @@
 														} else {
 															$("#tide_level").hide();
 														}
+														on_path_calculated_recalc();
 													});
 												</script>
 											</div>
@@ -644,6 +646,13 @@
 							<div class="alert alert-dq-red alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
 								Ops, qualcosa è andato storto nell'invio del feedback.<br>
 								Per favore prova a reinviarlo.
+								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="alert alert-dq-blue alert-dismissible fade show" role="alert" id="high_tide_window-warning" style="display:none">
+								Attenzione, oggi c'è l'acqua alta. La marea attuale è di <span id="current_tide_in_alert"></span>cm <br>
+								Seleziona il tasto <img src="/static/icons/tide.svg" alt="high tide icon" class="icon" height=1em width=35em> per calcolare i percorsi evitando l'acqua
 								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">
 									<span aria-hidden="true">&times;</span>
 								</button>

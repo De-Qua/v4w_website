@@ -422,7 +422,6 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     #print("riva stop", riva_stop)
     t2=time.perf_counter()
     # lista degli archi
-    pdb.set_trace()
     list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], site_parameters.G_acqua)
     # aggiungere gli archi!
     list_of_added_edges = lib_graph.dynamically_add_edges(site_parameters.G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
