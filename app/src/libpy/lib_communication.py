@@ -99,6 +99,7 @@ def info_path_to_dictionary(path_list):
         'tide_level_current': 0,
         'm_wet': 0,
         'm_under_water': 0,
+        'm_passerelle': 0,
         'human_readable_tide': '',
         }
     # loop in the list retrieving data
@@ -112,6 +113,7 @@ def info_path_to_dictionary(path_list):
             merged_path['altezza'] = np.minimum(merged_path['altezza'], path['altezza']) if path['altezza'] else np.inf
             merged_path['m_wet'] += path.get('m_wet', 0)
             merged_path['m_under_water'] += path.get('m_under_water', 0)
+            merged_path['m_passerelle'] += path.get('m_passerelle', 0)
     # calculate new human readable data
     merged_path['human_readable_length'] = lib_graph.prettify_length(merged_path['lunghezza'])
     merged_path['human_readable_time'] = lib_graph.prettify_time(merged_path['time'])
@@ -122,7 +124,7 @@ def info_path_to_dictionary(path_list):
     # tide info
     merged_path['tide_level'] = g.tide_level
     merged_path['tide_level_current'] = g.tide_level_current
-    merged_path['human_readable_tide'] = lib_graph.prettify_tide(merged_path['m_wet'], merged_path['m_under_water'])
+    merged_path['human_readable_tide'] = lib_graph.prettify_tide(merged_path['m_wet'], merged_path['m_under_water'], merged_path['m_passerelle'])
 
     return merged_path
 

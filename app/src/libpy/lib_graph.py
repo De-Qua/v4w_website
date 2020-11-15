@@ -196,22 +196,42 @@ def weight_time(x,y,dic):
     return dic["length"]/g.speed
 
 def weight_high_tide(x,y,dic):
+    edge_height = dic['max_tide'] if dic['max_tide'] else dic['pas_cm_zps'] if dic['pas_cm_zps'] else 0
+    passerelle_active = dic['pas_cm_zps'] <= g.tide_level if dic['pas_cm_zps'] else False
+    passerelle_height = dic['pas_height'] if dic['pas_height'] else 0
 
-    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
-    if not dic['max_tide']:
-        # do something even if we don't have the level of the ground
-        if g.flag_ponti:
-            return weight_bridge(x,y,dic)
-        else:
-            return weight_time(x,y,dic)
-    elif dic['max_tide']<g.tide_level+site_parameters.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
-        cm_under_water = g.tide_level+site_parameters.safety_diff_tide - dic['max_tide']
-        return 10000 * cm_under_water
+    final_height = edge_height + passerelle_height if passerelle_active else edge_height
+
+    cm_under_water = 0
+    if dic['ponte']:
+        cm_under_water = 0
+    elif final_height < g.tide_level + site_parameters.safety_diff_tide:
+        cm_under_water = g.tide_level+site_parameters.safety_diff_tide - final_height
+
+    if g.flag_ponti:
+        return weight_bridge(x, y, dic) + cm_under_water * 10000
     else:
-        if g.flag_ponti:
-            return weight_bridge(x,y,dic)
-        else:
-            return weight_time(x,y,dic)
+        return weight_time(x, y, dic) + cm_under_water * 10000
+
+    # if dic['max_tide']:
+    #     edge_height = 0
+    # else:
+    #     edge_height
+    #
+    # if not dic['max_tide']:
+    #     # do something even if we don't have the level of the ground
+    #     if g.flag_ponti:
+    #         return weight_bridge(x,y,dic)
+    #     else:
+    #         return weight_time(x,y,dic)
+    # elif dic['max_tide']<g.tide_level+site_parameters.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
+    #     cm_under_water = g.tide_level+site_parameters.safety_diff_tide - dic['max_tide']
+    #     return 10000 * cm_under_water
+    # else:
+    #     if g.flag_ponti:
+    #         return weight_bridge(x,y,dic)
+    #     else:
+    #         return weight_time(x,y,dic)
 
 def weight_high_tide_low_boots(x,y,dic):
     #qui o solo all'inizio va fatta la query alle api dell'acqua alta
@@ -361,6 +381,7 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
     altezza = np.inf
     m_wet = 0
     m_under_water = 0
+    m_passerelle = 0
     used_tide = g.tide_level if g.tide_flag else g.tide_level_current
     for i in range(len(path_nodes)-1):
         isBridge = 0
@@ -380,19 +401,28 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
             speed_edge = np.minimum(site_parameters.walk_speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
             # tide info
+            isPasserelle = False
+            passerelle_height = 0
+            if edge_attuale['pas_height'] and edge_attuale['pas_cm_zps'] <= used_tide:
+                isPasserelle = True
+                passerelle_height = edge_attuale['pas_cm_zps']
             # if g.tide_flag:
             edge_info_dict['wet_warning'] = 'dry'
             if isBridge:
                 edge_info_dict['wet_warning'] = 'dry'
+            elif isPasserelle and used_tide < edge_attuale['pas_cm_zps'] + passerelle_height:
+                edge_info_dict['wet_warning'] = 'passerelle'
+                m_passerelle += edge_attuale['length']
             elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
-                edge_info_dict['wet_warning'] = 'wet';
+                edge_info_dict['wet_warning'] = 'wet'
                 m_wet += edge_attuale['length']
             elif edge_attuale['max_tide'] <= used_tide:
-                edge_info_dict['wet_warning'] = 'under_water';
+                edge_info_dict['wet_warning'] = 'under_water'
                 m_under_water += edge_attuale['length']
             elif edge_attuale['min_tide'] <= used_tide:
-                edge_info_dict['wet_warning'] = 'wet';
+                edge_info_dict['wet_warning'] = 'wet'
                 m_wet += edge_attuale['length']
+
 
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
@@ -424,6 +454,7 @@ def go_again_through_the_street(G, path_nodes, water_flag=False):
     streets_info['altezza'] = altezza if altezza < np.inf else None
     streets_info['m_wet'] = m_wet
     streets_info['m_under_water'] = m_under_water
+    streets_info['m_passerelle'] = m_passerelle
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
@@ -471,16 +502,24 @@ def prettify_time(time):
     #
     return "circa {} minuti.".format(minutes)
 
-def prettify_tide(wet,under_water):
+def prettify_tide(wet,under_water,passerelle):
     """
     It returns a string describing the length of path with high tide.
     """
-    if not wet and not under_water:
+    if not wet and not under_water and not passerelle:
         return None
-    elif not under_water:
-        return f"dovresti passare, ma per {wet:.0f} metri probabilmente troverai dell'acqua nelle calli"
-    else:
-        return f"Fai attenizione! Il percorso probabilmente sarà sott'acqua per {under_water:.0f} metri"
+    txt_passerelle = txt_under_water = txt_wet = ""
+    intro = "Dovresti riuscire a passare.\n"
+    if passerelle:
+        txt_passerelle = f"Camminerai sulle passerelle per {passerelle:.0f} metri.\n"
+    if wet:
+        txt_wet = f"Per {wet:.0f} metri probabilmente troverai dell'acqua nelle calli.\n"
+    if under_water:
+        intro = "Fai attenzione!"
+        txt_under_water = f"Il percorso probabilmente sarà sott'acqua per {under_water:.0f} metri.\n"
+
+    final_txt = intro + txt_under_water + txt_passerelle + txt_wet
+    return final_txt
 
 def add_from_strada_to_porta(path, da, a):
     """

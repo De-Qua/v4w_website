@@ -239,6 +239,7 @@
 							switch (feature.properties.wet_warning) {
 								case 'wet': col = '#6de3f7'; break;
 								case 'under_water': col = '#0905ff'; break;
+								case 'passerelle': col = '#3d8a59'; break;
 							}
 							return {color: col}
 		        }
@@ -490,8 +491,11 @@
 													PERCORSO A PIEDI <br>
 													<span style='color: red; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle,
 													<span style='color: yellow; '><i class="fa fa-minus" aria-hidden="true"></i></span> ponte,
-													<span id="tide_legend"><span style='color: #6de3f7; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle con acqua,
-													<span style='color: #0905ff; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle sotto acqua</span>
+													<span id="tide_legend">
+														<span style='color: #3d8a59; '><i class="fa fa-minus" aria-hidden="true"></i></span> passerelle,
+														<span style='color: #6de3f7; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle con acqua,
+														<span style='color: #0905ff; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle sotto acqua
+													</span>
 												</div>
 												<div class="col-3 float-right">
 													<!--<a onclick="closeResultsWindow()">-->

@@ -144,8 +144,9 @@ function fillResultsWindowPercorsoWalk(dictJS) {
 	}
 	var m_under_water = dictJS.path.m_under_water;
 	var m_wet = dictJS.path.m_wet;
+	var m_passerelle = dictJS.path.m_passerelle;
 	// condition to be satisfied for writing down (attento all'acqua)
-	var enoughWaterToJustifyNeedForExplanation = (m_wet > 10);
+	var enoughWaterToJustifyNeedForExplanation = (m_passerelle > 0) | (m_under_water > 0) | (m_wet > 10) ;
 	if (enoughWaterToJustifyNeedForExplanation) {
 			var tide_description = dictJS.path.human_readable_tide;
 			document.getElementById("walk_tide_text").innerHTML = "<i>"+tide_description+"</i><br>";
