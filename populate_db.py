@@ -1,5 +1,6 @@
 #%% Imports
-import os,sys
+import os
+import sys
 
 from app import app, db
 
@@ -693,23 +694,34 @@ import library_database as lb
 from app import db
 lb.create_query_objects()
 folder = os.getcwd()
-folder_file = os.path.join(folder,"app","static","files")
-folder_file = "/Users/ale/Documents/Venezia/MappaDisabili/data/OpenDataVenezia/"
+# folder_file = os.path.join(folder,"app","static","files")
+folder_file = "/Volumes/Maxtor/Venezia/data/OpenDataVenezia"
 # lb.delete_all(explain=True)
-#%%
-# Sestieri
-lb.delete_all_neighborhoods(explain=True)
-path_shp_sestieri =  (os.path.join(folder_file,"Localita","Località.shp"))
-path_shp_sestieri =  (os.path.join(folder_file,"Localita","Localita_v2.shp"))
+#%% Delete all
+# lb.delete_all_neighborhoods(explain=True)
+lb.delete_all(explain=True)
+
+#%% Sestieri
+# path_shp_sestieri =  os.path.join(folder_file, "Localita", "Località.shp")
+path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v2.shp")
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
-# Strade
-path_shp_streets = (os.path.join(folder_file,"TP_STR_4326VE.shp"))
+
+#%% Strade
+path_shp_streets = os.path.join(folder_file, "TP_STR", "TP_STR_v3.shp")
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
-# Civici
-#lb.delete_all_locations(explain=True)
-path_shp_locations = os.path.join(folder_file,"CIVICO_4326VE.shp")
+
+err_streets
+
+#%% Civici
+lb.delete_all_locations(explain=True)
+path_shp_locations = os.path.join(folder_file, "civici", "CIVICO_4326VE.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
-# POI
+# err_locations
+err_locations
+#%% POI
+lb.delete_all_pois(True)
+lb.delete_all_categories(True)
+lb.delete_all_types(True)
 list_category = [
     "amenity",
     "shop",
@@ -719,12 +731,18 @@ list_category = [
     "sport"
     ]
 all_pois = lb.download_POI(list_category,explain=True)
+
+poi
+lb.delete_all_types(True)
+lb.poi_query.filter_by(osm_type=poi['type'], osm_id=poi['id']).one_or_none()
 err_poi = lb.update_POI(all_pois,explain=True)
-# Posti acquei
+# db.session.rollback()
+
+#%% Posti acquei
 path_posti_acquei = "mille_mila_posti_barca.json"
 posti = lb.upload_waterPOIS(path_posti_acquei,explain=True)
 err_poi = lb.update_waterPois(posti,explain=True)
 
+#%% Info database
 lb.tell_me_something_I_dont_know()
 lb.check_db()
-#%%

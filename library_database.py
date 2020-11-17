@@ -23,6 +23,8 @@ import sqlalchemy
 import time
 import json
 
+import pdb
+
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
 def create_query_objects():
@@ -385,12 +387,12 @@ def update_locations(shp, showFig=False, explain=False):
             err_civ.append((2,num, sub, den, den1, pol))
             continue
         # estraggo strada e civico da denominazi
-        num_found_denom = re.search("\d+(/[A-Z])?$",denom)
+        num_found_denom = re.search("(\d+)/?([A-Z])?$",denom)
         if not num_found_denom:
             found=False
             # se non ha trovato nulla riprova usando den1 se non è vuota
             if denom==den and not pd.isna(den1):
-                num_found_denom = re.search("\d+(/[A-Z])?$",den1)
+                num_found_denom = re.search("(\d+)/?([A-Z])?$",den1)
                 if num_found_denom:
                     found = True
                     denom = den1
@@ -398,8 +400,13 @@ def update_locations(shp, showFig=False, explain=False):
                 # aggiungi agli errori e passa al successivo
                 err_civ.append((3,num, sub, den, den1, pol))
                 continue
-        den_num = num_found_denom.group(0)
-        den_str = denom[:-len(den_num)-1]
+        den_num_num = num_found_denom.group(1)
+        den_num_sub = num_found_denom.group(2)
+        if den_num_sub:
+            den_num = den_num_num + '/' + den_num_sub
+        else:
+            den_num = den_num_num
+        den_str = denom[:-len(num_found_denom.group(0))-1]
         # estraggo numero ed eventuale lettera da CIVICO_NUM e CIVICO_SUB
         housenumber = num
         if sub.isalpha():
@@ -415,9 +422,11 @@ def update_locations(shp, showFig=False, explain=False):
                     if housenumber == den1_num:
                         found = True
             if not found:
-                # aggiungi agli errori e passa al successivo
-                err_civ.append((4,num, sub, den, den1, pol))
-                continue
+                # utilizza den_num
+                housenumber = den_num
+                # # aggiungi agli errori e passa al successivo
+                # err_civ.append((4,num, sub, den, den1, pol))
+                # continue
         # cerco tutte le strade che hanno il nome riportato nel civico
         # o il cui nome non sia una sottostringa di quello riportato nel civico
         streets = streets_query.filter(db.or_(
@@ -426,11 +435,17 @@ def update_locations(shp, showFig=False, explain=False):
         if len(streets)==0:
             # se non c'è una strada
             found = False
-            # prova a vedere che non ci sia un typo
-            namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
-            if score >= 90:
-                streets = [s for s in streets_query.filter_by(name=namestr).all()]
+            # determina la strada in base alla geometria
+            streets = [s for s in streets_query.all() if s.shape.intersects(pol)]
+            if streets:
+                found = True
             else:
+                # prova a vedere che non ci sia un typo
+                namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
+                if score >= 90:
+                    streets = [s for s in streets_query.filter_by(name=namestr).all()]
+                    found = True
+            if not found:
                 #aggiungi agli errori e passa al successivo
                 err_civ.append((5,num, sub, den, den1, pol))
                 continue
