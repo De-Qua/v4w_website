@@ -25,7 +25,23 @@
     </rdf:RDF>
   </metadata>
   <defs
-     id="defs19" />
+     id="defs19">
+    <filter
+       inkscape:label="Opacity"
+       style="color-interpolation-filters:sRGB;"
+       id="filter4254">
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 5 -1 "
+         result="colormatrix"
+         id="feColorMatrix4256" />
+      <feComposite
+         in2="colormatrix"
+         operator="arithmetic"
+         k2="1"
+         result="composite"
+         id="feComposite4258" />
+    </filter>
+  </defs>
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -35,14 +51,14 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="847"
-     inkscape:window-height="480"
+     inkscape:window-width="1280"
+     inkscape:window-height="756"
      id="namedview17"
      showgrid="false"
      inkscape:zoom="0.39333333"
-     inkscape:cx="447.87484"
-     inkscape:cy="300"
-     inkscape:window-x="0"
+     inkscape:cx="-52.643812"
+     inkscape:cy="401.69491"
+     inkscape:window-x="38"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg2" />
@@ -78,7 +94,8 @@
   </g>
   <g
      id="g12"
-     transform="matrix(4.6431238,0,0,5.2000336,-1509.3917,-1036.0958)">
+     transform="matrix(3.1575782,0,0,3.2285893,-893.91159,-549.76513)"
+     style="filter:url(#filter4254)">
     <title
        id="title14">Layer 1</title>
     <path
