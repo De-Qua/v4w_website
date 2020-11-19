@@ -365,14 +365,28 @@ def update_locations(shp, showFig=False, explain=False):
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
         progressbar_pip_style(tot_civ_added,tot_civ_in_file)
-        sestieri = [n for n in neigh_query.all() if n.shape.contains(pol)]
+        sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
         # se il civico non è contenuto in nessun passa al successivo
-        if len(sestieri)==0:
+        if len(sestieri) == 0:
             continue
-        elif len(sestieri)>1:
-            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
-            err_civ.append((0,num, sub, den, den1, pol))
-            continue
+        elif len(sestieri) == 1:
+            sestiere = sestieri[0]
+        elif len(sestieri) > 1:
+            # se c'è più di un sestiere cerca di capire quale è quello giusto
+            sestiere = []
+
+            if not den1 and den and den.upper().startswith('VIA DOGE GALLA'):
+                # caso particolare via doge galla a cavallo tra alberoni e malamocco
+                sestiere = [s for s in sestieri if s.name == 'MALAMOCCO']
+            elif den1:
+                # controllo se il sestiere è scritto in den1
+                sestiere = [s for s in sestieri if den1.upper().startswith(s.name)]
+
+            if len(sestiere) == 1:
+                sestiere = sestiere[0]
+            else:
+                err_civ.append((0,num, sub, den, den1, pol))
+                continue
         # principalmente voglio usare DENOMINAZI, nel caso sia vuoto uso DENOMINA_1
         # nel caso siano entrambi vuoti errore e continuo
         if not den and not den1:
@@ -462,9 +476,9 @@ def update_locations(shp, showFig=False, explain=False):
         lat = repr_point.y
         lon = repr_point.x
         # Se la location non esiste già la aggiungo
-        l = location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol).one_or_none()
+        l = location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestiere,shape=pol).one_or_none()
         if not l:
-            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol)
+            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestiere,shape=pol)
             add_civ += 1
             #percentage = (tot_civ_added / tot_civ_in_file) * 100
             #print("{perc:5.1f}% - {tot:5d}/{tot2}".format(perc=percentage, tot=tot_civ_added, tot2=tot_civ_in_file), end="\r", flush=True)

@@ -703,12 +703,13 @@ lb.delete_all(explain=True)
 
 #%% Sestieri
 # path_shp_sestieri =  os.path.join(folder_file, "Localita", "Località.shp")
-path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v2.shp")
+path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v3.shp")
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
 
 #%% Strade
 path_shp_streets = os.path.join(folder_file, "TP_STR", "TP_STR_v3.shp")
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
+
 
 err_streets
 
