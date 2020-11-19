@@ -429,7 +429,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
     if isThereaCivico:
 #         # geo type = 0 dice che usiamo un punto
         geo_type = 0
-        with_num=actual_location.locations.filter_by(housenumber=number).one_or_none()
+        with_num=actual_location.locations.filter_by(housenumber=number).first()
         if not with_num:
             # controlliamo che non ci siano altri indirizzi che semplicemente contengano il numero (ad esempio per San Polo 1421 vogliamo San Polo 1421/A)
             with_num = actual_location.locations.filter(Location.housenumber.contains(number)).all()
