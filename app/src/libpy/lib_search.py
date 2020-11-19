@@ -429,13 +429,21 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
     if isThereaCivico:
 #         # geo type = 0 dice che usiamo un punto
         geo_type = 0
-        with_num=actual_location.locations.filter_by(housenumber=number).first()
-        #if not with_num:
-        #    with_num=Location.query.filter_by(housenumber=number).join(Street).filter_by(name=str(actual_location)).first()
+        with_num=actual_location.locations.filter_by(housenumber=number).one_or_none()
+        if not with_num:
+            # controlliamo che non ci siano altri indirizzi che semplicemente contengano il numero (ad esempio per San Polo 1421 vogliamo San Polo 1421/A)
+            with_num = actual_location.locations.filter(Location.housenumber.contains(number)).all()
+            with_num = with_num[0] if len(with_num) == 1 else None
+
+        # pdb.set_trace()
         if with_num:
+        # if len(with_num) == 1:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
             polygon_shape = actual_location.shape
+        # elif len(with_num) > 1:
+        #     # TODO: ritorna tutte le possibilità
+        #
         else:
             # non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro
             app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))

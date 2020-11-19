@@ -703,7 +703,7 @@ lb.delete_all(explain=True)
 
 #%% Sestieri
 # path_shp_sestieri =  os.path.join(folder_file, "Localita", "Località.shp")
-path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v3.shp")
+path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v4.shp")
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
 
 #%% Strade
@@ -718,7 +718,7 @@ lb.delete_all_locations(explain=True)
 path_shp_locations = os.path.join(folder_file, "civici", "CIVICO_4326VE.shp")
 err_locations = lb.update_locations(path_shp_locations, showFig=False, explain=True)
 # err_locations
-err_locations
+[err for err in err_locations if err[0]==0]
 #%% POI
 lb.delete_all_pois(True)
 lb.delete_all_categories(True)
@@ -733,7 +733,7 @@ list_category = [
     ]
 all_pois = lb.download_POI(list_category,explain=True)
 
-poi
+# poi
 lb.delete_all_types(True)
 lb.poi_query.filter_by(osm_type=poi['type'], osm_id=poi['id']).one_or_none()
 err_poi = lb.update_POI(all_pois,explain=True)
