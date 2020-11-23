@@ -139,6 +139,7 @@ file_feedback.txt
 log_ricerca/*
 feedback/*
 error/*
+high_tide_level.json
 
 # database
 *.db-journal

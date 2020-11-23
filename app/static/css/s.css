@@ -524,6 +524,11 @@ body, html {height: 100%}
 .navbar {
   margin-bottom: 0px !important;
 }
-
+.tide_label {
+	border: 1px solid blue;
+	border-radius: 0.2rem;
+	background-color: #fff;
+	padding: 0.15rem 0.2rem;
+}
 /* Social Button */
 .a2a_more { display: none !important; }

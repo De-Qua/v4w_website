@@ -1,0 +1,12 @@
+{
+   "ordine":"1",
+   "ID_stazione":"01025",
+   "stazione":"Punta Salute Canal Grande",
+   "nome_abbr":"PSalute",
+   "latDMSN":"452551.88",
+   "lonDMSE":"122010.96",
+   "latDDN":"45.431078",
+   "lonDDE":"12.336378",
+   "data":"2020-10-29 00:25:00",
+   "valore":"0.80 m"
+}

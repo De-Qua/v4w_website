@@ -16,11 +16,10 @@ import shapely, shapely.wkt
 from shapely.geometry import mapping
 import geopy.distance
 import datetime
+import app.site_parameters as site_parameters
+from flask import g
 
 from app import custom_errors
-
-speed_global=2
-
 
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
@@ -108,7 +107,7 @@ def dynamically_add_edges(water_graph, list_of_edges_node_with_their_distance, r
     for i in range(len(rive)):
         cur_riva = rive[i]
         cur_edges_node_dist = list_of_edges_node_with_their_distance[i]
-        added_eges = connect_land_to_water(water_graph, cur_edges_node_dist, cur_riva)
+        added_edges = connect_land_to_water(water_graph, cur_edges_node_dist, cur_riva)
         app.logger.debug("Added:\n {}".format(added_edges))
 
     return added_edges
@@ -147,28 +146,38 @@ def dynamically_remove_edges(G,list_of_edges):
 
     return
 
-def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False):
+def give_me_the_street(G, coords_start, coords_end, flag_ponti=False, speed=1, water_flag=False, flag_tide=False):
     """
     A wrapper for the path calculation. It calculates the path, that run again through all of it to create a the geojson information to draw it on Leaflet.
     """
+    #pdb.set_trace()
+    g.water_flag = water_flag
+    app.logger.debug("set request water flag to {}".format(water_flag))
+    g.flag_tide = flag_tide
+    app.logger.debug("set request tide flag to {}".format(flag_tide))
+    g.flag_ponti = flag_ponti
+    app.logger.debug("set request bridge flag to {}".format(flag_ponti))
     path_nodes = []
     streets_info = {}
+    # qua usiamo le flag passate come parametro,
+    # importante per le strade terra+acqua (la g.flag è acqua, ma alcuni pezzi sono terreni)
     if water_flag:
-        weight_func=weight_motor_boat
+        weight_func = weight_motor_boat
+    elif flag_tide:
+        weight_func = weight_high_tide #(dentro decide se ha ponti o no)
     elif flag_ponti:
-        weight_func=weight_bridge
+        weight_func = weight_bridge
     else:
-        weight_func=weight_time
+        weight_func = weight_time # ###temporary! weight_time
 
-    global speed_global
-    speed_global=speed
     path_nodes, length = calculate_path_wkt(G, coords_start, coords_end, weight_func)
     # non volevamo avere gli errori?
     # if not path_nodes:
     #   raise Exception("No street found between {} and {}".format(coords_start, coords_end))
     # else:
     if path_nodes:
-        streets_info = go_again_through_the_street(G,path_nodes,speed,water_flag)
+        # speed is in g, so no need to pass it as parameters anymore
+        streets_info = go_again_through_the_street(G,path_nodes, water_flag)
         #street = prepare_the_street_as_list_until_we_understand_how_to_use_the_geometry(G,coords_start,path_nodes)
     return streets_info
 
@@ -182,18 +191,109 @@ def weight_time(x,y,dic):
     """
     It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
     """
-    # ma se spped e fisso, non ha senso no?
-    # 4kmh in metri al minuto
-    global speed_global
-    speed = speed_global/3.6
+    # speed viene preso all'inizio su interface e può esser walk o boat speed
     # speed = np.min(speed, dic["VEL_MAX"]) ?
-    return dic["length"]/speed
+    return dic["length"]/g.speed
+
+def weight_high_tide(x,y,dic):
+    edge_height = dic['max_tide'] if dic['max_tide'] else dic['pas_cm_zps'] if dic['pas_cm_zps'] else 0
+    passerelle_active = dic['pas_cm_zps'] <= g.tide_level if dic['pas_cm_zps'] else False
+    passerelle_height = dic['pas_height'] if dic['pas_height'] else 0
+
+    final_height = edge_height + passerelle_height if passerelle_active else edge_height
+
+    cm_under_water = 0
+    if dic['ponte']:
+        cm_under_water = 0
+    elif final_height < g.tide_level + site_parameters.safety_diff_tide:
+        cm_under_water = g.tide_level+site_parameters.safety_diff_tide - final_height
+
+    if g.flag_ponti:
+        return weight_bridge(x, y, dic) + cm_under_water * 10000
+    else:
+        return weight_time(x, y, dic) + cm_under_water * 10000
+
+    # if dic['max_tide']:
+    #     edge_height = 0
+    # else:
+    #     edge_height
+    #
+    # if not dic['max_tide']:
+    #     # do something even if we don't have the level of the ground
+    #     if g.flag_ponti:
+    #         return weight_bridge(x,y,dic)
+    #     else:
+    #         return weight_time(x,y,dic)
+    # elif dic['max_tide']<g.tide_level+site_parameters.safety_diff_tide: # ci diamo un margine per non mandare la gente nella merda
+    #     cm_under_water = g.tide_level+site_parameters.safety_diff_tide - dic['max_tide']
+    #     return 10000 * cm_under_water
+    # else:
+    #     if g.flag_ponti:
+    #         return weight_bridge(x,y,dic)
+    #     else:
+    #         return weight_time(x,y,dic)
+
+def weight_high_tide_low_boots(x,y,dic):
+    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
+    if dic['max_tide']<g.tide_level+site_parameters.safety_diff_tide+site_parameters.height_low_boots: # ci diamo un margine per non mandare la gente nella merda
+        return 100000
+    else:
+        return weight_time(x,y,dic)
+
+def weight_high_tide_high_boots(x,y,dic):
+    #qui o solo all'inizio va fatta la query alle api dell'acqua alta
+    if dic['max_tide']<g.tide_level+site_parameters.safety_diff_tide+site_parameters.height_high_boots: # ci diamo un margine per non mandare la gente nella merda
+        return 100000
+    else:
+        return weight_time(x,y,dic)
 
 def weight_motor_boat(x,y,dic):
     """
     It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
     """
-    global speed_global
+    actual_hour=int(datetime.datetime.now().strftime("%H"))
+    #if dic['altezza']<1000:
+        #app.logger.info("Stai passando sotto un ponte alto {} metri".format(dic['altezza']))
+    #if (dic['senso_unic'] is not None) and (dic['h_su_start']<=actual_hour<dic['h_su_end']):
+    oneWayEntry = dic.get('senso_unic', 'itwouldhavebeenakeyerror')
+    isOneWay = False if oneWayEntry == 'itwouldhavebeenakeyerror' else True
+    if (isOneWay) and (dic['h_su_start'] <= actual_hour < dic['h_su_end']):
+        verso=None
+        line=mapping(shapely.wkt.loads(dic['Wkt']))
+        first_point_in_linestring = line['coordinates'][0]
+        if (first_point_in_linestring[0]-x[0])<10e-15 and (first_point_in_linestring[1]-x[1])<10e-15:
+            verso=-1
+        elif  (first_point_in_linestring[0]-y[0])<10e-15 and (first_point_in_linestring[1]-y[1])<10e-15:
+            verso=1
+        else:
+            app.logger.debug("something wrong here!")
+        if oneWayEntry != verso:
+            #app.logger.debug("Sei nel verso sbagliato per questo senso unico {} !".format(dic))
+#            pdb.set_trace()
+            return None
+    print('\n\n\ndic:\n', dic, '\n\n')
+    if dic['dt_start'] <= actual_hour < dic['dt_end']:
+        return None
+    if dic['solo_remi']:
+        #app.logger.debug("le barche a motore non passano per {} !".format(dic))
+        return None
+    elif dic['vel_max'] == 0:
+        #app.logger.debug("Il canale è chiuso {} !".format(dic))
+        return None
+    else:
+        max_speed=dic['vel_max']/3.6
+        speed=np.minimum(site_parameters.boat_speed, max_speed)
+        #app.logger.debug("limite di velocita {} !".format(max_speed))
+        #app.logger.debug(" velocita scelta {} !".format(speed))
+#        pdb.set_trace()
+        # speed = np.min(speed, dic["VEL_MAX"]) ?
+        return dic["length"]/speed
+
+def weight_motor_boat(x,y,dic):
+    """
+    It weights the street in terms of time and not of length: in case different streets have different speeds, it may be better to take a faster longer road.
+    """
+    #global speed_global
     actual_hour=int(datetime.datetime.now().strftime("%H"))
     #if dic['altezza']<1000:
         #app.logger.info("Stai passando sotto un ponte alto {} metri".format(dic['altezza']))
@@ -213,16 +313,16 @@ def weight_motor_boat(x,y,dic):
 #            pdb.set_trace()
             return None
     if dic['dt_start'] <= actual_hour < dic['dt_end']:
-        return None
+        return 100000
     if dic['solo_remi']:
         #app.logger.debug("le barche a motore non passano per {} !".format(dic))
-        return None
+        return 100000
     elif dic['vel_max'] == 0:
         #app.logger.debug("Il canale è chiuso {} !".format(dic))
-        return None
+        return 100000
     else:
         max_speed=dic['vel_max']/3.6
-        speed=np.minimum(speed_global, max_speed)
+        speed=np.minimum(g.speed, max_speed)
         #app.logger.debug("limite di velocita {} !".format(max_speed))
         #app.logger.debug(" velocita scelta {} !".format(speed))
 #        pdb.set_trace()
@@ -236,7 +336,7 @@ def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
     try:
         length_path, path = nt.algorithms.shortest_paths.weighted.single_source_dijkstra(G_un,coords_start,coords_end, weight=weight_func)
         app.logger.debug("Strada lunga {} !".format(length_path))
-        app.logger.debug("Nodi della strada: {}".format(path))
+        #app.logger.debug("Nodi della strada: {}".format(path))
         #print("strada---------------------------",path)
         path_nodes = [n for n in path]
         #print("\n#########\n##TEST2##\n#########")
@@ -245,14 +345,14 @@ def calculate_path_wkt(G_un, coords_start, coords_end, weight_func):
         #print("lunghezza (in metri, contando 100 metri per ponte: ", length_path)
     except NetworkXNoPath:
         # exeption --> raise exception
-        app.logger.info("Non esiste un percorso tra i due nodi")
+        app.logger.info("Non esiste un percorso tra i due nodi {} e {}".format(coords_start, coords_end))
         raise custom_errors.UserError("Non esiste un percorso tra A e B. Devi forse andare in barca?")
 
     return path_nodes, length_path #json.dumps(x_tot), length_path
 
 
 
-def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
+def go_again_through_the_street(G, path_nodes, water_flag=False):
     """
     Go through the path and retrieve informations about it (bridges, speed, ecc..).
     """
@@ -279,6 +379,10 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     tot_ponti=0
     last_edge_was_a_bridge = False
     altezza = np.inf
+    m_wet = 0
+    m_under_water = 0
+    m_passerelle = 0
+    used_tide = g.tide_level if g.tide_flag else g.tide_level_current
     for i in range(len(path_nodes)-1):
         isBridge = 0
         edge_attuale = G[path_nodes[i]][path_nodes[i+1]]
@@ -287,15 +391,39 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
             edge_info_dict['street_type'] = 'canale'
             #print(edge_attuale)
             #edge_info_dict['']
-            speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
+            speed_edge = np.minimum(site_parameters.boat_speed, edge_attuale['vel_max']/3.6)
             edge_info_dict['vel_max'] = edge_attuale['vel_max']
             edge_info_dict['solo_remi'] = edge_attuale['solo_remi']
             edge_info_dict['larghezza'] = edge_attuale['larghezza']
             altezza = np.minimum(altezza, edge_attuale['altezza'])
             # prendiamo informazioni sulle ordinanze in modo da creare un warning
         else:
-            speed_edge = np.minimum(speed, edge_attuale['vel_max']/3.6)
+            speed_edge = np.minimum(site_parameters.walk_speed, edge_attuale['vel_max']/3.6)
             isBridge = edge_attuale['ponte']
+            # tide info
+            isPasserelle = False
+            passerelle_height = 0
+            if edge_attuale['pas_height'] and edge_attuale['pas_cm_zps'] <= used_tide:
+                isPasserelle = True
+                passerelle_height = edge_attuale['pas_cm_zps']
+            # if g.tide_flag:
+            edge_info_dict['wet_warning'] = 'dry'
+            if isBridge:
+                edge_info_dict['wet_warning'] = 'dry'
+            elif isPasserelle and used_tide < edge_attuale['pas_cm_zps'] + passerelle_height:
+                edge_info_dict['wet_warning'] = 'passerelle'
+                m_passerelle += edge_attuale['length']
+            elif not edge_attuale['min_tide']: # do something even if we don't have the level of the ground
+                edge_info_dict['wet_warning'] = 'wet'
+                m_wet += edge_attuale['length']
+            elif edge_attuale['max_tide'] <= used_tide:
+                edge_info_dict['wet_warning'] = 'under_water'
+                m_under_water += edge_attuale['length']
+            elif edge_attuale['min_tide'] <= used_tide:
+                edge_info_dict['wet_warning'] = 'wet'
+                m_wet += edge_attuale['length']
+
+
             if isBridge:
                 edge_info_dict['street_type'] = 'ponte'
                 accessibleLevel = edge_attuale['accessible']
@@ -324,6 +452,9 @@ def go_again_through_the_street(G, path_nodes, speed, water_flag=False):
     streets_info['n_ponti'] = [tot_ponti, tot_ponti_accessible]
     streets_info['shape_list'] = shapes
     streets_info['altezza'] = altezza if altezza < np.inf else None
+    streets_info['m_wet'] = m_wet
+    streets_info['m_under_water'] = m_under_water
+    streets_info['m_passerelle'] = m_passerelle
     return streets_info
 
 def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
@@ -331,7 +462,7 @@ def how_long_does_it_take_from_a_to_b(length, speed, isBridge):
 
 def prettify_length(length):
     """
-    It returns a string describing the amount of time.
+    It returns a string describing the length.
     """
     range = 0.15
     if length < (1000 - range*1000):
@@ -370,6 +501,25 @@ def prettify_time(time):
         return "tantissimo (circa {} minuti). Dove stai andando?".format(minutes)
     #
     return "circa {} minuti.".format(minutes)
+
+def prettify_tide(wet,under_water,passerelle):
+    """
+    It returns a string describing the length of path with high tide.
+    """
+    if not wet and not under_water and not passerelle:
+        return None
+    txt_passerelle = txt_under_water = txt_wet = ""
+    intro = "Dovresti riuscire a passare.\n"
+    if passerelle:
+        txt_passerelle = f"Camminerai sulle passerelle per {passerelle:.0f} metri.\n"
+    if wet:
+        txt_wet = f"Per {wet:.0f} metri probabilmente troverai dell'acqua nelle calli.\n"
+    if under_water:
+        intro = "Fai attenzione!"
+        txt_under_water = f"Il percorso probabilmente sarà sott'acqua per {under_water:.0f} metri.\n"
+
+    final_txt = intro + txt_under_water + txt_passerelle + txt_wet
+    return final_txt
 
 def add_from_strada_to_porta(path, da, a):
     """
