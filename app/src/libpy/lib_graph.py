@@ -313,13 +313,13 @@ def weight_motor_boat(x,y,dic):
 #            pdb.set_trace()
             return None
     if dic['dt_start'] <= actual_hour < dic['dt_end']:
-        return None
+        return 100000
     if dic['solo_remi']:
         #app.logger.debug("le barche a motore non passano per {} !".format(dic))
-        return None
+        return 100000
     elif dic['vel_max'] == 0:
         #app.logger.debug("Il canale è chiuso {} !".format(dic))
-        return None
+        return 100000
     else:
         max_speed=dic['vel_max']/3.6
         speed=np.minimum(g.speed, max_speed)
