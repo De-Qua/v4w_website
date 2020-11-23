@@ -196,7 +196,7 @@ def weight_time(x,y,dic):
     return dic["length"]/g.speed
 
 def weight_high_tide(x,y,dic):
-    edge_height = dic['max_tide'] if dic['max_tide'] else dic['pas_cm_zps'] if dic['pas_cm_zps'] else 0
+    edge_height = dic['max_tide'] if dic['max_tide'] else dic['pas_cm_zps'] if dic['pas_cm_zps'] else 80
     passerelle_active = dic['pas_cm_zps'] <= g.tide_level if dic['pas_cm_zps'] else False
     passerelle_height = dic['pas_height'] if dic['pas_height'] else 0
 
