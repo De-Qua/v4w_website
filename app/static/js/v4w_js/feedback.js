@@ -48,7 +48,7 @@ function setValuesInFeedbackWindow(JSdict) {
 	$('#hidden_start_coord_fb').val($('#hidden_start_coord').val());
 	$('#hidden_end_coord_fb').val($('#hidden_end_coord').val());
 
-	if (JSdict == "None"){
+	if (JSdict == "None" || !("partenza" in JSdict)){
     return
   } else if ("error" in JSdict) {
 		// we have only the first search field
@@ -89,7 +89,7 @@ function setValuesInFeedbackWindow(JSdict) {
 			$('#searched_end').val(JSdict.searched_end);
 			$('#found_start').val(all_found_start.join("; "));
 			$('#found_end').val(all_found_end.join("; "));
-			
+
     } else {
       // do nothing
       return
