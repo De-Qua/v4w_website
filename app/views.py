@@ -68,7 +68,7 @@ class ErrorsModelView(AdminModelView):
 class FeedbacksModelView(AdminModelView):
     column_default_sort = ('datetime', True)
     column_editable_list = ['solved']
-    column_filters = ['version', 'category', 'solved']
+    column_filters = ['datetime', 'version', 'category', 'solved']
     column_searchable_list = ['version', 'category',
                               'searched_string', 'searched_start', 'searched_end',
                               'found_string', 'found_start', 'found_end',
