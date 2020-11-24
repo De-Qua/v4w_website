@@ -14,7 +14,10 @@ function initialize_html(){
   removePathLayer();
   closeErrorWindow();
   addSocialButton();
+  openHighTideAlertIfNeeded();
 
+  // Set values on feedback window
+  setValuesInFeedbackWindow(dict_in_JS);
 
   mymap.on('click', onMapClick);
 
@@ -51,12 +54,26 @@ function initialize_html(){
   // var dict_in_JS = {{results_dictionary | tojson}};
 
   console.log("dict: ",dict_in_JS);
-  // Set values on feedback window
-  setValuesInFeedbackWindow(dict_in_JS);
-
+  /**
+  * NO DICTIONARY RETURNED
+  **/
   if (dict_in_JS == "None") {
     hidebothXbuttons();
-  } else if ("error" in dict_in_JS) {
+  }
+  /**
+  * ONLY TIDE LEVEL (the actual standard)
+  **/
+  //alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
+  else if ("only_tide_level" in dict_in_JS) {
+    mymap.setView([45.435, 12.333], 15);
+    console.log("tutto normale, ma con l'indicazione dell'acqua alta");
+    var tide_in_cm = dict_in_JS.only_tide_level;
+    $('#tide_level_input').val(tide_in_cm);
+  }
+  /**
+  * ERRORS
+  **/
+  else if ("error" in dict_in_JS) {
     mymap.setView([45.435, 12.333], 15);
     console.log("error: " + dict_in_JS.msg)
     document.getElementById("errorwindow-explanation").innerHTML = dict_in_JS.msg;
@@ -93,9 +110,12 @@ function initialize_html(){
       document.getElementById("errorTitle").innerHTML = "C'è stato un errore!"
       document.getElementById("error-text").innerHTML = "È un po' imbarazzante, ma questo è anche il motivo per cui la versione si chiama <strong>alpha</strong>!<br>Se vuoi lasciarci un feedback per darci qualche informazione in più, clicca qui:";
     }
-    //alert("Ahi ahi!!!\nOps... cossa xe nato :(\n"+dict_in_JS.msg)
-
-  } else {
+  }
+  /**
+  * A REAL DICTIONARY
+  * here we do stuff!
+  **/
+  else {
 
     var modus_operandi = dict_in_JS.modus_operandi;
     console.log("siamo in modus_operandi: " + modus_operandi);
@@ -192,6 +212,12 @@ function initialize_html(){
       if (dict_in_JS.params_research.start_coord.length > 0) {
         document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
       }
+      else if (dict_in_JS.start_type == 'unique' && dict_in_JS.partenza[0].coordinate.length > 0) {
+        document.getElementById('hidden_start_coord').value = dict_in_JS.partenza[0].coordinate;
+      }
+      else {
+        console.log("[modus 1]: seems like we are not using start_coord! is this correct?")
+      }
       var nome_arrivo = dict_in_JS.params_research.a
       document.getElementById('search_field_2').value = nome_arrivo;
       if (nome_arrivo.length > 0) {
@@ -201,7 +227,7 @@ function initialize_html(){
       if (dict_in_JS.params_research.end_coord.length > 0) {
         document.getElementById('hidden_end_coord').value = dict_in_JS.params_research.end_coord;
       }
-      else if (dict_in_JS.end_type == 'unique' && dict_in_JS.arrivo[0].coordinate.lenght > 0) {
+      else if (dict_in_JS.end_type == 'unique' && dict_in_JS.arrivo[0].coordinate.length > 0) {
         document.getElementById('hidden_end_coord').value = dict_in_JS.arrivo[0].coordinate;
       }
       else {
@@ -428,6 +454,12 @@ function checkTheBoxesThatNeedToBeChecked(dict_in_JS) {
   }
   else {
     document.getElementById("walk_setting").checked = false;
+  }
+  if (checkBoxesDict.with_tide == "on") {
+    $("#tide_level").show();
+  }
+  else {
+    $("#tide_level").hide();
   }
 }
 

@@ -17,7 +17,7 @@ from shapely.ops import transform
 from sqlalchemy import and_
 import re
 import geopy.distance
-import app.global_variables as global_variables
+import app.site_parameters as site_parameters
 
 # IMPORT OUR LIBRARIES
 from app.src.libpy import lib_graph
@@ -430,12 +430,20 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
 #         # geo type = 0 dice che usiamo un punto
         geo_type = 0
         with_num=actual_location.locations.filter_by(housenumber=number).first()
-        #if not with_num:
-        #    with_num=Location.query.filter_by(housenumber=number).join(Street).filter_by(name=str(actual_location)).first()
+        if not with_num:
+            # controlliamo che non ci siano altri indirizzi che semplicemente contengano il numero (ad esempio per San Polo 1421 vogliamo San Polo 1421/A)
+            with_num = actual_location.locations.filter(Location.housenumber.contains(number)).all()
+            with_num = with_num[0] if len(with_num) == 1 else None
+
+        # pdb.set_trace()
         if with_num:
+        # if len(with_num) == 1:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
             polygon_shape = actual_location.shape
+        # elif len(with_num) > 1:
+        #     # TODO: ritorna tutte le possibilità
+        #
         else:
             # non abbiamo trovato niente, -abbiamo trovato la strada ma l'indirizzo non è dentro
             app.logger.debug("L'indirizzo non è presente nel sestiere o nella strada. civico {} e location {}".format(number, actual_location))
@@ -633,7 +641,7 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
 
 def create_dict_alternative_names(table_where_to_search):
 
-    if table_where_to_search in global_variables.tables_with_alt_name:
+    if table_where_to_search in site_parameters.tables_with_alt_name:
         list_alt_name = [(s, s.name_alt) for s in table_where_to_search.query.filter(table_where_to_search.name_alt.isnot(None)).all()]
         dict_alt_name = dict(list_alt_name)
     else:

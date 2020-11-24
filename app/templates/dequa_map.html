@@ -8,7 +8,7 @@
 	<!-- we should think about SEO, keywords, descriptions, ecc... -->
 	<meta name="description" content="Trova la tua destinazione e la strada migliore a Venezia! Vai a piedi, evita i ponti, arrivaci in barca! Tutti i servizi che ti servono. Dacci un'occhiata!">
 	<!-- penso che ora non venga più usata la tag keyword -->
-	<meta name="keywords" content="DeQua, Venezia, Strada, Ponte, Calle, Indirizzo, Sestiere, Barca">
+	<meta name="keywords" content="Venice, Mappa, Navigazione, Maps, Path, Strada, Ponte, Calle, Indirizzo, Sestiere, Barca, Stazione, San Marco, Piazzale Roma, Piedi, Walk">
 	<!-- autori -->
 	<meta name="author" content="DeQua">
 	<!-- Metadati per preview -->
@@ -230,11 +230,18 @@
 		          return feature.geometry.type == "LineString";
 		        },
 		        style: function(feature) {
-		          switch (feature.properties.street_type) {
-		            case 'canale': return {color: "#0000ff"};
-		            case 'ponte':  return {color: "#ffff00"};
-		            case 'calle':  return {color: "#ff0000"};
+							col = "#ffffff"
+							switch (feature.properties.street_type) {
+		            case 'canale': col = "#0000ff"; break;
+		            case 'ponte':  col = "#ffff00"; break;
+		            case 'calle':  col = "#ff0000"; break;
 		          }
+							switch (feature.properties.wet_warning) {
+								case 'wet': col = '#6de3f7'; break;
+								case 'under_water': col = '#0905ff'; break;
+								case 'passerelle': col = '#3d8a59'; break;
+							}
+							return {color: col}
 		        }
 		      });
 
@@ -388,9 +395,8 @@
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada a piedi"><input type="checkbox" form="ricerca_ind" name="walk" id="walk_setting" class="chb" checked><img src="/static/icons/pedone.svg" alt="walking icon" class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada con meno ponti"><input type="checkbox" form="ricerca_ind" name="lazy" id="less_bridges_setting" class="chb"><img src="/static/icons/carretto.svg" alt="luggage icon" class="icon"></input></label>
 													<label class="btn btn-sm btn-light v4wbtn" title="Strada in barca"><input type="checkbox" form="ricerca_ind" name="boat" id="boat_setting" class="chb"><img src="/static/icons/barchin.svg" alt="barchin icon" class="icon"></input></label>
-													<span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!">
-														<label class="btn btn-sm btn-light v4wbtn disabled" title="Percorso accessibile"><input type="checkbox" class="disabled" form="ricerca_ind" name="tide" id="tide_setting" disabled><img src="/static/icons/carrozzina.svg" alt="wheelchair icon" class="icon"></input></label>
-													</span>
+													<label class="btn btn-sm btn-light v4wbtn" title="Acqua alta"><input type="checkbox" class="" form="ricerca_ind" name="tide" id="tide_setting"><img src="/static/icons/tide.svg" alt="high tide icon" class="icon"></input></label>
+													<label class="tide_label" id="tide_level" style="display: none">Marea in cm: <input type="number" step="1" name="tide_level" id="tide_level_input" placeholder="auto" style="width: 50px;"></input></label>
 													<!-- <span tabindex="0" class="d-inline-block" data-toggle="popover" data-trigger="focus" data-placement="bottom" data-content="Work in progress!"><label class="btn btn-sm btn-light v4wbtn disabled"
 															title="Percorso con i battelli"><input type="checkbox" form="ricerca_ind" name="ambu" id="ambu_setting" disabled><img src="/static/icons/battello.svg" class="icon"></i></input></label></span> -->
 												</div>
@@ -398,6 +404,16 @@
 													$(".chb").change(function() {
 														$(".chb").prop('checked', false);
 														$(this).prop('checked', true);
+														on_path_calculated_recalc();
+													});
+													// questo visualizza la marea quando uno clicca - ma se la pagina viene caricata con la marea, no!
+													$("#tide_setting").change(function() {
+														if ($("#tide_setting").is(':checked')) {
+															$("#tide_level").show();
+														} else {
+															$("#tide_level").hide();
+														}
+														on_path_calculated_recalc();
 													});
 												</script>
 											</div>
@@ -474,7 +490,12 @@
 												<div class="col-9 align-self-center">
 													PERCORSO A PIEDI <br>
 													<span style='color: red; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle,
-													<span style='color: yellow; '><i class="fa fa-minus" aria-hidden="true"></i></span> ponte
+													<span style='color: yellow; '><i class="fa fa-minus" aria-hidden="true"></i></span> ponte,
+													<span id="tide_legend">
+														<span style='color: #3d8a59; '><i class="fa fa-minus" aria-hidden="true"></i></span> passerelle,
+														<span style='color: #6de3f7; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle con acqua,
+														<span style='color: #0905ff; '><i class="fa fa-minus" aria-hidden="true"></i></span> calle sotto acqua
+													</span>
 												</div>
 												<div class="col-3 float-right">
 													<!--<a onclick="closeResultsWindow()">-->
@@ -493,6 +514,11 @@
 											<span id="walk_length_text"></span><br>
 											TEMPO:<br>
 											<span id="walk_time_text"></span><br>
+											MAREA: <br>
+											<span id="tide_level_current"></span><br>
+											<span id="tide_level_path" style="display:none"></span>
+											<span id="high_tide_title" style="display:none">ACQUA ALTA:<br></span>
+											<span id="walk_tide_text" style="display:none"></span>
 											PONTI:<br>
 											<span id="walk_ponti_text"></span><br>
 										</div>
@@ -624,6 +650,13 @@
 							<div class="alert alert-dq-red alert-dismissible fade show" role="alert" id="feedbackmessagewindow-fail" style="display:none">
 								Ops, qualcosa è andato storto nell'invio del feedback.<br>
 								Per favore prova a reinviarlo.
+								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="alert alert-dq-blue alert-dismissible fade show" role="alert" id="high_tide_window-warning" style="display:none">
+								Attenzione, oggi c'è l'acqua alta. La marea attuale è di <span id="current_tide_in_alert"></span>cm <br>
+								Seleziona il tasto <img src="/static/icons/tide.svg" alt="high tide icon" class="icon" height=1em width=35em> per calcolare i percorsi evitando l'acqua
 								<button type="button" class="close" data-hide="alert" aria-label="Close" style="top: -5px">
 									<span aria-hidden="true">&times;</span>
 								</button>
@@ -858,7 +891,13 @@
 									<!-- <p>
 					{{ form.submit() }}
 				</p> -->
+									<!-- I add two hidden fields for coordinates -->
+									<input type="hidden" name="start_coord_fb" id="hidden_start_coord_fb">
+									<input type="hidden" name="end_coord_fb" id="hidden_end_coord_fb">
+									
 									<button type="submit" class="btn btn-secondary">Invia</button>
+
+
 								</form>
 							</div>
 							<script>

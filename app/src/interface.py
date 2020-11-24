@@ -19,8 +19,9 @@ import os
 import json
 import pickle
 import traceback
-import app.global_variables as global_variables
+import app.site_parameters as site_parameters
 from app import mail
+from flask import g
 
 FEEDBACK_FOLDER = 'feedback'
 
@@ -28,20 +29,49 @@ def get_feedback_from_server():
     """
     Check for feedback files in the server, returns their names and their contents, in a dictionary for js.
     """
-    feedback_files_names = os.listdir(FEEDBACK_FOLDER)
-    feedback_files_names.sort()
-    feedback_files_contents = []
-    feedback_files_contents_as_dicts = []
-    for fb_file in feedback_files_names:
-        full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
-        with open(full_path, 'r') as content_file:
-            cur_fb_content_as_text = content_file.read()
-            cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
-        feedback_files_contents.append(cur_fb_content_as_text)
-        feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
+    # now we have a db!
+    feedback_dicts = fetch_feedbacks_from_db() # probabilmente possiamo copiare il codice di sotto qua sopra, ma è ancora in testing
 
-    feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
-    return feedback_dict
+    # non ci serve più guardare le cartelle e fare robe strane per parsare
+    # feedback_files_names = os.listdir(FEEDBACK_FOLDER)
+    # feedback_files_names.sort()
+    # feedback_files_contents = []
+    # feedback_files_contents_as_dicts = []
+    # for fb_file in feedback_files_names:
+    #     full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
+    #     with open(full_path, 'r') as content_file:
+    #         cur_fb_content_as_text = content_file.read()
+    #         cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
+    #     feedback_files_contents.append(cur_fb_content_as_text)
+    #     feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
+    #
+    # # we do not really need fb_contents, but we need to also edit the feedback.html page to avoid using the contents as they are
+    # feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
+
+    return feedback_dicts
+
+def fetch_feedbacks_from_db():
+    """
+    Fetch the feedback list from db, returns their names and their contents as dictionary.
+    """
+    all_feedbacks = Feedbacks.query.all()
+    feedback_dicts = []
+    for feed in all_feedbacks:
+        start_coord_as_num = 0
+        end_coord_as_num = 0
+        if len(feed.start_coord) > 0:
+            start_coord_as_num = [ float(a) for a in feed.start_coord.split(",") ]
+        if len(feed.end_coord) > 0:
+            end_coord_as_num = [ float(a) for a in feed.end_coord.split(",") ]
+        cur_feed_dict = {'name':feed.name, 'category':feed.category,
+            'searched_start':feed.searched_start, 'searched_end':feed.searched_end, 'searched_string':feed.searched_string,
+            'found_start':feed.found_start, 'found_end':feed.found_end, 'found_string':feed.found_string,
+            'start_coord':start_coord_as_num, 'end_coord':end_coord_as_num,
+            'feedback':feed.feedback, 'json':json.loads(feed.json), 'datetime':feed.datetime.strftime("%d-%m-%Y %H:%M:%S"),
+            'report':feed.report, 'solved':feed.solved}
+        feedback_dicts.append(cur_feed_dict)
+        print(feed.start_coord)
+    return feedback_dicts
 
 def retrieve_parameters_from_GET(arguments_GET_request):
     """
@@ -58,8 +88,8 @@ def retrieve_parameters_from_GET(arguments_GET_request):
     params_dict['less_bridges'] = arguments_GET_request.get('lazy', default='off', type=str)
     params_dict['by_boat'] = arguments_GET_request.get('boat', default='off', type=str)
     params_dict['with_tide'] = arguments_GET_request.get('tide', default='off', type=str)
+    params_dict['tide_level'] = arguments_GET_request.get('tide_level', default=None, type=int)
     params_dict['by_ambulance'] = arguments_GET_request.get('ambu', default='off', type=str)
-
     return params_dict
 
 def initialize_votes():
@@ -141,6 +171,8 @@ def save_feedback_in_db(form, feedback_folder):
     fb.found_end = form['found_end'].data
     fb.feedback = form['feedback'].data
     fb.json = form['dictJS'].data
+    fb.start_coord = form['start_coord_fb'].data
+    fb.end_coord = form['end_coord_fb'].data
     fb.report = os.path.join(feedback_folder,"dequa_fb_"+fb.datetime.strftime("%Y%m%d-%H%M%S.%f")+".md")
     db.session.add(fb)
     db.session.commit()
@@ -152,7 +184,7 @@ def write_feedback(feedback):
     """
     curr_time = feedback.datetime
     file_feedback = feedback.report
-    mdfile = '<h1>***** DEQUA FEEDBACK ***** </h1>\n'
+    mdfile = '<h1>***** DEQUA FEEDBACK *****</h1>\n'
     mdfile += '<h4>Website version</h4>\n'
     mdfile += feedback.version+'\n'
     mdfile += '<h4>Time</h2>\n'
@@ -170,6 +202,8 @@ def write_feedback(feedback):
         'found_start': 'Result start',
         'found_end': 'Result end',
         'feedback': 'Comments',
+        'start_coord': 'Start Coordinate',
+        'end_coord': 'End Coordinate'
     }
     for (data,title) in dict_data_title.items():
         value = getattr(feedback,data)
@@ -313,9 +347,14 @@ def find_what_needs_to_be_found(params_research):
         end_coord = ""
 
     if what_am_I_really_searching_for == "nothing":
-        return "None"
+        tide_level = get_current_tide_level();
+        only_tide_level_dict = {"only_tide_level":tide_level}
+        return only_tide_level_dict
 
-    elif what_am_I_really_searching_for == "address":
+    # Save the global variables that we need to save
+    save_request_variables(params_research)
+
+    if what_am_I_really_searching_for == "address":
         app.logger.debug('ricerca singolo indirizzo: {}'.format(da) )
         t0 = time.perf_counter()
         match_dict = lib_search.give_me_the_dictionary(da, start_coord)
@@ -353,7 +392,7 @@ def find_what_needs_to_be_found(params_research):
 
             else: # cerchiamo per terra
 
-                path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research["less_bridges"]=="on")
+                path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research)
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
@@ -362,8 +401,8 @@ def find_what_needs_to_be_found(params_research):
 
 def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_ponti):
 
-    G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
-    G_acqua_array = np.asarray(list(global_variables.G_acqua.nodes))
+    G_terra_array = np.asarray(list(site_parameters.G_terra.nodes))
+    G_acqua_array = np.asarray(list(site_parameters.G_acqua.nodes))
 
     app.logger.info("andiamo in barca..")
     min_number_of_rive = 10
@@ -374,14 +413,14 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
     # Altrimenti bisogna creare un sistema che capisca quale delle due è troppo distante da un nodo terrestre,
     # attivi 2 flag diversi e nei due casi imposti il nodo acqueo più vicino.
     try:
-        [start_coord] = lib_search.find_closest_nodes([match_dicts_list[0]], G_terra_array, global_variables.min_dist_to_go_by_boat)
+        [start_coord] = lib_search.find_closest_nodes([match_dicts_list[0]], G_terra_array, site_parameters.min_dist_to_go_by_boat)
         start_from_water = False or start_from_water
     except:
         app.logger.info('start_coord is far from land nodes')
         start_coord = match_dicts_list[0]['coordinate']
         start_from_water = True
     try:
-        [stop_coord] = lib_search.find_closest_nodes([match_dicts_list[1]], G_terra_array, global_variables.min_dist_to_go_by_boat)
+        [stop_coord] = lib_search.find_closest_nodes([match_dicts_list[1]], G_terra_array, site_parameters.min_dist_to_go_by_boat)
         end_to_water = False or end_to_water
     except:
         app.logger.info('stop_coord is far from land nodes')
@@ -395,7 +434,7 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
         rive_start_list = [{"coordinate":(riva.location.longitude, riva.location.latitude)} for riva in rive_vicine_start]
 
         rive_start_nodes_list = lib_search.find_closest_nodes(rive_start_list, G_terra_array)
-        geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(global_variables.G_terra, start_coord, rive_start_nodes_list,f_ponti)
+        geojson_path_from_land_to_water, riva_start = lib_search.find_path_to_closest_riva(site_parameters.G_terra, start_coord, rive_start_nodes_list,f_ponti)
     if start_from_water or riva_start==-1:
         # usiamo le coordinate come riva di Partenza
         # che poi viene collegato all'arco piu vicino nel grafo acqueo
@@ -409,38 +448,80 @@ def by_boat_path_calculator(match_dicts_list, start_from_water, end_to_water, f_
 
         rive_stop_nodes_list = lib_search.find_closest_nodes(rive_stop_list, G_terra_array)
         # ritorna la strada con properties e la riva scelta!
-        geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(global_variables.G_terra, stop_coord, rive_stop_nodes_list,f_ponti)
+        geojson_path_from_water_to_land, riva_stop = lib_search.find_path_to_closest_riva(site_parameters.G_terra, stop_coord, rive_stop_nodes_list,f_ponti)
     if end_to_water or riva_stop==-1:
         riva_stop = tuple(stop_coord)
         geojson_path_from_water_to_land = None
     #print("riva stop", riva_stop)
     t2=time.perf_counter()
     # lista degli archi
-    list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], global_variables.G_acqua)
+    list_of_edges_node_with_their_distance = lib_search.find_closest_edge([riva_start, riva_stop], site_parameters.G_acqua)
     # aggiungere gli archi!
-    list_of_added_edges = lib_graph.dynamically_add_edges(global_variables.G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
+    list_of_added_edges = lib_graph.dynamically_add_edges(site_parameters.G_acqua, list_of_edges_node_with_their_distance, [riva_start,riva_stop])
     # trova la strada
-    water_streets_info = lib_graph.give_me_the_street(global_variables.G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True, speed=global_variables.boat_speed)
+    app.logger.debug("Calculating street by boat..")
+    water_streets_info = lib_graph.give_me_the_street(site_parameters.G_acqua, riva_start, riva_stop, flag_ponti=False, water_flag=True, speed=site_parameters.boat_speed)
     # app.logger.debug("the dictionary with all the info: {}".format(water_streets_info))
     # togli gli archi
-    lib_graph.dynamically_remove_edges(global_variables.G_acqua, list_of_added_edges)
+    lib_graph.dynamically_remove_edges(site_parameters.G_acqua, list_of_added_edges)
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     water_streets_info = lib_graph.add_from_strada_to_porta(water_streets_info, match_dicts_list[0], match_dicts_list[0])
     # una lista con il dizionario che ha tutte le info sulle strade (una lista perche usiamo un ciclo di la su js)
     path_list_of_dictionaries = [geojson_path_from_land_to_water, water_streets_info, geojson_path_from_water_to_land]
     # comprimiamo la lista di dizionari in una lista con un unico dizionario
-    return lib_communication.merged_path_list(path_list_of_dictionaries)
+    return lib_communication.info_path_to_dictionary(path_list_of_dictionaries)
 
-def by_foot_path_calculator(match_dicts_list, f_ponti):
+def by_foot_path_calculator(match_dicts_list, params_research):
     app.logger.info("andiamo a piedi..")
-    G_terra_array = np.asarray(list(global_variables.G_terra.nodes))
+    G_terra_array = np.asarray(list(site_parameters.G_terra.nodes))
     t0=time.perf_counter()
-    [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array, global_variables.min_dist_to_suggest_boat)
+    [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array, site_parameters.min_dist_to_suggest_boat)
     app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
     t2=time.perf_counter()
-    streets_info = lib_graph.give_me_the_street(global_variables.G_terra, start_coord, stop_coord, flag_ponti=f_ponti, speed=global_variables.walk_speed)
+    f_ponti = params_research["less_bridges"]=="on"
+    f_tide = params_research["with_tide"]=="on"
+    app.logger.debug("Calculating street by foot..")
+    streets_info = lib_graph.give_me_the_street(site_parameters.G_terra, start_coord, stop_coord,
+                                                flag_ponti=f_ponti,
+                                                speed=site_parameters.walk_speed,
+                                                flag_tide=f_tide)
     streets_info = lib_graph.add_from_strada_to_porta(streets_info, match_dicts_list[0], match_dicts_list[1])
     app.logger.info('ci ho messo {tot} a calcolare la strada'.format(tot=time.perf_counter() - t2))
     streets_info['tipo']=0
 
-    return streets_info
+    return lib_communication.info_path_to_dictionary([streets_info])
+
+def save_request_variables(params_research):
+    """
+    Function to save all the necessary global variables in flask g
+    """
+    g.flag_ponti = params_research['less_bridges'] == 'on'
+    g.flag_tide = params_research['with_tide'] == 'on'
+    g.water_flag = params_research['by_boat'] == 'on'
+    g.tide_flag = params_research['with_tide'] == 'on'
+    # if tide_level in params_research use that one, otherwise read the current tide level
+    g.tide_level = params_research['tide_level']
+    g.tide_level_current = get_current_tide_level()
+    if not g.tide_level:
+        g.tide_level = g.tide_level_current
+    if g.water_flag:
+        g.speed = site_parameters.boat_speed
+    else:
+        g.speed = site_parameters.walk_speed
+    return
+
+def get_current_tide_level():
+    """
+    Fetch the high tide level from the JSON file.
+    """
+    tide_level_dict = None
+    while not tide_level_dict:
+        try:
+            with open(os.path.join(os.getcwd(), site_parameters.high_tide_file),'r') as stream:
+                tide_level_dict = json.load(stream)
+        except:
+            app.logger.debug('Error in reading tide file')
+            time.sleep(0.001)
+    tide_level_value = tide_level_dict.get('valore', None)
+    tide_level = int(float(tide_level_value[:-2])*100) if tide_level_value else None
+    return tide_level

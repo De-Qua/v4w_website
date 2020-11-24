@@ -13,21 +13,21 @@ import app.src.interface as interface
 from app.src.libpy import lib_graph
 import traceback
 from flask import g
-import app.global_variables as global_variables
+import app.site_parameters as site_parameters
 from app import custom_errors
 import datetime
 from urllib.parse import urlparse
 # Useful paths
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_pickle_terra = os.path.join(folder_db,"dequa_ve_terra_v8_dequa_ve_terra_0509_pickle_4326VE")
+path_pickle_terra = os.path.join(folder_db,"dequa_ve_terra_v13_1711_pickle_4326VE")
 path_pickle_acqua = os.path.join(folder_db,"dequa_ve_acqua_v7_1609_pickle_4326VE")
 
 # Logging
 app.logger.info("loading the graphs..")
 # Load graph
 #G_un, civici_tpn, coords = lib_graph.load_files(pickle_path=path_pickle_terra, civici_tpn_path=path_civ, coords_path=path_coords)
-global_variables.G_terra, global_variables.G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
+site_parameters.G_terra, site_parameters.G_acqua = lib_graph.load_graphs(pickle_terra=path_pickle_terra,pickle_acqua=path_pickle_acqua)
 
 feedback_folder = os.path.join(folder,"feedback")
 error_folder = os.path.join(folder,"error")

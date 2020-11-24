@@ -23,6 +23,8 @@ import sqlalchemy
 import time
 import json
 
+import pdb
+
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
 def create_query_objects():
@@ -363,14 +365,28 @@ def update_locations(shp, showFig=False, explain=False):
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
         progressbar_pip_style(tot_civ_added,tot_civ_in_file)
-        sestieri = [n for n in neigh_query.all() if n.shape.contains(pol)]
+        sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
         # se il civico non è contenuto in nessun passa al successivo
-        if len(sestieri)==0:
+        if len(sestieri) == 0:
             continue
-        elif len(sestieri)>1:
-            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
-            err_civ.append((0,num, sub, den, den1, pol))
-            continue
+        elif len(sestieri) == 1:
+            sestiere = sestieri[0]
+        elif len(sestieri) > 1:
+            # se c'è più di un sestiere cerca di capire quale è quello giusto
+            sestiere = []
+
+            if not den1 and den and den.upper().startswith('VIA DOGE GALLA'):
+                # caso particolare via doge galla a cavallo tra alberoni e malamocco
+                sestiere = [s for s in sestieri if s.name == 'MALAMOCCO']
+            elif den1:
+                # controllo se il sestiere è scritto in den1
+                sestiere = [s for s in sestieri if den1.upper().startswith(s.name)]
+
+            if len(sestiere) == 1:
+                sestiere = sestiere[0]
+            else:
+                err_civ.append((0,num, sub, den, den1, pol))
+                continue
         # principalmente voglio usare DENOMINAZI, nel caso sia vuoto uso DENOMINA_1
         # nel caso siano entrambi vuoti errore e continuo
         if not den and not den1:
@@ -385,12 +401,12 @@ def update_locations(shp, showFig=False, explain=False):
             err_civ.append((2,num, sub, den, den1, pol))
             continue
         # estraggo strada e civico da denominazi
-        num_found_denom = re.search("\d+(/[A-Z])?$",denom)
+        num_found_denom = re.search("(\d+)/?([A-Z])?$",denom)
         if not num_found_denom:
             found=False
             # se non ha trovato nulla riprova usando den1 se non è vuota
             if denom==den and not pd.isna(den1):
-                num_found_denom = re.search("\d+(/[A-Z])?$",den1)
+                num_found_denom = re.search("(\d+)/?([A-Z])?$",den1)
                 if num_found_denom:
                     found = True
                     denom = den1
@@ -398,8 +414,13 @@ def update_locations(shp, showFig=False, explain=False):
                 # aggiungi agli errori e passa al successivo
                 err_civ.append((3,num, sub, den, den1, pol))
                 continue
-        den_num = num_found_denom.group(0)
-        den_str = denom[:-len(den_num)-1]
+        den_num_num = num_found_denom.group(1)
+        den_num_sub = num_found_denom.group(2)
+        if den_num_sub:
+            den_num = den_num_num + '/' + den_num_sub
+        else:
+            den_num = den_num_num
+        den_str = denom[:-len(num_found_denom.group(0))-1]
         # estraggo numero ed eventuale lettera da CIVICO_NUM e CIVICO_SUB
         housenumber = num
         if sub.isalpha():
@@ -415,9 +436,11 @@ def update_locations(shp, showFig=False, explain=False):
                     if housenumber == den1_num:
                         found = True
             if not found:
-                # aggiungi agli errori e passa al successivo
-                err_civ.append((4,num, sub, den, den1, pol))
-                continue
+                # utilizza den_num
+                housenumber = den_num
+                # # aggiungi agli errori e passa al successivo
+                # err_civ.append((4,num, sub, den, den1, pol))
+                # continue
         # cerco tutte le strade che hanno il nome riportato nel civico
         # o il cui nome non sia una sottostringa di quello riportato nel civico
         streets = streets_query.filter(db.or_(
@@ -426,11 +449,17 @@ def update_locations(shp, showFig=False, explain=False):
         if len(streets)==0:
             # se non c'è una strada
             found = False
-            # prova a vedere che non ci sia un typo
-            namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
-            if score >= 90:
-                streets = [s for s in streets_query.filter_by(name=namestr).all()]
+            # determina la strada in base alla geometria
+            streets = [s for s in streets_query.all() if s.shape.intersects(pol)]
+            if streets:
+                found = True
             else:
+                # prova a vedere che non ci sia un typo
+                namestr,score=process.extractOne(den_str.strip(),[s.name for s in Street.query.all()])
+                if score >= 90:
+                    streets = [s for s in streets_query.filter_by(name=namestr).all()]
+                    found = True
+            if not found:
                 #aggiungi agli errori e passa al successivo
                 err_civ.append((5,num, sub, den, den1, pol))
                 continue
@@ -447,9 +476,9 @@ def update_locations(shp, showFig=False, explain=False):
         lat = repr_point.y
         lon = repr_point.x
         # Se la location non esiste già la aggiungo
-        l = location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol).one_or_none()
+        l = location_query.filter_by(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestiere,shape=pol).one_or_none()
         if not l:
-            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestieri[0],shape=pol)
+            loc = Location(latitude=lat,longitude=lon,housenumber=housenumber,street=street,neighborhood=sestiere,shape=pol)
             add_civ += 1
             #percentage = (tot_civ_added / tot_civ_in_file) * 100
             #print("{perc:5.1f}% - {tot:5d}/{tot2}".format(perc=percentage, tot=tot_civ_added, tot2=tot_civ_in_file), end="\r", flush=True)

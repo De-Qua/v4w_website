@@ -14,4 +14,6 @@ class FeedbackForm(FlaskForm):
     found_end = StringField('Risultato arrivo')
     feedback = TextAreaField('Problema o feedback')
     dictJS = StringField("Dict JS")
+    start_coord_fb = StringField("Coordinata di Partenza")
+    end_coord_fb = StringField("Coordinata d'arrivo")
     submit = SubmitField('Invia')
