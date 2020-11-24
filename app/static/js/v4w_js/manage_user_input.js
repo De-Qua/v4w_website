@@ -191,7 +191,7 @@ function updateViewsAfterResizeWindow(){
 }
 
 function openHighTideAlertIfNeeded(){
-  if (!("path" in dict_in_JS)) {
+  if (dict_in_JS =="None" || !("path" in dict_in_JS)) {
     console.log("this is the first access: no high tide warning");
   }
   else if ((dict_in_JS.path.tide_level_current >= 80) && (dict_in_JS.params_research.with_tide == 'off')){

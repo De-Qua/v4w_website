@@ -16,6 +16,8 @@ function initialize_html(){
   addSocialButton();
   openHighTideAlertIfNeeded();
 
+  // Set values on feedback window
+  setValuesInFeedbackWindow(dict_in_JS);
 
   mymap.on('click', onMapClick);
 
@@ -115,9 +117,6 @@ function initialize_html(){
   **/
   else {
 
-    // Set values on feedback window
-    setValuesInFeedbackWindow(dict_in_JS);
-
     var modus_operandi = dict_in_JS.modus_operandi;
     console.log("siamo in modus_operandi: " + modus_operandi);
     var geo_type = dict_in_JS.partenza[0].geotype;
@@ -213,6 +212,12 @@ function initialize_html(){
       if (dict_in_JS.params_research.start_coord.length > 0) {
         document.getElementById('hidden_start_coord').value = dict_in_JS.params_research.start_coord;
       }
+      else if (dict_in_JS.start_type == 'unique' && dict_in_JS.partenza[0].coordinate.length > 0) {
+        document.getElementById('hidden_start_coord').value = dict_in_JS.partenza[0].coordinate;
+      }
+      else {
+        console.log("[modus 1]: seems like we are not using start_coord! is this correct?")
+      }
       var nome_arrivo = dict_in_JS.params_research.a
       document.getElementById('search_field_2').value = nome_arrivo;
       if (nome_arrivo.length > 0) {
@@ -222,7 +227,7 @@ function initialize_html(){
       if (dict_in_JS.params_research.end_coord.length > 0) {
         document.getElementById('hidden_end_coord').value = dict_in_JS.params_research.end_coord;
       }
-      else if (dict_in_JS.end_type == 'unique' && dict_in_JS.arrivo[0].coordinate.lenght > 0) {
+      else if (dict_in_JS.end_type == 'unique' && dict_in_JS.arrivo[0].coordinate.length > 0) {
         document.getElementById('hidden_end_coord').value = dict_in_JS.arrivo[0].coordinate;
       }
       else {
