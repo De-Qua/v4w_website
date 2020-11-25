@@ -48,9 +48,7 @@ function setValuesInFeedbackWindow(JSdict) {
 	$('#hidden_start_coord_fb').val($('#hidden_start_coord').val());
 	$('#hidden_end_coord_fb').val($('#hidden_end_coord').val());
 
-	if (JSdict == "None" || !("partenza" in JSdict)){
-    return
-  } else if ("error" in JSdict) {
+	if ("error" in JSdict) {
 		// we have only the first search field
 		if (!$('#search_field_2').val()) {
 			$('#form-search-address').show();
@@ -60,7 +58,7 @@ function setValuesInFeedbackWindow(JSdict) {
 			$('#searched_start').val($('#search_field_1').val());
 			$('#searched_end').val($('#search_field_2').val());
 		}
-  } else {
+  } else if ("partenza" in JSdict){
     // values we found
     var all_found_start = [];
     for (found_start of JSdict.partenza){
@@ -94,7 +92,9 @@ function setValuesInFeedbackWindow(JSdict) {
       // do nothing
       return
     }
-  }
+  } else { // we are at the first initialization or we don't know
+		return
+	}
 }
 
 
