@@ -118,13 +118,20 @@ def contact():
     return render_template('info/contatti.html')
 
 # feedback
-@t.include
 @app.route('/r2d2', methods=['GET', 'POST'])
 def feedback():
     app.logger.info('Pagina di feedback aperta')
     #get list of feedback files
     feedback_dict = interface.get_feedback_from_server()
     return render_template('feedback.html', feedback_dict = feedback_dict)
+
+# visualization
+@app.route('/d3', methods=['GET', 'POST'])
+def visualization():
+    app.logger.info('Data Visualization at its finest')
+    #get list of feedback files
+    usage_data = interface.get_usage_data_from_server()
+    return render_template('datavis/charts.html', usage_dict = usage_data)
 
 @t.include
 @app.route('/', methods=['GET', 'POST'])
