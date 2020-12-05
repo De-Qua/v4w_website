@@ -144,7 +144,7 @@ def extract_traffic_stats(dates):
     for c_month in last_two_months:
         days = monthrange(year, c_month)[1] # numero di giorni in quel mese
         for c_day in range(1,days+1):
-            visits = [visit for visit in dates if visit.day == (c_day)]
+            visits = [visit for visit in dates if visit.day == (c_day) and visit.month == c_month]
             day_as_date = datetime.date(year, c_month, c_day)
             format = "%Y-%m-%d"
             day_date = day_as_date.strftime(format)
