@@ -184,19 +184,19 @@ def extract_searches_stats(urls):
     searches_stats.append({'name':'ricerca percorso', 'value':len(path_search)})
     if len(path_search) > max_search:
         max_search = len(path_search)
-    walking = [url for url in searches if 'walk=on' in url]
+    walking = [url for url in path_search if 'walk=on' in url]
     searches_stats.append({'name':'a piedi', 'value':len(walking)})
     if len(walking) > max_search:
         max_search = len(walking)
-    bridges = [url for url in searches if 'lazy=on' in url]
+    bridges = [url for url in path_search if 'lazy=on' in url]
     searches_stats.append({'name':'con i ponti', 'value':len(bridges)})
     if len(bridges) > max_search:
         max_search = len(bridges)
-    tide = [url for url in searches if 'tide=on' in url]
+    tide = [url for url in path_search if 'tide=on' in url]
     searches_stats.append({'name':'con la marea', 'value':len(tide)})
     if len(tide) > max_search:
         max_search = len(tide)
-    boat = [url for url in searches if 'boat=on' in url]
+    boat = [url for url in path_search if 'boat=on' in url]
     searches_stats.append({'name':'in barca', 'value':len(boat)})
     if len(boat) > max_search:
         max_search = len(boat)
