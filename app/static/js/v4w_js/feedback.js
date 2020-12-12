@@ -28,10 +28,14 @@ function setValuesInFeedbackWindow(JSdict) {
 
 
 	if (JSdict == "None"){
+		console.log("jsdict is none!");
     return
   } else if ("error" in JSdict) {
+		console.log("error in jsdict!");
     return
   } else {
+		console.log("updating hidden field..");
+		$('#fbDict').val(JSON.stringify(JSdict));
     // values we found
     var all_found_start = [];
     for (found_start of JSdict.partenza){
@@ -44,6 +48,7 @@ function setValuesInFeedbackWindow(JSdict) {
 
     // determine what to show
     if(JSdict.modus_operandi==0 || (JSdict.modus_operandi==2 && JSdict.arrivo == "no_end")) {
+			console.log('show no end');
       // show div
       document.getElementById("form-search-address").style.display = "flex";
       document.getElementById("form-found-address").style.display = "flex";

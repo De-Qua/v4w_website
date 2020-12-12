@@ -194,10 +194,10 @@
           marker_start = L.marker([json_obj.partenza[0].coordinate[0], json_obj.partenza[0].coordinate[1]], markerOptions);
         }
         var marker_end;
-        if (cur_obj_with_data.marker_end != undefined)
+        if (cur_obj_with_data.marker_arrivo != undefined)
         {
-          console.log("marker end from coord: " + cur_obj_with_data.marker_end);
-          marker_end = L.marker([cur_obj_with_data.marker_end[0], cur_obj_with_data.marker_end[1]], markerOptions);
+          console.log("marker end from coord: " + cur_obj_with_data.marker_arrivo);
+          marker_end = L.marker([cur_obj_with_data.marker_arrivo[0], cur_obj_with_data.marker_arrivo[1]], markerOptions);
         }
         else {
           console.log("marker end from json: " + json_obj.arrivo);

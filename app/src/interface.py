@@ -304,6 +304,13 @@ def only_by_boat_or_also_by_walk(match_dicts_list, params_research):
 
     return None, None
 
+def create_first_dictionary():
+    """
+    Used to create a minimum working dictionary to return as result dictionary for js.
+    """
+    tide_level = get_current_tide_level();
+    only_tide_level_dict = {"only_tide_level": tide_level}
+    return only_tide_level_dict
 
 def find_what_needs_to_be_found(params_research):
     """
@@ -322,9 +329,7 @@ def find_what_needs_to_be_found(params_research):
         end_coord = ""
 
     if what_am_I_really_searching_for == "nothing":
-        tide_level = get_current_tide_level();
-        only_tide_level_dict = {"only_tide_level":tide_level}
-        return only_tide_level_dict
+        return create_first_dictionary()
 
     # Save the global variables that we need to save
     save_request_variables(params_research)

@@ -156,10 +156,11 @@ def navigation():
         t0=time.perf_counter()
         if request.method == 'POST':
             feedbacksent = interface.take_care_of_the_feedback(form, feedback_folder)
+            results_dictionary = interface.create_first_dictionary()
             # return render_template(html_file, geo_type=geo_type, start_coordx=-1,
             #     searched_name=da, start_name=start_name,
             #     form=form, feedbacksent=feedbacksent)
-            return render_template(html_file, form=form, results_dictionary="None", feedbacksent=feedbacksent)
+            return render_template(html_file, form=form, results_dictionary=results_dictionary, feedbacksent=feedbacksent)
                 # non sono 100% sicuro che form vada ritornato sempre (nel caso precedente era ritornato solo in caso di 0)
                 # ma dovrebbe funzionare
         # altrimenti, dobbiamo fare qualocsa
