@@ -115,8 +115,8 @@ from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, Poi
 from app.views import ErrorsModelView
 from app.views import FeedbacksModelView, FeedbackVisualizationView
 
-admin.add_view(UserModelView(Users, db.session))
-admin.add_view(AdminModelView(Roles, db.session))
+admin.add_view(UserModelView(Users, db.session, category="Users"))
+admin.add_view(AdminModelView(Roles, db.session, category="Users"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
