@@ -118,12 +118,12 @@ def contact():
     return render_template('info/contatti.html')
 
 # feedback
-@app.route('/r2d2', methods=['GET', 'POST'])
-def feedback():
-    app.logger.info('Pagina di feedback aperta')
-    #get list of feedback files
-    feedback_dict = interface.get_feedback_from_server()
-    return render_template('feedback.html', feedback_dict = feedback_dict)
+# @app.route('/r2d2', methods=['GET', 'POST'])
+# def feedback():
+#     app.logger.info('Pagina di feedback aperta')
+#     #get list of feedback files
+#     feedback_dict = interface.get_feedback_from_server()
+#     return render_template('feedback.html', feedback_dict = feedback_dict)
 
 # visualization
 # @app.route('/d3', methods=['GET', 'POST'])

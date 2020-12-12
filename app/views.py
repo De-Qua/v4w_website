@@ -87,3 +87,14 @@ class FeedbacksModelView(AdminModelView):
                               'found_string', 'found_start', 'found_end',
                               'feedback']
     column_exclude_list = ['json']
+
+class FeedbackVisualizationView(BaseView):
+    @expose('/')
+    def index(self):
+        feedback_dict = interface.get_feedback_from_server()
+        return self.render('admin/feedback.html', feedback_dict = feedback_dict)
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))

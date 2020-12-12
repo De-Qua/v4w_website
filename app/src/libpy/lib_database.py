@@ -51,10 +51,10 @@ def fetch_feedbacks_from_db():
     for feed in all_feedbacks:
         start_coord_as_num = 0
         end_coord_as_num = 0
-        if len(feed.start_coord) > 0:
-            start_coord_as_num = [ float(a) for a in feed.start_coord.split(",") ]
-        if len(feed.end_coord) > 0:
-            end_coord_as_num = [ float(a) for a in feed.end_coord.split(",") ]
+        if feed.start_coord and len(feed.start_coord) > 0:
+            start_coord_as_num = LatLng2List(feed.start_coord)
+        if feed.end_coord and len(feed.end_coord) > 0:
+            end_coord_as_num = LatLng2List(feed.end_coord)
         cur_feed_dict = {'name':feed.name, 'category':feed.category,
             'searched_start':feed.searched_start, 'searched_end':feed.searched_end, 'searched_string':feed.searched_string,
             'found_start':feed.found_start, 'found_end':feed.found_end, 'found_string':feed.found_string,
@@ -65,6 +65,13 @@ def fetch_feedbacks_from_db():
         print(feed.start_coord)
     return feedback_dicts
 
+def LatLng2List(latlng):
+    """
+    Convert a string in the format LatLng() in a list of coordinates
+    """
+    pattern = r"(\d+\.\d+)"
+    list_coord = re.findall(pattern, latlng)
+    return list_coord
 
 def create_query_objects():
     """
