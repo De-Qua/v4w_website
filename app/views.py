@@ -1,6 +1,8 @@
 from flask import redirect, url_for
 from flask_security import current_user
 from flask_admin.contrib.sqla import ModelView
+import app.src.interface as interface
+from flask_admin import BaseView, expose
 
 ###
 # MODELS FOR ADMIN VIEWS
@@ -25,6 +27,17 @@ class UsageModelView(AdminModelView):
                            'xforwardedfor', 'authorization', 'ip_info']
     column_filters = ['url', 'ua_browser', 'ua_language', 'path', 'track_var']
     can_edit = False
+
+class AnalyticsView(BaseView):
+    @expose('/')
+    def index(self):
+        usage_data = interface.get_usage_data_from_server()
+        return self.render('admin/charts.html', usage_dict=usage_data)
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))
 
 class StreetModelView(AdminModelView):
     column_searchable_list = ['name', 'name_alt']

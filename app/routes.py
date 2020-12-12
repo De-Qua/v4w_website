@@ -126,12 +126,12 @@ def feedback():
     return render_template('feedback.html', feedback_dict = feedback_dict)
 
 # visualization
-@app.route('/d3', methods=['GET', 'POST'])
-def visualization():
-    app.logger.info('Data Visualization at its finest')
-    #get list of feedback files
-    usage_data = interface.get_usage_data_from_server()
-    return render_template('datavis/charts.html', usage_dict = usage_data)
+# @app.route('/d3', methods=['GET', 'POST'])
+# def visualization():
+#     app.logger.info('Data Visualization at its finest')
+#     #get list of feedback files
+#     usage_data = interface.get_usage_data_from_server()
+#     return render_template('datavis/charts.html', usage_dict = usage_data)
 
 @t.include
 @app.route('/', methods=['GET', 'POST'])
