@@ -38,7 +38,7 @@ def fetch_usage_data_from_db():
         usage_dict[col_name] = pd_db[col_name] # it's a dataframe!
         col_names.append(col_name)
 
-    return usage_dict, col_names
+    return usage_dict, col_names, pd_db
 
 
 

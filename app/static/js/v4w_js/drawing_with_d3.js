@@ -4,6 +4,19 @@
  * Codice tratto in gran parte da:
  * https://www.d3-graph-gallery.com
  */
+ var formatTime = d3.timeFormat("%Y-%m-%d")
+
+ var nested_data = d3.nest()
+  .key(function(d) { dt = d3.isoParse(d.datetime); ymd = formatTime(dt);
+    return ymd.split('-').slice(0, 2).join('-');  })
+  .sortKeys(d3.ascending)
+  .rollup(function(leaves) {
+      return {
+        tot_b: d3.sum(leaves, function(d){ return 1; }),
+        tot_a: d3.sum(leaves, function(d){ return 1; })
+      };
+  })
+  .entries(data);
 
 function drawLineWithDate(elementId, data, maxVal) {
 

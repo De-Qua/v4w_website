@@ -32,11 +32,11 @@ def get_usage_data_from_server():
     """
     Get the usage data from our database - just ask the database.
     """
-    usage_dict, col_names = db_lib.fetch_usage_data_from_db()
-    #pdb.set_trace()
+    usage_dict, col_names, pd_db = db_lib.fetch_usage_data_from_db()
     general_info, data_dict = dequa_stats.extract_stats(usage_dict, col_names)
     usage_data_dict = {'g_info': general_info,
-                    'data_dict':data_dict}
+                       'data_dict': data_dict,
+                       'usage_dict': pd_db.to_dict(orient='records')}
     #pdb.set_trace()
     return usage_data_dict
 

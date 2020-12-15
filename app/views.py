@@ -32,7 +32,7 @@ class AnalyticsView(BaseView):
     @expose('/')
     def index(self):
         usage_data = interface.get_usage_data_from_server()
-        return self.render('admin/charts.html', usage_dict=usage_data)
+        return self.render('admin/new_charts.html', usage_dict=usage_data)
     def is_accessible(self):
         return (current_user.is_active and current_user.is_authenticated)
     def _handle_view(self, name):

@@ -1,28 +1,27 @@
-<!doctype html>
-<html lang="it">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Non dovrebbe essere indicizzato -->
-    <meta name="robots" content="noindex">
-    <meta name="googlebot" content="noindex">
-    <link rel="icon" href="/static/img/dequa_logo_v2.png">
+{% extends 'admin/master.html' %}
+{% block body %}
+<!-- <link href="/static/css/bootstrap.css" rel="stylesheet"> -->
+<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
 
-    <title>DeQua Ethical Analytics</title>
+<!-- Load polyfills to support older browsers -->
+<script src="//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
 
-    <!-- Bootstrap core CSS -->
-    <link href="/static/css/bootstrap.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!-- Load Vue followed by BootstrapVue -->
+<script src="//unpkg.com/vue@latest/dist/vue.min.js"></script>
+<script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
 
-    <!-- Load d3.js -->
-    <script src="https://d3js.org/d3.v4.js"></script>
-    <style>
-        .centered {text-align: center}
-        .left {text-align: left; display: inline;}
-        .right {text-align: right; display: inline;}
-        .spaced {padding: 2rem 5rem;}
-    </style>
-</head>
+<!-- Load the following for BootstrapVueIcons support -->
+<script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<style>
+    .centered {text-align: center}
+    .left {text-align: left; display: inline;}
+    .right {text-align: right; display: inline;}
+    .spaced {padding: 2rem 5rem;}
+</style>
 <script>
   var usage_dicts = {{usage_dict | tojson}};
   var all_the_usage = usage_dicts.usage_dict;
@@ -167,4 +166,4 @@
   drawPie("#devices_stats_pie", dev_stats);
 </script>
 
-</html>
+{% endblock %}
