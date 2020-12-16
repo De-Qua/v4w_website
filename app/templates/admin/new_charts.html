@@ -36,6 +36,20 @@
   var today = big_data.today;
   var dev_stats = big_data.devices_stats;
   var searches_stats = big_data.searched_stats;
+
+  var formatTime = d3.timeFormat("%Y-%m-%d")
+
+  var nested_data = d3.nest()
+  .key(function(d) { dt = d3.isoParse(d.datetime); ymd = formatTime(dt);
+    return ymd.split('-').slice(0, 3).join('-');  })
+  .sortKeys(d3.ascending)
+  .rollup(function(leaves) {
+      return {
+        user_access: d3.sum(leaves, function(d){ return 1; })
+      };
+  })
+  .entries(all_the_usage);
+
 </script>
     <body>
 
@@ -155,15 +169,25 @@
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="/static/js/v4w_js/drawing_with_d3.js"></script>
 <script>
+  var Tooltip = d3.select("#page_stats_pie")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px")
+  drawLineFromPandas("#last_week_visits", all_the_usage, "%Y-%m-%d");
   drawLineWithNums("#six_months_visits", six_months, 12, g_info.max_month);
   drawLineWithDate("#last_month_visits", last_month, g_info.max_visits_2m);
-  drawLineWithDate("#last_week_visits", last_week, g_info.max_visits_week);
+  //drawLineWithDate("#last_week_visits", last_week, g_info.max_visits_week);
   drawLineWithNums("#yday_visits", yesterday, 24, g_info.max_visits_yday);
   drawLineWithNums("#today_visits", today, 24, g_info.max_visits_today);
   drawPieBars("#page_stats", stats_url, g_info.max_pages);
   drawPieBars("#searches_stats_div", searches_stats, g_info.max_search);
-  drawPie("#page_stats_pie", stats_url_pie);
-  drawPie("#devices_stats_pie", dev_stats);
+  drawPieFromPandas("#page_stats_pie", all_the_usage, 'browser');
+  drawPieFromPandas("#devices_stats_pie", all_the_usage, 'platform');
 </script>
 
 {% endblock %}
