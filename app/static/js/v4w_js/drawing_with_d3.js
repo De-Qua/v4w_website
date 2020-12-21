@@ -4,7 +4,27 @@
  * Codice tratto in gran parte da:
  * https://www.d3-graph-gallery.com
  */
-
+ // Three function that change the tooltip when user hover / move / leave a cell
+ var mouseover = function(d) {
+   Tooltip
+     .style("opacity", 1)
+   d3.select(this)
+     .style("stroke", "black")
+     .style("opacity", 1)
+ }
+ var mousemove = function(d) {
+   Tooltip
+     .html(d.data.key + "<br>" + d.data.value)
+     .style("left", (d3.event.pageX) + "px")
+     .style("top", (d3.event.pageY) + "px")
+ }
+ var mouseleave = function(d) {
+   Tooltip
+     .style("opacity", 0)
+   d3.select(this)
+     .style("stroke", "none")
+     .style("opacity", 0.8)
+ }
 
 function formatPandasDataTime(data, formatData) {
  var formatTime = d3.timeFormat(formatData);
@@ -120,31 +140,6 @@ function drawPieFromPandas(elementId, unformattedData, type) {
   var color = d3.scaleOrdinal()
     .domain(data)
     .range(d3.schemeSet2);
-
-
-
-  // Three function that change the tooltip when user hover / move / leave a cell
-  var mouseover = function(d) {
-    Tooltip
-      .style("opacity", 1)
-    d3.select(this)
-      .style("stroke", "black")
-      .style("opacity", 1)
-  }
-  var mousemove = function(d) {
-    Tooltip
-      .html(d.data.key + "<br>" + d.data.value)
-      .style("left", (d3.mouse(this)[0]) + "px")
-      .style("top", (d3.mouse(this)[1]) + "px")
-  }
-  var mouseleave = function(d) {
-    Tooltip
-      .style("opacity", 0)
-    d3.select(this)
-      .style("stroke", "none")
-      .style("opacity", 0.8)
-  }
-
 
   console.log("using data ", data);
   // Compute the position of each group on the pie:

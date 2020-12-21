@@ -19,6 +19,11 @@ class UserModelView(ModelView):
     column_list = ['email', 'roles', 'active', 'confirmed_at']
     column_exclude_list = ['password']
     # column_hide_backrefs = False
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))
 
 class UsageModelView(AdminModelView):
     column_default_sort = ('datetime', True)
