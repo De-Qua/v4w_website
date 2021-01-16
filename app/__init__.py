@@ -15,6 +15,7 @@ from flask_track_usage.storage.sql import SQLStorage
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_security import current_user
+from flask_restful import Api
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
@@ -122,6 +123,15 @@ admin.add_view(IdeasModelView(Ideas, db.session))
 admin.add_view(UsageModelView(FlaskUsage, db.session))
 admin.add_view(ErrorsModelView(Errors, db.session))
 admin.add_view(FeedbacksModelView(Feedbacks, db.session))
+
+#
+# Flask Restful API setup
+#
+api_rest = Api(app, prefix='/api')
+
+from app import api
+
+api_rest.add_resource(api.GetAddressAPI, '/address')
 
 
 #
