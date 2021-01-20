@@ -284,7 +284,7 @@ class Users(db.Model, UserMixin):
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
-    tokens = db.relationship('TokenBlacklist', lazy=True, backref=db.backref('user', lazy=True))
+    tokens = db.relationship('Token', lazy=True, backref=db.backref('user', lazy=True))
 
     # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
     #     identity_for_token = {'id': self.id,
@@ -307,14 +307,14 @@ class Roles(db.Model, RoleMixin):
         return hash(self.name)
 
 
-class TokenBlacklist(db.Model):
+class Token(db.Model):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
     jti = db.Column(db.String(36), nullable=False)
     token_type = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
     revoked = db.Column(db.Boolean(), nullable=False)
-    expires = db.Column(db.DateTime(), nullable=False)
+    expires = db.Column(db.DateTime(), nullable=True)
 
     def to_dict(self):
         return {

@@ -13,10 +13,15 @@ class AdminModelView(ModelView):
             return redirect(url_for('security.login'))
     can_edit = True
 
-class UserModelView(ModelView):
+class UserModelView(AdminModelView):
     column_list = ['email', 'roles', 'active', 'confirmed_at']
     column_exclude_list = ['password']
     # column_hide_backrefs = False
+
+class TokenModelView(AdminModelView):
+    column_list = ['user','token_type','revoked','expires']
+    column_editable_list = ['revoked']
+
 
 class UsageModelView(AdminModelView):
     column_default_sort = ('datetime', True)

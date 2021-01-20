@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask_jwt_extended import decode_token, create_access_token
 import pdb
 #pdb.set_trace()
-from app.models import TokenBlacklist
+from app.models import Token
 from app import db
 
 
@@ -42,10 +42,13 @@ def add_token_to_database(encoded_token, user):
     decoded_token = decode_token(encoded_token)
     jti = decoded_token['jti']
     token_type = decoded_token['user_claims']['type']
-    expires = _epoch_utc_to_datetime(decoded_token['exp'])
+    if 'exp' in decoded_token:
+        expires = _epoch_utc_to_datetime(decoded_token['exp'])
+    else:
+        expires = None
     revoked = False
 
-    db_token = TokenBlacklist(
+    db_token = Token(
         jti=jti,
         token_type=token_type,
         user=user,
@@ -65,7 +68,7 @@ def is_token_revoked(decoded_token):
     """
     jti = decoded_token['jti']
     try:
-        token = TokenBlacklist.query.filter_by(jti=jti).one()
+        token = Token.query.filter_by(jti=jti).one()
         return token.revoked
     except NoResultFound:
         return True
@@ -76,7 +79,7 @@ def get_user_tokens(user):
     Returns all of the tokens, revoked and unrevoked, that are stored for the
     given user
     """
-    return TokenBlacklist.query.filter_by(user=user).all()
+    return Token.query.filter_by(user=user).all()
 
 
 def revoke_token(token_id, user):
@@ -85,7 +88,7 @@ def revoke_token(token_id, user):
     not exist in the database
     """
     try:
-        token = TokenBlacklist.query.filter_by(id=token_id, user=user).one()
+        token = Token.query.filter_by(id=token_id, user=user).one()
         token.revoked = True
         db.session.commit()
     except NoResultFound:
@@ -98,7 +101,7 @@ def unrevoke_token(token_id, user):
     not exist in the database
     """
     try:
-        token = TokenBlacklist.query.filter_by(id=token_id, user=user).one()
+        token = Token.query.filter_by(id=token_id, user=user).one()
         token.revoked = False
         db.session.commit()
     except NoResultFound:
@@ -113,7 +116,7 @@ def prune_database():
     set it up with flask cli, etc.
     """
     now = datetime.now()
-    expired = TokenBlacklist.query.filter(TokenBlacklist.expires < now).all()
+    expired = Token.query.filter(Token.expires < now).all()
     for token in expired:
         db.session.delete(token)
     db.session.commit()

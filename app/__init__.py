@@ -93,7 +93,7 @@ track_datastore = SQLStorage(engine=db.get_engine(bind="trackusage"))
 t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models
-from app.models import Users, Roles
+from app.models import Users, Roles, Token
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import FlaskUsage
 from app.models import Ideas
@@ -110,12 +110,13 @@ security = Security(app, user_datastore)
 #
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
 
-from app.views import AdminModelView, UserModelView, UsageModelView, IdeasModelView
+from app.views import AdminModelView, UserModelView, TokenModelView, UsageModelView, IdeasModelView
 from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
 from app.views import ErrorsModelView, FeedbacksModelView
 
-admin.add_view(UserModelView(Users, db.session))
-admin.add_view(AdminModelView(Roles, db.session))
+admin.add_view(UserModelView(Users, db.session, category="Users"))
+admin.add_view(AdminModelView(Roles, db.session, category="Users"))
+admin.add_view(TokenModelView(Token, db.session, category="Users"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
