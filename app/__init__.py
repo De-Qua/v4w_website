@@ -16,6 +16,7 @@ from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_security import current_user
 from flask_restful import Api
+from flask_jwt_extended import JWTManager
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
@@ -133,6 +134,16 @@ from app import api
 
 api_rest.add_resource(api.GetAddressAPI, '/address')
 
+#
+# Flask JWT extended
+#
+jwt = JWTManager(app)
+
+from app.token_helper import is_token_revoked
+# Define our callback function to check if a token has been revoked or not
+@jwt.token_in_blacklist_loader
+def check_if_token_revoked(decoded_token):
+    return is_token_revoked(decoded_token)
 
 #
 # Dashboard setup

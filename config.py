@@ -39,3 +39,7 @@ class Config(object):
     # Sitemap
     # SITEMAP_URL_SCHEME = 'HTTPS'
     # SITEMAP_INCLUDE_RULES_WITHOUT_PARAMS = False # se True, lista tutte (anche admin ecc) le pagine sulla sitemap
+    # Token
+    JWT_SECRET_KEY = SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'indovina-indovinello'
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']

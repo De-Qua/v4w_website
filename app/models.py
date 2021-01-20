@@ -9,11 +9,14 @@ flask db migrate
 flask db upgrade
 """
 from app import db
-from datetime import datetime
+import pdb
+import datetime
 from sqlalchemy import CheckConstraint
 from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import create_access_token
 import pdb
+#from app.token_helper import add_token_to_database
 # # TODO: FUTUREWARNING
 # .format is deprecated
 # dovremmo cambiare a
@@ -183,7 +186,7 @@ class Poi(db.Model):
     wikipedia = db.Column(db.String(128))
     atm = db.Column(db.Boolean)
     phone = db.Column(db.String(32))
-    last_change = db.Column(db.DateTime,default=datetime.utcnow,nullable=False)
+    last_change = db.Column(db.DateTime,default=datetime.datetime.utcnow,nullable=False)
     types = db.relationship("PoiCategoryType",secondary=poi_types,
         lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
     score = db.Column(db.Integer,nullable=False,default=0)
@@ -272,6 +275,7 @@ roles_users_table = db.Table('roles_users',
     db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
     info={'bind_key': 'users'})
 
+
 class Users(db.Model, UserMixin):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
@@ -280,6 +284,17 @@ class Users(db.Model, UserMixin):
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
+    tokens = db.relationship('TokenBlacklist', lazy=True, backref=db.backref('user', lazy=True))
+
+    # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
+    #     identity_for_token = {'id': self.id,
+    #                           'type': token_type}
+    #     token_expiration = datetime.datetime.utcnow()+expiration
+    #     access_token = create_access_token(identity=identity_for_token,
+    #                                        expires_delta=expiration)
+    #     add_token_to_database(access_token, self)
+    #     return access_token
+
 
 class Roles(db.Model, RoleMixin):
     __bind_key__ = 'users'
@@ -290,6 +305,27 @@ class Roles(db.Model, RoleMixin):
         return self.name
     def __hash__(self):
         return hash(self.name)
+
+
+class TokenBlacklist(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    jti = db.Column(db.String(36), nullable=False)
+    token_type = db.Column(db.String(10), nullable=False)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
+    revoked = db.Column(db.Boolean(), nullable=False)
+    expires = db.Column(db.DateTime(), nullable=False)
+
+    def to_dict(self):
+        return {
+            'token_id': self.id,
+            'jti': self.jti,
+            'token_type': self.token_type,
+            #'user_identity': self.user_identity,
+            'revoked': self.revoked,
+            'expires': self.expires
+        }
+
 
 ###
 # FLASK USAGE
@@ -336,7 +372,7 @@ class Ideas(db.Model):
                           votes=self.num_of_votes
                           )
     def __str__(self):
-        return "{}, {}".format(self.idea_title, slef.idea_short_description)
+        return "{}, {}".format(self.idea_title, self.idea_short_description)
     # get and set
     def get_id(self):
         return self.id
