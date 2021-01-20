@@ -49,6 +49,7 @@ def add_token_to_database(encoded_token, user):
     revoked = False
 
     db_token = Token(
+        token=encoded_token,
         jti=jti,
         token_type=token_type,
         user=user,

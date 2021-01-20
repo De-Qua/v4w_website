@@ -310,6 +310,7 @@ class Roles(db.Model, RoleMixin):
 class Token(db.Model):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
+    token = db.Column(db.String(500), nullable=False)
     jti = db.Column(db.String(36), nullable=False)
     token_type = db.Column(db.String(10), nullable=False)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)

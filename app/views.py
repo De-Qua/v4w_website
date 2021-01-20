@@ -19,7 +19,7 @@ class UserModelView(AdminModelView):
     # column_hide_backrefs = False
 
 class TokenModelView(AdminModelView):
-    column_list = ['user','token_type','revoked','expires']
+    column_list = ['user', 'token_type', 'revoked', 'expires', 'token']
     column_editable_list = ['revoked']
 
 
