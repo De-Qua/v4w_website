@@ -133,7 +133,8 @@ api_rest = Api(app, prefix='/api')
 from app import api
 
 api_rest.add_resource(api.GetAddressAPI, '/address')
-api_rest.add_resource(api.getShortestPath, '/path')
+api_rest.add_resource(api.getPath, '/path')
+api_rest.add_resource(api.getPathsMultiEnd, '/path_multi_end')
 
 #
 # Flask JWT extended
