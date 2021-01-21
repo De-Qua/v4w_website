@@ -19,8 +19,25 @@ def _epoch_utc_to_datetime(epoch_utc):
     Helper function for converting epoch timestamps (as stored in JWTs) into
     python datetime objects (which are easier to use with sqlalchemy).
     """
-    return datetime.fromtimestamp(epoch_utc, tz=timezone.utc)
+    if epoch_utc:
+        return datetime.fromtimestamp(epoch_utc, tz=timezone.utc)
+    else:
+        return None
 
+def create_new_token(user, token_type='base', expiration=datetime.now()+timedelta(minutes=10)):
+    if not expiration:
+        expires_delta = False
+    else:
+        expires_delta = expiration - datetime.now()
+    token = create_access_token(identity=user.id,
+                                user_claims={'type': token_type},
+                                expires_delta=expires_delta)
+    decoded_token = decode_token(token)
+    token_info = {
+        'token': token,
+        'jti': decoded_token['jti'],
+    }
+    return token_info
 
 def generate_token_for_user(user, token_type='base', expiration=timedelta(minutes=10)):
     """

@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from flask import redirect, url_for
-from flask_security import current_user
+from flask_security import current_user, utils
 from flask_admin.contrib.sqla import ModelView
 
+from app.token_helper import create_new_token
 ###
 # MODELS FOR ADMIN VIEWS
 ###
@@ -16,11 +19,28 @@ class AdminModelView(ModelView):
 class UserModelView(AdminModelView):
     column_list = ['email', 'roles', 'active', 'confirmed_at']
     column_exclude_list = ['password']
+    column_editable_list = ['active']
+    form_excluded_columns = ['tokens', 'confirmed_at']
     # column_hide_backrefs = False
+
+    def on_model_change(self, form, model, is_created):
+        model.password = utils.hash_password(model.password)
+        if model.active:
+            model.confirmed_at = datetime.now()
+        else:
+            model.confirmed_at = None
 
 class TokenModelView(AdminModelView):
     column_list = ['user', 'token_type', 'revoked', 'expires', 'token']
     column_editable_list = ['revoked']
+    form_excluded_columns = ['jti', 'token']
+    can_edit = False
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            token_info = create_new_token(model.user, model.token_type, model.expires)
+            model.jti = token_info['jti']
+            model.token = token_info['token']
 
 
 class UsageModelView(AdminModelView):
