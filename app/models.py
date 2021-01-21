@@ -286,6 +286,10 @@ class Users(db.Model, UserMixin):
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
     tokens = db.relationship('Token', lazy=True, backref=db.backref('user', lazy=True))
 
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          email=self.email
+                          )
     # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
     #     identity_for_token = {'id': self.id,
     #                           'type': token_type}
@@ -310,12 +314,12 @@ class Roles(db.Model, RoleMixin):
 class Token(db.Model):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
-    token = db.Column(db.String(500), nullable=False)
-    jti = db.Column(db.String(36), nullable=False)
-    token_type = db.Column(db.String(10), nullable=False)
+    token = db.Column(db.String(500))
+    jti = db.Column(db.String(36))
+    token_type_id = db.Column(db.Integer(), db.ForeignKey('token_type.id'), nullable=False)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
-    revoked = db.Column(db.Boolean(), nullable=False)
-    expires = db.Column(db.DateTime(), nullable=True)
+    revoked = db.Column(db.Boolean())
+    expires = db.Column(db.DateTime())
 
     def to_dict(self):
         return {
@@ -327,7 +331,19 @@ class Token(db.Model):
             'expires': self.expires
         }
 
+class TokenType(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    type = db.Column(db.String(80), unique=True)
+    tokens = db.relationship('Token', lazy=True, backref=db.backref('type', lazy=True))
 
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          type=self.type
+                          )
+
+    def __str__(self):
+        return self.type
 ###
 # FLASK USAGE
 ###

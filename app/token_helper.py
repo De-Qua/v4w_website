@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask_jwt_extended import decode_token, create_access_token
 import pdb
 #pdb.set_trace()
-from app.models import Token
+from app.models import Token, TokenType
 from app import db
 
 
@@ -29,8 +29,16 @@ def create_new_token(user, token_type='base', expiration=datetime.now()+timedelt
         expires_delta = False
     else:
         expires_delta = expiration - datetime.now()
+    if type(token_type) is str:
+        type_found = TokenType.query.filter_by(type=token_type).one_or_none()
+    elif type(token_type) is TokenType:
+        type_found = TokenType.query.filter_by(type=token_type.type).one_or_none()
+    else:
+        type_found = None
+    if not type_found:
+        return
     token = create_access_token(identity=user.id,
-                                user_claims={'type': token_type},
+                                user_claims={'type': token_type.type},
                                 expires_delta=expires_delta)
     decoded_token = decode_token(token)
     token_info = {
@@ -44,8 +52,16 @@ def generate_token_for_user(user, token_type='base', expiration=timedelta(minute
     Generate a valid token for a user. It is possible to specify the token type
     and the validity time of the token.
     """
+    if type(token_type) is str:
+        type_found = TokenType.query.filter_by(type=token_type).one_or_none()
+    elif type(token_type) is TokenType:
+        type_found = TokenType.query.filter_by(type=token_type.type).one_or_none()
+    else:
+        type_found = None
+    if not type_found:
+        return
     token = create_access_token(identity=user.id,
-                                user_claims={'type': token_type},
+                                user_claims={'type': token_type.type},
                                 expires_delta=expiration)
     add_token_to_database(token, user)
     return token
@@ -58,7 +74,7 @@ def add_token_to_database(encoded_token, user):
     """
     decoded_token = decode_token(encoded_token)
     jti = decoded_token['jti']
-    token_type = decoded_token['user_claims']['type']
+    token_type = TokenType.query.filter_by(type=decoded_token['user_claims']['type']).one()
     if 'exp' in decoded_token:
         expires = _epoch_utc_to_datetime(decoded_token['exp'])
     else:

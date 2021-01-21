@@ -31,16 +31,21 @@ class UserModelView(AdminModelView):
             model.confirmed_at = None
 
 class TokenModelView(AdminModelView):
-    column_list = ['user', 'token_type', 'revoked', 'expires', 'token']
+    column_list = ['user', 'type', 'revoked', 'expires', 'token']
     column_editable_list = ['revoked']
     form_excluded_columns = ['jti', 'token']
     can_edit = False
 
     def on_model_change(self, form, model, is_created):
         if is_created:
-            token_info = create_new_token(model.user, model.token_type, model.expires)
+            token_info = create_new_token(model.user, model.type, model.expires)
             model.jti = token_info['jti']
             model.token = token_info['token']
+
+
+class TokenTypeModelView(AdminModelView):
+    column_editable_list = ['type']
+    form_excluded_columns = ['tokens', 'token']
 
 
 class UsageModelView(AdminModelView):
