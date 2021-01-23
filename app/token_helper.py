@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask_jwt_extended import decode_token, create_access_token
 import pdb
 #pdb.set_trace()
-from app.models import Token, TokenType
+from app.models import Tokens, TokenTypes
 from app import db
 
 
@@ -30,16 +30,16 @@ def create_new_token(user, token_type='base', expiration=datetime.now()+timedelt
     else:
         expires_delta = expiration - datetime.now()
     if type(token_type) is str:
-        type_found = TokenType.query.filter_by(type=token_type).one_or_none()
-    elif type(token_type) is TokenType:
-        type_found = TokenType.query.filter_by(type=token_type.type).one_or_none()
+        type_found = TokenTypes.query.filter_by(type=token_type).one_or_none()
+    elif type(token_type) is TokenTypes:
+        type_found = TokenTypes.query.filter_by(type=token_type.type).one_or_none()
     else:
         type_found = None
     if not type_found:
         return
     token = create_access_token(identity=user.id,
-                                user_claims={'type': token_type.type},
-                                expires_delta=expires_delta)
+                                user_claims={'type': token_type.type}, # type --> livello del token, a cosa puo accedere
+                                expires_delta=expires_delta) # quanto tempo dura prima che scada
     decoded_token = decode_token(token)
     token_info = {
         'token': token,
@@ -53,16 +53,16 @@ def generate_token_for_user(user, token_type='base', expiration=timedelta(minute
     and the validity time of the token.
     """
     if type(token_type) is str:
-        type_found = TokenType.query.filter_by(type=token_type).one_or_none()
-    elif type(token_type) is TokenType:
-        type_found = TokenType.query.filter_by(type=token_type.type).one_or_none()
+        type_found = TokenTypes.query.filter_by(type=token_type).one_or_none()
+    elif type(token_type) is TokenTypes:
+        type_found = TokenTypes.query.filter_by(type=token_type.type).one_or_none()
     else:
         type_found = None
     if not type_found:
         return
     token = create_access_token(identity=user.id,
-                                user_claims={'type': token_type.type},
-                                expires_delta=expiration)
+                                user_claims={'type': token_type.type}, # type --> livello del token, a cosa puo accedere
+                                expires_delta=expiration) # quanto tempo dura prima che scada
     add_token_to_database(token, user)
     return token
 
@@ -74,14 +74,14 @@ def add_token_to_database(encoded_token, user):
     """
     decoded_token = decode_token(encoded_token)
     jti = decoded_token['jti']
-    token_type = TokenType.query.filter_by(type=decoded_token['user_claims']['type']).one()
+    token_type = TokenTypes.query.filter_by(type=decoded_token['user_claims']['type']).one()
     if 'exp' in decoded_token:
         expires = _epoch_utc_to_datetime(decoded_token['exp'])
     else:
         expires = None
     revoked = False
 
-    db_token = Token(
+    db_token = Tokens(
         token=encoded_token,
         jti=jti,
         token_type=token_type,
@@ -102,7 +102,7 @@ def is_token_revoked(decoded_token):
     """
     jti = decoded_token['jti']
     try:
-        token = Token.query.filter_by(jti=jti).one()
+        token = Tokens.query.filter_by(jti=jti).one()
         return token.revoked
     except NoResultFound:
         return True
@@ -113,7 +113,7 @@ def get_user_tokens(user):
     Returns all of the tokens, revoked and unrevoked, that are stored for the
     given user
     """
-    return Token.query.filter_by(user=user).all()
+    return Tokens.query.filter_by(user=user).all()
 
 
 def revoke_token(token_id, user):
@@ -122,7 +122,7 @@ def revoke_token(token_id, user):
     not exist in the database
     """
     try:
-        token = Token.query.filter_by(id=token_id, user=user).one()
+        token = Tokens.query.filter_by(id=token_id, user=user).one()
         token.revoked = True
         db.session.commit()
     except NoResultFound:
@@ -135,7 +135,7 @@ def unrevoke_token(token_id, user):
     not exist in the database
     """
     try:
-        token = Token.query.filter_by(id=token_id, user=user).one()
+        token = Tokens.query.filter_by(id=token_id, user=user).one()
         token.revoked = False
         db.session.commit()
     except NoResultFound:
@@ -150,7 +150,7 @@ def prune_database():
     set it up with flask cli, etc.
     """
     now = datetime.now()
-    expired = Token.query.filter(Token.expires < now).all()
+    expired = Tokens.query.filter(Tokens.expires < now).all()
     for token in expired:
         db.session.delete(token)
     db.session.commit()

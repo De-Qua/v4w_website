@@ -30,10 +30,15 @@ class UserModelView(AdminModelView):
         else:
             model.confirmed_at = None
 
+class RolesModelView(AdminModelView):
+    column_list = ['name', 'description']
+    form_excluded_columns = ['user']
+    # column_hide_backrefs = False
+
 class TokenModelView(AdminModelView):
     column_list = ['user', 'type', 'revoked', 'expires', 'token']
     column_editable_list = ['revoked']
-    form_excluded_columns = ['jti', 'token']
+    form_excluded_columns = ['jti', 'token', 'api', 'api_counter']
     can_edit = False
 
     def on_model_change(self, form, model, is_created):
@@ -44,8 +49,19 @@ class TokenModelView(AdminModelView):
 
 
 class TokenTypeModelView(AdminModelView):
-    column_editable_list = ['type']
-    form_excluded_columns = ['tokens', 'token']
+    column_list = ['type', 'permissions']
+    column_editable_list = ['type', 'permissions']
+    form_excluded_columns = ['tokens']
+
+
+class ApiModelView(AdminModelView):
+    column_list = ['name', 'path']
+    form_excluded_columns = ['token', 'api_counter']
+
+
+class TokenApiCounterView(AdminModelView):
+    column_list = ['token.user', 'api', 'count']
+    column_filters = ['token.user', 'api.name']
 
 
 class UsageModelView(AdminModelView):

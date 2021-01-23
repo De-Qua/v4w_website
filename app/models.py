@@ -284,12 +284,14 @@ class Users(db.Model, UserMixin):
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
-    tokens = db.relationship('Token', lazy=True, backref=db.backref('user', lazy=True))
+    tokens = db.relationship('Tokens', lazy=True, backref=db.backref('user', lazy=True))
 
     def __repr__(self):
         return self._repr(id=self.id,
                           email=self.email
                           )
+    def __str__(self):
+        return self.email
     # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
     #     identity_for_token = {'id': self.id,
     #                           'type': token_type}
@@ -311,15 +313,16 @@ class Roles(db.Model, RoleMixin):
         return hash(self.name)
 
 
-class Token(db.Model):
+class Tokens(db.Model):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
     token = db.Column(db.String(500))
     jti = db.Column(db.String(36))
-    token_type_id = db.Column(db.Integer(), db.ForeignKey('token_type.id'), nullable=False)
+    token_type_id = db.Column(db.Integer(), db.ForeignKey('token_types.id'), nullable=False)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
     revoked = db.Column(db.Boolean())
     expires = db.Column(db.DateTime())
+    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('token', lazy=True))
 
     def to_dict(self):
         return {
@@ -331,11 +334,19 @@ class Token(db.Model):
             'expires': self.expires
         }
 
-class TokenType(db.Model):
+
+types_apis_table = db.Table('types_apis',
+    db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
+    db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
+    info={'bind_key': 'users'})
+
+
+class TokenTypes(db.Model):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
     type = db.Column(db.String(80), unique=True)
-    tokens = db.relationship('Token', lazy=True, backref=db.backref('type', lazy=True))
+    tokens = db.relationship('Tokens', lazy=True, backref=db.backref('type', lazy=True))
+    permissions = db.relationship('Apis', secondary=types_apis_table, backref=db.backref('token', lazy=True))
 
     def __repr__(self):
         return self._repr(id=self.id,
@@ -344,6 +355,28 @@ class TokenType(db.Model):
 
     def __str__(self):
         return self.type
+
+
+class Apis(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    path = db.Column(db.String(100))
+    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('api', lazy=True))
+
+    def __str__(self):
+        return self.name
+
+
+class TokenApiCounters(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    token_id = db.Column(db.Integer(), db.ForeignKey('tokens.id'), nullable=False)
+    api_id = db.Column(db.Integer(), db.ForeignKey('apis.id'), nullable=False)
+    count = db.Column(db.Integer(), nullable=False, default=0)
+
+
+
 ###
 # FLASK USAGE
 ###
