@@ -8,12 +8,45 @@ from flask_jwt_extended import (
         jwt_required, get_raw_jwt, verify_jwt_in_request, get_jwt_claims
 )
 
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
+
+from app import app, db
 from app.src.libpy.lib_search import find_address_in_db
 from app.src.interface import find_what_needs_to_be_found
 
-from app.models import Tokens, TokenApiCounters, Apis, TokenTypes
+from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, ErrorCodes, ErrorTranslations
 
+DEFAULT_LANGUAGE_CODE = 'en'
+GENERIC_ERROR_CODE = -1
+
+def api_response(code=0, data={}, lang=DEFAULT_LANGUAGE_CODE):
+    response = {
+        'ResponseCode': code,
+        'ResponseMessage': '',
+        'ResponseData': data
+    }
+    if code == 0:
+        response['ResponseMessage'] = 'OK'
+        return response
+    else:
+        default_language = Languages.query.filter_by(code=DEFAULT_LANGUAGE_CODE).one()
+        default_error = ErrorCodes.query.filter_by(code=GENERIC_ERROR_CODE).one()
+        language = Languages.query.filter((Languages.code == lang.lower()) | (Languages.name == lang.lower())).one_or_none()
+        if not language:
+            language = default_language
+        error = ErrorCodes.query.filter_by(code=code).one_or_none()
+        if not error:
+            error = default_error
+        message = ErrorTranslations.query.join(ErrorCodes).filter_by(
+            code=error.code).join(Languages).filter_by(code=language.code).one_or_none()
+        if not message:
+            message = ErrorTranslations.query.join(ErrorCodes).filter_by(
+                code=error.code).join(Languages).filter_by(code=default_language.code).one_or_none()
+
+        response['ResponseMessage'] = message.message
+        response['ResponseData'] = {}
+        return response
 
 def set_default_request_variables():
     """
@@ -79,22 +112,26 @@ def update_api_counter():
     return update_api_token_counter(token, api_path)
 
 
-def verify_permissions(type, url):
+def verify_permissions(type, url, lang=DEFAULT_LANGUAGE_CODE):
     """
     Helper function that verifies if a token type has permission for an url
     """
     token_type = TokenTypes.query.filter_by(type=type).one_or_none()
     if not token_type:
-        return abort(403,
-                     error="Not supported token type",
-                     message="Il tipo di token non è stato trovato nel databse"
-                     )
+        return False
+        #return api_response(code=1, lang=lang)
+        # return abort(403,
+        #              error="Not supported token type",
+        #              message="Il tipo di token non è stato trovato nel databse"
+        #              )
     api = extract_api_from_url(url)
     if api not in token_type.permissions:
-        return abort(403,
-                     error="Access denied",
-                     message="Non hai il permesso per accedere a questa api"
-                     )
+        return False
+        #return api_response(code=2, lang=lang)
+        # return abort(403,
+        #              error="Access denied",
+        #              message="Non hai il permesso per accedere a questa api"
+        #              )
     else:
         return True
 
@@ -112,10 +149,11 @@ def permission_required(fn):
         if verify_permissions(claims['type'], api_path):
             return fn(*args, **kwargs)
         else:
-            return abort(403,
-                         error="Access denied",
-                         message="Non hai il permesso per accedere a questa api"
-                         )
+            return api_response(code=2)
+            # return abort(403,
+            #              error="Access denied",
+            #              message="Non hai il permesso per accedere a questa api"
+            #              )
     return wrapper
 
 
@@ -128,6 +166,7 @@ class GetAddressAPI(Resource):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('address', type=str, required=True,
                                    help="No address provided")
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(GetAddressAPI, self).__init__()
 
     @permission_required
@@ -135,14 +174,17 @@ class GetAddressAPI(Resource):
         update_api_counter()
         args = self.reqparse.parse_args()
         address = args['address']
+        lang = args['language']
         try:
             result_dict = find_address_in_db(address)
         except:
-            abort(404,
-                  error="Address not in the database",
-                  message=f"L'indirizzo {address} non è stato trovato nel database")
+            return api_response(code=10, lang=lang)
+            # abort(404,
+            #       error="Address not in the database",
+            #       message=f"L'indirizzo {address} non è stato trovato nel database")
 
-        return {'coord': result_dict[0]['coordinate']}, 201
+        data = {'coord': result_dict[0]['coordinate']}
+        return api_response(data=data)
 
 
 class getPath(Resource):
@@ -159,12 +201,14 @@ class getPath(Resource):
                                    help="No ending point provided")
         self.reqparse.add_argument('speed', type=float, default=5)
         self.reqparse.add_argument('mode', type=str, default="foot")
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getPath, self).__init__()
 
     @permission_required
     def get(self):
         update_api_counter()
         args = self.reqparse.parse_args()
+        lang = args['language']
         default_params = set_default_request_variables()
         user_params = {
             'da': args['start'],
@@ -178,7 +222,7 @@ class getPath(Resource):
             'length': path['path']['lunghezza'],
             'time': path['path']['time']
         }
-        return length_time
+        return api_response(data=length_time)
 
 
 class getPathsMultiEnd(Resource):
@@ -196,12 +240,14 @@ class getPathsMultiEnd(Resource):
                                    action='append')
         self.reqparse.add_argument('speed', type=float, default=5)
         self.reqparse.add_argument('mode', type=str, default="foot")
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getPathsMultiEnd, self).__init__()
 
     @permission_required
     def get(self):
         update_api_counter()
         args = self.reqparse.parse_args()
+        lang = args['language']
         default_params = set_default_request_variables()
         all_length_time = {}
         for end_point in args['end']:
@@ -218,4 +264,4 @@ class getPathsMultiEnd(Resource):
                 'time': path['path']['time']
             }
             all_length_time[end_point] = length_time
-        return all_length_time
+        return api_response(data=all_length_time)

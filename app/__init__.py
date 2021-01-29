@@ -94,6 +94,7 @@ t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models
 from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
+from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import FlaskUsage
 from app.models import Ideas
@@ -115,6 +116,7 @@ from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApi
 from app.views import UsageModelView, IdeasModelView
 from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
 from app.views import ErrorsModelView, FeedbacksModelView
+from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
 
 admin.add_view(UserModelView(Users, db.session, category="Users"))
 admin.add_view(RolesModelView(Roles, db.session, category="Users"))
@@ -122,14 +124,18 @@ admin.add_view(TokenModelView(Tokens, db.session, category="Users"))
 admin.add_view(TokenTypeModelView(TokenTypes, db.session, category="Users"))
 admin.add_view(ApiModelView(Apis, db.session, category="Users"))
 admin.add_view(TokenApiCounterView(TokenApiCounters, db.session, category="Users"))
+admin.add_view(ApiErrorCodeModelView(ErrorCodes, db.session, category="Errors"))
+admin.add_view(ApiErrorGroupModelView(ErrorGroups, db.session, category="Errors"))
+admin.add_view(ApiErrorTranslationModelView(ErrorTranslations, db.session, category="Errors"))
+admin.add_view(ApiErrorLanguageModelView(Languages, db.session, category="Errors"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
 admin.add_view(PoiModelView(Poi, db.session, category="Map"))
 admin.add_view(IdeasModelView(Ideas, db.session))
-admin.add_view(UsageModelView(FlaskUsage, db.session))
-admin.add_view(ErrorsModelView(Errors, db.session))
-admin.add_view(FeedbacksModelView(Feedbacks, db.session))
+admin.add_view(UsageModelView(FlaskUsage, db.session, category="Usage"))
+admin.add_view(ErrorsModelView(Errors, db.session, category="Usage"))
+admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Usage"))
 
 #
 # Flask Restful API setup

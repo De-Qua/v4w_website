@@ -376,6 +376,46 @@ class TokenApiCounters(db.Model):
     count = db.Column(db.Integer(), nullable=False, default=0)
 
 
+class Languages(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    code = db.Column(db.String(5), unique=True)
+    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('language', lazy=True))
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class ErrorGroups(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(10), unique=True)
+    codes = db.relationship('ErrorCodes', lazy=True, backref=db.backref('group', lazy=True))
+
+    def __str__(self):
+        return self.name
+
+
+class ErrorCodes(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    code = db.Column(db.Integer(), unique=True)
+    description = db.Column(db.String(100))
+    group_id = db.Column(db.Integer(), db.ForeignKey('error_groups.id'))
+    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('code', lazy=True))
+
+    def __str__(self):
+        return f"{self.code} - {self.description}"
+
+
+class ErrorTranslations(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    code_id = db.Column(db.Integer(), db.ForeignKey('error_codes.id'))
+    language_id = db.Column(db.Integer(), db.ForeignKey('languages.id'))
+    message = db.Column(db.String(200))
+
 
 ###
 # FLASK USAGE

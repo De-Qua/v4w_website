@@ -12,6 +12,7 @@ class Config(object):
     SQLALCHEMY_BINDS = {
         "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
         "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
+        "errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
         "ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
         "feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
         }

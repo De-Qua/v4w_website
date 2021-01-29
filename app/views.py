@@ -54,6 +54,26 @@ class TokenTypeModelView(AdminModelView):
     form_excluded_columns = ['tokens']
 
 
+class ApiErrorLanguageModelView(AdminModelView):
+    column_list = ['code', 'name']
+    form_excluded_columns = ['translations']
+
+
+class ApiErrorGroupModelView(AdminModelView):
+    column_list = ['name', 'codes']
+
+
+class ApiErrorCodeModelView(AdminModelView):
+    column_list = ['code', 'description', 'group']
+    form_excluded_columns = ['translations']
+    column_editable_list = ['description']
+
+
+class ApiErrorTranslationModelView(AdminModelView):
+    column_list = ['code', 'language', 'message']
+    column_editable_list = ['message']
+
+
 class ApiModelView(AdminModelView):
     column_list = ['name', 'path']
     form_excluded_columns = ['token', 'api_counter']
