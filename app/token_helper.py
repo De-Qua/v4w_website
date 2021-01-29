@@ -5,7 +5,7 @@ https://github.com/vimalloc/flask-jwt-extended/blob/master/examples/database_bla
 """
 from datetime import datetime, timezone, timedelta
 #from exceptions import TokenNotFound
-
+from flask import request
 from sqlalchemy.orm.exc import NoResultFound
 from flask_jwt_extended import decode_token, create_access_token
 import pdb
@@ -100,9 +100,11 @@ def is_token_revoked(decoded_token):
     in the database we are going to consider it revoked, as we don't know where
     it was created.
     """
-    jti = decoded_token['jti']
+    bearer_token = request.headers.get('Authorization','Bearer ')
+    token = bearer_token.partition('Bearer ')[2]
+    #jti = decoded_token['jti']
     try:
-        token = Tokens.query.filter_by(jti=jti).one()
+        token = Tokens.query.filter_by(token=token).one()
         return token.revoked
     except NoResultFound:
         return True
