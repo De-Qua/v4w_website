@@ -225,23 +225,24 @@ class getPath(Resource):
         return api_response(data=length_time)
 
 
-class getPathsMultiEnd(Resource):
+class getMultiplePaths(Resource):
     """
-    Api to retrieve, given a start point and multiple end point,
-    the time and the length of the shortest paths
+    Api to retrieve, given a multiple starting points and one ending point,
+    the estimated time and the length of the shortest paths from each starting
+    point to the ending point.
     """
 
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('start', type=str, required=True,
-                                   help="No starting point provided")
-        self.reqparse.add_argument('end', required=True,
-                                   help="No ending point provided",
+                                   help="No starting point provided",
                                    action='append')
+        self.reqparse.add_argument('end', required=True,
+                                   help="No ending point provided")
         self.reqparse.add_argument('speed', type=float, default=5)
         self.reqparse.add_argument('mode', type=str, default="foot")
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(getPathsMultiEnd, self).__init__()
+        super(getMultiplePaths, self).__init__()
 
     @permission_required
     def get(self):
@@ -250,12 +251,12 @@ class getPathsMultiEnd(Resource):
         lang = args['language']
         default_params = set_default_request_variables()
         all_length_time = {}
-        for end_point in args['end']:
+        for start_point in args['start']:
             user_params = {
-                'da': args['start'],
-                'a': end_point,
-                'start_coord': args['start'],
-                'end_coord': end_point
+                'da': start_point,
+                'a': args['end'],
+                'start_coord': start_point,
+                'end_coord': args['end']
             }
             params_research = dict(default_params, **user_params)
             path = find_what_needs_to_be_found(params_research)
@@ -263,5 +264,5 @@ class getPathsMultiEnd(Resource):
                 'length': path['path']['lunghezza'],
                 'time': path['path']['time']
             }
-            all_length_time[end_point] = length_time
+            all_length_time[start_point] = length_time
         return api_response(data=all_length_time)
