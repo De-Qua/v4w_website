@@ -12,7 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
 from app import app, db
-from app.src.libpy.lib_search import find_address_in_db
+from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate
+from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
 from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, ErrorCodes, ErrorTranslations
@@ -249,20 +250,15 @@ class getMultiplePaths(Resource):
         update_api_counter()
         args = self.reqparse.parse_args()
         lang = args['language']
-        default_params = set_default_request_variables()
+        is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
+        if not is_coord:
+            return api_response(-1)
+        # default_params = set_default_request_variables()
         all_length_time = {}
         for start_point in args['start']:
-            user_params = {
-                'da': start_point,
-                'a': args['end'],
-                'start_coord': start_point,
-                'end_coord': args['end']
-            }
-            params_research = dict(default_params, **user_params)
-            path = find_what_needs_to_be_found(params_research)
-            length_time = {
-                'length': path['path']['lunghezza'],
-                'time': path['path']['time']
-            }
-            all_length_time[start_point] = length_time
+            is_coord, start_coords = check_if_is_already_a_coordinate(start_point)
+            if not is_coord:
+                return api_response(-1)
+            all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords, speed=args['speed'])
+
         return api_response(data=all_length_time)
