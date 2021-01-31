@@ -21,10 +21,10 @@ from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, Er
 DEFAULT_LANGUAGE_CODE = 'en'
 GENERIC_ERROR_CODE = -1
 
-def api_response(code=0, data={}, lang=DEFAULT_LANGUAGE_CODE):
+def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
     response = {
         'ResponseCode': code,
-        'ResponseMessage': '',
+        'ResponseMessage': message,
         'ResponseData': data
     }
     if code == 0:
@@ -39,13 +39,15 @@ def api_response(code=0, data={}, lang=DEFAULT_LANGUAGE_CODE):
         error = ErrorCodes.query.filter_by(code=code).one_or_none()
         if not error:
             error = default_error
-        message = ErrorTranslations.query.join(ErrorCodes).filter_by(
+        err_message = ErrorTranslations.query.join(ErrorCodes).filter_by(
             code=error.code).join(Languages).filter_by(code=language.code).one_or_none()
-        if not message:
-            message = ErrorTranslations.query.join(ErrorCodes).filter_by(
+        if not err_message:
+            err_message = ErrorTranslations.query.join(ErrorCodes).filter_by(
                 code=error.code).join(Languages).filter_by(code=default_language.code).one_or_none()
 
-        response['ResponseMessage'] = message.message
+        response['ResponseMessage'] = err_message.message
+        if message:
+            response['ResponseMessage'] += f" - {message}"
         response['ResponseData'] = {}
         return response
 
@@ -158,6 +160,25 @@ def permission_required(fn):
     return wrapper
 
 
+def create_url_from_inputs(args):
+    start_point = args['start']
+    end_point = args['end']
+    mode = args['mode']
+    base_url = 'https://www.dequa.it'
+    start_key = 'partenza'
+    end_key = 'arrivo'
+    if mode == 'walk':
+        mode_key = 'walk'
+    elif mode == 'boat':
+        mode_key = 'boat'
+    else:
+        mode_key = 'walk'
+    final_url = base_url + '/?' + \
+                start_key + '=' + start_point + \
+                '&' + end_key + '=' + end_point + \
+                '&' + mode_key + '=' + 'on'
+    return final_url
+
 class GetAddressAPI(Resource):
     """
     API to retrieve coordinates from an address
@@ -173,12 +194,18 @@ class GetAddressAPI(Resource):
     @permission_required
     def get(self):
         update_api_counter()
-        args = self.reqparse.parse_args()
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=3, message=msg)
         address = args['address']
         lang = args['language']
         try:
             result_dict = find_address_in_db(address)
-        except:
+        except Exception:
             return api_response(code=10, lang=lang)
             # abort(404,
             #       error="Address not in the database",
@@ -212,7 +239,13 @@ class getPath(Resource):
     @permission_required
     def get(self):
         update_api_counter()
-        args = self.reqparse.parse_args()
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=3, message=msg)
         lang = args['language']
         is_coordinate_start, coords_start = check_if_is_already_a_coordinate(args['start'])
         is_coordinate_end, coords_end = check_if_is_already_a_coordinate(args['end'])
@@ -230,11 +263,13 @@ class getPath(Resource):
             path = find_what_needs_to_be_found(params_research)
         except:
             return api_response(code=12, lang=lang)
-        length_time = {
+        dequa_url = create_url_from_inputs(args)
+        data = {
             'length': path['path']['lunghezza'],
-            'time': path['path']['time']
+            'time': path['path']['time'],
+            'link': dequa_url
         }
-        return api_response(data=length_time)
+        return api_response(data=data)
 
 
 class getMultiplePaths(Resource):
@@ -252,14 +287,21 @@ class getMultiplePaths(Resource):
         self.reqparse.add_argument('end', required=True,
                                    help="No ending point provided")
         self.reqparse.add_argument('speed', type=float, default=5)
-        self.reqparse.add_argument('mode', type=str, default="foot")
+        self.reqparse.add_argument('mode', type=str, choices=('walk'), default="walk",
+                                    help="Mode {mode} not supported")
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getMultiplePaths, self).__init__()
 
     @permission_required
     def get(self):
         update_api_counter()
-        args = self.reqparse.parse_args()
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=3, message=msg)
         lang = args['language']
         is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
         if not is_coord:
