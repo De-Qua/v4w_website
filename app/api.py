@@ -183,8 +183,12 @@ class GetAddressAPI(Resource):
             # abort(404,
             #       error="Address not in the database",
             #       message=f"L'indirizzo {address} non è stato trovato nel database")
-
-        data = {'coord': result_dict[0]['coordinate']}
+        if len(result_dict) > 1:
+            return api_response(code=11, lang=lang)
+        data = {'address': result_dict[0]['nome'],
+                'longitude': result_dict[0]['coordinate'][0],
+                'latitude': result_dict[0]['coordinate'][1]
+                }
         return api_response(data=data)
 
 
@@ -210,6 +214,10 @@ class getPath(Resource):
         update_api_counter()
         args = self.reqparse.parse_args()
         lang = args['language']
+        is_coordinate_start, coords_start = check_if_is_already_a_coordinate(args['start'])
+        is_coordinate_end, coords_end = check_if_is_already_a_coordinate(args['end'])
+        if not is_coordinate_start or not is_coordinate_end:
+            api_response(code=20, lang=lang)
         default_params = set_default_request_variables()
         user_params = {
             'da': args['start'],
@@ -218,7 +226,10 @@ class getPath(Resource):
             'end_coord': args['end']
         }
         params_research = dict(default_params, **user_params)
-        path = find_what_needs_to_be_found(params_research)
+        try:
+            path = find_what_needs_to_be_found(params_research)
+        except:
+            return api_response(code=12, lang=lang)
         length_time = {
             'length': path['path']['lunghezza'],
             'time': path['path']['time']
@@ -252,13 +263,13 @@ class getMultiplePaths(Resource):
         lang = args['language']
         is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
         if not is_coord:
-            return api_response(-1)
+            return api_response(code=20, lang=lang)
         # default_params = set_default_request_variables()
         all_length_time = {}
         for start_point in args['start']:
             is_coord, start_coords = check_if_is_already_a_coordinate(start_point)
             if not is_coord:
-                return api_response(-1)
+                return api_response(code=20, lang=lang)
             all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords, speed=args['speed'])
 
         return api_response(data=all_length_time)
