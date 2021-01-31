@@ -6,6 +6,7 @@ import random
 import pickle
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.optimize import curve_fit
 
 from app import db
 from app.models import *
@@ -28,6 +29,8 @@ neighborhoods_list = [
 number_of_points_for_neighborhood = 20
 
 path_graph = '/Users/ale/Documents/Venezia/MappaDisabili/code/v4w_website/app/static/files/dequa_ve_terra_v13_1711_pickle_4326VE'
+
+fit_values = [1.1505829068422848, 261.9820426576522]
 
 #%% Load the graph
 
@@ -84,6 +87,7 @@ path_length = []
 for coords_start, coords_end in zip(*[start_coords, end_coords]):
     #geodesic distance
     length_geo = lib_search.distance_from_point_to_point(coords_start, coords_end)
+    length_geo = length_geo[0]
     #path
     dists = [lib_search.distance_from_a_list_of_geo_coordinates(c, G_array) for c in [coords_start, coords_end]]
     closest_ids = [np.argmin(d) for d in dists]
@@ -98,3 +102,34 @@ for coords_start, coords_end in zip(*[start_coords, end_coords]):
 
     geo_length.append(length_geo)
     path_length.append(length_path)
+
+plt.scatter(geo_length, path_length)
+plt.xlabel('Geodesic distance [m]')
+plt.ylabel('Path length [m]')
+
+#%% Calcola fit
+
+
+def objective(x, a, b):
+    return a * x + b
+
+
+# remove nan in order to fit
+geo_fit = [x for x in geo_length if ~np.isnan(x)]
+path_fit = [x for x in path_length if ~np.isnan(x)]
+
+# curve fit
+popt, _ = curve_fit(objective, geo_fit, path_fit)
+a, b = popt
+
+x_line = np.arange(min(geo_length), max(geo_length), 1)
+y_line = objective(x_line, a, b)
+
+y_line_oldfit = objective(x_line, fit_values[0], fit_values[1])
+
+plt.scatter(geo_length, path_length)
+plt.plot(x_line, y_line, '--', color='red')
+plt.plot(x_line, y_line_oldfit, '--', color='green')
+plt.xlabel('Geodesic distance [m]')
+plt.ylabel('Path length [m]')
+plt.title(f'Fit function: y={a:.3f}*x+{b:.3f}')
