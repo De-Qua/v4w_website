@@ -267,7 +267,7 @@ class getPath(Resource):
         data = {
             'length': path['path']['lunghezza'],
             'time': path['path']['time'],
-            'link': dequa_url
+            'url': dequa_url
         }
         return api_response(data=data)
 
