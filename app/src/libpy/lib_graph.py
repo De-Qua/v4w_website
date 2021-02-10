@@ -20,6 +20,7 @@ import app.site_parameters as site_parameters
 from flask import g
 
 from app import custom_errors
+from app.src.libpy import lib_search
 
 def load_files(pickle_path, civici_tpn_path, coords_path):
 
@@ -571,3 +572,36 @@ def save_graph_pickle(shp_file,pickle_name):
     with open(pickle_name, 'wb') as file:
         pickle.dump(G_un, file)
     return
+
+
+def estimate_path_length_time(point1, point2, G=None, speed=5):
+    """
+    Function that given two points estimate the path lengths and the time
+    """
+    length = estimate_path_length(point1, point2, G)
+    time = length/speed*3.6
+
+    return {'length': length, 'time': time}
+
+
+def estimate_path_length(point1, point2, G=None):
+    """
+    Function to estimate the length of the path between two points
+    """
+    print(f"Point1: {point1}\nPoint2: {point2}")
+    geodesic_distance = lib_search.distance_from_point_to_point(point1, point2)
+    geodesic_distance = geodesic_distance[0]
+    return estimation_function(geodesic_distance)
+
+
+DEFAULT_LINEAR_FIT_A = 1.1505829068422848
+DEFAULT_LINEAR_FIT_B = 261.9820426576522
+
+
+def linear_fit(x, a=DEFAULT_LINEAR_FIT_A, b=DEFAULT_LINEAR_FIT_B):
+
+    return a * x + b
+
+
+def estimation_function(x, est_func=linear_fit):
+    return est_func(x)

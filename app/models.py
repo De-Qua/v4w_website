@@ -9,11 +9,14 @@ flask db migrate
 flask db upgrade
 """
 from app import db
-from datetime import datetime
+import pdb
+import datetime
 from sqlalchemy import CheckConstraint
 from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import create_access_token
 import pdb
+#from app.token_helper import add_token_to_database
 # # TODO: FUTUREWARNING
 # .format is deprecated
 # dovremmo cambiare a
@@ -183,7 +186,7 @@ class Poi(db.Model):
     wikipedia = db.Column(db.String(128))
     atm = db.Column(db.Boolean)
     phone = db.Column(db.String(32))
-    last_change = db.Column(db.DateTime,default=datetime.utcnow,nullable=False)
+    last_change = db.Column(db.DateTime,default=datetime.datetime.utcnow,nullable=False)
     types = db.relationship("PoiCategoryType",secondary=poi_types,
         lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
     score = db.Column(db.Integer,nullable=False,default=0)
@@ -272,6 +275,7 @@ roles_users_table = db.Table('roles_users',
     db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
     info={'bind_key': 'users'})
 
+
 class Users(db.Model, UserMixin):
     __bind_key__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
@@ -280,6 +284,23 @@ class Users(db.Model, UserMixin):
     active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
+    tokens = db.relationship('Tokens', lazy=True, backref=db.backref('user', lazy=True))
+
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          email=self.email
+                          )
+    def __str__(self):
+        return self.email
+    # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
+    #     identity_for_token = {'id': self.id,
+    #                           'type': token_type}
+    #     token_expiration = datetime.datetime.utcnow()+expiration
+    #     access_token = create_access_token(identity=identity_for_token,
+    #                                        expires_delta=expiration)
+    #     add_token_to_database(access_token, self)
+    #     return access_token
+
 
 class Roles(db.Model, RoleMixin):
     __bind_key__ = 'users'
@@ -290,6 +311,111 @@ class Roles(db.Model, RoleMixin):
         return self.name
     def __hash__(self):
         return hash(self.name)
+
+
+class Tokens(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    token = db.Column(db.String(500))
+    jti = db.Column(db.String(36))
+    token_type_id = db.Column(db.Integer(), db.ForeignKey('token_types.id'), nullable=False)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
+    revoked = db.Column(db.Boolean())
+    expires = db.Column(db.DateTime())
+    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('token', lazy=True))
+
+    def to_dict(self):
+        return {
+            'token_id': self.id,
+            'jti': self.jti,
+            'token_type': self.token_type,
+            #'user_identity': self.user_identity,
+            'revoked': self.revoked,
+            'expires': self.expires
+        }
+
+
+types_apis_table = db.Table('types_apis',
+    db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
+    db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
+    info={'bind_key': 'users'})
+
+
+class TokenTypes(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    type = db.Column(db.String(80), unique=True)
+    tokens = db.relationship('Tokens', lazy=True, backref=db.backref('type', lazy=True))
+    permissions = db.relationship('Apis', secondary=types_apis_table, backref=db.backref('token', lazy=True))
+
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          type=self.type
+                          )
+
+    def __str__(self):
+        return self.type
+
+
+class Apis(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    path = db.Column(db.String(100))
+    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('api', lazy=True))
+
+    def __str__(self):
+        return self.name
+
+
+class TokenApiCounters(db.Model):
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    token_id = db.Column(db.Integer(), db.ForeignKey('tokens.id'), nullable=False)
+    api_id = db.Column(db.Integer(), db.ForeignKey('apis.id'), nullable=False)
+    count = db.Column(db.Integer(), nullable=False, default=0)
+
+
+class Languages(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    code = db.Column(db.String(5), unique=True)
+    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('language', lazy=True))
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class ErrorGroups(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(10), unique=True)
+    codes = db.relationship('ErrorCodes', lazy=True, backref=db.backref('group', lazy=True))
+
+    def __str__(self):
+        return self.name
+
+
+class ErrorCodes(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    code = db.Column(db.Integer(), unique=True)
+    description = db.Column(db.String(100))
+    group_id = db.Column(db.Integer(), db.ForeignKey('error_groups.id'))
+    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('code', lazy=True))
+
+    def __str__(self):
+        return f"{self.code} - {self.description}"
+
+
+class ErrorTranslations(db.Model):
+    __bind_key__ = 'errors'
+    id = db.Column(db.Integer(), primary_key=True)
+    code_id = db.Column(db.Integer(), db.ForeignKey('error_codes.id'))
+    language_id = db.Column(db.Integer(), db.ForeignKey('languages.id'))
+    message = db.Column(db.String(200))
+
 
 ###
 # FLASK USAGE
@@ -336,7 +462,7 @@ class Ideas(db.Model):
                           votes=self.num_of_votes
                           )
     def __str__(self):
-        return "{}, {}".format(self.idea_title, slef.idea_short_description)
+        return "{}, {}".format(self.idea_title, self.idea_short_description)
     # get and set
     def get_id(self):
         return self.id

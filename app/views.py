@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from flask import redirect, url_for
-from flask_security import current_user
+from flask_security import current_user, utils
 from flask_admin.contrib.sqla import ModelView
 import app.src.interface as interface
 from flask_admin import BaseView, expose
 
+from app.token_helper import create_new_token
 ###
 # MODELS FOR ADMIN VIEWS
 ###
@@ -15,15 +18,78 @@ class AdminModelView(ModelView):
             return redirect(url_for('security.login'))
     can_edit = True
 
-class UserModelView(ModelView):
+class UserModelView(AdminModelView):
     column_list = ['email', 'roles', 'active', 'confirmed_at']
     column_exclude_list = ['password']
+    column_editable_list = ['active']
+    form_excluded_columns = ['tokens', 'confirmed_at']
+    # column_hide_backrefs = False
+
+    def on_model_change(self, form, model, is_created):
+        model.password = utils.hash_password(model.password)
+        if model.active:
+            model.confirmed_at = datetime.now()
+        else:
+            model.confirmed_at = None
+
+class RolesModelView(AdminModelView):
+    column_list = ['name', 'description']
+    form_excluded_columns = ['user']
     # column_hide_backrefs = False
     def is_accessible(self):
         return (current_user.is_active and current_user.is_authenticated)
     def _handle_view(self, name):
         if not self.is_accessible():
             return redirect(url_for('security.login'))
+
+class TokenModelView(AdminModelView):
+    column_list = ['user', 'type', 'revoked', 'expires', 'token']
+    column_editable_list = ['revoked']
+    form_excluded_columns = ['jti', 'token', 'api', 'api_counter']
+    can_edit = False
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            token_info = create_new_token(model.user, model.type, model.expires)
+            model.jti = token_info['jti']
+            model.token = token_info['token']
+
+
+class TokenTypeModelView(AdminModelView):
+    column_list = ['type', 'permissions']
+    column_editable_list = ['type', 'permissions']
+    form_excluded_columns = ['tokens']
+
+
+class ApiErrorLanguageModelView(AdminModelView):
+    column_list = ['code', 'name']
+    form_excluded_columns = ['translations']
+
+
+class ApiErrorGroupModelView(AdminModelView):
+    column_list = ['name', 'codes']
+
+
+class ApiErrorCodeModelView(AdminModelView):
+    column_list = ['code', 'description', 'group']
+    form_excluded_columns = ['translations']
+    column_editable_list = ['description']
+
+
+class ApiErrorTranslationModelView(AdminModelView):
+    column_list = ['code', 'language', 'message']
+    column_editable_list = ['message']
+
+
+class ApiModelView(AdminModelView):
+    column_list = ['name', 'path']
+    form_excluded_columns = ['token', 'api_counter']
+
+
+class TokenApiCounterView(AdminModelView):
+    column_list = ['token.user', 'api', 'count']
+    column_filters = ['token.user', 'api.name']
+
 
 class UsageModelView(AdminModelView):
     column_default_sort = ('datetime', True)

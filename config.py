@@ -3,6 +3,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
     # Version
     VERSION = '0.1.4'
+    API_VERSION = '1.0'
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     WTF_CSRF_TIME_LIMIT = None
@@ -12,6 +13,7 @@ class Config(object):
     SQLALCHEMY_BINDS = {
         "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
         "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
+        "errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
         "ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
         "feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
         }
@@ -39,3 +41,7 @@ class Config(object):
     # Sitemap
     # SITEMAP_URL_SCHEME = 'HTTPS'
     # SITEMAP_INCLUDE_RULES_WITHOUT_PARAMS = False # se True, lista tutte (anche admin ecc) le pagine sulla sitemap
+    # Token
+    JWT_SECRET_KEY = SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'indovina-indovinello'
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']

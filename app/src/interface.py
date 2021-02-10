@@ -456,7 +456,7 @@ def by_foot_path_calculator(match_dicts_list, params_research):
     G_terra_array = np.asarray(list(site_parameters.G_terra.nodes))
     t0=time.perf_counter()
     [start_coord, stop_coord] = lib_search.find_closest_nodes(match_dicts_list, G_terra_array, site_parameters.min_dist_to_suggest_boat)
-    app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino'.format(tot=time.perf_counter() - t0))
+    app.logger.info('ci ho messo {tot} a trovare il nodo piu vicino\nstart: {start}\nend: {end}'.format(tot=time.perf_counter() - t0, start=start_coord, end=stop_coord))
     t2=time.perf_counter()
     f_ponti = params_research["less_bridges"]=="on"
     f_tide = params_research["with_tide"]=="on"

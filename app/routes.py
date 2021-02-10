@@ -1,4 +1,4 @@
-from flask import render_template, request, send_from_directory, jsonify, make_response
+from flask import render_template, request, send_from_directory, jsonify, make_response, abort
 from app import app, db, t, getCurrentVersion
 from app.forms import FeedbackForm
 import os
