@@ -1,0 +1,168 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<!-- <link href="/static/css/bootstrap.css" rel="stylesheet"> -->
+<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+<!-- Load polyfills to support older browsers -->
+<script src="//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+
+<!-- Load Vue followed by BootstrapVue -->
+<script src="//unpkg.com/vue@latest/dist/vue.min.js"></script>
+<script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+
+<!-- Load the following for BootstrapVueIcons support -->
+<script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<style>
+    .centered {text-align: center}
+    .left {text-align: left; display: inline;}
+    .right {text-align: right; display: inline;}
+    .spaced {padding: 2rem 5rem;}
+</style>
+<script>
+  var usage_dicts = {{usage_dict | tojson}};
+  var big_data = usage_dicts.data_dict; // all the data
+  var g_info = usage_dicts.g_info; // general info about the maximum or similar
+  var stats_url = big_data.stats_url;
+  var stats_url_pie = big_data.stats_url_pie;
+  var six_months = big_data.six_months;
+  var last_month = big_data.last_month;
+  var last_week = big_data.last_week;
+  var yesterday = big_data.yesterday;
+  var today = big_data.today;
+  var dev_stats = big_data.devices_stats;
+  var searches_stats = big_data.searched_stats;
+</script>
+    <body>
+
+        <h1 class="centered spaced">DeQua Ethical Analytics</h1>
+
+        <div class="container" id="vue-app-div">
+            <div class="row">
+                <div class="col-3 spaced centered"><button type="button" class="btn btn-primary" v-on:click="showTraffic">Traffico</button></div>
+                <div class="col-3 spaced centered"><button type="button" class="btn btn-success" v-on:click="showPages">Divisione Pagine</button></div>
+                <div class="col-3 spaced centered"><button type="button" class="btn btn-warning" v-on:click="showDevices">Dispositivi</button></div>
+                <div class="col-3 spaced centered"><button type="button" class="btn btn-danger" v-on:click="showSearches">Ricerche</button></div>
+            </div>
+            <div class="traffic-container" v-show="showingTraffic">
+                <div id="six_months_visits" v-show="showing6Months"></div>
+                <div id="last_month_visits" v-show="showing2Months"></div>
+                <div id="last_week_visits" v-show="showingLastWeek"></div>
+                <div id="yday_visits" v-show="showingYesterday"></div>
+                <div id="today_visits" v-show="showingToday"></div>
+                <div class="row centered">
+                    <div class="col-1"></div>
+                    <div class="col-2 centered">
+                        <button type="button" class="btn btn-primary" v-on:click="show6Months">Visite Mensili</button>
+                    </div>
+                    <div class="col-2 centered">
+                        <button type="button" class="btn btn-success" v-on:click="show2Months">Ultimi 2 Mesi</button>
+                    </div>
+                    <div class="col-2 centered">
+                        <button type="button" class="btn btn-success" v-on:click="showWeek">Ultima Settimana</button>
+                    </div>
+                    <div class="col-2 centered">
+                        <button type="button" class="btn btn-danger" v-on:click="showYesterday">Ieri</button>
+                    </div>
+                    <div class="col-2 centered">
+                        <button type="button" class="btn btn-danger" v-on:click="showToday">Oggi</button>
+                    </div>
+                    <div class="col-1"></div>
+                </div>
+            </div>
+            <div class="traffic-container" v-show="showingPages">
+                <div id="page_stats_pie" v-show="showingPie"></div>
+                <div id="page_stats_bars" v-show="showingBars"></div>
+                <div class="row">
+                    <div class="col-6 centered">
+                        <button type="button" class="btn btn-primary" v-on:click="showPie">Torta</button>
+                    </div>
+                    <div class="col-6 centered">
+                        <button type="button" class="btn btn-success" v-on:click="showBars">Barre</button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="traffic-container" v-show="showingDevices">
+                <div id="devices_stats_pie"></div>
+            </div>
+            <div class="traffic-container" v-show="showingSearches">
+                <div id="searches_stats_div"></div>
+            </div>
+        </div>
+
+    </body>
+    <script>
+      var app5 = new Vue({
+        el: '#vue-app-div',
+        data: {
+          showingTraffic: true,
+          showingPages: false,
+          showing6Months: false,
+          showing2Months: false,
+          showingLastWeek: true,
+          showingYesterday: false,
+          showingToday: false,
+          showingPie: true,
+          showingBars: false,
+          showingDevices: false,
+          showingSearches: false
+        },
+        methods: {
+          showTraffic: function() {
+            if (!this.showingTraffic) {this.showingTraffic = true; this.showingPages = false; this.showingDevices = false; this.showingSearches = false;};
+          },
+          showPages: function() {
+            if (this.showingPages == false) {this.showingTraffic = false; this.showingPages = true; this.showingDevices = false; this.showingSearches = false;};
+          },
+          showDevices: function() {
+            if (this.showingDevices == false) {this.showingTraffic = false; this.showingPages = false; this.showingDevices = true; this.showingSearches = false;};
+          },
+          showSearches: function() {
+            if (this.showingSearches == false) {this.showingTraffic = false; this.showingPages = false; this.showingDevices = false; this.showingSearches = true;};
+          },
+          // sotto metodi per i bottoni sotto
+          showPie: function() {
+            if (this.showingPie == false) {this.showingPie = true; this.showingBars = false;};
+          },
+          showBars: function() {
+            if (this.showingBars == false) {this.showingPie = false; this.showingBars = true;};
+          },
+          show6Months: function() {
+            if (this.showing6Months == false) {this.showing6Months = true; this.showing2Months = false; this.showingLastWeek = false; this.showingYesterday = false; this.showingToday = false;};
+          },
+          show2Months: function() {
+            if (this.showing2Months == false) {this.showing6Months = false; this.showing2Months = true; this.showingLastWeek = false; this.showingYesterday = false; this.showingToday = false;};
+          },
+          showWeek: function() {
+            if (this.showingLastWeek == false) {this.showing6Months = false; this.showing2Months = false; this.showingLastWeek = true; this.showingYesterday = false; this.showingToday = false;};
+          },
+          showYesterday: function() {
+            if (this.showingYesterday == false) {this.showing6Months = false; this.showing2Months = false; this.showingLastWeek = false; this.showingYesterday = true; this.showingToday = false;};
+          },
+          showToday: function() {
+            if (this.showingToday == false) {this.showing6Months = false; this.showing2Months = false; this.showingLastWeek = false; this.showingYesterday = false; this.showingToday = true;};
+          }
+        }
+      })
+	</script>
+
+<!-- PIE DEVICES -->
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="/static/js/v4w_js/drawing_with_d3.js"></script>
+<script>
+  drawLineWithNums("#six_months_visits", six_months, 12, g_info.max_month);
+  drawLineWithDate("#last_month_visits", last_month, g_info.max_visits_2m);
+  drawLineWithDate("#last_week_visits", last_week, g_info.max_visits_week);
+  drawLineWithNums("#yday_visits", yesterday, 24, g_info.max_visits_yday);
+  drawLineWithNums("#today_visits", today, 24, g_info.max_visits_today);
+  drawPieBars("#page_stats", stats_url, g_info.max_pages);
+  drawPieBars("#searches_stats_div", searches_stats, g_info.max_search);
+  drawPie("#page_stats_pie", stats_url_pie);
+  drawPie("#devices_stats_pie", dev_stats);
+</script>
+
+{% endblock %}

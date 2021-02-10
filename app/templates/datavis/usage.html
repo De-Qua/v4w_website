@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Non dovrebbe essere indicizzato -->
+  <meta name="robots" content="noindex">
+  <meta name="googlebot" content="noindex">
+  <link rel="icon" href="/static/img/dequa_logo_v2.png">
+
+  <title>DeQua Feedback</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="/static/css/bootstrap.css" rel="stylesheet">
+  <!-- Load d3.js -->
+  <script src="https://d3js.org/d3.v6.js"></script>
+</head>
+<body>
+  <script>
+    var big_data = {{usage_dict | tojson}};
+    var stats_url = big_data.stats_url;
+    var months = big_data.months;
+    var days = big_data.days;
+    var g_info = big_data.g_info;
+    var piechart_js =  {{piechart | tojson}};
+  </script>
+<h1>DeQua Analytics</h1>
+
+<p>test</p>
+piechart_js
+<p>end test</p>
+
+<h2>Traffico</h2>
+
+<h3>Mensili</h3>
+<div id="monthly_visit"></div>
+
+<h3>Giornalieri</h3>
+<div id="daily_visit"></div>
+
+<h2>Divisione delle Pagine</h2>
+  <!-- Create a div where the graph will take place -->
+<div id="page_stats"></div>
+
+
+<!-- mese -->
+<script>
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 50, bottom: 50, left: 70},
+    width = window.innerWidth - margin.left - margin.right,
+    height = window.innerHeight / 1.5 - margin.top - margin.bottom;
+// append the svg object to the body of the page
+var svg = d3.select("#monthly_visit")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Add X axis --> it is a date format
+
+var x = d3.scaleLinear()
+     .domain([0, 12])
+     .range([ 0, width ]);
+   svg.append("g")
+     .attr("transform", "translate(0," + height + ")")
+     .call(d3.axisBottom(x))
+// Add Y axis
+var y = d3.scaleLinear()
+  .domain( [0, g_info.tot])
+  .range([ height, 0 ]);
+svg.append("g")
+  .call(d3.axisLeft(y));
+// Add the line
+svg.append("path")
+  .datum(months)
+  .attr("fill", "none")
+  .attr("stroke", "#69b3a2")
+  .attr("stroke-width", 1.5)
+  .attr("d", d3.line()
+    .x(function(d) { return x(d.name) })
+    .y(function(d) { return y(d.value) })
+    )
+// Add the points
+svg
+  .append("g")
+  .selectAll("dot")
+  .data(months)
+  .enter()
+  .append("circle")
+    .attr("cx", function(d) { return x(d.name) } )
+    .attr("cy", function(d) { return y(d.value) } )
+    .attr("r", 5)
+    .attr("fill", "#69b3a2")
+
+</script>
+
+
+<!-- giorno -->
+
+<script>
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 50, bottom: 50, left: 70},
+    width = window.innerWidth - margin.left - margin.right,
+    height = window.innerHeight / 1.5 - margin.top - margin.bottom;
+// append the svg object to the body of the page
+var svg = d3.select("#daily_visit")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Add X axis --> it is a date format
+  var x = d3.scaleTime()
+     .domain(d3.extent(days, function(d) { return d.date; }))
+     .range([ 0, width ]);
+   svg.append("g")
+     .attr("transform", "translate(0," + height + ")")
+     .call(d3.axisBottom(x));
+// Add Y axis
+var y = d3.scaleLinear()
+  .domain( [0, g_info.tot])
+  .range([ height, 0 ]);
+svg.append("g")
+  .call(d3.axisLeft(y));
+// Add the line
+svg.append("path")
+  .datum(days)
+  .attr("fill", "none")
+  .attr("stroke", "#69b3a2")
+  .attr("stroke-width", 1.5)
+  .attr("d", d3.line()
+    .x(function(d) { return x(d.date) })
+    .y(function(d) { return y(d.value) })
+    )
+// Add the points
+svg
+  .append("g")
+  .selectAll("dot")
+  .data(days)
+  .enter()
+  .append("circle")
+    .attr("cx", function(d) { return x(d.date) } )
+    .attr("cy", function(d) { return y(d.value) } )
+    .attr("r", 5)
+    .attr("fill", "#69b3a2")
+
+</script>
+
+
+<script>
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 50, bottom: 50, left: 70},
+    width = window.innerWidth - margin.left - margin.right,
+    height = window.innerHeight / 1.5 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#page_stats")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+// Add X axis
+var x = d3.scaleLinear()
+.domain([0, g_info.tot])
+.range([ 0, width]);
+svg.append("g")
+.attr("transform", "translate(0," + height + ")")
+.call(d3.axisBottom(x))
+.selectAll("text")
+  .attr("transform", "translate(-10,0)rotate(-45)")
+  .style("text-anchor", "end");
+
+// Y axis
+var y = d3.scaleBand()
+.range([ 0, height ])
+.domain(stats_url.map(function(d) { return d.name; }))
+.padding(.1);
+svg.append("g")
+.call(d3.axisLeft(y))
+
+//Bars
+svg.selectAll("myRect")
+.data(stats_url)
+.enter()
+.append("rect")
+.attr("x", x(0) )
+.attr("y", function(d) { return y(d.name); })
+.attr("width", function(d) { return x(d.value); })
+.attr("height", y.bandwidth() )
+.attr("fill", "#69b3a2")
+
+</script>
+
+
+
+</body>
+</html>

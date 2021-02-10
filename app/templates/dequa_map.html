@@ -887,14 +887,14 @@
 										<textarea class="form-control" id="feedback" name="feedback" rows="3"></textarea>
 										<small class="form-text text-muted">Più informazioni ci dai più semplice sarà per noi capire il problema e risolverlo!</small>
 									</div>
-									<input type="hidden" name="dictJS" id="fbDict" value='{{results_dictionary|tojson}}'>
+									<input type="hidden" name="dictJS" id="fbDict" value=''>
 									<!-- <p>
 					{{ form.submit() }}
 				</p> -->
 									<!-- I add two hidden fields for coordinates -->
 									<input type="hidden" name="start_coord_fb" id="hidden_start_coord_fb">
 									<input type="hidden" name="end_coord_fb" id="hidden_end_coord_fb">
-									
+
 									<button type="submit" class="btn btn-secondary">Invia</button>
 
 
@@ -921,6 +921,7 @@
 		var popup = L.popup();
 
 		var dict_in_JS = {{results_dictionary | tojson}};
+		$('#fbDict').val(JSON.stringify(dict_in_JS));
 
 		$(document).ready(function() {
 			console.log("DOM ready - initialize HTML!");

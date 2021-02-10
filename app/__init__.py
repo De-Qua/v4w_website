@@ -15,6 +15,8 @@ from flask_track_usage.storage.sql import SQLStorage
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
 from flask_security import current_user
+from flask_restful import Api
+from flask_jwt_extended import JWTManager
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
@@ -91,7 +93,8 @@ track_datastore = SQLStorage(engine=db.get_engine(bind="trackusage"))
 t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models
-from app.models import Users, Roles
+from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
+from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import FlaskUsage
 from app.models import Ideas
@@ -106,23 +109,59 @@ security = Security(app, user_datastore)
 #
 # Flask-Admin setup
 #
-admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
+admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
-from app.views import AdminModelView, UserModelView, UsageModelView, IdeasModelView
+from app.views import AdminModelView, UserModelView, RolesModelView
+from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
+from app.views import UsageModelView, AnalyticsView
+from app.views import IdeasModelView
 from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
-from app.views import ErrorsModelView, FeedbacksModelView
+from app.views import ErrorsModelView
+from app.views import FeedbacksModelView, FeedbackVisualizationView
+from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
 
-admin.add_view(UserModelView(Users, db.session))
-admin.add_view(AdminModelView(Roles, db.session))
+admin.add_view(UserModelView(Users, db.session, category="Users"))
+admin.add_view(RolesModelView(Roles, db.session, category="Users"))
+admin.add_view(TokenModelView(Tokens, db.session, category="Users"))
+admin.add_view(TokenTypeModelView(TokenTypes, db.session, category="Users"))
+admin.add_view(ApiModelView(Apis, db.session, category="Users"))
+admin.add_view(TokenApiCounterView(TokenApiCounters, db.session, category="Users"))
+admin.add_view(ApiErrorCodeModelView(ErrorCodes, db.session, category="Errors"))
+admin.add_view(ApiErrorGroupModelView(ErrorGroups, db.session, category="Errors"))
+admin.add_view(ApiErrorTranslationModelView(ErrorTranslations, db.session, category="Errors"))
+admin.add_view(ApiErrorLanguageModelView(Languages, db.session, category="Errors"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
 admin.add_view(PoiModelView(Poi, db.session, category="Map"))
 admin.add_view(IdeasModelView(Ideas, db.session))
-admin.add_view(UsageModelView(FlaskUsage, db.session))
+admin.add_view(UsageModelView(FlaskUsage, db.session, category="Usage"))
+admin.add_view(AnalyticsView(name='Analytics', endpoint="analytics", category="Usage"))
 admin.add_view(ErrorsModelView(Errors, db.session))
-admin.add_view(FeedbacksModelView(Feedbacks, db.session))
+admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Feedback"))
+admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visualization", category="Feedback"))
 
+#
+# Flask Restful API setup
+#
+api_rest = Api(app, prefix='/api')
+
+from app import api
+
+api_rest.add_resource(api.GetAddressAPI, '/address')
+api_rest.add_resource(api.getPath, '/path')
+api_rest.add_resource(api.getMultiplePaths, '/multi_path')
+
+#
+# Flask JWT extended
+#
+jwt = JWTManager(app)
+
+from app.token_helper import is_token_revoked
+# Define our callback function to check if a token has been revoked or not
+@jwt.token_in_blacklist_loader
+def check_if_token_revoked(decoded_token):
+    return is_token_revoked(decoded_token)
 
 #
 # Dashboard setup
