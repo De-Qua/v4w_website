@@ -55,7 +55,7 @@ function setValuesInFeedbackWindow(JSdict) {
   } else if ("error" in JSdict) {
 		console.log("error in jsdict!");
     return
-  } else {
+  } else if ("partenza" in JSdict) {
 		console.log("updating hidden field..");
 		$('#fbDict').val(JSON.stringify(JSdict));
     // values we found
@@ -92,7 +92,7 @@ function setValuesInFeedbackWindow(JSdict) {
       // do nothing
       return
     }
-  } else { // we are at the first initialization or we don't know
+  } else {
 		return
 	}
 }
