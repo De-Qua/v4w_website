@@ -1,11 +1,6 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<!-- Non dovrebbe essere indicizzato -->
-		<meta name="robots" content="noindex">
-		<meta name="googlebot" content="noindex">
+{% extends 'admin/master.html' %}
+{% block body %}
+	<body>
     <link rel="icon" href="/static/img/dequa_logo_v2.png">
     <link rel="stylesheet" href="/static/css/leaflet.css">
     <link rel="stylesheet" href="/static/css/L.Control.Locate.min.css">
@@ -15,12 +10,10 @@
     <script src="/static/js/L.Control.Locate.min.js"></script>
     <!-- PROVIDERS FOR DIFFERENT MAP TYPES -->
     <script src="/static/js/leaflet-providers.js"></script>
-    <title>DeQua Feedback</title>
+    <!-- <title>DeQua Feedback</title> -->
     <!-- Bootstrap core CSS -->
-		<link href="/static/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
     <link href="/static/css/s.css" rel="stylesheet">
-	</head>
-	<body>
     <script>var feedback_dict_in_JS = {{feedback_dict | tojson}};</script>
 
     <script>
@@ -201,10 +194,10 @@
           marker_start = L.marker([json_obj.partenza[0].coordinate[0], json_obj.partenza[0].coordinate[1]], markerOptions);
         }
         var marker_end;
-        if (cur_obj_with_data.marker_end != undefined)
+        if (cur_obj_with_data.marker_arrivo != undefined)
         {
-          console.log("marker end from coord: " + cur_obj_with_data.marker_end);
-          marker_end = L.marker([cur_obj_with_data.marker_end[0], cur_obj_with_data.marker_end[1]], markerOptions);
+          console.log("marker end from coord: " + cur_obj_with_data.marker_arrivo);
+          marker_end = L.marker([cur_obj_with_data.marker_arrivo[0], cur_obj_with_data.marker_arrivo[1]], markerOptions);
         }
         else {
           console.log("marker end from json: " + json_obj.arrivo);
@@ -242,4 +235,4 @@
     document.getElementById('fb_count').innerHTML = "Ci sono " + fb_dicts.length + " files di feedback";
   </script>
 
-</html>
+{% endblock body %}

@@ -6,6 +6,8 @@ import time
 import datetime
 from app.src.libpy.lib_search import find_closest_nodes, find_closest_edge, find_path_to_closest_riva, find_POI, find_address_in_db, give_me_the_dictionary, are_we_sure_of_the_results
 from app.src.libpy.lib_communication import prepare_our_message_to_javascript, parseFeedbackFile
+import app.src.libpy.lib_database as db_lib
+import app.src.libpy.lib_analytics as dequa_stats
 import pdb
 from app.src.libpy import lib_graph, lib_communication, lib_search
 from app.models import PoiCategoryType, Location, Poi, poi_types, PoiCategory
@@ -22,55 +24,28 @@ import traceback
 import app.site_parameters as site_parameters
 from app import mail
 from flask import g
+import re
 
 FEEDBACK_FOLDER = 'feedback'
+
+def get_usage_data_from_server():
+    """
+    Get the usage data from our database - just ask the database.
+    """
+    usage_dict, col_names, pd_db = db_lib.fetch_usage_data_from_db()
+    general_info, data_dict = dequa_stats.extract_stats(usage_dict, col_names)
+    usage_data_dict = {'g_info': general_info,
+                       'data_dict': data_dict,
+                       'usage_dict': pd_db.to_dict(orient='records')}
+    #pdb.set_trace()
+    return usage_data_dict
 
 def get_feedback_from_server():
     """
     Check for feedback files in the server, returns their names and their contents, in a dictionary for js.
     """
     # now we have a db!
-    feedback_dicts = fetch_feedbacks_from_db() # probabilmente possiamo copiare il codice di sotto qua sopra, ma è ancora in testing
-
-    # non ci serve più guardare le cartelle e fare robe strane per parsare
-    # feedback_files_names = os.listdir(FEEDBACK_FOLDER)
-    # feedback_files_names.sort()
-    # feedback_files_contents = []
-    # feedback_files_contents_as_dicts = []
-    # for fb_file in feedback_files_names:
-    #     full_path = os.path.join(FEEDBACK_FOLDER, fb_file)
-    #     with open(full_path, 'r') as content_file:
-    #         cur_fb_content_as_text = content_file.read()
-    #         cur_fb_content_as_dict = parseFeedbackFile(cur_fb_content_as_text)
-    #     feedback_files_contents.append(cur_fb_content_as_text)
-    #     feedback_files_contents_as_dicts.append(cur_fb_content_as_dict)
-    #
-    # # we do not really need fb_contents, but we need to also edit the feedback.html page to avoid using the contents as they are
-    # feedback_dict = {'fb_names' : feedback_files_names, 'fb_contents' : feedback_files_contents, 'fb_dicts' : feedback_files_contents_as_dicts}
-
-    return feedback_dicts
-
-def fetch_feedbacks_from_db():
-    """
-    Fetch the feedback list from db, returns their names and their contents as dictionary.
-    """
-    all_feedbacks = Feedbacks.query.all()
-    feedback_dicts = []
-    for feed in all_feedbacks:
-        start_coord_as_num = 0
-        end_coord_as_num = 0
-        if len(feed.start_coord) > 0:
-            start_coord_as_num = [ float(a) for a in feed.start_coord.split(",") ]
-        if len(feed.end_coord) > 0:
-            end_coord_as_num = [ float(a) for a in feed.end_coord.split(",") ]
-        cur_feed_dict = {'name':feed.name, 'category':feed.category,
-            'searched_start':feed.searched_start, 'searched_end':feed.searched_end, 'searched_string':feed.searched_string,
-            'found_start':feed.found_start, 'found_end':feed.found_end, 'found_string':feed.found_string,
-            'start_coord':start_coord_as_num, 'end_coord':end_coord_as_num,
-            'feedback':feed.feedback, 'json':json.loads(feed.json), 'datetime':feed.datetime.strftime("%d-%m-%Y %H:%M:%S"),
-            'report':feed.report, 'solved':feed.solved}
-        feedback_dicts.append(cur_feed_dict)
-        print(feed.start_coord)
+    feedback_dicts = db_lib.fetch_feedbacks_from_db() # probabilmente possiamo copiare il codice di sotto qua sopra, ma è ancora in testing
     return feedback_dicts
 
 def retrieve_parameters_from_GET(arguments_GET_request):
@@ -329,6 +304,13 @@ def only_by_boat_or_also_by_walk(match_dicts_list, params_research):
 
     return None, None
 
+def create_first_dictionary():
+    """
+    Used to create a minimum working dictionary to return as result dictionary for js.
+    """
+    tide_level = get_current_tide_level();
+    only_tide_level_dict = {"only_tide_level": tide_level}
+    return only_tide_level_dict
 
 def find_what_needs_to_be_found(params_research):
     """
@@ -347,9 +329,7 @@ def find_what_needs_to_be_found(params_research):
         end_coord = ""
 
     if what_am_I_really_searching_for == "nothing":
-        tide_level = get_current_tide_level();
-        only_tide_level_dict = {"only_tide_level":tide_level}
-        return only_tide_level_dict
+        return create_first_dictionary()
 
     # Save the global variables that we need to save
     save_request_variables(params_research)

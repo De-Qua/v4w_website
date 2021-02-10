@@ -1,6 +1,8 @@
 from flask import redirect, url_for
 from flask_security import current_user
 from flask_admin.contrib.sqla import ModelView
+import app.src.interface as interface
+from flask_admin import BaseView, expose
 
 ###
 # MODELS FOR ADMIN VIEWS
@@ -17,6 +19,11 @@ class UserModelView(ModelView):
     column_list = ['email', 'roles', 'active', 'confirmed_at']
     column_exclude_list = ['password']
     # column_hide_backrefs = False
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))
 
 class UsageModelView(AdminModelView):
     column_default_sort = ('datetime', True)
@@ -25,6 +32,17 @@ class UsageModelView(AdminModelView):
                            'xforwardedfor', 'authorization', 'ip_info']
     column_filters = ['url', 'ua_browser', 'ua_language', 'path', 'track_var']
     can_edit = False
+
+class AnalyticsView(BaseView):
+    @expose('/')
+    def index(self):
+        usage_data = interface.get_usage_data_from_server()
+        return self.render('admin/new_charts.html', usage_dict=usage_data)
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))
 
 class StreetModelView(AdminModelView):
     column_searchable_list = ['name', 'name_alt']
@@ -74,3 +92,14 @@ class FeedbacksModelView(AdminModelView):
                               'found_string', 'found_start', 'found_end',
                               'feedback']
     column_exclude_list = ['json']
+
+class FeedbackVisualizationView(BaseView):
+    @expose('/')
+    def index(self):
+        feedback_dict = interface.get_feedback_from_server()
+        return self.render('admin/feedback.html', feedback_dict = feedback_dict)
+    def is_accessible(self):
+        return (current_user.is_active and current_user.is_authenticated)
+    def _handle_view(self, name):
+        if not self.is_accessible():
+            return redirect(url_for('security.login'))

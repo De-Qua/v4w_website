@@ -118,13 +118,20 @@ def contact():
     return render_template('info/contatti.html')
 
 # feedback
-@t.include
-@app.route('/r2d2', methods=['GET', 'POST'])
-def feedback():
-    app.logger.info('Pagina di feedback aperta')
-    #get list of feedback files
-    feedback_dict = interface.get_feedback_from_server()
-    return render_template('feedback.html', feedback_dict = feedback_dict)
+# @app.route('/r2d2', methods=['GET', 'POST'])
+# def feedback():
+#     app.logger.info('Pagina di feedback aperta')
+#     #get list of feedback files
+#     feedback_dict = interface.get_feedback_from_server()
+#     return render_template('feedback.html', feedback_dict = feedback_dict)
+
+# visualization
+# @app.route('/d3', methods=['GET', 'POST'])
+# def visualization():
+#     app.logger.info('Data Visualization at its finest')
+#     #get list of feedback files
+#     usage_data = interface.get_usage_data_from_server()
+#     return render_template('datavis/charts.html', usage_dict = usage_data)
 
 @t.include
 @app.route('/', methods=['GET', 'POST'])
@@ -149,10 +156,11 @@ def navigation():
         t0=time.perf_counter()
         if request.method == 'POST':
             feedbacksent = interface.take_care_of_the_feedback(form, feedback_folder)
+            results_dictionary = interface.create_first_dictionary()
             # return render_template(html_file, geo_type=geo_type, start_coordx=-1,
             #     searched_name=da, start_name=start_name,
             #     form=form, feedbacksent=feedbacksent)
-            return render_template(html_file, form=form, results_dictionary="None", feedbacksent=feedbacksent)
+            return render_template(html_file, form=form, results_dictionary=results_dictionary, feedbacksent=feedbacksent)
                 # non sono 100% sicuro che form vada ritornato sempre (nel caso precedente era ritornato solo in caso di 0)
                 # ma dovrebbe funzionare
         # altrimenti, dobbiamo fare qualocsa

@@ -106,22 +106,28 @@ security = Security(app, user_datastore)
 #
 # Flask-Admin setup
 #
-admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap3')
+admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
-from app.views import AdminModelView, UserModelView, UsageModelView, IdeasModelView
+from app.views import AdminModelView, UserModelView
+from app.views import UsageModelView, AnalyticsView
+from app.views import IdeasModelView
 from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
-from app.views import ErrorsModelView, FeedbacksModelView
+from app.views import ErrorsModelView
+from app.views import FeedbacksModelView, FeedbackVisualizationView
 
-admin.add_view(UserModelView(Users, db.session))
-admin.add_view(AdminModelView(Roles, db.session))
+admin.add_view(UserModelView(Users, db.session, category="Users"))
+admin.add_view(AdminModelView(Roles, db.session, category="Users"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
 admin.add_view(PoiModelView(Poi, db.session, category="Map"))
 admin.add_view(IdeasModelView(Ideas, db.session))
-admin.add_view(UsageModelView(FlaskUsage, db.session))
+admin.add_view(UsageModelView(FlaskUsage, db.session, category="Usage"))
+admin.add_view(AnalyticsView(name='Analytics', endpoint="analytics", category="Usage"))
 admin.add_view(ErrorsModelView(Errors, db.session))
-admin.add_view(FeedbacksModelView(Feedbacks, db.session))
+admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Feedback"))
+admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visualization", category="Feedback"))
+
 
 
 #

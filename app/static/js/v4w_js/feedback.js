@@ -48,17 +48,16 @@ function setValuesInFeedbackWindow(JSdict) {
 	$('#hidden_start_coord_fb').val($('#hidden_start_coord').val());
 	$('#hidden_end_coord_fb').val($('#hidden_end_coord').val());
 
-	if ("error" in JSdict) {
-		// we have only the first search field
-		if (!$('#search_field_2').val()) {
-			$('#form-search-address').show();
-			$('#searched_string').val($('#search_field_1').val());
-		} else {
-			$('#form-search-path').show();
-			$('#searched_start').val($('#search_field_1').val());
-			$('#searched_end').val($('#search_field_2').val());
-		}
-  } else if ("partenza" in JSdict){
+
+	if (JSdict == "None"){
+		console.log("jsdict is none!");
+    return
+  } else if ("error" in JSdict) {
+		console.log("error in jsdict!");
+    return
+  } else {
+		console.log("updating hidden field..");
+		$('#fbDict').val(JSON.stringify(JSdict));
     // values we found
     var all_found_start = [];
     for (found_start of JSdict.partenza){
@@ -71,6 +70,7 @@ function setValuesInFeedbackWindow(JSdict) {
 
     // determine what to show
     if(JSdict.modus_operandi==0 || (JSdict.modus_operandi==2 && JSdict.arrivo == "no_end")) {
+			console.log('show no end');
       // show div
 			$('#form-search-address').show();
 			$('#form-found-address').show();

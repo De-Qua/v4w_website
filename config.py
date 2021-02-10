@@ -5,6 +5,7 @@ class Config(object):
     VERSION = '0.1.4'
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
+    WTF_CSRF_TIME_LIMIT = None
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'dequa.db')
