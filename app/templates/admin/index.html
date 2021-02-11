@@ -3,23 +3,27 @@
 {% block body %}
   {{ super() }}
   <div class='container'>
-      <div>
-          <div>
-            <h1>Welcome!</h1>
-              {% if not current_user.is_authenticated %}
-              <h3>Please log in to continue</h3>
-              <p>
-                  <a class='btn btn-primary' href="{{ url_for('security.login') }}">login</a>
-              </p>
-              <br>
-              {% elif current_user.has_role('admin') %}
-              <h3>You have successfully logged in.</h3>
-              <p>You are admin!</p>
-              {% elif current_user.has_role('end-user') %}
-              <h3>You have successfully logged in.</h3>
-              <p>You are a end user!</p>
-              {% endif %}
+      <div class="row">
+        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+          <div class="card my-5">
+            <div class="card-body text-center">
+              <h2 class="card-title text-center">Welcome!</h2>
+                {% if not current_user.is_authenticated %}
+                <h3>Please log in to continue</h3>
+                <p>
+                    <a class='btn btn-primary mt-5' href="{{ url_for('security.login') }}">login</a>
+                </p>
+                <br>
+                {% elif current_user.has_role('admin') %}
+                <h3>You have successfully logged in.</h3>
+                <p>You are admin!</p>
+                {% elif current_user.has_role('end-user') %}
+                <h3>You have successfully logged in.</h3>
+                <p>You are a end user!</p>
+                {% endif %}
+              </div>
           </div>
+        </div>
       </div>
   </div>
 {% endblock body %}
