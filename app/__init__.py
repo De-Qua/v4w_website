@@ -126,10 +126,10 @@ admin.add_view(TokenModelView(Tokens, db.session, category="Users"))
 admin.add_view(TokenTypeModelView(TokenTypes, db.session, category="Users"))
 admin.add_view(ApiModelView(Apis, db.session, category="Users"))
 admin.add_view(TokenApiCounterView(TokenApiCounters, db.session, category="Users"))
-admin.add_view(ApiErrorCodeModelView(ErrorCodes, db.session, category="Errors"))
-admin.add_view(ApiErrorGroupModelView(ErrorGroups, db.session, category="Errors"))
-admin.add_view(ApiErrorTranslationModelView(ErrorTranslations, db.session, category="Errors"))
-admin.add_view(ApiErrorLanguageModelView(Languages, db.session, category="Errors"))
+admin.add_view(ApiErrorCodeModelView(ErrorCodes, db.session, category="Error codes"))
+admin.add_view(ApiErrorGroupModelView(ErrorGroups, db.session, category="Error codes"))
+admin.add_view(ApiErrorTranslationModelView(ErrorTranslations, db.session, category="Error codes"))
+admin.add_view(ApiErrorLanguageModelView(Languages, db.session, category="Error codes"))
 admin.add_view(StreetModelView(Street, db.session, category="Map"))
 admin.add_view(AreaModelView(Area, db.session, category="Map"))
 admin.add_view(NeighborhoodModelView(Neighborhood, db.session, category="Map"))
@@ -158,11 +158,15 @@ api_rest.add_resource(api.getMultiplePaths, '/multi_path')
 jwt = JWTManager(app)
 
 from app.token_helper import is_token_revoked
+from app.api import api_response
 # Define our callback function to check if a token has been revoked or not
 @jwt.token_in_blacklist_loader
 def check_if_token_revoked(decoded_token):
     return is_token_revoked(decoded_token)
 
+@jwt.revoked_token_loader
+def revoked_token_response():
+    return api_response(code=3)
 #
 # Dashboard setup
 #

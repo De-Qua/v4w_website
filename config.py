@@ -2,7 +2,7 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 class Config(object):
     # Version
-    VERSION = '0.1.4'
+    VERSION = '0.1.5'
     API_VERSION = '1.0'
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
@@ -45,3 +45,4 @@ class Config(object):
     JWT_SECRET_KEY = SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'indovina-indovinello'
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
+    PROPAGATE_EXCEPTIONS = True
