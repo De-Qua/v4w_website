@@ -200,7 +200,7 @@ class GetAddressAPI(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=3, message=msg)
+            return api_response(code=21, message=msg)
         address = args['address']
         lang = args['language']
         try:
@@ -245,7 +245,7 @@ class getPath(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=3, message=msg)
+            return api_response(code=21, message=msg)
         lang = args['language']
         is_coordinate_start, coords_start = check_if_is_already_a_coordinate(args['start'])
         is_coordinate_end, coords_end = check_if_is_already_a_coordinate(args['end'])
@@ -301,7 +301,7 @@ class getMultiplePaths(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=3, message=msg)
+            return api_response(code=21, message=msg)
         lang = args['language']
         is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
         if not is_coord:

@@ -322,7 +322,7 @@ class Tokens(db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id'), nullable=False)
     revoked = db.Column(db.Boolean())
     expires = db.Column(db.DateTime())
-    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('token', lazy=True))
+    api_counter = db.relationship('TokenApiCounters', lazy=True, cascade="all, delete-orphan", backref=db.backref('token', lazy=True))
 
     def to_dict(self):
         return {
@@ -362,7 +362,7 @@ class Apis(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     path = db.Column(db.String(100))
-    api_counter = db.relationship('TokenApiCounters', lazy=True, backref=db.backref('api', lazy=True))
+    api_counter = db.relationship('TokenApiCounters', lazy=True, cascade="all, delete-orphan", backref=db.backref('api', lazy=True))
 
     def __str__(self):
         return self.name
@@ -381,7 +381,7 @@ class Languages(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
     code = db.Column(db.String(5), unique=True)
-    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('language', lazy=True))
+    translations = db.relationship('ErrorTranslations', lazy=True, cascade="all, delete-orphan", backref=db.backref('language', lazy=True))
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -403,7 +403,7 @@ class ErrorCodes(db.Model):
     code = db.Column(db.Integer(), unique=True)
     description = db.Column(db.String(100))
     group_id = db.Column(db.Integer(), db.ForeignKey('error_groups.id'))
-    translations = db.relationship('ErrorTranslations', lazy=True, backref=db.backref('code', lazy=True))
+    translations = db.relationship('ErrorTranslations', lazy=True, cascade="all, delete-orphan", backref=db.backref('code', lazy=True))
 
     def __str__(self):
         return f"{self.code} - {self.description}"
