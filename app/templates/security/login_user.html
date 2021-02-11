@@ -1,24 +1,23 @@
 {% extends 'admin/master.html' %}
-{% from "security/_macros.html" import render_field_with_errors, render_field %}{% block body %}
+{% from "security/_macros.html" import render_field_with_errors, render_field %}
+{% block body %}
   {{ super() }}
-  <div class="container">
-    <div>
-      <h1>Login</h1>
-      <div class="well">
-        <form action="{{ url_for_security('login') }}" method="POST"
-         name="login_user_form">
-          {{ login_user_form.hidden_tag() }}
-          {{ render_field_with_errors(login_user_form.email) }}
-          {{ render_field_with_errors(login_user_form.password) }}
-          {{ render_field(login_user_form.next) }}
-          {{ render_field(login_user_form.submit, class="btn btn-
-             primary") }}
-        </form>
-        <p>
-            Not yet signed up? Please <a href="{{
-            url_for('security.register') }}">register for an
-            account</a>.
-        </p>
+  <div class='container'>
+    <div class="row">
+      <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+        <div class="card my-5">
+          <div class="card-body text-center">
+            <h2 class="card-title text-center">Login</h2>
+              <form action="{{ url_for_security('login') }}" method="POST"
+               name="login_user_form">
+                {{ login_user_form.hidden_tag() }}
+                {{ render_field_with_errors(login_user_form.email, class_="form-control")}}
+                {{ render_field_with_errors(login_user_form.password, class_="form-control")}}
+                {{ render_field(login_user_form.next) }}
+                {{ render_field(login_user_form.submit, class_="btn btn-primary") }}
+              </form>
+          </div>
+        </div>
       </div>
     </div>
   </div>

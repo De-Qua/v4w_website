@@ -28,7 +28,7 @@ class Config(object):
     SECURITY_POST_LOGIN_VIEW = '/admin/'
     SECURITY_POST_LOGOUT_VIEW = '/admin/'
     SECURITY_POST_REGISTER_VIEW = '/admin/'
-    SECURITY_REGISTERABLE = True
+    SECURITY_REGISTERABLE = False
     SECURITY_SEND_REGISTER_EMAIL = False
     # Mail
     MAIL_SERVER = os.environ.get('MAIL_SERVER') #"smtps.aruba.it"
