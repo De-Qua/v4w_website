@@ -1,5 +1,5 @@
 import pdb
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 from functools import wraps
 
 from flask import request
@@ -17,6 +17,8 @@ from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
 from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, ErrorCodes, ErrorTranslations
+
+from app import custom_errors
 
 DEFAULT_LANGUAGE_CODE = 'en'
 GENERIC_ERROR_CODE = -1
@@ -48,7 +50,7 @@ def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
         response['ResponseMessage'] = err_message.message
         if message:
             response['ResponseMessage'] += f" - {message}"
-        response['ResponseData'] = {}
+        response['ResponseData'] = data
         return response
 
 def set_default_request_variables():
@@ -161,9 +163,9 @@ def permission_required(fn):
 
 
 def create_url_from_inputs(args):
-    start_point = args['start']
-    end_point = args['end']
-    mode = args['mode']
+    start_point = args.get('start', '')
+    end_point = args.get('end', '')
+    mode = args.get('mode','')
     base_url = 'https://www.dequa.it'
     start_key = 'partenza'
     end_key = 'arrivo'
@@ -174,8 +176,8 @@ def create_url_from_inputs(args):
     else:
         mode_key = 'walk'
     final_url = base_url + '/?' + \
-                start_key + '=' + start_point + \
-                '&' + end_key + '=' + end_point + \
+                start_key + '=' + quote(start_point) + \
+                '&' + end_key + '=' + quote(end_point) + \
                 '&' + mode_key + '=' + 'on'
     return final_url
 
@@ -261,7 +263,17 @@ class getPath(Resource):
         params_research = dict(default_params, **user_params)
         try:
             path = find_what_needs_to_be_found(params_research)
-        except:
+        except custom_errors.UserError:
+            url_args = args
+            url_args.pop('start')
+            dequa_url = create_url_from_inputs(args)
+            data = {
+                'length': -1,
+                'time': -1,
+                'url': dequa_url
+            }
+            return api_response(code=12, data=data, lang=lang)
+        except Exception as e:
             return api_response(code=12, lang=lang)
         dequa_url = create_url_from_inputs(args)
         data = {
