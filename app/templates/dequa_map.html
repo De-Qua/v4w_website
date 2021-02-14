@@ -175,30 +175,42 @@
 				<script>
 					// Create a variable with already both layer
 					var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-						minZoom: 10,
-						maxZoom: 19,
 						minNativeZoom: 10,
 						maxNativeZoom: 19,
+						minZoom: 10,
+						maxZoom: 20,
 						zoomControl: false,
 						attribution: 'DeQua | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 					});
 					var esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-						minZoom: 10,
-						maxZoom: 19,
 						minNativeZoom: 10,
 						maxNativeZoom: 19,
+						minZoom: 10,
+						maxZoom: 20,
 						zoomControl: false,
 						attribution: 'DeQua | Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
 					});
 
+					var dgis = L.tileLayer("http://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}", {
+					  minNativeZoom: 10,
+					  maxNativeZoom: 18,
+					  minZoom: 10,
+					  maxZoom: 20,
+					  zoomControl: false,
+					  attribution: 'DeQua | Tiles &copy; 2Gis'
+					});
+
 					var baseMaps = {
-						"OpenStreetMap": osm,
-						"ESRIMap": esri
+					  "OpenStreetMap": osm,
+					  "ESRIMap": esri,
+					  "Dgis": dgis
 					}
-					var whichmap = "OpenStreetMap";
+					var allMaps = ["OpenStreetMap", "Dgis", "ESRIMap"]
+					var whichmap = 0;
+
 
 					var mymap = L.map('mapid', {
-						layers: baseMaps[whichmap]
+						layers: baseMaps[allMaps[whichmap]]
 					});
 
 					mymap.setView([45.435, 12.333], 15);

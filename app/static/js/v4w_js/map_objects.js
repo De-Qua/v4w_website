@@ -17,19 +17,14 @@ function onMapClick(e) {
 }
 
 function changeMap(currentMap) {
-	console.log("changing map.. from " + currentMap)
-	if (currentMap == "OpenStreetMap") {
-		whichmap = "ESRIMap";
-	} else if (currentMap == 'ESRIMap') {
-		whichmap = "OpenStreetMap";
-	} else {
-		whichmap = "OpenStreetMap";
-	}
+	console.log("changing map.. from " + allMaps[whichmap])
 
-	mymap.removeLayer(baseMaps[currentMap]);
-	baseMaps[whichmap].addTo(mymap);
+	whichmap = (currentMap+1)%allMaps.length;
 
-	console.log("to " + whichmap)
+	mymap.removeLayer(baseMaps[allMaps[currentMap]]);
+	baseMaps[allMaps[whichmap]].addTo(mymap);
+
+	console.log("to " + allMaps[whichmap])
 }
 
 function addMarkerStart(latlng) {
