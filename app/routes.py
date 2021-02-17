@@ -310,6 +310,7 @@ def sitemap():
 
     # lista di url da non mappare
     urls_to_not_map = ["/admin", "/user", # no pagine di admin e di utenti
+                       "/api",  # no api
                        "/update", "/initialize", # no ajax
                        ".js", # no service worker o manifest
                        "log", "register", "verify", # no login, logout, registrazione
