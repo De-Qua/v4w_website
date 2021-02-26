@@ -1,7 +1,9 @@
 from calendar import monthrange
 from calendar import month_name
 import numpy as np
-import datetime
+#import datetime
+from datetime import date
+from datetime import datetime
 import pdb
 from datetime import timedelta
 
@@ -11,14 +13,12 @@ def extract_stats(data, col_names):
     """
     #pdb.set_trace()
     dates = data['datetime']
-    traffic_m, max_vis_m, traffic_d, max_vis_d = extract_traffic_stats(dates)
     urls = data['url']
+    traffic_data_complete, traffic_data_10_weeks, traffic_data_last_week, averages, trends = analyze_traffic(dates, urls)
     pages_stats_bar, page_stats_pie = extract_pages_stats(urls)
-    max_stat = []
     np_urls = np.asarray([url['value'] for url in pages_stats_bar])
     url_with_max_visualization = int(np.max(np_urls)) #int64 is not JSON serializable!
-    # this week
-    this_week_visits, max_visits_week = extract_week_stats(dates)
+    # yday and today are old (not very good code), but since it's only one day, not a big deal
     yday_visits, max_visits_yday = extract_yesterday_stats(dates)
     today_visits, max_visits_today = extract_today_stats(dates)
     devices = data['ua_platform']
@@ -26,19 +26,18 @@ def extract_stats(data, col_names):
     searches_stats, max_search = extract_searches_stats(urls)
 
     general_info = {'max_pages':url_with_max_visualization,
-                    'max_month':max_vis_m,
-                    'max_visits_week':max_visits_week,
                     'max_visits_yday':max_visits_yday,
                     'max_visits_today':max_visits_today,
-                    'max_visits_2m':max_vis_d,
-                    'max_search':max_search
+                    'max_search':max_search,
+                    'averages':averages,
+                    'trends':trends
                     }
 
     data_dict = {'stats_url':pages_stats_bar,
                 'stats_url_pie':page_stats_pie,
-                'six_months':traffic_m,
-                'last_month':traffic_d,
-                'last_week':this_week_visits,
+                'traffic_whole':traffic_data_complete,
+                'traffic_last_10_weeks':traffic_data_10_weeks,
+                'traffic_last_week':traffic_data_last_week,
                 'yesterday':yday_visits,
                 'today':today_visits,
                 'devices_stats':devices_stats,
@@ -81,7 +80,7 @@ def extract_stats_of_a_day(dates, timedelta_in_days):
 
 def getTodaySeparated():
 
-    today = datetime.date.today()
+    today = date.today()
     year = today.year
     month = today.month
     day = today.day
@@ -119,10 +118,151 @@ def extract_last_3_month_stats(dates):
     """
     return 1
 
-def extract_traffic_stats(dates):
+def analyze_traffic(dates, urls):
+    """
+    A better version to extract data using dates and urls at the same time.
 
+    It loops over and counts how many visits per day and also separates into what types of visits (home, search, info, others).
+    It creates one big list for all traffic data, one for the last 10 weeks and one for the last weeks.
+    This can be easily changed.
+    Using only one for loop makes it O(n), which is not too bad. However, pandas implementation of something like numpy's where
+    would be much faster, I believe.
+
+    It returns 3 lists of dicts where each dict will have 6 keys:
+    1) date
+    2) total_visits
+    3) searches
+    4) home
+    5) info
+    6) others
+
+    plus also some general informations:
+    - averages, which contains:
+        - average visits in total
+        - average visits last 10 week
+        - average visits last week
+    - trends (in percentages)
+        - last week vs total
+        - last week vs last teen weeks
+
+
+    ###
+    # TODO: rewrite using pandas methods to make it faster
+    ###
+    """
+    traffic_data = []
+    date_format = "%Y-%m-%d"
+    last_date = dates[0] # this work only if everything is sorted
+    traffic_data.append({'date':dates[0].strftime(date_format), 'total_visits':0, 'searches':0,
+                            'home':0, 'info':0, 'others':0})
+
+    traffic_data_last_ten_weeks = []
+    started_gathering_last_ten_weeks = False
+    traffic_data_last_week = []
+    started_gathering_last_week = False
+    today_date = datetime.now()
+    total_visits_all_time = 0 # just for statistics
+    counter_days = 0 # this helps to understand at which actual day we are (index goes on, the day stays the same)
+    counter_days_last_ten_weeks = 0
+    counter_days_last_week = 0
+    total_visits = np.zeros(3)
+    averages = np.zeros(3)
+    trends = np.zeros(2)
+    # trying to use only one for loop, so check has to be made in place, no other searches
+    for index, (cur_date, url) in enumerate(zip(dates, urls)):
+        if last_date.day == cur_date.day:
+            traffic_data[counter_days]['total_visits'] += 1
+            total_visits[0] += 1
+            if started_gathering_last_ten_weeks == True:
+                traffic_data_last_ten_weeks[counter_days_last_ten_weeks]['total_visits'] += 1
+                total_visits[1] += 1
+            if started_gathering_last_week == True:
+                traffic_data_last_week[counter_days_last_week]['total_visits'] += 1
+                total_visits[2] += 1
+            total_visits_all_time += 1
+            traffic_type = understand_traffic_type(url)
+            traffic_data[counter_days][traffic_type] += 1
+            if started_gathering_last_ten_weeks:
+                traffic_data_last_ten_weeks[counter_days_last_ten_weeks][traffic_type] += 1
+            if started_gathering_last_week:
+                traffic_data_last_week[counter_days_last_week][traffic_type] += 1
+        else:
+            # check that last day was correct
+            okay = check_visits(traffic_data[counter_days])
+            assert(okay), f"Problem with: {traffic_data}, okay was {okay}"
+            traffic_data.append({'date':cur_date.strftime(date_format), 'total_visits':0, 'searches':0,
+                                    'home':0, 'info':0, 'others':0})
+            last_date = dates[index]
+            # CHECK IF WE ARE IN THE LAST TWO MONTHS
+            #pdb.set_trace()
+            last_date_datetime =  datetime(last_date.year, last_date.month, last_date.day, last_date.hour, last_date.minute, last_date.second, last_date.microsecond)
+            #print(f"new day: {today_date} - last_date: {last_date_datetime}")
+            #print(f"diff: {last_date_datetime - today_date}, check: {last_date_datetime - today_date > timedelta(weeks=10)}")
+            if today_date - last_date_datetime < timedelta(weeks=10) and not started_gathering_last_ten_weeks:
+                # time to start the last two months
+                started_gathering_last_ten_weeks = True
+                traffic_data_last_ten_weeks.append({'date':cur_date.strftime(date_format), 'total_visits':0, 'searches':0,
+                                        'home':0, 'info':0, 'others':0, 'value':10})
+                #print('once')
+            elif started_gathering_last_ten_weeks == True:
+                traffic_data_last_ten_weeks.append({'date':cur_date.strftime(date_format), 'total_visits':0, 'searches':0,
+                                        'home':0, 'info':0, 'others':0, 'value':10})
+                counter_days_last_ten_weeks += 1
+                #print('adding every day')
+
+            # CHECK IF WE ARE IN THE LAST WEEK
+            if today_date - last_date_datetime < timedelta(weeks=1) and not started_gathering_last_week:
+                # time to start the last two months
+                started_gathering_last_week = True
+                traffic_data_last_week.append({'date':cur_date.strftime(date_format), 'total_visits':0, 'searches':0,
+                                        'home':0, 'info':0, 'others':0, 'value':10})
+                #print('once')
+            elif started_gathering_last_week == True:
+                traffic_data_last_week.append({'date':cur_date.strftime(date_format), 'total_visits':0, 'searches':0,
+                                        'home':0, 'info':0, 'others':0, 'value':10})
+                counter_days_last_week += 1
+                #print('adding every day')
+
+            counter_days += 1
+
+    # averaging
+    averages[0] = total_visits[0] / counter_days
+    averages[1] = total_visits[1] / counter_days_last_ten_weeks
+    averages[2] = total_visits[2] / counter_days_last_week
+
+    trends[0] = averages[2] / averages[0]
+    trends[1] = averages[2] / averages[1]
+
+    print("No logs here so I print to output, not very important. If needed, change app/src/libpy/lib_analytics.py in analyze_traffic (maybe line 123?)")
+    print(f"Traffic data contains {len(traffic_data)} days for {total_visits_all_time} visits in total, which accounts for {total_visits_all_time/len(traffic_data)} visits per day in average")
+    return traffic_data, traffic_data_last_ten_weeks, traffic_data_last_week, averages.tolist(), trends.tolist()
+
+def to_integer(dt_time):
+    """helper method to convert timestamp to datetime (seems like timestamp needs to be converted to integer before)"""
+    return 10000*dt_time.year + 100*dt_time.month + dt_time.day
+
+def understand_traffic_type(url):
+    """Returns one of the 4 traffic types (home, searches, info, others)."""
+    if url == 'https://www.dequa.it/':
+        return "home"
+    elif 'partenza' in url or 'update_results' in url:
+        return "searches"
+    elif 'info' in url or 'contatti' in url or 'idee' in url or 'comesiusa' in url or 'chisiamo' in url or 'howitsmade' in url or 'partecipare' in url or 'contatti' in url:
+        return "info"
+    else:
+        return "others"
+
+def check_visits(traffic_dict):
+    """Just check that the sum of the different visits is the same as the total visits."""
+    return traffic_dict['total_visits'] == (traffic_dict['searches'] + traffic_dict['home'] +
+            traffic_dict['info'] + traffic_dict['others'])
+
+def extract_traffic_stats(dates):
+    """
+    Statistics about visits per day/month/week.
+    """
     months = np.linspace(1,12,12).astype(int)
-    year = datetime.date.today().year
+    year = date.today().year
     years = 2020 + np.linspace(0, 1, 2).astype(int)
     visit_per_year = []
     visit_per_month = []

@@ -180,9 +180,11 @@ function drawPieFromPandas(elementId, unformattedData, type) {
     .style("font-size", 17)
 
 }
-
-
-function drawLineWithDate(elementId, data, maxVal) {
+ /*
+  * This function expects array of dict
+  * where each dictionary has date and value
+  */
+function drawLineWithDate(elementId, data) {
 
   console.log("drawing the line..");
   // set the dimensions and margins of the graph
@@ -201,7 +203,6 @@ function drawLineWithDate(elementId, data, maxVal) {
             "translate(" + margin.left + "," + margin.top + ")");
 
   console.log("using data:", data);
-  console.log("and max values: ", maxVal);
   // Add X axis --> it is a date format
   var x = d3.scaleTime()
     .domain(d3.extent(data, function(d) { return d3.timeParse("%Y-%m-%d")(d.date); }))
@@ -212,7 +213,7 @@ function drawLineWithDate(elementId, data, maxVal) {
 
   // Add Y axis
   var y = d3.scaleLinear()
-    .domain([0, maxVal])
+    .domain([0, d3.max(data, d => d.total_visits)])
     .range([ height, 0 ]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -220,14 +221,124 @@ function drawLineWithDate(elementId, data, maxVal) {
   // Add the area
   svg.append("path")
     .datum(data)
-    .attr("fill", "#cce5df")
-    .attr("stroke", "#69b3a2")
+    .attr("fill", "#10412d")
+    .attr("stroke", "#10412d")
     .attr("stroke-width", 1.5)
     .attr("d", d3.area()
       .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
       .y0(y(0))
       .y1(function(d) { return y(d.value) })
       )
+
+}
+/*
+ * This function expects array of dict
+ * where each dictionary has 6 fields
+ * date, home, info, search, others and total_visits
+ * this is custom data from lib_analytics.py
+ */
+function drawLinesWithDateCustom(elementId, data, fill_colors, stroke_colors) {
+
+  console.log("drawing the line..");
+  // set the dimensions and margins of the graph
+  var margin = {top: 30, right: 50, bottom: 50, left: 70},
+      width = document.getElementById('vue-app-div').offsetWidth - margin.left - margin.right,
+      height = window.innerHeight / 2 - margin.top - margin.bottom;
+
+  console.log("fetching..", elementId);
+  // append the svg object to the body of the page
+  var svg = d3.select(elementId)
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  console.log("using data:", data);
+  // Add X axis --> it is a date format
+  var x = d3.scaleTime()
+    .domain(d3.extent(data, function(d) { return d3.timeParse("%Y-%m-%d")(d.date); }))
+    .range([ 0, width ]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.total_visits)])
+    .range([ height, 0 ]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+
+  console.log('appending visits');
+  // Add the area
+  svg.append("path")
+    .datum(data)
+    .attr("fill", fill_colors[4])
+    .attr("stroke", stroke_colors[4])
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.area()
+      .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
+      .y0(y(0))
+      .y1(function(d) { return y(d.total_visits) })
+      )
+
+
+
+  console.log('appending others');
+  // Add the area
+  svg.append("path")
+    .datum(data)
+    .attr("fill", fill_colors[3])
+    .attr("stroke", stroke_colors[3])
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.area()
+      .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
+      .y0(y(0))
+      .y1(function(d) { return y(d.searches + d.others + d.home + d.info) })
+      )
+
+  console.log('appending info');
+  // Add the area
+  svg.append("path")
+    .datum(data)
+    .attr("fill", fill_colors[2])
+    .attr("stroke", stroke_colors[2])
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.area()
+      .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
+      .y0(y(0))
+      .y1(function(d) { return y(d.info + d.home + d.searches) })
+      )
+
+  console.log('appending searches');
+  // Add the area
+  svg.append("path")
+    .datum(data)
+    .attr("fill", fill_colors[1])
+    .attr("stroke", stroke_colors[1])
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.area()
+      .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
+      .y0(y(0))
+      .y1(function(d) { return y(d.searches + d.home) })
+      )
+
+  console.log('appending home');
+  // Add the area
+  svg.append("path")
+    .datum(data)
+    .attr("fill", fill_colors[0])
+    .attr("stroke", stroke_colors[0])
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.area()
+      .x(function(d) { return x(d3.timeParse("%Y-%m-%d")(d.date)) })
+      .y0(y(0))
+      .y1(function(d) { return y(d.home) })
+      )
+
 }
 
 function drawLineWithNums(elementId, data, maxValX, maxValY) {
