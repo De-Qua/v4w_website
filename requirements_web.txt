@@ -30,7 +30,7 @@ ipython @ file:///Users/runner/miniforge3/conda-bld/ipython_1593235463433/work
 ipython-genutils==0.2.0
 itsdangerous==1.1.0
 jedi @ file:///Users/runner/miniforge3/conda-bld/jedi_1592619352011/work
-Jinja2==2.11.2
+Jinja2==2.11.3
 kiwisolver==1.2.0
 Mako==1.1.0
 MarkupSafe==1.1.1
