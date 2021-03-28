@@ -282,7 +282,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
         info['info'].append({
             'distance': distance,
             'num_bridges': num_bridges,
-            'num_edges': len(edges)
+            'num_edges': len(edges),
             'edges': {
                 'distances': distances,
                 'bridges': is_bridge,
