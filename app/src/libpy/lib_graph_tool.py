@@ -224,9 +224,30 @@ def length_of_edges(graph, edge_list):
 
 def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
     """Retrieve useful informations from the output of a path of streets (list
-    of vertices and edges)
+    of list of vertices and edges). The length of the two lists corresponds to
+    the number of paths, i.e. if there are no stops betweem the start and the
+    end point there will be only one path, otherwise there will be multiple
+    paths.
+    The output is a dictionary with the following keys:
+        'n_paths' (int): indicates the number of paths
+        'info' (list(dict)): informations of each path
+    Each path has the following informations:
+        'distance' (float): distance in meters
+        'num_bridges' (int): the number of bridges
+        'num_edges' (int): number of contained edges
+        'edges' (dict): info for each single edge.
+                        Each key is a list of the dimension num_edges.
+            'distances' (float): distance in meters
+            'bridges' (boolean): True if the edge is a bridge
+            'geometries' (geometry): Geometry of the edge
+            'max_tides' (float): Maximum tide for the edge in cm
+            'accessibility' (int): Accessibility value
+            'walkways_zps' (float): If present, tide level for activation of walkways
+            'walkways_cm' (float): Height of walkways in cm
+            'streets_id' (int): Database id of the street
     """
-    info = {'n_paths': len(paths_edges)}
+    info = {'n_paths': len(paths_edges),
+            'info': []}
     for idx, edges in enumerate(paths_edges):
         distances = []
         is_bridge = []
@@ -258,9 +279,10 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
         distance = sum(distances)
         num_bridges = _consecutive_one(is_bridge)
 
-        info[idx] = {
+        info['info'].append({
             'distance': distance,
             'num_bridges': num_bridges,
+            'num_edges': len(edges)
             'edges': {
                 'distances': distances,
                 'bridges': is_bridge,
@@ -271,7 +293,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
                 'walkways_cm': walkways_cm,
                 'streets_id': streets_id
             }
-        }
+        })
     return info
 
 
