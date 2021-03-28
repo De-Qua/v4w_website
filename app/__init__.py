@@ -148,7 +148,7 @@ api_rest = Api(app, prefix='/api')
 
 from app import api
 
-api_rest.add_resource(api.GetAddressAPI, '/address')
+api_rest.add_resource(api.getAddress, '/address')
 api_rest.add_resource(api.getPath, '/path')
 api_rest.add_resource(api.getMultiplePaths, '/multi_path')
 

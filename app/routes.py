@@ -250,19 +250,19 @@ def asynch_initialize_votes():
 
         return jsonify(dictionary_of_err)
 
-@app.route('/degoogling', methods=['GET', 'POST'])
-def degoogle_us_please():
-
-    if request.method == 'POST':
-        app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
-        da = request.form['partenza']
-        #a = request.form['arrivo']
-        start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
-        #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-        return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
-    else:
-        app.logger.info('grazie per aver aperto find_address')
-        return render_template('degoogling.html')
+# @app.route('/degoogling', methods=['GET', 'POST'])
+# def degoogle_us_please():
+#
+#     if request.method == 'POST':
+#         app.logger.info('grazie per aver mandato il tuo indirizzo in find_address')
+#         da = request.form['partenza']
+#         #a = request.form['arrivo']
+#         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
+#         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
+#         return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
+#     else:
+#         app.logger.info('grazie per aver aperto find_address')
+#         return render_template('degoogling.html')
 
 # generatore di sitemap preso da github
 # full file here

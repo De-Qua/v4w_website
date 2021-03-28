@@ -124,19 +124,11 @@ def verify_permissions(type, url, lang=DEFAULT_LANGUAGE_CODE):
     token_type = TokenTypes.query.filter_by(type=type).one_or_none()
     if not token_type:
         return False
-        #return api_response(code=1, lang=lang)
-        # return abort(403,
-        #              error="Not supported token type",
-        #              message="Il tipo di token non è stato trovato nel databse"
-        #              )
+
     api = extract_api_from_url(url)
     if api not in token_type.permissions:
         return False
-        #return api_response(code=2, lang=lang)
-        # return abort(403,
-        #              error="Access denied",
-        #              message="Non hai il permesso per accedere a questa api"
-        #              )
+
     else:
         return True
 
@@ -155,10 +147,6 @@ def permission_required(fn):
             return fn(*args, **kwargs)
         else:
             return api_response(code=2)
-            # return abort(403,
-            #              error="Access denied",
-            #              message="Non hai il permesso per accedere a questa api"
-            #              )
     return wrapper
 
 
@@ -181,7 +169,7 @@ def create_url_from_inputs(args):
                 '&' + mode_key + '=' + 'on'
     return final_url
 
-class GetAddressAPI(Resource):
+class getAddress(Resource):
     """
     API to retrieve coordinates from an address
     """
@@ -191,7 +179,7 @@ class GetAddressAPI(Resource):
         self.reqparse.add_argument('address', type=str, required=True,
                                    help="No address provided")
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(GetAddressAPI, self).__init__()
+        super(getAddress, self).__init__()
 
     @permission_required
     def get(self):
@@ -209,9 +197,6 @@ class GetAddressAPI(Resource):
             result_dict = find_address_in_db(address)
         except Exception:
             return api_response(code=10, lang=lang)
-            # abort(404,
-            #       error="Address not in the database",
-            #       message=f"L'indirizzo {address} non è stato trovato nel database")
         if len(result_dict) > 1:
             return api_response(code=11, lang=lang)
         data = {'address': result_dict[0]['nome'],
@@ -324,6 +309,7 @@ class getMultiplePaths(Resource):
             is_coord, start_coords = check_if_is_already_a_coordinate(start_point)
             if not is_coord:
                 return api_response(code=20, lang=lang)
-            all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords, speed=args['speed'])
+            all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords,
+                    speed=args['speed'])
 
         return api_response(data=all_length_time)
