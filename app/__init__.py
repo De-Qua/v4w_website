@@ -20,6 +20,11 @@ from flask_jwt_extended import JWTManager
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
+folder = os.getcwd()
+folder_db = os.path.join(folder,"app","static","files")
+path_graph_street = os.path.join(folder_db,"dequa_ve_terra_v13_1711.gt")
+path_graph_water = os.path.join(folder_db,"dequa_ve_acqua_v7_1609.gt")
+
 #
 # Create Flask app
 #
@@ -38,6 +43,24 @@ __version__ = getCurrentVersion()
 #
 email = Mail(app)
 
+#
+# Graph setup
+#
+from app.src.libpy import lib_graph_tool as lgt
+from app.src.libpy import lib_weights as lw
+
+graph_street, graph_water = lgt.load_graphs(path_graph_street, path_graph_water)
+# Add graphs info as attributes of the app
+app.graphs = {
+    'street': {
+        'graph': graph_street,
+        'all_vertices': lgt.get_all_coordinates(graph_street),
+    },
+    'water': {
+        'graph': graph_water,
+        'all_vertices': lgt.get_all_coordinates(graph_water),
+    }
+}
 
 #
 # Model setup
@@ -151,6 +174,7 @@ from app import api
 api_rest.add_resource(api.getAddress, '/address')
 api_rest.add_resource(api.getPath, '/path')
 api_rest.add_resource(api.getMultiplePaths, '/multi_path')
+api_rest.add_resource(api.getPathStreetInfo, '/gt_path')
 
 #
 # Flask JWT extended

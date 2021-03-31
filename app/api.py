@@ -7,6 +7,7 @@ from flask_restful import Resource, reqparse, abort
 from flask_jwt_extended import (
         jwt_required, get_raw_jwt, verify_jwt_in_request, get_jwt_claims
 )
+from flask import current_app
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
@@ -20,8 +21,15 @@ from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, Er
 
 from app import custom_errors
 
+from app.src.libpy import lib_graph_tool as lgt
+from app.src.libpy import lib_weights as lw
+from app.src.interface import get_current_tide_level
+
+import traceback
+
 DEFAULT_LANGUAGE_CODE = 'en'
 GENERIC_ERROR_CODE = -1
+
 
 def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
     response = {
@@ -52,6 +60,7 @@ def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
             response['ResponseMessage'] += f" - {message}"
         response['ResponseData'] = data
         return response
+
 
 def set_default_request_variables():
     """
@@ -168,6 +177,7 @@ def create_url_from_inputs(args):
                 '&' + end_key + '=' + quote(end_point) + \
                 '&' + mode_key + '=' + 'on'
     return final_url
+
 
 class getAddress(Resource):
     """
@@ -313,3 +323,115 @@ class getMultiplePaths(Resource):
                     speed=args['speed'])
 
         return api_response(data=all_length_time)
+
+
+class getPathStreetInfo(Resource):
+    """
+    Api to retrieve the time and the length of the shortest path
+    between two coordinates
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('start', type=str, required=True,
+                                   help="No starting point provided")
+        self.reqparse.add_argument('end', type=str, required=True,
+                                   help="No ending point provided")
+        self.reqparse.add_argument('stop', type=str, required=False,
+                                   action="append")
+        self.reqparse.add_argument('speed', type=float, default=5)
+        self.reqparse.add_argument('mode', type=str, default="foot")
+        self.reqparse.add_argument('tide', type=int, default=None)
+        self.reqparse.add_argument('waterbus', type=bool, default=False)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getPathStreetInfo, self).__init__()
+
+    @permission_required
+    def get(self):
+        update_api_counter()
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=21, message=msg)
+        lang = args['language']
+        # validate the coordinates
+        is_coord, start_coords = check_if_is_already_a_coordinate(args['start'])
+        if not is_coord:
+            return api_response(code=20, lang=lang)
+        is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
+        if not is_coord:
+            return api_response(code=20, lang=lang)
+        if args['stop']:
+            are_coords, stop_coords = [check_if_is_already_a_coordinate(c) for c in args['stop']]
+            if not all(are_coords):
+                return api_response(code=20, lang=lang)
+        else:
+            stop_coords = None
+        # Define the weight that we will use
+        if args['mode'] == 'bridge':
+            weight = lw.get_weight_bridges(
+                        graph=current_app.graphs['street']['graph'],
+                        speed=args['speed'])
+        elif args['mode'] == 'tide':
+            if not args['tide']:
+                args['tide'] = get_current_tide_level()
+            weight = lw.get_weight_tide(
+                        graph=current_app.graphs['street']['graph'],
+                        tide_level=args['tide'],
+                        speed=args['speed'])
+        else:  # default is foot
+            weight = lw.get_weight_time(
+                        graph=current_app.graphs['street']['graph'],
+                        speed=5)
+        # check the format, maybe we can change it with just a try/except
+        try:
+            v_list, e_list = lgt.calculate_path(
+                        graph=current_app.graphs['street']['graph'],
+                        coords_start=[start_coords],
+                        coords_end=[end_coords],
+                        coords_stop=stop_coords,
+                        weight=weight,
+                        all_vertices=current_app.graphs['street']['all_vertices']
+                        )
+            info = lgt.retrieve_info_from_path_streets(
+                        graph=current_app.graphs['street']['graph'],
+                        paths_vertices=v_list,
+                        paths_edges=e_list
+                        )
+            return api_response(data=info)
+        except Exception:
+            traceback.print_exc()
+            return api_response(code=12, lang=lang)
+
+
+class getCurrentTide(Resource):
+    """
+    Api to retrieve the time and the length of the shortest path
+    between two coordinates
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getCurrentTide, self).__init__()
+
+    @permission_required
+    def get(self):
+        update_api_counter()
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=21, message=msg)
+        lang = args['language']
+        # validate the coordinates
+        try:
+            tide = get_current_tide_level()
+            return api_response(data={'tide': tide})
+        except Exception:
+            return api_response(code=12, lang=lang)

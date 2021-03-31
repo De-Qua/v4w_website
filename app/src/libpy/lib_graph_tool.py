@@ -264,7 +264,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
             # Calculate number of bridges
             is_bridge.append(graph.ep['ponte'][e])
             # append geometries
-            geometries.append(graph.ep['geometry'][e])
+            # geometries.append(graph.ep['geometry'][e])
             # append maximum tide level
             max_tides.append(graph.ep['max_tide'][e])
             # append accessibility
