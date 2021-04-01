@@ -9,6 +9,10 @@ import pdb
 import re
 from flask import g
 
+def format_path_data(e_list, v_list):
+    """#### TODO"""
+    return {'e_list':e_list, 'v_list':v_list}
+
 def prepare_our_message_to_javascript(mode, strings_input, dict_of_start_locations_candidates, params_research, estimated_path=[{"shape_list":"no_path", "tipo":-1}], dict_of_end_locations_candidates="no_end", start_type='unique', end_type='unique'):
     """
     It creates the standard message with geographical informations that leaflet expects for the communication.

@@ -2,33 +2,27 @@ import pdb
 from urllib.parse import urlparse, quote
 from functools import wraps
 
-from flask import request
-from flask_restful import Resource, reqparse, abort
+## FLASK IMPORTS
+from flask import request, current_app
+from flask_restful import Resource, reqparse
 from flask_jwt_extended import (
-        jwt_required, get_raw_jwt, verify_jwt_in_request, get_jwt_claims
+        get_raw_jwt, verify_jwt_in_request, get_jwt_claims
 )
-from flask import current_app
 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
-
-from app import app, db
+# INTERNAL IMPORTS
+from app import db
 from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate
 from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
-
 from app.models import Tokens, TokenApiCounters, Apis, TokenTypes, Languages, ErrorCodes, ErrorTranslations
-
 from app import custom_errors
-
 from app.src.libpy import lib_graph_tool as lgt
 from app.src.libpy import lib_weights as lw
-from app.src.interface import get_current_tide_level
-
+from app.src.interface_API import get_current_tide_level
 import traceback
 
-DEFAULT_LANGUAGE_CODE = 'en'
-GENERIC_ERROR_CODE = -1
+# ERROR_CODES
+from app.src.api.constants import *
 
 
 def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
@@ -155,7 +149,7 @@ def permission_required(fn):
         if verify_permissions(claims['type'], api_path):
             return fn(*args, **kwargs)
         else:
-            return api_response(code=2)
+            return api_response(code=NO_PERMISSION)
     return wrapper
 
 
@@ -200,15 +194,15 @@ class getAddress(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=21, message=msg)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         address = args['address']
         lang = args['language']
         try:
             result_dict = find_address_in_db(address)
         except Exception:
-            return api_response(code=10, lang=lang)
+            return api_response(code=RETURNED_EXCEPTION, lang=lang)
         if len(result_dict) > 1:
-            return api_response(code=11, lang=lang)
+            return api_response(code=UNCLEAR_SEARCH, lang=lang)
         data = {'address': result_dict[0]['nome'],
                 'longitude': result_dict[0]['coordinate'][0],
                 'latitude': result_dict[0]['coordinate'][1]
@@ -242,12 +236,12 @@ class getPath(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=21, message=msg)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         lang = args['language']
         is_coordinate_start, coords_start = check_if_is_already_a_coordinate(args['start'])
         is_coordinate_end, coords_end = check_if_is_already_a_coordinate(args['end'])
         if not is_coordinate_start or not is_coordinate_end:
-            api_response(code=20, lang=lang)
+            api_response(code=MISSING_PARAMETER, lang=lang)
         default_params = set_default_request_variables()
         user_params = {
             'da': args['start'],
@@ -267,9 +261,9 @@ class getPath(Resource):
                 'time': -1,
                 'url': dequa_url
             }
-            return api_response(code=12, data=data, lang=lang)
+            return api_response(code=NOT_FOUND, data=data, lang=lang)
         except Exception as e:
-            return api_response(code=12, lang=lang)
+            return api_response(code=NOT_FOUND, lang=lang)
         dequa_url = create_url_from_inputs(args)
         data = {
             'length': path['path']['lunghezza'],
@@ -308,17 +302,17 @@ class getMultiplePaths(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=21, message=msg)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         lang = args['language']
         is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
         if not is_coord:
-            return api_response(code=20, lang=lang)
+            return api_response(code=MISSING_PARAMETER, lang=lang)
         # default_params = set_default_request_variables()
         all_length_time = {}
         for start_point in args['start']:
             is_coord, start_coords = check_if_is_already_a_coordinate(start_point)
             if not is_coord:
-                return api_response(code=20, lang=lang)
+                return api_response(code=MISSING_PARAMETER, lang=lang)
             all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords,
                     speed=args['speed'])
 
@@ -355,19 +349,19 @@ class getPathStreetInfo(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=21, message=msg)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         lang = args['language']
         # validate the coordinates
         is_coord, start_coords = check_if_is_already_a_coordinate(args['start'])
         if not is_coord:
-            return api_response(code=20, lang=lang)
+            return api_response(code=MISSING_PARAMETER, lang=lang)
         is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
         if not is_coord:
-            return api_response(code=20, lang=lang)
+            return api_response(code=MISSING_PARAMETER, lang=lang)
         if args['stop']:
             are_coords, stop_coords = [check_if_is_already_a_coordinate(c) for c in args['stop']]
             if not all(are_coords):
-                return api_response(code=20, lang=lang)
+                return api_response(code=MISSING_PARAMETER, lang=lang)
         else:
             stop_coords = None
         # Define the weight that we will use
@@ -404,7 +398,7 @@ class getPathStreetInfo(Resource):
             return api_response(data=info)
         except Exception:
             traceback.print_exc()
-            return api_response(code=12, lang=lang)
+            return api_response(code=NOT_FOUND, lang=lang)
 
 
 class getCurrentTide(Resource):
@@ -427,11 +421,11 @@ class getCurrentTide(Resource):
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
-            return api_response(code=21, message=msg)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         lang = args['language']
         # validate the coordinates
         try:
             tide = get_current_tide_level()
             return api_response(data={'tide': tide})
         except Exception:
-            return api_response(code=12, lang=lang)
+            return api_response(code=NOT_FOUND, lang=lang)

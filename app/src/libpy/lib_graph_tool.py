@@ -146,8 +146,7 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=[], weight=None):
 
 def calculate_path(graph, coords_start, coords_end, coords_stop=None,
                    weight=None, all_vertices=np.ndarray(0)):
-    """Calculate the shortest path between two coordinates
-    """
+    """Calculate the shortest path between two coordinates."""
     # if all_vertices.size == 0:
     #     all_vertices = get_all_coordinates(graph)
 
@@ -178,8 +177,7 @@ def get_distance(graph, vertex_start, vertices_end, weight):
 
 
 def calculate_distance(graph, coords_start, coords_end, weight, all_vertices=np.ndarray(0)):
-    """Calculate the shortest path between two coordinates
-    """
+    """Calculate the distance between two coordinates."""
     if all_vertices.size == 0:
         all_vertices = get_all_coordinates(graph)
 
@@ -196,8 +194,7 @@ def calculate_distance(graph, coords_start, coords_end, weight, all_vertices=np.
 
 
 def reorder_vertices_for_salesman(graph, vertex_start, vertices_stops, vertex_end=None, weight=None):
-    """Reorder the coordinates to optimize the travelling salesman problem.
-    """
+    """Reorder the coordinates to optimize the travelling salesman problem."""
 
     if not vertex_start or not vertices_stops:
         logger.error("You must give exactly one start and at least one stop coordinate")

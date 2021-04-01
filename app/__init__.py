@@ -175,6 +175,7 @@ api_rest.add_resource(api.getAddress, '/address')
 api_rest.add_resource(api.getPath, '/path')
 api_rest.add_resource(api.getMultiplePaths, '/multi_path')
 api_rest.add_resource(api.getPathStreetInfo, '/gt_path')
+api_rest.add_resource(api.getCurrentTide, '/tide')
 
 #
 # Flask JWT extended

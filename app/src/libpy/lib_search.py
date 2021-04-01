@@ -287,7 +287,7 @@ def give_me_the_dictionary(input_string, coords):
     else:
         isACoordinate, coordinate_current_position = check_if_is_already_a_coordinate(input_string)
         if isACoordinate:
-            app.logger.debug("Abbiamo ricevuto la coordianta! Nient'altro da fare a parte fingere di aver cercato!")
+            app.logger.debug("Abbiamo ricevuto la coordinata! Nient'altro da fare a parte fingere di aver cercato!")
             out_dict = create_fake_dict_because_we_already_have_the_coordinates('Coordinate inserite', coordinate_current_position)
             app.logger.debug("Il dizionario fake è {}".format(dict))
         else:
