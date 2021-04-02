@@ -48,9 +48,11 @@ class getPathStreet(Resource):
         self.reqparse.add_argument('stop', type=str, required=False,
                                    action="append", default=None)
         self.reqparse.add_argument('speed', type=float, default=5)
-        self.reqparse.add_argument('mode', type=str,
-                                   choices=["walk", "bridge", "tide"],
-                                   default="walk")
+        # self.reqparse.add_argument('mode', type=str,
+        #                            choices=["walk", "bridge", "tide"],
+        #                            default="walk")
+        self.reqparse.add_argument('avoid_bridges', type=bool, default=False)
+        self.reqparse.add_argument('avoid_tide', type=bool, default=False)
         self.reqparse.add_argument('tide', type=int, default=None)
         self.reqparse.add_argument('waterbus', type=bool, default=False)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
@@ -71,16 +73,17 @@ class getPathStreet(Resource):
         except CoordinatesError:
             return api_response(code=MISSING_PARAMETER, lang=lang)
         # Define the weight that we will use
-        if args['mode'] == 'bridge':
-            weight = lw.get_weight_bridges(
-                        graph=current_app.graphs['street']['graph'],
-                        speed=args['speed'])
-        elif args['mode'] == 'tide':
+        if args['avoid_tide']:
             if not args['tide']:
                 args['tide'] = get_current_tide_level()
             weight = lw.get_weight_tide(
                         graph=current_app.graphs['street']['graph'],
                         tide_level=args['tide'],
+                        speed=args['speed'],
+                        use_weight_bridges=args['avoid_bridges'])
+        elif args['avoid_bridges']:
+            weight = lw.get_weight_bridges(
+                        graph=current_app.graphs['street']['graph'],
                         speed=args['speed'])
         else:  # default is walk
             weight = lw.get_weight_time(

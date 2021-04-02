@@ -14,7 +14,7 @@ from app.models import (
         Tokens, TokenApiCounters, Apis, TokenTypes,
         Languages, ErrorCodes, ErrorTranslations
 )
-from app import db
+from app import app, db
 
 # ERROR_CODES
 from app.src.api.constants import (
@@ -141,6 +141,7 @@ def update_api_token_counter(token, url):
     api = extract_api_from_url(url)
 
     if not token or not api:
+        app.logger.warning("No token or No api")
         return None
 
     counter = TokenApiCounters.query.filter_by(token=token, api=api).one_or_none()

@@ -42,6 +42,30 @@ import numpy as np
 import datetime
 
 
+def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
+boat_speed=5, starting_hour=None):
+    """
+    Helper function to get the correct weight base on the requested mode and the other variables.
+    Available modes:
+        walk:   get_weight_time()
+        bridge: get_weight_bridges()
+        tide:   get_weight_tide()
+    """
+    if mode == 'walk':
+        if avoid_tide:
+            return get_weight_tide(graph=graph, tide_level=tide_level,
+                                boots_height=boots_height, speed=speed,
+                                use_weight_bridges=avoid_bridges)
+        elif avoid_bridges:
+            return get_weight_bridges(graph=graph, speed=speed)
+        else:
+            return get_weight_time(graph=graph, speed=speed)
+    elif mode == 'boat':
+        return get_weight_motorboat(graph=graph, boat_speed=boat_speed, starting_hour=starting_hour)
+    else:
+        raise ValueError(f"Mode {mode} not implemented")
+
+
 def get_weight_length(graph):
     """Returns a graph edge property that can be used in searching the shortest
     path.

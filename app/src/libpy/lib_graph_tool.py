@@ -38,12 +38,17 @@ import time
 import logging
 from itertools import groupby
 
+from flask import current_app
+
 import numpy as np
 
 import graph_tool.all as gt
 
-logger = logging.getLogger('lib_graph')
-logger.setLevel(logging.DEBUG)
+if current_app:
+    logger = current_app.logger
+else:
+    logger = logging.getLogger('lib_graph')
+    logger.setLevel(logging.DEBUG)
 
 def load_graphs(path_gt_street, path_gt_water):
     """Loads two graph-tool graphs, one for the street and one for the water"""
@@ -219,7 +224,7 @@ def length_of_edges(graph, edge_list):
     return sum([graph.ep['length'][e] for e in edge_list])
 
 
-def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges):
+def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, **kwargs):
     """Retrieve useful informations from the output of a path of streets (list
     of list of vertices and edges). The length of the two lists corresponds to
     the number of paths, i.e. if there are no stops betweem the start and the
