@@ -5,7 +5,7 @@ Avere una struttura fissa e ben definita penso sia utile se poi le API sono usat
 """
 # non importiamo lib_graph // questa libreria deve usare solo graph_tool
 # se no ha poco senso avere il nuovo file, era per aiutare nel cambio
-
+import re
 # CODICI DI ERRORE
 from app.src.api.constants import *
 # PARAMETERS (like the graph)
@@ -13,7 +13,54 @@ import app.site_parameters as site_params
 # lib graph tool / la giusta
 from app.src.libpy import lib_graph_tool as lgt
 # communication for formatting
-from app.src.libpy.libcommunication import format_path_data
+#from app.src.libpy.libcommunication import format_path_data
+# errors
+from app import errors
+
+
+def check_format_coordinates(*args):
+    """Check if input strings are coordinates in the format "longitude,latitude".
+    The function automatically inverts the coordinates if the latitude is greater
+    than the longitude (and therefore they don't belong to Venice). If one of
+    the input is not in the correct format it will raise a CoordinatesError.
+
+    :param *str or *list(str): Input strings in the format "12.339041,45.434268".
+    :return: For each input returns a list with the coordinates in the correct format
+
+    """
+    all_coordinates = []
+    for list_coords in args:
+        if type(list_coords) is not list:
+            list_coords = [list_coords]
+        correct_coordinates = []
+        for coord in list_coords:
+            # match all the float numbers
+            pattern_coordinates = re.compile('(\d+\.\d+)\s?,\s?(\d+\.\d+)')
+            match_coords = pattern_coordinates.match(coord)
+            try:
+                lon = float(match_coords.group(1))
+                lat = float(match_coords.group(2))
+            except IndexError:
+                raise errors.CoordinatesError(f'You must give exactly two coordinates')
+            except AttributeError:
+                raise errors.CoordinatesError(f'Input coordinates "{coord}" do not match the example format "12.339041,45.434268"')
+
+            coordinates = [lon, lat]
+            # gestiamo il caso inverso, visto che nessuno sa l'ordine
+            if lat < lon:
+                coordinates.reverse()
+            correct_coordinates.append(coordinates)
+
+        if len(correct_coordinates) == 1:
+            all_coordinates.append(correct_coordinates[0])
+        else:
+            all_coordinates.append(correct_coordinates)
+
+    if len(all_coordinates) == 1:
+        return all_coordinates[0]
+    else:
+        return all_coordinates
+
 
 def find_shortest_path_from_coordinates(params_research):
     """

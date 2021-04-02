@@ -169,12 +169,12 @@ admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visu
 #
 api_rest = Api(app, prefix='/api')
 
-from app import api
+from app.src.api import api
 
 api_rest.add_resource(api.getAddress, '/address')
 api_rest.add_resource(api.getPath, '/path')
 api_rest.add_resource(api.getMultiplePaths, '/multi_path')
-api_rest.add_resource(api.getPathStreetInfo, '/gt_path')
+api_rest.add_resource(api.getPathStreet, '/gt_path')
 api_rest.add_resource(api.getCurrentTide, '/tide')
 
 #
@@ -183,7 +183,7 @@ api_rest.add_resource(api.getCurrentTide, '/tide')
 jwt = JWTManager(app)
 
 from app.token_helper import is_token_revoked
-from app.api import api_response
+from app.src.api.utils import api_response
 # Define our callback function to check if a token has been revoked or not
 @jwt.token_in_blacklist_loader
 def check_if_token_revoked(decoded_token):

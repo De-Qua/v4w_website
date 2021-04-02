@@ -9,3 +9,8 @@ def not_found_error(error):
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('500.html'), 500
+
+
+class CoordinatesError(ValueError):
+    """Error to catch strings that don't match the coordinates format."""
+    pass

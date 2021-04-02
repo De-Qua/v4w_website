@@ -17,16 +17,122 @@ from app.src.interface_API import get_current_tide_level
 import traceback
 
 # ERROR_CODES
-from app.src.api.constants import *
-
+from app.src.api.constants import (
+    DEFAULT_LANGUAGE_CODE,
+    UNKNOWN_EXCEPTION, MISSING_PARAMETER, NOT_FOUND, RETURNED_EXCEPTION,
+    UNCLEAR_SEARCH
+)
+from app.errors import CoordinatesError
 # UTILS
 from app.src.api.utils import (
-    api_response,
+    api_response, parse_args,
     permission_required, update_api_counter
 )
 # Utils for networkx graph
-from app.src.utils import create_url_from_inputs, set_default_request_variables
+from app.src.api.utils import create_url_from_inputs, set_default_request_variables
+# Interface for the api
+from app.src.interface_API import check_format_coordinates
 
+class getPathStreet(Resource):
+    """
+    Api to retrieve the time and the length of the shortest path
+    between two coordinates
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('start', type=str, required=True,
+                                   help="No starting point provided")
+        self.reqparse.add_argument('end', type=str, required=True,
+                                   help="No ending point provided")
+        self.reqparse.add_argument('stop', type=str, required=False,
+                                   action="append", default=None)
+        self.reqparse.add_argument('speed', type=float, default=5)
+        self.reqparse.add_argument('mode', type=str,
+                                   choices=["walk", "bridge", "tide"],
+                                   default="walk")
+        self.reqparse.add_argument('tide', type=int, default=None)
+        self.reqparse.add_argument('waterbus', type=bool, default=False)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getPathStreet, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        args = parse_args(self.reqparse)
+        lang = args['language']
+        # validate the coordinates
+        try:
+            start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
+            if args['stop']:
+                stop_coords = check_format_coordinates(args['stop'])
+            else:
+                stop_coords = None
+        except CoordinatesError:
+            return api_response(code=MISSING_PARAMETER, lang=lang)
+        # Define the weight that we will use
+        if args['mode'] == 'bridge':
+            weight = lw.get_weight_bridges(
+                        graph=current_app.graphs['street']['graph'],
+                        speed=args['speed'])
+        elif args['mode'] == 'tide':
+            if not args['tide']:
+                args['tide'] = get_current_tide_level()
+            weight = lw.get_weight_tide(
+                        graph=current_app.graphs['street']['graph'],
+                        tide_level=args['tide'],
+                        speed=args['speed'])
+        else:  # default is walk
+            weight = lw.get_weight_time(
+                        graph=current_app.graphs['street']['graph'],
+                        speed=5)
+        # check the format, maybe we can change it with just a try/except
+        try:
+            v_list, e_list = lgt.calculate_path(
+                        graph=current_app.graphs['street']['graph'],
+                        coords_start=[start_coords],
+                        coords_end=[end_coords],
+                        coords_stop=stop_coords,
+                        weight=weight,
+                        all_vertices=current_app.graphs['street']['all_vertices']
+                        )
+
+            info = lgt.retrieve_info_from_path_streets(
+                        graph=current_app.graphs['street']['graph'],
+                        paths_vertices=v_list,
+                        paths_edges=e_list
+                        )
+            return api_response(data=info)
+        except Exception:
+            traceback.print_exc()
+            return api_response(code=NOT_FOUND, lang=lang)
+
+
+class getCurrentTide(Resource):
+    """
+    Api to retrieve the time and the length of the shortest path
+    between two coordinates
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getCurrentTide, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        args = parse_args(self.reqparse)
+        lang = args['language']
+        # validate the coordinates
+        try:
+            tide = get_current_tide_level()
+            return api_response(data={'tide': tide})
+        except Exception:
+            return api_response(code=NOT_FOUND, lang=lang)
+
+
+# OLD API
 
 class getAddress(Resource):
     """
@@ -172,115 +278,3 @@ class getMultiplePaths(Resource):
                     speed=args['speed'])
 
         return api_response(data=all_length_time)
-
-
-class getPathStreetInfo(Resource):
-    """
-    Api to retrieve the time and the length of the shortest path
-    between two coordinates
-    """
-
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('start', type=str, required=True,
-                                   help="No starting point provided")
-        self.reqparse.add_argument('end', type=str, required=True,
-                                   help="No ending point provided")
-        self.reqparse.add_argument('stop', type=str, required=False,
-                                   action="append")
-        self.reqparse.add_argument('speed', type=float, default=5)
-        self.reqparse.add_argument('mode', type=str, default="foot")
-        self.reqparse.add_argument('tide', type=int, default=None)
-        self.reqparse.add_argument('waterbus', type=bool, default=False)
-        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(getPathStreetInfo, self).__init__()
-
-    @permission_required
-    @update_api_counter
-    def get(self):
-        try:
-            args = self.reqparse.parse_args()
-        except Exception as e:
-            err_msg = e.data['message']
-            all_err = [err_msg[argument] for argument in err_msg.keys()]
-            msg = '. '.join(all_err)
-            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
-        lang = args['language']
-        # validate the coordinates
-        is_coord, start_coords = check_if_is_already_a_coordinate(args['start'])
-        if not is_coord:
-            return api_response(code=MISSING_PARAMETER, lang=lang)
-        is_coord, end_coords = check_if_is_already_a_coordinate(args['end'])
-        if not is_coord:
-            return api_response(code=MISSING_PARAMETER, lang=lang)
-        if args['stop']:
-            are_coords, stop_coords = [check_if_is_already_a_coordinate(c) for c in args['stop']]
-            if not all(are_coords):
-                return api_response(code=MISSING_PARAMETER, lang=lang)
-        else:
-            stop_coords = None
-        # Define the weight that we will use
-        if args['mode'] == 'bridge':
-            weight = lw.get_weight_bridges(
-                        graph=current_app.graphs['street']['graph'],
-                        speed=args['speed'])
-        elif args['mode'] == 'tide':
-            if not args['tide']:
-                args['tide'] = get_current_tide_level()
-            weight = lw.get_weight_tide(
-                        graph=current_app.graphs['street']['graph'],
-                        tide_level=args['tide'],
-                        speed=args['speed'])
-        else:  # default is foot
-            weight = lw.get_weight_time(
-                        graph=current_app.graphs['street']['graph'],
-                        speed=5)
-        # check the format, maybe we can change it with just a try/except
-        try:
-            v_list, e_list = lgt.calculate_path(
-                        graph=current_app.graphs['street']['graph'],
-                        coords_start=[start_coords],
-                        coords_end=[end_coords],
-                        coords_stop=stop_coords,
-                        weight=weight,
-                        all_vertices=current_app.graphs['street']['all_vertices']
-                        )
-            info = lgt.retrieve_info_from_path_streets(
-                        graph=current_app.graphs['street']['graph'],
-                        paths_vertices=v_list,
-                        paths_edges=e_list
-                        )
-            return api_response(data=info)
-        except Exception:
-            traceback.print_exc()
-            return api_response(code=NOT_FOUND, lang=lang)
-
-
-class getCurrentTide(Resource):
-    """
-    Api to retrieve the time and the length of the shortest path
-    between two coordinates
-    """
-
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(getCurrentTide, self).__init__()
-
-    @permission_required
-    @update_api_counter
-    def get(self):
-        try:
-            args = self.reqparse.parse_args()
-        except Exception as e:
-            err_msg = e.data['message']
-            all_err = [err_msg[argument] for argument in err_msg.keys()]
-            msg = '. '.join(all_err)
-            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
-        lang = args['language']
-        # validate the coordinates
-        try:
-            tide = get_current_tide_level()
-            return api_response(data={'tide': tide})
-        except Exception:
-            return api_response(code=NOT_FOUND, lang=lang)

@@ -2,6 +2,7 @@
 Just the constants for the API, languages, error codes and so on.
 """
 DEFAULT_LANGUAGE_CODE = 'en'
+
 GENERIC_ERROR_CODE = -1
 ALL_GOOD = 0
 # 0-9 PERMISSIONS

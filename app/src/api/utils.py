@@ -1,3 +1,4 @@
+import pdb
 from urllib.parse import urlparse, quote
 from functools import wraps
 
@@ -16,10 +17,13 @@ from app.models import (
 from app import db
 
 # ERROR_CODES
-from app.src.api.constants import *
+from app.src.api.constants import (
+    DEFAULT_LANGUAGE_CODE,
+    GENERIC_ERROR_CODE, NO_PERMISSION
+)
 
 
-def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
+def api_response(code=0, data={}, message='', lang=DEFAULT_LANGUAGE_CODE):
     """
     Format the response of the api in a standardize way
     """
@@ -34,7 +38,9 @@ def api_response(code=0, data={}, message= '', lang=DEFAULT_LANGUAGE_CODE):
     else:
         default_language = Languages.query.filter_by(code=DEFAULT_LANGUAGE_CODE).one()
         default_error = ErrorCodes.query.filter_by(code=GENERIC_ERROR_CODE).one()
-        language = Languages.query.filter((Languages.code == lang.lower()) | (Languages.name == lang.lower())).one_or_none()
+        language = Languages.query.filter(
+            (Languages.code == lang.lower()) | (Languages.name == lang.lower())
+            ).one_or_none()
         if not language:
             language = default_language
         error = ErrorCodes.query.filter_by(code=code).one_or_none()
@@ -79,9 +85,27 @@ def update_api_counter(fn):
     def wrapper(*args, **kwargs):
         api_path = request.base_url
         token = extract_current_token()
-        return update_api_token_counter(token, api_path)
+        update_api_token_counter(token, api_path)
+        return fn(*args, **kwargs)
     return wrapper
 
+
+# API arguments
+def parse_args(reqparse):
+    """Function to parse the arguments of an api.
+
+    :param reqparse: reqparse object.
+    :return: dictionary with the arguments.
+
+    """
+    try:
+        args = reqparse.parse_args()
+        return args
+    except Exception as e:
+        err_msg = e.data['message']
+        all_err = [err_msg[argument] for argument in err_msg.keys()]
+        msg = '. '.join(all_err)
+        return api_response(code=UNKNOWN_EXCEPTION, message=msg)
 
 # Token
 
