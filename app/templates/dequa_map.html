@@ -257,7 +257,41 @@
 		        }
 		      });
 
-					var pathGroup = L.featureGroup([marker_start, marker_end, pathLines]);
+					var pathLines = L.geoJSON([],{
+		        filter: function(feature) {
+		          // draw only lines!
+		          return feature.geometry.type == "LineString";
+		        },
+		        style: function(feature) {
+							col = "#ffffff"
+							switch (feature.properties.street_type) {
+		            case 'canale': col = "#0000ff"; break;
+		            case 'ponte':  col = "#ffff00"; break;
+		            case 'calle':  col = "#ff0000"; break;
+		          }
+							switch (feature.properties.wet_warning) {
+								case 'wet': col = '#6de3f7'; break;
+								case 'under_water': col = '#0905ff'; break;
+								case 'passerelle': col = '#3d8a59'; break;
+							}
+							return {color: col}
+		        }
+		      });
+
+					var pathLinesGT = L.geoJSON([],{
+		        filter: function(feature) {
+		          // draw only lines!
+		          return feature.geometry.type == "LineString";
+		        },
+		        style: function(feature) {
+							col = "#000000";
+							fillOpa = .5;
+							opa = .5;
+							return {color: col, opacity: opa, fillOpacity: fillOpa}
+		        }
+		      });
+
+					var pathGroup = L.featureGroup([marker_start, marker_end, pathLines, pathLinesGT]);
 					// options for all markers
 					var marker_icon = L.icon({
 						iconUrl: '/static/img/icon_marker_50.png',
@@ -463,9 +497,14 @@
 												},
 								        success:function(response){
 							            dict_in_JS = response;
+													// console.log("Response: "+response);
 													initialize_html();
 								        },
-												error:function() {
+												error:function(jqxhr,textStatus,errorThrown) {
+													console.log("ERROR");
+													console.log(jqxhr);
+													console.log(textStatus);
+													console.log(errorThrown);
 													hidePreLoader();
 													$("#errorwindow-explanation").innerHTML = "C'è stato un errore con il server!";
 											    $("#errorwindow").show();

@@ -77,7 +77,7 @@ def check_format_coordinates(*args):
         return all_coordinates
 
 
-def find_shortest_path_from_coordinates(**params):
+def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     """
     Search for the shortest path from coordinates A to B.
     If A or B are not coordinates, gives back a warning and does not calculate anything.
@@ -93,10 +93,10 @@ def find_shortest_path_from_coordinates(**params):
     #     return {'code':INPUT_SHOULD_BE_COORDINATES, 'data':None}
 
     # check how the street should be calculated
-    if params['mode'] == 'walk':
+    if mode == 'walk':
         fn_shortest_path = gt_shortest_path_walk_wrapper
         fn_info_path = format_path_walk_data
-    elif params['mode'] == 'boat':
+    elif mode == 'boat':
         fn_shortest_path = gt_shortest_path_boat_wrapper
         fn_info_path = format_path_boat_data
     else:
@@ -104,7 +104,7 @@ def find_shortest_path_from_coordinates(**params):
 
     # get the edges and nodes
     try:
-        v_list, e_list = fn_shortest_path(params)
+        v_list, e_list = fn_shortest_path(start, end, **params)
         # and format for js
         info_dict = fn_info_path(v_list, e_list, params)
     except errors.NoPathFound:
@@ -123,8 +123,21 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
     It calculates the shortest path using a boat
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
-
-    raise NotImplementedError("The path by boat is not yet implemented")
+    graph = current_app.graphs['water']
+    # Define the weight that we will use
+    weight = lw.get_weight(graph=graph['graph'], mode='boat')
+    # get the path
+    v_list, e_list = lgt.calculate_path(
+                graph=graph['graph'],
+                coords_start=start,
+                coords_end=end,
+                coords_stop=stop,
+                weight=weight,
+                all_vertices=graph['all_vertices']
+                )
+    if not v_list:
+        raise errors.NoPathFound(f"No path found between {start} and {end}")
+    return v_list, e_list
 
 
 def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=False, avoid_tide=False, tide_level=None, boots_height=0, **kwargs):
@@ -142,7 +155,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
 
     # get the path
     v_list, e_list = lgt.calculate_path(
-                graph=graph,
+                graph=graph['graph'],
                 coords_start=start,
                 coords_end=end,
                 coords_stop=stop,
@@ -178,7 +191,8 @@ def format_path_boat_data(v_list, e_list, mode, **kwargs):
     Function to format the data of a path
     """
 
-    raise NotImplementedError("Retrieving info of path by boat is not yet implemented")
+    info = lgt.retrieve_info_from_path_water(graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+    return info
 
 
 def gt_shortest_path_wrapper(start, end, mode='WALKING'):

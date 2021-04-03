@@ -248,6 +248,7 @@ function initialize_html(){
       // var group = new L.featureGroup([marker_partenza, marker_arrivo]);
       //console.log("steets: " + streets);
       path_shapes = street.shape_list;
+      shapes_gt = dict_in_JS.gt.info[0].edges.geometry;
       //var linestrings = L.geoJSON(path_shapes, {'style':stile});
       // var linestrings = L.geoJSON(path_shapes, {
       //   filter: function(feature) {
@@ -263,6 +264,7 @@ function initialize_html(){
       //   }
       // }).addTo(mymap);
       addPathLines(path_shapes);
+      addPathLinesGT(shapes_gt);
       // linestrings.addTo(group);
       if (is_touch_device){
         mymap.fitBounds(pathGroup.getBounds(), {paddingTopLeft: [10, 200], paddingBottomRight: [20,10]});

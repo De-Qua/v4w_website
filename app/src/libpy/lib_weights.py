@@ -62,7 +62,7 @@ boat_speed=5, starting_hour=None):
         else:
             return get_weight_time(graph=graph, speed=speed)
     elif mode == 'boat':
-        return get_weight_motorboat(graph=graph, boat_speed=boat_speed, starting_hour=starting_hour)
+        return get_weight_motorboat(graph=graph, speed=boat_speed)
     else:
         raise ValueError(f"Mode {mode} not implemented")
 

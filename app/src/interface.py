@@ -26,6 +26,8 @@ from app import mail
 from flask import g
 import re
 
+from app.src import interface_API as iAPI
+
 FEEDBACK_FOLDER = 'feedback'
 
 def get_usage_data_from_server():
@@ -312,7 +314,7 @@ def create_first_dictionary():
     only_tide_level_dict = {"only_tide_level": tide_level}
     return only_tide_level_dict
 
-def find_what_needs_to_be_found(params_research):
+def find_what_needs_to_be_found(params_research, gt=False):
     """
     Take care of the whole research (many cases) calling smaller methods.
     """
@@ -364,18 +366,31 @@ def find_what_needs_to_be_found(params_research):
         else:
             app.logger.info("Andiamo a botta sicura! Abbiamo trovato quello che cercavamo e calcoliamo il percorso!")
             app.logger.info("ricerca percorso da {} a {}..".format(da, a))
+            gt_dict = {'data': {
+                'info': [
+                    {'edges': {
+                        'geometry': []
+                    }}
+                ]
+            }}
             if what_am_I_really_searching_for=='by_boat':
                 start_from_water, end_to_water = only_by_boat_or_also_by_walk([match_dict_da[0], match_dict_a[0]], params_research)
                 start_from_water = params_research["da"]=="La Mia Posizione"
                 end_to_water = params_research["a"]=="La Mia Posizione"
                 path_list_of_dictionaries = by_boat_path_calculator([match_dict_da[0], match_dict_a[0]], start_from_water, end_to_water, params_research["less_bridges"]=="on")
+                gt_start, gt_end = match_dict_da[0]['coordinate'], match_dict_a[0]['coordinate']
+                gt_dict = iAPI.find_shortest_path_from_coordinates(mode='boat', start=gt_start, end=gt_end)
 
             else: # cerchiamo per terra
 
                 path_list_of_dictionaries = by_foot_path_calculator([match_dict_da[0], match_dict_a[0]], params_research)
+                gt_start, gt_end = match_dict_da[0]['coordinate'], match_dict_a[0]['coordinate']
+                gt_dict = iAPI.find_shortest_path_from_coordinates(mode='walk', start=gt_start, end=gt_end)
+
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
+            final_dict['gt'] = gt_dict['data']
 
     return final_dict
 

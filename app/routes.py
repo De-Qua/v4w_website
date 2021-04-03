@@ -186,7 +186,8 @@ def asynch_navigation():
     try:
         arguments_GET_request = request.args
         params_research = interface.retrieve_parameters_from_GET(arguments_GET_request)
-        dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research)
+        dictionary_of_stuff_found = interface.find_what_needs_to_be_found(params_research, gt=True)
+        app.logger.debug(f"Dict:\n{dictionary_of_stuff_found}")
         return jsonify(dictionary_of_stuff_found)
     except Exception as e:
         interface.take_care_of_the_error(request,e,error_folder)

@@ -79,6 +79,11 @@ function addPathLines(lines) {
 	pathLines.addTo(mymap);
 }
 
+function addPathLinesGT(lines) {
+	pathLinesGT.addData(lines);
+	pathLinesGT.addTo(mymap);
+}
+
 function updateButtonsAfterResizeWindow(){
 	if (is_keyboard){
 		scale_button.remove();
