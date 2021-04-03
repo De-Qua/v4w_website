@@ -37,10 +37,12 @@ vel_max_mp     (edge)    (type: double)
 import time
 import logging
 from itertools import groupby
+import numpy as np
+
 
 from flask import current_app
 
-import numpy as np
+from shapely.geometry import mapping
 
 import graph_tool.all as gt
 
@@ -228,7 +230,7 @@ def length_of_edges(graph, edge_list):
     return sum([graph.ep['length'][e] for e in edge_list])
 
 
-def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, **kwargs):
+def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5, **kwargs):
     """Retrieve useful informations from the output of a path of streets (list
     of list of vertices and edges). The length of the two lists corresponds to
     the number of paths, i.e. if there are no stops betweem the start and the
@@ -256,6 +258,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, **kwargs
             'info': []}
     for idx, edges in enumerate(paths_edges):
         distances = []
+        times = []
         is_bridge = []
         geometries = []
         max_tides = []
@@ -267,10 +270,12 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, **kwargs
         for e in edges:
             # Calculate distance
             distances.append(graph.ep['length'][e])
+            # Calculate time
+            distances.append(graph.ep['length'][e]/speed)
             # Calculate number of bridges
             is_bridge.append(graph.ep['ponte'][e])
             # append geometries
-            # geometries.append(graph.ep['geometry'][e])
+            geometries.append(mapping(graph.ep['geometry'][e]))
             # append maximum tide level
             max_tides.append(graph.ep['max_tide'][e])
             # append accessibility
@@ -283,10 +288,12 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, **kwargs
             streets_id.append(graph.ep['street_id'][e])
 
         distance = sum(distances)
+        time = sum(times)
         num_bridges = _consecutive_one(is_bridge)
 
         info['info'].append({
             'distance': distance,
+            'time': time,
             'num_bridges': num_bridges,
             'num_edges': len(edges),
             'edges': {
