@@ -50,12 +50,16 @@ else:
     logger = logging.getLogger('lib_graph')
     logger.setLevel(logging.DEBUG)
 
-def load_graphs(path_gt_street, path_gt_water):
-    """Loads two graph-tool graphs, one for the street and one for the water"""
-    graph_street = gt.load_graph(path_gt_street)
-    graph_water = gt.load_graph(path_gt_water)
 
-    return graph_street, graph_water
+def load_graphs(*paths_gt_graphs):
+    """Loads graph-tool graphs, one for each input path"""
+    all_graphs = []
+    for path_gt in paths_gt_graphs:
+        all_graphs.append(gt.load_graph(path_gt))
+
+    if len(all_graphs) == 1:
+        all_graphs = all_graphs[0]
+    return all_graphs
 
 
 def get_all_coordinates(graph):

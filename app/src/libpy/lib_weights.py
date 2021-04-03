@@ -41,6 +41,7 @@ vel_max_mp     (edge)    (type: double)
 import numpy as np
 import datetime
 
+import graph_tool.all as gt
 
 def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
 boat_speed=5, starting_hour=None):
@@ -159,16 +160,48 @@ def get_weight_tide(graph, tide_level, high_tide_multiplier=10000,
 
     return weight_tide
 
+#
+# WEIGHTS FOR BOATS
+#
 
-def get_weight_motorboat(graph, boat_speed=5, starting_hour=None):
-    """ TBD: La funzione non è implementata. Bisogna controllare come fare per
-    i sensi unici """
-    # TODO: Utilizzare grafo directed per grafo acqueo
-    if starting_hour is None:
-        starting_hour = int(datetime.datetime.now().strftime("%H"))
-    length = get_weight_length(graph)
-    max_speed = graph.ep['vel_max'].a + 0  # trick to copy the array
-    speed = np.minimum(boat_speed, max_speed)
-    length.a /= speed
+def get_weight_rowboat(graph, speed=5):
+    """Returns a graph edge property that can be used in searching the shortest path in a water graph.
+    Weights correspond to the time of each edge (length/speed).
+    Since rowboat do not have any restriction all the canals are allowed, and the graph is considered undirected.
+    """
+    graph_row = gt.GraphView(graph, directed=False)
+    weight = get_weight_time(graph_row, speed)
 
-    return length
+    return weight
+
+
+def get_weight_motorboat(graph, speed=5, start_time=None, type="private", width=0, height=0, rio_blu_multiplier=1e6, dimension_multiplier=1e6):
+    """Returns a graph edge property that can be used in searching the shortest path in a water graph.
+    Weights correspond to the time of each edge (length/speed).
+    Speed is calculated as the minimum between the speed of the boat and the limit of the canals.
+    Boat type can be "private" (default) or "taxi". This will change the speed limit.
+    Rii blu are excluded (big multiplier to avoid problem if the path starts there).
+    Canals with a width (or height) greater than the width (or height) of the boat are excluded (big multiplier to avoid problem if the path starts there).
+    """
+    weight = get_weight_length(graph)
+
+    # speed limits
+    if type == "private":
+        speed = np.minimum(speed, graph.ep['vel_max'].a)
+    elif type == "taxi":
+        speed = np.minimum(speed, graph.ep['vel_max_mp'].a)
+    else:
+        speed = np.minimum(speed, graph.ep['vel_max'].a)
+
+    weight.a /= speed
+
+    # exclude rii blu (big multiplier to avoid problem if the path starts from there)
+    weight.a += graph.ep['solo_remi'].a * rio_blu_multiplier
+    # exclude small canals (big multiplier to avoid problem if the path starts from there)
+    can_width = graph.ep['larghezza'].a+0
+    can_width[can_width==0] = np.inf
+    weight.a[can_width < width] += dimension_multiplier
+    # exclude low canals (big multiplier to avoid problem if the path starts from there)
+    weight.a[graph.ep['altezza'].a < height] += dimension_multiplier
+
+    return weight
