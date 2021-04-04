@@ -248,7 +248,7 @@ function initialize_html(){
       // var group = new L.featureGroup([marker_partenza, marker_arrivo]);
       //console.log("steets: " + streets);
       path_shapes = street.shape_list;
-      shapes_gt = dict_in_JS.gt.info[0].edges.geometry;
+      shapes_gt = dict_in_JS.gt.info[0].edges;
       //var linestrings = L.geoJSON(path_shapes, {'style':stile});
       // var linestrings = L.geoJSON(path_shapes, {
       //   filter: function(feature) {

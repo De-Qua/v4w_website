@@ -387,6 +387,7 @@ function removePossibilitiesLayer(){
 
 function removePathLayer(){
 	pathLines.clearLayers();
+	pathLinesGT.clearLayers();
 	pathGroup.eachLayer(function(layer) {
 		mymap.removeLayer(layer);
 	});

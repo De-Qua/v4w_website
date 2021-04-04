@@ -257,40 +257,48 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
     """
     info = {'n_paths': len(paths_edges),
             'info': []}
-    for idx, edges in enumerate(paths_edges):
+    for edges in paths_edges:
         distances = []
         times = []
         is_bridge = []
-        geometries = []
-        max_tides = []
-        accessibility = []
-        walkways_zps = []
-        walkways_cm = []
-        streets_id = []
+        geojsons = []
 
         for e in edges:
-            # Calculate distance
-            distances.append(graph.ep['length'][e])
-            # Calculate time
-            distances.append(graph.ep['length'][e]/speed)
-            # Calculate number of bridges
-            is_bridge.append(graph.ep['ponte'][e])
+
+            edge_info = {
+                # Calculate distance
+                'distance': graph.ep['length'][e],
+                # Calculate time
+                'time': graph.ep['length'][e]/speed,
+                # Calculate number of bridges
+                'bridge': graph.ep['ponte'][e],
+                # append maximum tide level
+                'max_tide': graph.ep['max_tide'][e],
+                # append accessibility
+                'accessibility': graph.ep['accessible'][e],
+                # append walkways zps activation
+                'walkway_zps': graph.ep['pas_cm_zps'][e],
+                # append walkways height
+                'walkway_cm': graph.ep['pas_height'][e],
+                # append street id
+                'street_id': graph.ep['street_id'][e]
+            }
+            # correct for NaN values
+            for k, v in edge_info.items():
+                if np.isnan(v):
+                    edge_info[k] = None
             # append geometries
             geojson = {
                 "type": "Feature",
+                "properties": edge_info,
                 "geometry": mapping(graph.ep['geometry'][e])
             }
-            geometries.append(geojson)
-            # append maximum tide level
-            max_tides.append(graph.ep['max_tide'][e])
-            # append accessibility
-            accessibility.append(graph.ep['accessible'][e])
-            # append walkways zps activation
-            walkways_zps.append(graph.ep['pas_cm_zps'][e])
-            # append walkways height
-            walkways_cm.append(graph.ep['pas_height'][e])
-            # append street id
-            streets_id.append(graph.ep['street_id'][e])
+            geojsons.append(geojson)
+
+            # update distance, time and bridges
+            distances.append(edge_info['distance'])
+            times.append(edge_info['time'])
+            is_bridge.append(edge_info['bridge'])
 
         distance = sum(distances)
         time = sum(times)
@@ -301,16 +309,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
             'time': time,
             'num_bridges': num_bridges,
             'num_edges': len(edges),
-            'edges': {
-                'distances': distances,
-                'bridges': is_bridge,
-                'geometry': geometries,
-                'max_tides': max_tides,
-                'accessibility': accessibility,
-                'walkways_zps': walkways_zps,
-                'walkways_cm': walkways_cm,
-                'streets_id': streets_id
-            }
+            'edges': geojsons
         })
     return info
 
