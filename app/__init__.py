@@ -17,6 +17,7 @@ from flask_admin import Admin
 from flask_security import current_user
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
@@ -42,6 +43,11 @@ __version__ = getCurrentVersion()
 # Email setup
 #
 email = Mail(app)
+
+#
+# CORS setup
+#
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 #
 # Graph setup
