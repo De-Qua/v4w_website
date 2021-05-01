@@ -14,7 +14,7 @@ from fuzzywuzzy import fuzz, process
 import fuzzywuzzy
 from shapely.geometry import mapping
 from shapely.ops import transform
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 import re
 import geopy.distance
 import app.site_parameters as site_parameters
@@ -343,6 +343,28 @@ def check_if_is_already_a_coordinate(input_string):
     coordinates = [lon, lat]
     return are_coordinates, coordinates
 
+def suggest_address_from_db(input_string, max_n=5):
+    """
+    Wrapper functions that looks for address in the database with the input string as substring
+    """
+    # clean the string
+    clean_string = correct_name(input_string)
+    # divide number and text
+    text, number, _ = dividiEtImpera(clean_string)
+    # retrieve locations that match with number and text
+    suggestions = Location.query.filter(
+        Location.housenumber.isnot(None), Location.housenumber.startswith(number)
+        ).join(Neighborhood).join(Street).filter(or_(
+        Neighborhood.name.startswith(text),
+        Street.name.startswith(text))
+        ).order_by(
+        Neighborhood.name,
+        Location.housenumber
+        ).limit(max_n).all()
+
+    return suggestions
+
+
 def find_address_in_db(input_string):
     """
     Wrapper functions that looks for an address in the database.
@@ -509,8 +531,7 @@ Divide testo e numero e ritorna se effettivamente c'era un numero
 """
 def dividiEtImpera(clean_string):
 
-    # regular expressions
-    import re
+
     # format del civico:
     # 1. inizia con un numero (es. "2054 santa marta")
     # 2. finisce con un numero (es. "san polo 1424")

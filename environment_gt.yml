@@ -1,0 +1,29 @@
+name: gt-nx
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9.2
+  - graph-tool
+  - flask
+  - ipython
+  - networkx
+  - flask-sqlalchemy
+  - flask-restful
+  - flask-jwt-extended
+  - fuzzywuzzy
+  - flask-migrate
+  - flask-mail
+  - flask-security
+  - email-validator
+  - flask-admin
+  - shapely
+  - git
+  - gitpython
+  - python-dotenv
+  - geopy
+  - pandas
+  - pyjwt=1.6.1
+  - flask-cors
+  - pip:
+    - flask-shell-ipython

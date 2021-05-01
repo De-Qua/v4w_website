@@ -6,7 +6,7 @@ from flask import current_app
 
 
 # INTERNAL IMPORTS
-from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate
+from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate, suggest_address_from_db
 from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
@@ -135,6 +135,42 @@ class getCurrentTide(Resource):
             return api_response(code=NOT_FOUND, lang=lang)
 
 
+class getSuggestions(Resource):
+    """
+    API to retrieve names from the database
+    """
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, required=True,
+                                   help="No name provided")
+        self.reqparse.add_argument('max_num', type=int, default=5)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getSuggestions, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        name = args['name']
+        max_num = args['max_num']
+        try:
+            suggestions = suggest_address_from_db(name, max_num)
+        except Exception:
+            return api_response(code=RETURNED_EXCEPTION, lang=lang)
+        all_data = []
+        for suggestion in suggestions:
+            data = {'address': suggestion.__str__(),
+                    'longitude': suggestion.longitude,
+                    'latitude': suggestion.latitude
+                    }
+            all_data.append(data)
+        return api_response(data=all_data)
 # OLD API
 
 class getAddress(Resource):
