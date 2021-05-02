@@ -27,6 +27,8 @@ import app.site_parameters as site_params
 from app.src.libpy import lib_graph_tool as lgt
 # graph tool weights
 from app.src.libpy import lib_weights as lw
+# lib search
+from app.src.libpy import lib_search as ls
 # communication for formatting
 #from app.src.libpy.libcommunication import format_path_data
 # errors
@@ -227,3 +229,19 @@ def get_current_tide_level():
     tide_level = int(float(tide_level_value[:-2])*100) if tide_level_value else None
 
     return tide_level
+
+
+def get_suggestions(input, max_num=5):
+    """
+    Retrieve from the databases addresses that have a partial match with the input string.
+    """
+    suggestions = ls.suggest_address_from_db(input_string=input, max_n=max_num)
+
+    formatted_suggestions = [
+        {'address': s.__str__(),
+         'longitude': s.longitude,
+         'latitude': s.latitude
+         } for s in suggestions
+    ]
+
+    return formatted_suggestions

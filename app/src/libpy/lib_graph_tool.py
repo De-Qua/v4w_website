@@ -39,16 +39,18 @@ import logging
 from itertools import groupby
 import numpy as np
 
-
-from flask import current_app
-
 from shapely.geometry import mapping
 
 import graph_tool.all as gt
 
-if current_app:
-    logger = current_app.logger
-else:
+try:
+    from flask import current_app
+    if current_app:
+        logger = current_app.logger
+    else:
+        logger = logging.getLogger('lib_graph')
+        logger.setLevel(logging.DEBUG)
+except ModuleNotFoundError:
     logger = logging.getLogger('lib_graph')
     logger.setLevel(logging.DEBUG)
 

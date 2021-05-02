@@ -6,14 +6,14 @@ from flask import current_app
 
 
 # INTERNAL IMPORTS
-from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate, suggest_address_from_db
+from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate
 from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
 from app import custom_errors
 from app.src.libpy import lib_graph_tool as lgt
 from app.src.libpy import lib_weights as lw
-from app.src.interface_API import get_current_tide_level
+from app.src.interface_API import get_current_tide_level, get_suggestions
 import traceback
 
 # ERROR_CODES
@@ -160,17 +160,11 @@ class getSuggestions(Resource):
         name = args['name']
         max_num = args['max_num']
         try:
-            suggestions = suggest_address_from_db(name, max_num)
+            suggestions = get_suggestions(name, max_num)
         except Exception:
             return api_response(code=RETURNED_EXCEPTION, lang=lang)
-        all_data = []
-        for suggestion in suggestions:
-            data = {'address': suggestion.__str__(),
-                    'longitude': suggestion.longitude,
-                    'latitude': suggestion.latitude
-                    }
-            all_data.append(data)
-        return api_response(data=all_data)
+
+        return api_response(data=suggestions)
 # OLD API
 
 class getAddress(Resource):
