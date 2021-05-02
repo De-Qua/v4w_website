@@ -1,9 +1,0 @@
-# POI riva contiene un attributo con le coordinate del nodo riva nel grafo acqueo
-# i nodi nel grafo acqueo esistono gia, ma gli archi no! cosi dijkstra non dovrebbe avere problemi
-# a runtime aggiungiamo gli archi
-# SPIEGAZIONE:
-
-# al nodo nel grafo acqueo si accede con le coordinate del POI riva
-# un altro campo del POI riva ha i due nodi che appartengono all'arco piu vicino nel grafo acqueo
-
-# find_closest_edge sara usata in populate_db per aggiungere i POI delle rive con queste info

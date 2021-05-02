@@ -1,15 +1,14 @@
 
 <div align="center">
 	<h1>DeQua </h1>
-	<img widht="256" height="256" src="app/static/img/dequa_logo_v1.png" alt="dequa_logo" >
 </div>
 
-This repository contains the source code for the DeQua Web Application.
+La repo contiene il codice dietro al sito [dequa.it](https;//dequa.it)!
 
-DeQua is a Web Application that allows you to find addresses and routes through the beautiful city of Venice.
+Il tutto è in fase di sviluppo, quindi al momento c'è parecchio caos!
 
-NOTE: It is still in development, take a look at the code to see what we have done and check out the [issues!](https://github.com/Lychfindel/v4w_website/issues) to see what we are working on!
+Stiamo costruendo il backend con endpoints per REST API e un nuovo frontend.
 
-Thanks for stopping by,
+Contattaci a info@dequa.it se sei interessato!
 
-I Fioi DeQua
+I Fioi di DeQua
