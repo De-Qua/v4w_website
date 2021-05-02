@@ -1,24 +1,31 @@
-name: venezia
+name: dequa
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.7
-  - flask
-  - flask-migrate
-  - flask-wtf
-  - flask-cors
-  - geopandas
-  - matplotlib
-  - networkx
-  - python-dotenv
-  - python-levenshtein
-  - wtforms=2.2.1
-  - git
-  - gitpython
-  - fuzzywuzzy
-  - geopy
-  - requests
-  - ipython
+  - python=3.9.2
+  - python-dotenv=0.16.0
+  - ipython=7.22.0
+  - ipdb=0.13.7
+  - git=2.30.2
+  - gitpython=3.1.14
+  - pandas=1.2.3
+  - shapely=1.7.1
+  - geopy=2.1.0
+  - fuzzywuzzy=0.18.0
+  - networkx=2.5
+  - graph-tool=2.37
+  - flask=1.1.2
+  - flask-sqlalchemy=2.5.1
+  - flask-restful=0.3.8
+  - flask-jwt-extended=3.19.0
+  - pyjwt=1.6.1
+  - flask-migrate=2.4.0
+  - flask-mail=0.9.1
+  - flask-security=3.0.0
+  - email-validator=1.1.2
+  - flask-admin=1.5.7
+  - flask-cors=3.0.8
   - pip:
-    - flask-shell-ipython
+    - flask-track-usage=2.0.0
+    - flask-shell-ipython=0.4.1
