@@ -159,6 +159,7 @@ class getSuggestions(Resource):
             return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         name = args['name']
         max_num = args['max_num']
+        lang = args['language']
         try:
             suggestions = get_suggestions(name, max_num)
         except Exception:
