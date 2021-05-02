@@ -52,19 +52,18 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 # Graph setup
 #
-from app.src.libpy import lib_graph_tool as lgt
-from app.src.libpy import lib_weights as lw
+from dequa_graph.utils import load_graphs, get_all_coordinates
 
-graph_street, graph_water = lgt.load_graphs(path_graph_street, path_graph_water)
+graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
 # Add graphs info as attributes of the app
 app.graphs = {
     'street': {
         'graph': graph_street,
-        'all_vertices': lgt.get_all_coordinates(graph_street),
+        'all_vertices': get_all_coordinates(graph_street),
     },
     'water': {
         'graph': graph_water,
-        'all_vertices': lgt.get_all_coordinates(graph_water),
+        'all_vertices': get_all_coordinates(graph_water),
     }
 }
 

@@ -11,8 +11,9 @@ from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
 from app import custom_errors
-from app.src.libpy import lib_graph_tool as lgt
-from app.src.libpy import lib_weights as lw
+from dequa_graph.topology import calculate_path
+from dequa_graph.formatting import retrieve_info_from_path_streets
+from dequa_graph import weights as dqg_w
 from app.src.interface_API import get_current_tide_level, get_suggestions
 import traceback
 
@@ -76,22 +77,22 @@ class getPathStreet(Resource):
         if args['avoid_tide']:
             if not args['tide']:
                 args['tide'] = get_current_tide_level()
-            weight = lw.get_weight_tide(
+            weight = dqg_w.get_weight_tide(
                         graph=current_app.graphs['street']['graph'],
                         tide_level=args['tide'],
                         speed=args['speed'],
                         use_weight_bridges=args['avoid_bridges'])
         elif args['avoid_bridges']:
-            weight = lw.get_weight_bridges(
+            weight = dqg_w.get_weight_bridges(
                         graph=current_app.graphs['street']['graph'],
                         speed=args['speed'])
         else:  # default is walk
-            weight = lw.get_weight_time(
+            weight = dqg_w.get_weight_time(
                         graph=current_app.graphs['street']['graph'],
                         speed=5)
         # check the format, maybe we can change it with just a try/except
         try:
-            v_list, e_list = lgt.calculate_path(
+            v_list, e_list = calculate_path(
                         graph=current_app.graphs['street']['graph'],
                         coords_start=[start_coords],
                         coords_end=[end_coords],
@@ -100,7 +101,7 @@ class getPathStreet(Resource):
                         all_vertices=current_app.graphs['street']['all_vertices']
                         )
 
-            info = lgt.retrieve_info_from_path_streets(
+            info = retrieve_info_from_path_streets(
                         graph=current_app.graphs['street']['graph'],
                         paths_vertices=v_list,
                         paths_edges=e_list

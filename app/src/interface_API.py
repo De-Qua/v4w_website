@@ -23,10 +23,10 @@ from app.src.api.constants import (
 )
 # PARAMETERS (like the graph)
 import app.site_parameters as site_params
-# lib graph tool / la giusta
-from app.src.libpy import lib_graph_tool as lgt
-# graph tool weights
-from app.src.libpy import lib_weights as lw
+# dequa graph library
+from dequa_graph import topology as dqg_topo
+from dequa_graph import formatting as dqg_form
+from dequa_graph import weights as dqg_weight
 # lib search
 from app.src.libpy import lib_search as ls
 # communication for formatting
@@ -127,9 +127,9 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
     """
     graph = current_app.graphs['water']
     # Define the weight that we will use
-    weight = lw.get_weight(graph=graph['graph'], mode='boat')
+    weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat')
     # get the path
-    v_list, e_list = lgt.calculate_path(
+    v_list, e_list = dqg_topo.calculate_path(
                 graph=graph['graph'],
                 coords_start=start,
                 coords_end=end,
@@ -153,10 +153,10 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
     if avoid_tide and not tide_level:
         tide_level = get_current_tide_level()
     # Define the weight that we will use
-    weight = lw.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
+    weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
 
     # get the path
-    v_list, e_list = lgt.calculate_path(
+    v_list, e_list = dqg_topo.calculate_path(
                 graph=graph['graph'],
                 coords_start=start,
                 coords_end=end,
@@ -183,7 +183,7 @@ def format_path_walk_data(v_list, e_list, mode, **kwargs):
     Function to format the data of a path
     """
 
-    info = lgt.retrieve_info_from_path_streets(graph=current_app.graphs['street']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+    info = dqg_form.retrieve_info_from_path_streets(graph=current_app.graphs['street']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
 
     return info
 
@@ -193,7 +193,7 @@ def format_path_boat_data(v_list, e_list, mode, **kwargs):
     Function to format the data of a path
     """
 
-    info = lgt.retrieve_info_from_path_water(graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+    info = dqg_form.retrieve_info_from_path_water(graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
     return info
 
 
@@ -206,7 +206,7 @@ def gt_shortest_path_wrapper(start, end, mode='WALKING'):
         return WORK_IN_PROGRESS, None, None
 
     elif mode == "WALKING":
-        v_list, e_list = lgt.calculate_path(site_params.G_terra, start, end)
+        v_list, e_list = dqg_topo.calculate_path(site_params.G_terra, start, end)
         return ALL_GOOD, v_list, e_list
 
     else:
