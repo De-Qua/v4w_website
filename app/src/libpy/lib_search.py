@@ -343,14 +343,11 @@ def check_if_is_already_a_coordinate(input_string):
     coordinates = [lon, lat]
     return are_coordinates, coordinates
 
-def suggest_address_from_db(input_string, max_n=5):
+def suggest_address_from_db(text, number, max_n=5):
     """
     Wrapper functions that looks for address in the database with the input string as substring
     """
-    # clean the string
-    clean_string = correct_name(input_string)
-    # divide number and text
-    text, number, _ = dividiEtImpera(clean_string)
+
     # retrieve locations that match with number and text
     suggestions = Location.query.filter(
         Location.housenumber.isnot(None), Location.housenumber.startswith(number)

@@ -235,12 +235,20 @@ def get_suggestions(input, max_num=5):
     """
     Retrieve from the databases addresses that have a partial match with the input string.
     """
-    suggestions = ls.suggest_address_from_db(input_string=input, max_n=max_num)
+    # clean the string
+    clean_string = ls.correct_name(input)
+    # divide number and text
+    text, number, _ = ls.dividiEtImpera(clean_string)
+    # get the suggestions
+    suggestions = ls.suggest_address_from_db(text=text, number=number, max_n=max_num)
 
     formatted_suggestions = [
-        {'address': s.__str__(),
+        {'address': f"{s.neighborhood.name} {s.housenumber}",
          'longitude': s.longitude,
-         'latitude': s.latitude
+         'latitude': s.latitude,
+         'neighborhood': s.neighborhood.name,
+         'street': s.street.name,
+         'housenumber': s.housenumber
          } for s in suggestions
     ]
 
