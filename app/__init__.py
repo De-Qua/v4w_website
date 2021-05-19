@@ -1,8 +1,11 @@
 from flask import Flask, url_for, redirect
+from flask.logging import default_handler
+
 from config import Config
 import sys
 import os
 import logging
+import colorlog
 import typing
 from logging.handlers import RotatingFileHandler
 from flask_sqlalchemy import Model,SQLAlchemy
@@ -33,11 +36,35 @@ path_graph_water = os.path.join(folder_db,"dequa_ve_acqua_v7_1609_directed.gt")
 app = Flask(__name__)
 app.config.from_object(Config)
 
+#
+# Logging
+#
+# remove default handler
+app.logger.removeHandler(default_handler)
+# add handler for the normal console log
+color_handler = colorlog.StreamHandler()
+formatter = colorlog.ColoredFormatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] %(log_color)s[%(levelname)s]%(reset)s %(message)s')
+color_handler.setFormatter(formatter)
+app.logger.addHandler(color_handler)
+# add handler for files
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+file_handler = RotatingFileHandler('logs/v4w.log', maxBytes=100000, backupCount=10)
+formatter = logging.Formatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] [%(levelname)s] %(message)s')
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+
+
+
+app.logger.info("Starting the website...")
+
 # version of the software
 def getCurrentVersion():
     return app.config.get('VERSION')
 
 __version__ = getCurrentVersion()
+app.logger.info(f"Version: {__version__}")
 
 #
 # Email setup
@@ -203,12 +230,4 @@ def revoked_token_response():
 #
 # dashboard.bind(app)
 
-if not os.path.exists('logs'):
-    os.mkdir('logs')
-file_handler = RotatingFileHandler('logs/v4w.log', maxBytes=100000, backupCount=10)
-file_handler.setFormatter(logging.Formatter(
-'%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-file_handler.setLevel(logging.INFO)
-app.logger.addHandler(file_handler)
-
-app.logger.info('Setting up the website..')
+app.logger.info('Website is up')
