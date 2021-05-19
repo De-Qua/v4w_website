@@ -1,7 +1,7 @@
 import numpy as np
 from shapely.geometry import mapping
 
-from .utils import consecutive_one
+from .utils import adjacent_one
 
 def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5, **kwargs):
     """Retrieve useful informations from the output of a path of streets (list
@@ -74,7 +74,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
 
         distance = sum(distances)
         time = sum(times)
-        num_bridges = consecutive_one(is_bridge)
+        num_bridges = adjacent_one(is_bridge)
 
         info['info'].append({
             'distance': distance,

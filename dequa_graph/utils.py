@@ -34,3 +34,11 @@ def consecutive_one(data):
         return max(_len_iter(run) for val, run in groupby(data) if val)
     except ValueError:
         return 0
+
+
+def adjacent_one(data, item=1):
+    """
+    Helper to count the number of adjacent items in a list
+    """
+    adjacent_data = list(val for val, run in groupby(data))
+    return adjacent_data.count(item)
