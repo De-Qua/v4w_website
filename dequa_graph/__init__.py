@@ -1,6 +1,7 @@
 """DeQua graph library."""
 import logging
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+import colorlog
+#colorlog.getLogger(__name__).addHandler(colorlog.NullHandler())
 
 
 def set_up_logging(loglevel=logging.DEBUG):
@@ -15,11 +16,11 @@ def set_up_logging(loglevel=logging.DEBUG):
             return current_app.logger
     except ModuleNotFoundError:
         pass
-    logger = logging.getLogger('dequa_graph')
+    logger = colorlog.getLogger('dequa_graph')
     logger.handlers.clear()
     logger.setLevel(loglevel)
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] [%(levelname)s] %(message)s')
+    ch = colorlog.StreamHandler()
+    formatter = colorlog.ColoredFormatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] %(log_color)s[%(levelname)s]%(reset)s %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     return logger
@@ -30,3 +31,4 @@ from . import geographic
 from . import topology
 from . import utils
 from . import weights
+from . import errors
