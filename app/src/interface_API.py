@@ -27,6 +27,7 @@ import app.site_parameters as site_params
 from dequa_graph import topology as dqg_topo
 from dequa_graph import formatting as dqg_form
 from dequa_graph import weights as dqg_weight
+from dequa_graph import errors as dqg_err
 # lib search
 from app.src.libpy import lib_search as ls
 # communication for formatting
@@ -58,10 +59,9 @@ def check_format_coordinates(*args):
                 lon = float(match_coords.group(1))
                 lat = float(match_coords.group(2))
             except IndexError:
-                raise errors.CoordinatesError(f'You must give exactly two coordinates')
+                raise errors.CoordinatesNumberError
             except AttributeError:
-                raise errors.CoordinatesError(f'Input coordinates "{coord}" do not match the example format "12.339041,45.434268"')
-
+                raise errors.CoordinatesFormatError(coord)
             coordinates = [lon, lat]
             # gestiamo il caso inverso, visto che nessuno sa l'ordine
             if lat < lon:
@@ -105,18 +105,18 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
         return {'code': MISSING_PARAMETER, 'data': None}
 
     # get the edges and nodes
-    try:
-        v_list, e_list = fn_shortest_path(start, end, **params)
-        # and format for js
-        info_dict = fn_info_path(v_list, e_list, params)
-    except errors.NoPathFound:
-        return {'code': NO_PATH_FOUND, 'data': None}
-    except NotImplementedError:
-        return {'code': WORK_IN_PROGRESS, 'data': None}
-    except Exception:
-        return {'code': UNKNOWN_EXCEPTION, 'data': None}
+    # try:
+    v_list, e_list = fn_shortest_path(start, end, **params)
+    # and format for js
+    info_dict = fn_info_path(v_list, e_list, params)
+    # except errors.NoPathFound:
+    #     return {'code': NO_PATH_FOUND, 'data': None}
+    # except NotImplementedError:
+    #     return {'code': WORK_IN_PROGRESS, 'data': None}
+    # except Exception:
+    #     return {'code': UNKNOWN_EXCEPTION, 'data': None}
 
-    return {'code': ALL_GOOD, 'data': info_dict}
+    return info_dict
 
 
 def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
@@ -129,15 +129,16 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
     # Define the weight that we will use
     weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat')
     # get the path
-    v_list, e_list = dqg_topo.calculate_path(
-                graph=graph['graph'],
-                coords_start=start,
-                coords_end=end,
-                coords_stop=stop,
-                weight=weight,
-                all_vertices=graph['all_vertices']
-                )
-    if not v_list:
+    try:
+        v_list, e_list = dqg_topo.calculate_path(
+                    graph=graph['graph'],
+                    coords_start=start,
+                    coords_end=end,
+                    coords_stop=stop,
+                    weight=weight,
+                    all_vertices=graph['all_vertices']
+                    )
+    except dqg_err.NoPathFound:
         raise errors.NoPathFound(f"No path found between {start} and {end}")
     return v_list, e_list
 
@@ -156,16 +157,17 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
     weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
 
     # get the path
-    v_list, e_list = dqg_topo.calculate_path(
-                graph=graph['graph'],
-                coords_start=start,
-                coords_end=end,
-                coords_stop=stop,
-                weight=weight,
-                all_vertices=graph['all_vertices']
-                )
+    try:
+        v_list, e_list = dqg_topo.calculate_path(
+                    graph=graph['graph'],
+                    coords_start=start,
+                    coords_end=end,
+                    coords_stop=stop,
+                    weight=weight,
+                    all_vertices=graph['all_vertices']
+                    )
 
-    if not v_list:
+    except dqg_err.NoPathFound:
         raise errors.NoPathFound(f"No path found between {start} and {end}")
 
     return v_list, e_list
@@ -197,20 +199,20 @@ def format_path_boat_data(v_list, e_list, mode, **kwargs):
     return info
 
 
-def gt_shortest_path_wrapper(start, end, mode='WALKING'):
-    """
-    It calculates the shortest path by calling the methods in lib_graph_tool.
-    It returns 3 values, exit_code (0 good, > 0 bad), list of vertices and list of edges.
-    """
-    if mode == "BOAT": ### TODO
-        return WORK_IN_PROGRESS, None, None
-
-    elif mode == "WALKING":
-        v_list, e_list = dqg_topo.calculate_path(site_params.G_terra, start, end)
-        return ALL_GOOD, v_list, e_list
-
-    else:
-        return UNKNOWN_MODE, None, None
+# def gt_shortest_path_wrapper(start, end, mode='WALKING'):
+#     """
+#     It calculates the shortest path by calling the methods in lib_graph_tool.
+#     It returns 3 values, exit_code (0 good, > 0 bad), list of vertices and list of edges.
+#     """
+#     if mode == "BOAT": ### TODO
+#         return WORK_IN_PROGRESS, None, None
+#
+#     elif mode == "WALKING":
+#         v_list, e_list = dqg_topo.calculate_path(site_params.G_terra, start, end)
+#         return ALL_GOOD, v_list, e_list
+#
+#     else:
+#         return UNKNOWN_MODE, None, None
 
 
 def get_current_tide_level():
@@ -218,13 +220,17 @@ def get_current_tide_level():
     Fetch the high tide level from the JSON file.
     """
     tide_level_dict = None
-    while not tide_level_dict:
+    max_waiting_time = 10
+    elapsed_time = 0
+    start_time = time.time()
+    while not tide_level_dict or elapsed_time < max_waiting_time:
         try:
             with open(os.path.join(os.getcwd(), site_params.high_tide_file),'r') as stream:
                 tide_level_dict = json.load(stream)
         except:
             app.logger.error('Error in reading tide file')
             time.sleep(0.001)
+            elapsed_time = time.time()-start_time
     tide_level_value = tide_level_dict.get('valore', None)
     tide_level = int(float(tide_level_value[:-2])*100) if tide_level_value else None
 

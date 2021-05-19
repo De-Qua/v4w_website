@@ -17,13 +17,14 @@ from app.models import (
 from app import app, db
 
 # ERROR_CODES
-from app.src.api.constants import (
-    DEFAULT_LANGUAGE_CODE,
-    GENERIC_ERROR_CODE, NO_PERMISSION
-)
+from app.src.api import constants as cst
+# from app.src.api.constants import (
+#     DEFAULT_LANGUAGE_CODE,
+#     GENERIC_ERROR_CODE, NO_PERMISSION
+# )
 
 
-def api_response(code=0, data={}, message='', lang=DEFAULT_LANGUAGE_CODE):
+def api_response(code=0, data={}, message='', lang=cst.DEFAULT_LANGUAGE_CODE):
     """
     Format the response of the api in a standardize way
     """
@@ -36,8 +37,8 @@ def api_response(code=0, data={}, message='', lang=DEFAULT_LANGUAGE_CODE):
         response['ResponseMessage'] = 'OK'
         return response
     else:
-        default_language = Languages.query.filter_by(code=DEFAULT_LANGUAGE_CODE).one()
-        default_error = ErrorCodes.query.filter_by(code=GENERIC_ERROR_CODE).one()
+        default_language = Languages.query.filter_by(code=cst.DEFAULT_LANGUAGE_CODE).one()
+        default_error = ErrorCodes.query.filter_by(code=cst.GENERIC_ERROR_CODE).one()
         language = Languages.query.filter(
             (Languages.code == lang.lower()) | (Languages.name == lang.lower())
             ).one_or_none()
@@ -73,7 +74,7 @@ def permission_required(fn):
         if verify_permissions(claims['type'], api_path) or '127.0.0.1:5000' in api_path:
             return fn(*args, **kwargs)
         else:
-            return api_response(code=NO_PERMISSION)
+            return api_response(code=cst.NO_PERMISSION)
         return fn(*args, **kwargs)
     return wrapper
 
@@ -106,7 +107,7 @@ def parse_args(reqparse):
         err_msg = e.data['message']
         all_err = [err_msg[argument] for argument in err_msg.keys()]
         msg = '. '.join(all_err)
-        return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        return api_response(code=cst.BAD_FORMAT_REQUEST, message=msg)
 
 # Token
 
@@ -153,7 +154,7 @@ def update_api_token_counter(token, url):
     db.session.commit()
 
 
-def verify_permissions(type, url, lang=DEFAULT_LANGUAGE_CODE):
+def verify_permissions(type, url, lang=cst.DEFAULT_LANGUAGE_CODE):
     """
     Helper function that verifies if a token type has permission for an url
     """

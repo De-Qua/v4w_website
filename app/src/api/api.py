@@ -21,9 +21,9 @@ import traceback
 from app.src.api.constants import (
     DEFAULT_LANGUAGE_CODE,
     UNKNOWN_EXCEPTION, MISSING_PARAMETER, NOT_FOUND, RETURNED_EXCEPTION,
-    UNCLEAR_SEARCH
+    UNCLEAR_SEARCH, GENERIC_ERROR_CODE
 )
-from app.errors import CoordinatesError
+from app.src.api import errors as err
 # UTILS
 from app.src.api.utils import (
     api_response, parse_args,
@@ -32,6 +32,7 @@ from app.src.api.utils import (
 # Utils for networkx graph
 from app.src.api.utils import create_url_from_inputs, set_default_request_variables
 # Interface for the api
+from app.src import interface_API as iAPI
 from app.src.interface_API import check_format_coordinates
 
 class getPathStreet(Resource):
@@ -71,45 +72,56 @@ class getPathStreet(Resource):
                 stop_coords = check_format_coordinates(args['stop'])
             else:
                 stop_coords = None
-        except CoordinatesError:
-            return api_response(code=MISSING_PARAMETER, lang=lang)
-        # Define the weight that we will use
-        if args['avoid_tide']:
-            if not args['tide']:
-                args['tide'] = get_current_tide_level()
-            weight = dqg_w.get_weight_tide(
-                        graph=current_app.graphs['street']['graph'],
-                        tide_level=args['tide'],
-                        speed=args['speed'],
-                        use_weight_bridges=args['avoid_bridges'])
-        elif args['avoid_bridges']:
-            weight = dqg_w.get_weight_bridges(
-                        graph=current_app.graphs['street']['graph'],
-                        speed=args['speed'])
-        else:  # default is walk
-            weight = dqg_w.get_weight_time(
-                        graph=current_app.graphs['street']['graph'],
-                        speed=5)
-        # check the format, maybe we can change it with just a try/except
+        except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
+            return api_response(code=e.code, lang=lang)
+        # call the interface to handle everythin
         try:
-            v_list, e_list = calculate_path(
-                        graph=current_app.graphs['street']['graph'],
-                        coords_start=[start_coords],
-                        coords_end=[end_coords],
-                        coords_stop=stop_coords,
-                        weight=weight,
-                        all_vertices=current_app.graphs['street']['all_vertices']
-                        )
-
-            info = retrieve_info_from_path_streets(
-                        graph=current_app.graphs['street']['graph'],
-                        paths_vertices=v_list,
-                        paths_edges=e_list
-                        )
-            return api_response(data=info)
-        except Exception:
-            traceback.print_exc()
-            return api_response(code=NOT_FOUND, lang=lang)
+            info = iAPI.find_shortest_path_from_coordinates(
+                start=start_coords, end=end_coords, stop=stop_coords,
+                speed=args['speed'], avoid_bridges=args['avoid_bridges'],
+                avoid_tide=args['avoid_tide'], tide=args['tide'],
+                waterbus=args['waterbus']
+            )
+            return api_response(data=info, lang=lang)
+        except Exception as e:
+            return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
+        # # Define the weight that we will use
+        # if args['avoid_tide']:
+        #     if not args['tide']:
+        #         args['tide'] = get_current_tide_level()
+        #     weight = dqg_w.get_weight_tide(
+        #                 graph=current_app.graphs['street']['graph'],
+        #                 tide_level=args['tide'],
+        #                 speed=args['speed'],
+        #                 use_weight_bridges=args['avoid_bridges'])
+        # elif args['avoid_bridges']:
+        #     weight = dqg_w.get_weight_bridges(
+        #                 graph=current_app.graphs['street']['graph'],
+        #                 speed=args['speed'])
+        # else:  # default is walk
+        #     weight = dqg_w.get_weight_time(
+        #                 graph=current_app.graphs['street']['graph'],
+        #                 speed=5)
+        # # check the format, maybe we can change it with just a try/except
+        # try:
+        #     v_list, e_list = calculate_path(
+        #                 graph=current_app.graphs['street']['graph'],
+        #                 coords_start=[start_coords],
+        #                 coords_end=[end_coords],
+        #                 coords_stop=stop_coords,
+        #                 weight=weight,
+        #                 all_vertices=current_app.graphs['street']['all_vertices']
+        #                 )
+        #
+        #     info = retrieve_info_from_path_streets(
+        #                 graph=current_app.graphs['street']['graph'],
+        #                 paths_vertices=v_list,
+        #                 paths_edges=e_list
+        #                 )
+        #     return api_response(data=info)
+        # except Exception:
+        #     traceback.print_exc()
+        #     return api_response(code=NOT_FOUND, lang=lang)
 
 
 class getCurrentTide(Resource):
