@@ -80,15 +80,15 @@ def calculate_path(graph, coords_start, coords_end, coords_stop=None,
 
     start_v = find_closest_vertices(coords_start, all_vertices)
     if len(start_v) > 1:
+        logger.error(f"We cannot calculate the path from multiple sources")
         raise MultipleSourcesError
-        # logger.error(f"We cannot calculate the path from multiple sources")
         # return [], []
     else:
         start_v = start_v[0]
     end_v = find_closest_vertices(coords_end, all_vertices)
     if len(end_v) > 1:
+        logger.error(f"We cannot calculate the path from multiple sources")
         raise MultipleSourcesError
-        # logger.error(f"We cannot calculate the path from multiple sources")
         # return [], []
     else:
         end_v = end_v[0]
@@ -115,8 +115,8 @@ def calculate_distance(graph, coords_start, coords_end, weight, all_vertices=np.
     if len(start_v) == 1:
         start_v = start_v[0]
     else:
+        logger.error(f"We cannot calculate the path from multiple sources")
         raise MultipleSourcesError
-        # logger.error(f"We cannot calculate the path from multiple sources")
         # return -1
     end_v = find_closest_vertices(coords_end, all_vertices)
 
@@ -128,8 +128,8 @@ def reorder_vertices_for_salesman(graph, vertex_start, vertices_stops, vertex_en
     """Reorder the coordinates to optimize the travelling salesman problem."""
 
     if not vertex_start or not vertices_stops:
+        logger.error("You must give exactly one start and at least one stop coordinate")
         raise FormatError("You must give exactly one start and at least one stop coordinate")
-        # logger.error("You must give exactly one start and at least one stop coordinate")
         # return vertex_start, vertices_stops, vertex_end
     if len(vertices_stops) == 1:
         return vertex_start, vertices_stops, vertex_end
