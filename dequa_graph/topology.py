@@ -42,12 +42,10 @@ import graph_tool.all as gt
 from . import set_up_logging
 from .geographic import find_closest_vertices
 from .utils import get_all_coordinates
+from .errors import NoPathFound, MultipleSourcesError, FormatError
 
 logger = set_up_logging()
 
-def test_logger(text):
-    logger.debug(text)
-    return
 
 def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weight=None):
     """Calculate the shortest path that starts with the first coodinates in the
@@ -64,8 +62,9 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weight=None):
         tmp_v_list, tmp_e_list = gt.shortest_path(graph, last_v, v, weight)
         if not tmp_v_list:
             logger.warning(f"No path between {last_v} and {v}")
-            v_list = e_list = []
-            return v_list, e_list
+            raise NoPathFound(last_v, v)
+            # v_list = e_list = []
+            # return v_list, e_list
         last_v = v
         v_list.append(tmp_v_list)
         e_list.append(tmp_e_list)
@@ -81,14 +80,16 @@ def calculate_path(graph, coords_start, coords_end, coords_stop=None,
 
     start_v = find_closest_vertices(coords_start, all_vertices)
     if len(start_v) > 1:
-        logger.error(f"We cannot calculate the path from multiple sources")
-        return [], []
+        raise MultipleSourcesError
+        # logger.error(f"We cannot calculate the path from multiple sources")
+        # return [], []
     else:
         start_v = start_v[0]
     end_v = find_closest_vertices(coords_end, all_vertices)
     if len(end_v) > 1:
-        logger.error(f"We cannot calculate the path from multiple sources")
-        return [], []
+        raise MultipleSourcesError
+        # logger.error(f"We cannot calculate the path from multiple sources")
+        # return [], []
     else:
         end_v = end_v[0]
     stop_v = find_closest_vertices(coords_stop, all_vertices)
@@ -114,8 +115,9 @@ def calculate_distance(graph, coords_start, coords_end, weight, all_vertices=np.
     if len(start_v) == 1:
         start_v = start_v[0]
     else:
-        logger.error(f"We cannot calculate the path from multiple sources")
-        return -1
+        raise MultipleSourcesError
+        # logger.error(f"We cannot calculate the path from multiple sources")
+        # return -1
     end_v = find_closest_vertices(coords_end, all_vertices)
 
     dist = get_distance(graph, start_v, end_v, weight)
@@ -126,8 +128,9 @@ def reorder_vertices_for_salesman(graph, vertex_start, vertices_stops, vertex_en
     """Reorder the coordinates to optimize the travelling salesman problem."""
 
     if not vertex_start or not vertices_stops:
-        logger.error("You must give exactly one start and at least one stop coordinate")
-        return vertex_start, vertices_stops, vertex_end
+        raise FormatError("You must give exactly one start and at least one stop coordinate")
+        # logger.error("You must give exactly one start and at least one stop coordinate")
+        # return vertex_start, vertices_stops, vertex_end
     if len(vertices_stops) == 1:
         return vertex_start, vertices_stops, vertex_end
     last_v = vertex_start
