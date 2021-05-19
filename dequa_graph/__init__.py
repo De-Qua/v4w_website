@@ -1,7 +1,6 @@
 """DeQua graph library."""
 import logging
 import colorlog
-#colorlog.getLogger(__name__).addHandler(colorlog.NullHandler())
 
 
 def set_up_logging(loglevel=logging.DEBUG):

@@ -34,6 +34,8 @@ vel_max        (edge)    (type: double)
 vel_max_mp     (edge)    (type: double)
 
 """
+import ipdb
+from numbers import Number
 
 import numpy as np
 
@@ -47,25 +49,34 @@ from .errors import NoPathFound, MultipleSourcesError, FormatError
 logger = set_up_logging()
 
 
-def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weight=None):
+def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None):
     """Calculate the shortest path that starts with the first coodinates in the
     list, make stops for each intermediate coordinates, and end with the last
     coordinates in the list.
     """
     if vertices_stop is None:
         vertices_stop = []
+    try:
+        _ = iter(weights)
+    except TypeError:
+        weights = [weights]
     v_list = []
     e_list = []
     last_v = vertex_start
     vertices_stop.append(vertex_end)
     for v in vertices_stop:
-        tmp_v_list, tmp_e_list = gt.shortest_path(graph, last_v, v, weight)
-        if not tmp_v_list:
-            logger.warning(f"No path between {last_v} and {v}")
-            raise NoPathFound(last_v, v)
-            # v_list = e_list = []
-            # return v_list, e_list
-        last_v = v
+        tmp_v_list = []
+        tmp_e_list = []
+        for weight in weights:
+            tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
+            if not tmp_v_list_weight:
+                logger.warning(f"No path between {last_v} and {v}")
+                raise NoPathFound(last_v, v)
+                # v_list = e_list = []
+                # return v_list, e_list
+            last_v = v
+            tmp_v_list.append(tmp_v_list_weight)
+            tmp_e_list.append(tmp_e_list_weight)
         v_list.append(tmp_v_list)
         e_list.append(tmp_e_list)
 

@@ -52,7 +52,7 @@ def find_closest_vertices(coords_list, vertices_coords,
     nodes_list = []
     for coords in coords_list:
         dists = distance_from_a_list_of_geo_coordinates(thePoint=coords,
-                                coordinates_list=vertices_coords)
+                                                        coordinates_list=vertices_coords)
 
         closest_id = np.argmin(dists)
         closest_dist = dists[closest_id]

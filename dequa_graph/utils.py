@@ -5,6 +5,7 @@ from itertools import groupby
 
 import graph_tool.all as gt
 
+
 def load_graphs(*paths_gt_graphs):
     """Load graph-tool graphs, one for each input path."""
     all_graphs = []

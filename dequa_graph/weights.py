@@ -39,9 +39,10 @@ vel_max_mp     (edge)    (type: double)
 """
 
 import numpy as np
-import datetime
+# import datetime
 
 import graph_tool.all as gt
+
 
 def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
 boat_speed=5, starting_hour=None):

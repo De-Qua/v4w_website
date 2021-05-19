@@ -3,6 +3,7 @@ from shapely.geometry import mapping
 
 from .utils import adjacent_one
 
+
 def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5, **kwargs):
     """Retrieve useful informations from the output of a path of streets (list
     of list of vertices and edges). The length of the two lists corresponds to
@@ -27,63 +28,65 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
             'walkways_cm' (float): Height of walkways in cm
             'streets_id' (int): Database id of the street
     """
-    info = {'n_paths': len(paths_edges),
-            'info': []}
-    for edges in paths_edges:
-        distances = []
-        times = []
-        is_bridge = []
-        geojsons = []
+    all_info = []
+    for alternative_path in paths_edges:
+        info = []
+        for edges in alternative_path:
+            distances = []
+            times = []
+            is_bridge = []
+            geojsons = []
 
-        for e in edges:
+            for e in edges:
 
-            edge_info = {
-                # Calculate distance
-                'distance': graph.ep['length'][e],
-                # Calculate time
-                'time': graph.ep['length'][e]/speed,
-                # Calculate number of bridges
-                'bridge': graph.ep['ponte'][e],
-                # append maximum tide level
-                'max_tide': graph.ep['max_tide'][e],
-                # append accessibility
-                'accessibility': graph.ep['accessible'][e],
-                # append walkways zps activation
-                'walkway_zps': graph.ep['pas_cm_zps'][e],
-                # append walkways height
-                'walkway_cm': graph.ep['pas_height'][e],
-                # append street id
-                'street_id': graph.ep['street_id'][e]
-            }
-            # correct for NaN values
-            for k, v in edge_info.items():
-                if np.isnan(v):
-                    edge_info[k] = None
-            # append geometries
-            geojson = {
-                "type": "Feature",
-                "properties": edge_info,
-                "geometry": mapping(graph.ep['geometry'][e])
-            }
-            geojsons.append(geojson)
+                edge_info = {
+                    # Calculate distance
+                    'distance': graph.ep['length'][e],
+                    # Calculate time
+                    'time': graph.ep['length'][e]/speed,
+                    # Calculate number of bridges
+                    'bridge': graph.ep['ponte'][e],
+                    # append maximum tide level
+                    'max_tide': graph.ep['max_tide'][e],
+                    # append accessibility
+                    'accessibility': graph.ep['accessible'][e],
+                    # append walkways zps activation
+                    'walkway_zps': graph.ep['pas_cm_zps'][e],
+                    # append walkways height
+                    'walkway_cm': graph.ep['pas_height'][e],
+                    # append street id
+                    'street_id': graph.ep['street_id'][e]
+                }
+                # correct for NaN values
+                for k, v in edge_info.items():
+                    if np.isnan(v):
+                        edge_info[k] = None
+                # append geometries
+                geojson = {
+                    "type": "Feature",
+                    "properties": edge_info,
+                    "geometry": mapping(graph.ep['geometry'][e])
+                }
+                geojsons.append(geojson)
 
-            # update distance, time and bridges
-            distances.append(edge_info['distance'])
-            times.append(edge_info['time'])
-            is_bridge.append(edge_info['bridge'])
+                # update distance, time and bridges
+                distances.append(edge_info['distance'])
+                times.append(edge_info['time'])
+                is_bridge.append(edge_info['bridge'])
 
-        distance = sum(distances)
-        time = sum(times)
-        num_bridges = adjacent_one(is_bridge)
+            distance = sum(distances)
+            time = sum(times)
+            num_bridges = adjacent_one(is_bridge)
 
-        info['info'].append({
-            'distance': distance,
-            'time': time,
-            'num_bridges': num_bridges,
-            'num_edges': len(edges),
-            'edges': geojsons
-        })
-    return info
+            info.append({
+                'distance': distance,
+                'time': time,
+                'num_bridges': num_bridges,
+                'num_edges': len(edges),
+                'edges': geojsons
+            })
+        all_info.append(info)
+    return all_info
 
 
 def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, **kwargs):

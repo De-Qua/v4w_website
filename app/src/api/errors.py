@@ -39,3 +39,12 @@ class NoPathFound(Exception):
 
     def __str__(self):
         return f"{self.message} - Start: {self.start} End: {self.end}"
+
+
+class WorkInProgressError(Exception):
+    """Error to indicate that a specific function is not yet implemented."""
+
+    def __init__(self, message="Function not implemented"):
+        self.code = cst.WORK_IN_PROGRESS
+        self.message = message
+        super().__init__(self.message)

@@ -1,4 +1,4 @@
-import pdb
+import ipdb
 
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse
@@ -57,6 +57,7 @@ class getPathStreet(Resource):
         self.reqparse.add_argument('avoid_tide', type=bool, default=False)
         self.reqparse.add_argument('tide', type=int, default=None)
         self.reqparse.add_argument('waterbus', type=bool, default=False)
+        self.reqparse.add_argument('alternatives', type=bool, default=False)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getPathStreet, self).__init__()
 
@@ -80,10 +81,11 @@ class getPathStreet(Resource):
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=args['speed'], avoid_bridges=args['avoid_bridges'],
                 avoid_tide=args['avoid_tide'], tide=args['tide'],
-                waterbus=args['waterbus']
+                waterbus=args['waterbus'], alternatives=args['alternatives']
             )
             return api_response(data=info, lang=lang)
         except Exception as e:
+            current_app.logger.error(str(e))
             return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
         # # Define the weight that we will use
         # if args['avoid_tide']:

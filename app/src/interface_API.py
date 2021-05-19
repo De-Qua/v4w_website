@@ -9,6 +9,7 @@ import re
 import os
 import json
 import time
+import ipdb
 
 # FLASK APP
 from app import app
@@ -139,11 +140,11 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
                     all_vertices=graph['all_vertices']
                     )
     except dqg_err.NoPathFound:
-        raise errors.NoPathFound(f"No path found between {start} and {end}")
+        raise errors.NoPathFound(start, end)
     return v_list, e_list
 
 
-def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=False, avoid_tide=False, tide_level=None, boots_height=0, **kwargs):
+def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=False, avoid_tide=False, tide_level=None, boots_height=0, alternatives=False, **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
@@ -154,8 +155,11 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
     if avoid_tide and not tide_level:
         tide_level = get_current_tide_level()
     # Define the weight that we will use
-    weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
-
+    if alternatives:
+        raise errors.WorkInProgressError("Alternatives not implemented yet")
+    else:
+        weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
+        weights = [weight]
     # get the path
     try:
         v_list, e_list = dqg_topo.calculate_path(
@@ -163,12 +167,12 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
                     coords_start=start,
                     coords_end=end,
                     coords_stop=stop,
-                    weight=weight,
+                    weight=weights,
                     all_vertices=graph['all_vertices']
                     )
 
     except dqg_err.NoPathFound:
-        raise errors.NoPathFound(f"No path found between {start} and {end}")
+        raise errors.NoPathFound(start, end)
 
     return v_list, e_list
     # # retrieve info of the path
