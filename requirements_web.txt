@@ -63,7 +63,7 @@ smmap @ file:///home/conda/feedstock_root/build_artifacts/smmap_1588651577140/wo
 SQLAlchemy @ file:///Users/runner/miniforge3/conda-bld/sqlalchemy_1593116377944/work
 tornado==6.0.4
 traitlets==4.3.3
-urllib3==1.25.9
+urllib3==1.26.5
 wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1592931742287/work
 Werkzeug==1.0.1
 WTForms==2.2.1
