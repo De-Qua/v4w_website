@@ -688,8 +688,8 @@ from sqlalchemy import literal
 # al momento funzionano sestieri, strade e civici!!!
 import geopandas as gpd
 import os#
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 import library_database as lb
 from app import db
 lb.create_query_objects()

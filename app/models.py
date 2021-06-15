@@ -8,6 +8,7 @@ flask db stamp head
 flask db migrate
 flask db upgrade
 """
+import warnings
 from app import db
 import pdb
 import datetime
@@ -16,6 +17,10 @@ from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import create_access_token
 import pdb
+from geoalchemy2.types import Geometry
+from geoalchemy2.shape import to_shape
+import shapely
+from shapely import geometry
 #from app.token_helper import add_token_to_database
 # # TODO: FUTUREWARNING
 # .format is deprecated
@@ -34,72 +39,121 @@ poi_types =  db.Table("poi_types",
     db.Column("type_id",db.Integer,db.ForeignKey("poi_category_type.id"),primary_key=True)
     )
 
-"""
-Tabella per collegamento molti-a-molti Area-Street
-"""
-area_streets = db.Table("area_streets",
-    db.Column("area_id", db.Integer, db.ForeignKey("area.id"),primary_key=True),
-    db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True)
-    )
+# """
+# Tabella per collegamento molti-a-molti Area-Street
+# """
+# area_streets = db.Table("area_streets",
+#     db.Column("area_id", db.Integer, db.ForeignKey("area.id"),primary_key=True),
+#     db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True)
+#     )
+#
+# """
+# Tabella per collegamento molti-a-molti Street-Neighborhood
+# """
+# streets_neighborhoods = db.Table("streets_neighborhoods",
+#     db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True),
+#     db.Column("neighborhood_id", db.Integer, db.ForeignKey("neighborhood.id"),primary_key=True)
+#     )
 
 """
-Tabella per collegamento molti-a-molti Street-Neighborhood
-"""
-streets_neighborhoods = db.Table("streets_neighborhoods",
-    db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True),
-    db.Column("neighborhood_id", db.Integer, db.ForeignKey("neighborhood.id"),primary_key=True)
-    )
-
-"""
-Location indica un punto sulla mappa. Può avere un numero civico ma non è obbligatorio.
+Location indica un punto sulla mappa.
 """
 class Location(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     latitude = db.Column(db.Float,index=True,nullable=False)
     longitude = db.Column(db.Float,index=True,nullable=False)
+    # TODO: Guarda questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
+    # oppure questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
     street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
     neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
-    housenumber = db.Column(db.String(8),index=True)
-    shape = db.Column(db.PickleType,nullable=False)
+    # housenumber = db.Column(db.String(8),index=True)
+    # shape = db.Column(db.PickleType,nullable=False)
+    shape = db.Column(Geometry('POINT'), nullable=False)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
-    def __repr__(self):
-        return self._repr(id=self.id,
-                          latitude=self.latitude,
-                          longitude=self.longitude,
-                          neighborhood=self.neighborhood.name,
-                          housenumber=self.housenumber)
-    # cosa ritorniamo da __str__
-    def __str__(self):
-        if self.housenumber and self.street:
-            return "{neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
-        else:
-            return "({neighborhood}) {lat},{lon}".format(neighborhood=self.neighborhood.name,lat=self.latitude,lon=self.longitude)
-    def get_description(self):
-        try:
-            if self.housenumber:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-            else:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-        except:
-            return self.__repr__()
+    address = db.relationship("Address", backref="location", lazy="dynamic")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.longitude and self.latitude:
+            self.shape = f'POINT ({self.longitude} {self.latitude})'
+        elif type(self.shape) is str:
+            repr_point = shapely.wkt.loads(self.shape).representative_point()
+            self.longitude = repr_point.x
+            self.latitude = repr_point.y
+        elif type(self.shape) in [geometry.linestring.LineString, geometry.point.Point]:
+            repr_point = self.shape.representative_point()
+            self.longitude = repr_point.x
+            self.latitude = repr_point.y
+            self.shape = repr_point.to_wkt()
+
+    # def __repr__(self):
+    #     return self._repr(id=self.id,
+    #                       latitude=self.latitude,
+    #                       longitude=self.longitude)
+    #
+    # # cosa ritorniamo da __str__
+    # def __str__(self):
+    #     return f"{self.longitude}, {self.latitude}"
+    #
+    # def get_description(self):
+    #     try:
+    #         if self.housenumber:
+    #             return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+    #         else:
+    #             return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+    #     except:
+    #         return self.__repr__()
+
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    housenumber = db.Column(db.Integer, nullable=False)
+    housenumber_sub = db.Column(db.String(1))
+    address_neigh = db.Column(db.String(64), index=True)
+    address_street = db.Column(db.String(128), index=True)
+    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
+
+
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
 Esempio: Santa Marta, Baia del Re
 """
+
+
 class Area(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)
-    shape = db.Column(db.PickleType)
-    streets = db.relationship("Street",secondary=area_streets,
-        lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
+    # shape = db.Column(db.PickleType)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    streets = db.relationship(
+        "Street",
+        primaryjoin='func.ST_Contains(foreign(Area.shape), Street.shape).as_comparison(1, 2)',
+        # lazy="dynamic",
+        # backref=db.backref("area", lazy="dynamic"),
+        backref=db.backref("area", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Contains(foreign(Area.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("area", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name)
+
     def __str__(self):
         return self.name
+
     def get_description(self):
         return fillDictionary(modelName='Area', id=self.id, name=self.name)
+
+
 """
 Strade intere (senza numeri)
 Hanno:
@@ -109,41 +163,55 @@ Hanno:
  - shape: un poligono che ha la forma della strada
  - locations: la relazione con la tabella degli indirizzi (uno a molti)
 """
+
+
 class Street(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(64),index=True,nullable=False)
-    name_alt = db.Column(db.String(64),index=True)
-    name_spe = db.Column(db.String(64),index=True)
-    name_den = db.Column(db.String(64),index=True)
-    shape = db.Column(db.PickleType, unique=True,nullable=False) # db.Column(db.String(512)) #opzione 2 con una stringa json
-    locations = db.relationship("Location",backref="street",lazy="dynamic")
-    neighborhoods = db.relationship("Neighborhood",secondary=streets_neighborhoods,
-        lazy = "dynamic", backref=db.backref("streets",lazy="dynamic"))
-    score = db.Column(db.Integer,nullable=False,default=0)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True, nullable=False)
+    name_alt = db.Column(db.String(64), index=True)
+    name_spe = db.Column(db.String(64), index=True)
+    name_den = db.Column(db.String(64), index=True)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    # shape = db.Column(db.PickleType, unique=True,nullable=False) # db.Column(db.String(512)) #opzione 2 con una stringa json
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Contains(foreign(Street.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("street", uselist=True),
+        viewonly=True,
+        uselist=True
+        )
+    # locations = db.relationship("Location", backref="street", lazy="dynamic")
+    # neighborhoods = db.relationship(
+    #     "Neighborhood",
+    #     secondary=streets_neighborhoods,
+    #     lazy="dynamic",
+    #     backref=db.backref("streets", lazy="dynamic")
+    #     )
+    score = db.Column(db.Integer, nullable=False, default=0)
     # check constraint serve per dare dei constraint alla tabella, questi vengono controllati a db.session.commit()
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
-    def add_neighborhood(self,neighborhood):
-        if not self.belongs(neighborhood):
-            self.neighborhoods.append(neighborhood)
-    def remove_neighborhood(self,neighborhood):
-        if self.belongs(neighborhood):
-            self.neighborhoods.remove(neighborhood)
-    def belongs(self,neighborhood):
-        return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
-    def __repr__(self):
-        return self._repr(id=self.id,
-                          name=self.name,
-                          neighborhood=[n.name for n in self.neighborhoods.all()]
-                          )
-    def __str__(self):
-        return self.name
-    def get_description(self):
-#        try:
-        all_neighb = [n.name for n in self.neighborhoods.all()]
-        return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
-            #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
-#        except:
-#            return self.__repr__()
+#     def add_neighborhood(self,neighborhood):
+#         if not self.belongs(neighborhood):
+#             self.neighborhoods.append(neighborhood)
+#     def remove_neighborhood(self,neighborhood):
+#         if self.belongs(neighborhood):
+#             self.neighborhoods.remove(neighborhood)
+#     def belongs(self,neighborhood):
+#         return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
+#     def __repr__(self):
+#         return self._repr(id=self.id,
+#                           name=self.name,
+#                           neighborhood=[n.name for n in self.neighborhoods.all()]
+#                           )
+#     def __str__(self):
+#         return self.name
+#     def get_description(self):
+# #        try:
+#         all_neighb = [n.name for n in self.neighborhoods.all()]
+#         return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
+#             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
+# #        except:
+# #            return self.__repr__()
 """
 Sestieri:
  - name: nome del sestiere (consideriamo anche Sant'Elena e le isole)
@@ -151,20 +219,48 @@ Sestieri:
  - streets: relazione con le strade in quel sestiere (molti a molti)
 """
 class Neighborhood(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(16),index=True,nullable=False)
-    zipcode = db.Column(db.Integer,nullable=False)
-    shape = db.Column(db.PickleType,nullable=False)
-    locations = db.relationship("Location",backref="neighborhood",lazy="dynamic")
-    def __repr__(self):
-        return self._repr(id=self.id,
-                          name=self.name,
-                          zipcode=self.zipcode
-                          )
-    def __str__(self):
-        return self.name
-    def get_description(self):
-        return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), index=True, nullable=False)
+    zipcode = db.Column(db.Integer, nullable=False)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    # shape = db.Column(db.PickleType,nullable=False)
+    # streets = db.relationship(
+    #     "Street",
+    #     secondary=streets_neighborhoods,
+    #     lazy="dynamic",
+    #     backref=db.backref("neighborhoods", lazy="dynamic")
+    #     )
+    # locations = db.relationship(
+    #     "Location",
+    #     backref="neighborhood", lazy="dynamic"
+    #     )
+    streets = db.relationship(
+        "Street",
+        primaryjoin='func.ST_Contains(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
+        # secondary=streets_neighborhoods,
+        backref=db.backref("neighborhood", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Contains(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("neighborhood", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+
+    # def __repr__(self):
+    #     return self._repr(id=self.id,
+    #                       name=self.name,
+    #                       zipcode=self.zipcode
+    #                       )
+    #
+    # def __str__(self):
+    #     return self.name
+    #
+    # def get_description(self):
+    #     return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
 
 
 """
@@ -248,7 +344,6 @@ class PoiCategoryType(db.Model):
         name=self.name, category=self.category)
 
 
-
 def fillDictionary(**kwargs):
     dict_description = {
         'modelName': '', # nome della tabella
@@ -265,6 +360,19 @@ def fillDictionary(**kwargs):
         if key in dict_description.keys():
             dict_description[key] = value
     return dict_description
+
+
+def get_closest_object(class_object: str, shape):
+    if class_object.lower() == 'neighborhood':
+        model = Neighborhood
+    elif class_object.lower() == 'street':
+        model = Street
+    elif class_object.lower() == 'area':
+        model = Area
+    else:
+        warnings.warn(f'Model {class_object} not supported')
+        return None
+
 
 ###
 # MODELS FOR USERS

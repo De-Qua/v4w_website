@@ -8,8 +8,9 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     WTF_CSRF_TIME_LIMIT = None
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'dequa.db')
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    #     'postgresql:///' + os.path.join(basedir, 'dequa.db')
+    SQLALCHEMY_DATABASE_URI = "postgresql://127.0.0.1:5432/dequa"
     SQLALCHEMY_BINDS = {
         "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
         "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),

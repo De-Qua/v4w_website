@@ -16,14 +16,16 @@ import warnings
 import re
 from fuzzywuzzy import process
 from shapely.geometry import Point, Polygon
-from sqlalchemy import literal
+from sqlalchemy import literal, func
 import geopy.distance
-from poi import library_overpass as op
+# from poi import library_overpass as op
 import sqlalchemy
 import time
 import json
+from shapely.geometry.polygon import Polygon
+from shapely.geometry.multipolygon import MultiPolygon
 
-import pdb
+import ipdb
 
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query
 
@@ -233,17 +235,24 @@ def update_sestieri(shp, showFig=False, explain=False):
             err_neighb.append((s,c))
             continue
         geom = geom.iloc[0]
+        if type(geom) is Polygon:
+            geom = MultiPolygon([geom])
+        # ipdb.set_trace()
         # aggiungi se non è già presente
-        neig = neigh_query.filter_by(shape=geom).first()
+        try:
+            neig = neigh_query.filter_by(shape=geom.to_wkt()).first()
+        except:
+            neig = None
         if not neig:
             # TODO: possiamo usare la query gia esistente qui?
-            n = Neighborhood(name=s,zipcode=c, shape=geom)
+            n = Neighborhood(name=s, zipcode=c, shape=geom.to_wkt())
             add_neighb += 1
             db.session.add(n)
 
     if explain:
         print("committo nel database..")
     try:
+        ipdb.set_trace()
         db.session.commit()
     except:
         db.session.rollback()
@@ -286,7 +295,8 @@ def update_streets(shp, showFig=False, explain=False):
         if not name:
             err_streets.append((0,name,name_spe,name_den,pol))
             continue
-        sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
+        # sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
+        sestieri = neigh_query.filter(func.ST_Contains(Neighborhood.shape, pol.to_wkt())).all()
         # se la strada non è contenuta in nessun sestiere passa al successivo
         if len(sestieri)==0:
             continue
@@ -294,7 +304,9 @@ def update_streets(shp, showFig=False, explain=False):
         #     # se c'è più di un sestiere aggiungi agli errori e passa al successivo
         #     err_streets.append((1,name,name_spe,name_den,pol))
         #     continue
-        s = streets_query.filter_by(shape=pol).one_or_none()
+        pol = MultiPolygon([pol])
+        s = streets_query.filter(func.ST_Equals(Street.shape,pol.to_wkt())).one_or_none()
+        # s = streets_query.filter_by(shape=pol.to_wkt()).one_or_none()
         if not s:
             #if explain:
                 #percentage = tot_street / len(streets['TP_STR_NOM']) * 10
@@ -304,16 +316,17 @@ def update_streets(shp, showFig=False, explain=False):
                 #percentage = np.round(tot_street / all_streets * 100).astype(int)
                 #print("{num:03d}: {tot}/ {tot2}: Aggiungo {str}                                            ".format(num=percentage, bar=string_to_be_print, ot=tot_street, tot2=len(streets['TP_STR_NOM']), str=name), end="\r", flush=True)
 
-            st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol)
+            st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol.to_wkt())
             db.session.add(st)
-            for sestiere in sestieri:
-                st.add_neighborhood(sestiere)
+            # for sestiere in sestieri:
+            #     st.add_neighborhood(sestiere)
             add_streets += 1
 
 
     if explain:
         print("committo nel database..")
     try:
+        ipdb.set_trace()
         db.session.commit()
     except:
         db.session.rollback()
@@ -365,13 +378,15 @@ def update_locations(shp, showFig=False, explain=False):
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
         progressbar_pip_style(tot_civ_added,tot_civ_in_file)
-        sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
+        # sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
+        sestieri = neigh_query.filter(func.ST_Intesects(Neighborhood.shape, pol.to_wkt())).all()
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri) == 0:
             continue
         elif len(sestieri) == 1:
             sestiere = sestieri[0]
         elif len(sestieri) > 1:
+            ipdb.set_trace()
             # se c'è più di un sestiere cerca di capire quale è quello giusto
             sestiere = []
 
