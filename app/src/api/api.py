@@ -212,7 +212,11 @@ class getAddress(Resource):
         except Exception:
             return api_response(code=RETURNED_EXCEPTION, lang=lang)
         if len(result_dict) > 1:
-            return api_response(code=UNCLEAR_SEARCH, lang=lang)
+            data = [{'address': r[0]['nome'],
+                     'longitude': r[0]['coordinate'][0],
+                     'latitude': r[0]['coordinate'][1]
+                    } for r in result_dict]
+            return api_response(code=UNCLEAR_SEARCH, lang=lang, data=data)
         data = {'address': result_dict[0]['nome'],
                 'longitude': result_dict[0]['coordinate'][0],
                 'latitude': result_dict[0]['coordinate'][1]
