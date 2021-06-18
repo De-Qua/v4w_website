@@ -64,8 +64,8 @@ class Location(db.Model):
     longitude = db.Column(db.Float,index=True,nullable=False)
     # TODO: Guarda questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
     # oppure questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
-    street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
-    neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
+    # street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
+    # neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
     # housenumber = db.Column(db.String(8),index=True)
     # shape = db.Column(db.PickleType,nullable=False)
     shape = db.Column(Geometry('POINT'), nullable=False)
@@ -128,7 +128,7 @@ class Area(db.Model):
     shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
     streets = db.relationship(
         "Street",
-        primaryjoin='func.ST_Contains(foreign(Area.shape), Street.shape).as_comparison(1, 2)',
+        primaryjoin='func.ST_Intersects(foreign(Area.shape), Street.shape).as_comparison(1, 2)',
         # lazy="dynamic",
         # backref=db.backref("area", lazy="dynamic"),
         backref=db.backref("area", uselist=True),
@@ -137,7 +137,7 @@ class Area(db.Model):
     )
     locations = db.relationship(
         "Location",
-        primaryjoin='func.ST_Contains(foreign(Area.shape), Location.shape).as_comparison(1, 2)',
+        primaryjoin='func.ST_Intersects(foreign(Area.shape), Location.shape).as_comparison(1, 2)',
         backref=db.backref("area", uselist=True),
         viewonly=True,
         uselist=True
@@ -175,7 +175,7 @@ class Street(db.Model):
     # shape = db.Column(db.PickleType, unique=True,nullable=False) # db.Column(db.String(512)) #opzione 2 con una stringa json
     locations = db.relationship(
         "Location",
-        primaryjoin='func.ST_Contains(foreign(Street.shape), Location.shape).as_comparison(1, 2)',
+        primaryjoin='func.ST_Intersects(foreign(Street.shape), Location.shape).as_comparison(1, 2)',
         backref=db.backref("street", uselist=True),
         viewonly=True,
         uselist=True
@@ -236,7 +236,7 @@ class Neighborhood(db.Model):
     #     )
     streets = db.relationship(
         "Street",
-        primaryjoin='func.ST_Contains(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
+        primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
         # secondary=streets_neighborhoods,
         backref=db.backref("neighborhood", uselist=True),
         viewonly=True,
@@ -244,7 +244,7 @@ class Neighborhood(db.Model):
     )
     locations = db.relationship(
         "Location",
-        primaryjoin='func.ST_Contains(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
+        primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
         backref=db.backref("neighborhood", uselist=True),
         viewonly=True,
         uselist=True

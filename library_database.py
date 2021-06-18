@@ -24,6 +24,8 @@ import time
 import json
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
+from shapely import wkt
+from geoalchemy2.shape import to_shape
 
 import ipdb
 
@@ -296,7 +298,7 @@ def update_streets(shp, showFig=False, explain=False):
             err_streets.append((0,name,name_spe,name_den,pol))
             continue
         # sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
-        sestieri = neigh_query.filter(func.ST_Contains(Neighborhood.shape, pol.to_wkt())).all()
+        sestieri = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, pol.to_wkt())).all()
         # se la strada non è contenuta in nessun sestiere passa al successivo
         if len(sestieri)==0:
             continue
@@ -539,6 +541,167 @@ def update_locations(shp, showFig=False, explain=False):
         plt.show()
 
     return err_civ
+
+
+def get_text_and_number(text_with_number):
+    text = None
+    number = None
+    subnumber = None
+    if not text_with_number:
+        return text, number, subnumber
+    the_numbers = re.search(r"(\d+)/?([A-Z])?$", text_with_number)
+    if the_numbers:
+        number = int(the_numbers.group(1))
+        subnumber = the_numbers.group(2)
+
+        text = text_with_number[:-len(the_numbers.group(0))]
+        text = text.strip()
+    else:
+        text = text_with_number.strip()
+    return text, number, subnumber
+
+
+def get_housenumber(den, den1, num, sub):
+    number = 0
+    subnumber = None
+    # start checking den
+    _, den_num, den_sub = get_text_and_number(den)
+    _, den1_num, den1_sub = get_text_and_number(den1)
+
+    if str(den_num) == str(den1_num) == num:
+        number = den_num
+    elif str(den_num) == num:
+        number = den_num
+    elif str(den1_num) == num:
+        number = den1_num
+    else:
+        number = den_num
+
+    if den_sub == den1_sub == sub:
+        subnumber = den_sub
+    elif den_sub == sub:
+        subnumber = den_sub
+    elif den1_sub == sub:
+        subnumber = den1_sub
+    else:
+        subnumber = den_sub
+
+    return number, subnumber
+
+
+
+def update_addresses(shp, showFig=False, explain=False):
+    """
+    Updates the Address Table and returns the number of errors, so 0 is the desired output.
+    """
+
+    global neigh_query, streets_query, location_query
+    civici = gpd.read_file(shp)
+    # rimuovo righe senza geometria che danno problemi
+    civici = civici.loc[~pd.isna(civici["geometry"])]
+    civici = convert_SHP(civici)
+
+    err_civ = []
+    add_civ = 0
+    tot_civ_added = 0
+    tot_civ_in_file = len(civici['CIVICO_NUM'])
+    step_civ = np.round(tot_civ_in_file / 100)
+
+    if explain:
+        print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
+    for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
+        tot_civ_added += 1
+        progressbar_pip_style(tot_civ_added, tot_civ_in_file)
+        if not den and not den1:
+            err_civ.append((1, num, sub, den, den1, pol))
+            continue
+        if not num:
+            err_civ.append((2, num, sub, den, den1, pol))
+            continue
+        # # sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
+        # repr_point = pol.representative_point()
+        # sestieri = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, repr_point.to_wkt())).all()
+        # if len(sestieri) == 0:
+        #     continue
+        # elif len(sestieri) == 1:
+        #     sestiere = sestieri[0]
+        # elif len(sestieri) > 1:
+        #     ipdb.set_trace()
+        streets = streets_query.filter(func.ST_Intersects(Street.shape, pol.to_wkt())).all()
+        if len(streets) == 0:
+            # ipdb.set_trace()
+            continue
+        elif len(streets) == 1:
+            street = streets[0]
+            st_boundary = db.session.scalar(func.ST_Boundary(street.shape))
+            intersection_point = db.session.scalar(func.ST_AsText(func.ST_ClosestPoint(st_boundary, pol.to_wkt())))
+            # intersection_point=db.session.scalar(func.ST_Intersection(st_boundary, pol.to_wkt()))
+            repr_point = wkt.loads(intersection_point)
+            # print(repr_point)
+            # ipdb.set_trace()
+        elif len(streets) > 1:
+            street_found = False
+            for street in streets:
+                if (den and den.startswith(street.name)) or (den1 and den1.startswith(street.name)):
+                    street_found = True
+                    matching_street = street
+                    break
+            if not street_found:
+                for street in streets:
+                    for d in [den, den1]:
+                        d_text, _, _ = get_text_and_number(d)
+                        if not d_text:
+                            continue
+                        namestr, score = process.extractOne(d_text, [s.name for s in streets])
+                        if score >= 90:
+                            street_found = True
+                            matching_street = [s for s in streets if s.name == namestr][0]
+                            break
+                    if street_found:
+                        break
+            if street_found:
+                st_boundary = db.session.scalar(func.ST_Boundary(matching_street.shape))
+                intersection_point = db.session.scalar(func.ST_AsText(func.ST_ClosestPoint(st_boundary, pol.to_wkt())))
+                # intersection_point=db.session.scalar(func.ST_Intersection(st_boundary, pol.to_wkt()))
+                repr_point = wkt.loads(intersection_point)
+            else:
+                # ipdb.set_trace()
+                err_civ.append((3, num, sub, den, den1, pol))
+                continue
+        lat = repr_point.y
+        lon = repr_point.x
+        location = Location(
+                    latitude=lat,
+                    longitude=lon,
+                    shape=repr_point
+        )
+        db.session.add(location)
+        # ipdb.set_trace()
+        housenumber, housenumber_sub = get_housenumber(den, den1, num, sub)
+        address = Address(
+            housenumber=housenumber,
+            housenumber_sub=housenumber_sub,
+            location=location
+        )
+        db.session.add(address)
+        add_civ += 1
+
+    if explain:
+        print("committo nel database..")
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+    print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nNuovi: {new}".format(
+        err=len(err_civ),
+        ses=len(neigh_query.all()),
+        str=len(streets_query.all()),
+        civ=len(location_query.all()),
+        new=add_civ
+        ))
+
 
 def download_POI(categories,bbox=44741,explain=False):
     """

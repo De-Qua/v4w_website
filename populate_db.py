@@ -713,6 +713,10 @@ err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
 
 err_streets
 
+#%% Civici postgis
+path_shp_addresses = os.path.join(folder_file, "civici", "CIVICO_4326VE.shp")
+err_addresses = lb.update_addresses(path_shp_addresses, showFig=False, explain=True)
+
 #%% Civici
 lb.delete_all_locations(explain=True)
 path_shp_locations = os.path.join(folder_file, "civici", "CIVICO_4326VE.shp")
