@@ -18,7 +18,7 @@ from fuzzywuzzy import process
 from shapely.geometry import Point, Polygon
 from sqlalchemy import literal, func
 import geopy.distance
-# from poi import library_overpass as op
+from poi import library_overpass as op
 import sqlalchemy
 import time
 import json
@@ -677,11 +677,18 @@ def update_addresses(shp, showFig=False, explain=False):
         )
         db.session.add(location)
         # ipdb.set_trace()
-        housenumber, housenumber_sub = get_housenumber(den, den1, num, sub)
+        housenumber_num, housenumber_sub = get_housenumber(den, den1, num, sub)
+        housenumber = str(housenumber_num)
+        if housenumber_sub:
+            housenumber += f'/{housenumber_sub}'
+
         address = Address(
-            housenumber=housenumber,
+            housenumber_num=housenumber_num,
             housenumber_sub=housenumber_sub,
-            location=location
+            housenumber=housenumber,
+            location=location,
+            # address_neigh=f"{location.neighborhood.name} {housenumber}",
+            # address_street=f"{location.street.name} {housenumber}"
         )
         db.session.add(address)
         add_civ += 1
@@ -701,6 +708,8 @@ def update_addresses(shp, showFig=False, explain=False):
         civ=len(location_query.all()),
         new=add_civ
         ))
+    ipdb.set_trace()
+    return err_civ
 
 
 def download_POI(categories,bbox=44741,explain=False):
@@ -725,7 +734,7 @@ def download_POI(categories,bbox=44741,explain=False):
             if (poi['type'],poi['id']) not in ids_already_there:
                 ids_already_there.append((poi['type'],poi['id']))
                 all_pois.append(poi)
-        time.sleep(5)
+        time.sleep(15)
 
     if explain:
         print("aggiunti {} poi".format(len(all_pois)))
@@ -795,7 +804,7 @@ def update_POI(pois,explain=False):
         progressbar_pip_style(poi_num,poi_tot)
 
         # Estrai poi in base all'id di OSM
-        p = poi_query.filter_by(osm_type=poi['type'],osm_id = poi['id']).one_or_none()
+        p = poi_query.filter_by(osm_type=poi['type'], osm_id = poi['id']).one_or_none()
 
         # osm_id è un campo unique quindi ritorna o un elemento se esiste il POI oppure None se non esiste
         # caso in cui nel db esiste già il POI
@@ -812,8 +821,9 @@ def update_POI(pois,explain=False):
             lat = poi['center']['lat']
             lon = poi['center']['lon']
         # controllo che il poi appartenga a uno dei neighborhood
-        poi_point = Point(lon,lat)
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        poi_point = Point(lon, lat)
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
         # se il poi non è contenuto in nessun passa al successivo
         if len(neighborhoods)==0:
             continue
@@ -832,10 +842,11 @@ def update_POI(pois,explain=False):
                     break
         if without_address:
             # controllo che non esista già la location a quelle coordinate
-            loc = location_query.filter_by(latitude=lat,longitude=lon).first()
+            loc = location_query.filter_by(latitude=lat, longitude=lon).first()
             if not loc:
                 # trovo la strada a cui appartiene il POI
-                streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
                 if len(streets) == 0:
                     # se non ho trovato nessuna strada cerco la location più vicina
                     # closest,dist = closest_location(poi['lat'],poi['lon'])
@@ -846,14 +857,15 @@ def update_POI(pois,explain=False):
                 elif len(streets) > 1:
                     err_poi.append((2,poi))
                     continue
-                loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                loc = Location(latitude=lat, longitude=lon, shape=poi_point)
                 db.session.add(loc)
                 new_loc += 1
 
         else:
             # il poi va aggiunto ad una location con indirizzo
             # cerco la location più vicina
-            closest,dist = closest_location(lat,lon,housenumber=True)
+            closest, dist = closest_location(lat,lon,housenumber=True)
             if not closest:
                 err_poi.append((3,poi))
                 continue
@@ -1053,7 +1065,8 @@ def update_taxi(posti,explain):
         i+=1
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
         if len(neighborhoods)==0:
             err_tax.append((0,posto))
             continue
@@ -1062,9 +1075,9 @@ def update_taxi(posti,explain):
             err_tax.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
         if not loc:
-            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
         p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
@@ -1101,7 +1114,8 @@ def update_traghetti(posti,explain):
         i+=1
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
         if len(neighborhoods)==0:
             err_tra.append((0,posto))
             continue
@@ -1110,9 +1124,9 @@ def update_traghetti(posti,explain):
             err_tra.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
         if not loc:
-            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
         p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
@@ -1175,12 +1189,12 @@ def update_rive(posti,explain):
             err_riv.append((3,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],street=closest,shape=poi_point).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['UBICAZIONE'],location=loc).one_or_none()
+        p = poi_query.filter_by(name=posto['attributes']['UBICAZIONE']).one_or_none()
         if p:
             continue
         # aggiungo fermata taxi
@@ -1220,7 +1234,8 @@ def update_spazi(posti,explain):
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
         # cerco sestiere
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
         if len(neighborhoods)==0:
             err_spa.append((0,posto))
             continue
@@ -1229,7 +1244,7 @@ def update_spazi(posti,explain):
             err_spa.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
             db.session.add(loc)
@@ -1268,7 +1283,8 @@ def update_vincoli(posti,explain):
         progressbar_pip_style(i,len(posti))
         poi_polygon = Polygon(posto['geometry']['rings'][0])
         # cerco sestiere
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_polygon)]
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_polygon)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_polygon.to_wkt())).all()
         if len(neighborhoods)==0:
             err_vin.append((0,posto))
             continue
@@ -1277,7 +1293,7 @@ def update_vincoli(posti,explain):
             err_vin.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon).one_or_none()
+        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,shape=poi_polygon).one_or_none()
         if not loc:
             loc = Location(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon)
             db.session.add(loc)
@@ -1312,25 +1328,38 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
     global neigh_query, streets_query, location_query
     closest = []
     distance = np.inf
+    p = Point(lat, lon)
+    pwkt = p.to_wkt()
     if housenumber == True:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance),
-                Location.housenumber != None
-                ))
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance),
+        #         Location.housenumber != None
+        #         ))
+        loc = Location.query.join(Address).filter(Address.housenumber != None).order_by(
+                        Location.shape.distance_box(pwkt)).limit(1).one()
     elif housenumber == False:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance),
-                Location.housenumber == None
-                ))
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance),
+        #         Location.housenumber == None
+        #         ))
+        loc = Location.query.join(Address).filter(Address.housenumber == None).order_by(
+                        Location.shape.distance_box(pwkt)).limit(1).one()
     else:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance)
-                ))
-    for loc in query.all():
-        dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance)
+        #         ))
+        loc = Location.query.order_by(Location.shape.distance_box(pwkt)).limit(1).one()
+    if loc:
+        dist = db.session.scalar(func.ST_DistanceSphere(loc.shape, pwkt))
         if dist < distance:
             distance = dist
             closest = loc
+    # for loc in query.all():
+    #     dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
+    #     if dist < distance:
+    #         distance = dist
+    #         closest = loc
+
     return closest,distance
 
 def tell_me_something_I_dont_know():

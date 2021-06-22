@@ -107,12 +107,22 @@ class Location(db.Model):
 
 class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    housenumber = db.Column(db.Integer, nullable=False)
+    housenumber_num = db.Column(db.Integer, nullable=False)
     housenumber_sub = db.Column(db.String(1))
+    housenumber = db.Column(db.String(8), index=True)
     address_neigh = db.Column(db.String(64), index=True)
     address_street = db.Column(db.String(128), index=True)
     location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
 
+    # def __init__(self, **kwargs):
+    #     super(Address, self).__init__(**kwargs)
+    #     # initialize address_neigh and address_street
+    #     housenumber = self.housenumber_num
+    #     if self.housenumber_sub:
+    #         housenumber += f'/{self.housenumber_sub}'
+    #     self.housenumber = housenumber
+    #     self.address_neigh = f"{self.location.neighborhood.name} {housenumber}"
+    #     self.address_street = f"{self.location.street.name} {housenumber}"
 
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
@@ -176,7 +186,7 @@ class Street(db.Model):
     locations = db.relationship(
         "Location",
         primaryjoin='func.ST_Intersects(foreign(Street.shape), Location.shape).as_comparison(1, 2)',
-        backref=db.backref("street", uselist=True),
+        backref=db.backref("street", uselist=False),
         viewonly=True,
         uselist=True
         )
@@ -245,7 +255,7 @@ class Neighborhood(db.Model):
     locations = db.relationship(
         "Location",
         primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
-        backref=db.backref("neighborhood", uselist=True),
+        backref=db.backref("neighborhood", uselist=False),
         viewonly=True,
         uselist=True
     )
@@ -269,12 +279,14 @@ Comprende bar, caffe, negozi, chiese, ecc.
  - name: nome
  - location_id:
 """
+
+
 class Poi(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(128),index=True)
-    name_alt = db.Column(db.String(128),index=True)
-    location_id = db.Column(db.Integer,db.ForeignKey("location.id"),nullable=False)
-    categorytype_id = db.Column(db.Integer,db.ForeignKey("poi_category_type.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), index=True)
+    name_alt = db.Column(db.String(128), index=True)
+    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
+    categorytype_id = db.Column(db.Integer, db.ForeignKey("poi_category_type.id"))
     opening_hours = db.Column(db.String(256))
     wheelchair = db.Column(db.String(8))
     toilets = db.Column(db.Boolean)
@@ -282,14 +294,17 @@ class Poi(db.Model):
     wikipedia = db.Column(db.String(128))
     atm = db.Column(db.Boolean)
     phone = db.Column(db.String(32))
-    last_change = db.Column(db.DateTime,default=datetime.datetime.utcnow,nullable=False)
-    types = db.relationship("PoiCategoryType",secondary=poi_types,
-        lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
-    score = db.Column(db.Integer,nullable=False,default=0)
+    last_change = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    types = db.relationship("PoiCategoryType",
+                            secondary=poi_types,
+                            lazy="dynamic",
+                            backref=db.backref("pois", lazy="dynamic")
+                            )
+    score = db.Column(db.Integer, nullable=False, default=0)
     osm_type = db.Column(db.String(8))
-    osm_id = db.Column(db.Integer,nullable=True)
+    osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
-    __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
+    __table_args__ = (CheckConstraint(db.and_(0<=score, score<=100), name="check_score"),)
     def add_type(self,type):
         if not self.is_type(type):
             self.types.append(type)
@@ -297,11 +312,11 @@ class Poi(db.Model):
         if self.is_type(type):
             self.types.remove(type)
     def is_type(self,type):
-        return self.types.filter(poi_types.c.type_id==type.id).count() > 0
+        return self.types.filter(poi_types.c.type_id == type.id).count() > 0
 
     def get_description(self):
         try:
-            types=[t.__str__() for t in self.types.all()]
+            types = [t.__str__() for t in self.types.all()]
             return fillDictionary(modelName='Poi', id=self.id, name=self.name, type=types, address="{}".format(self.location))
         except:
             return self.__repr__()
