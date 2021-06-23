@@ -76,10 +76,17 @@ class Location(db.Model):
             return "({neighborhood}) {lat},{lon}".format(neighborhood=self.neighborhood.name,lat=self.latitude,lon=self.longitude)
     def get_description(self):
         try:
-            if self.housenumber:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-            else:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+            return fillDictionary(
+                modelName='Location',
+                id=self.id,
+                latitude=self.latitude,
+                longitude=self.longitude,
+                address=f"{self.neighborhood.name} {self.housenumber}" if self.housenumber else "",
+                housenumber=self.housenumber,
+                street=self.street.name,
+                neighborhood=self.neighborhood.name,
+                street_obj=self.street.get_description(),
+                neighborhood_obj=self.neighborhood.get_description())
         except:
             return self.__repr__()
 """
@@ -133,14 +140,17 @@ class Street(db.Model):
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
-                          neighborhood=[n.name for n in self.neighborhoods.all()]
+                          neighborhood=[n.name for n in self.neighborhoods]
                           )
     def __str__(self):
         return self.name
     def get_description(self):
 #        try:
-        all_neighb = [n.name for n in self.neighborhoods.all()]
-        return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
+        return fillDictionary(
+            modelName='Street',
+            id=self.id,
+            name=self.name,
+            neighborhoods=[n.get_description() for n in self.neighborhoods])
             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
 #        except:
 #            return self.__repr__()
@@ -164,7 +174,11 @@ class Neighborhood(db.Model):
     def __str__(self):
         return self.name
     def get_description(self):
-        return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
+        return fillDictionary(
+            modelName='Neighborhood',
+            id=self.id,
+            name=self.name,
+            zipcode=self.zipcode)
 
 
 """
@@ -205,14 +219,29 @@ class Poi(db.Model):
 
     def get_description(self):
         try:
-            types=[t.__str__() for t in self.types.all()]
-            return fillDictionary(modelName='Poi', id=self.id, name=self.name, type=types, address="{}".format(self.location))
+            # types=[t.__str__() for t in self.types]
+            return fillDictionary(
+                modelName='Poi',
+                id=self.id,
+                name=self.name,
+                location=self.location.get_description(),
+                opening_hours=self.opening_hours,
+                wheelchair=self.wheelchair,
+                toilets=self.toilets,
+                toilets_wheelchair=self.toilets_wheelchair,
+                wikipedia=self.wikipedia,
+                atm=self.atm,
+                phone=self.phone,
+                last_change=self.last_change,
+                types=[t.get_description() for t in self.types],
+                address="{}".format(self.location)
+                )
         except:
             return self.__repr__()
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
-                          types=[t.__str__() for t in self.types.all()]
+                          types=[t.__str__() for t in self.types]
                           )
     def __str__(self):
         if self.name:
@@ -227,7 +256,7 @@ class PoiCategory(db.Model):
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
-                          types=[t.name for t in self.types.all()]
+                          types=[t.name for t in self.types]
                           )
     def __str__(self):
         return self.name
@@ -246,24 +275,19 @@ class PoiCategoryType(db.Model):
     def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
-
+    def get_description(self):
+        return fillDictionary(
+            modelName="Type",
+            id=self.id,
+            name=self.name
+        )
 
 
 def fillDictionary(**kwargs):
-    dict_description = {
-        'modelName': '', # nome della tabella
-        'id': '',
-        'name': '',
-        'neighborhood':[],
-        'address': '',
-        'housenumber':'',
-        'type':[],
-        'zipcode':''
-    }
+    dict_description = {}
     #pdb.set_trace()
     for key, value in kwargs.items():
-        if key in dict_description.keys():
-            dict_description[key] = value
+        dict_description[key] = value
     return dict_description
 
 ###
