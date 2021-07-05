@@ -686,6 +686,7 @@ from sqlalchemy import literal
 #%%
 # Idea di Palma
 # al momento funzionano sestieri, strade e civici!!!
+import pickle
 import geopandas as gpd
 import os#
 %load_ext autoreload
@@ -728,6 +729,8 @@ err_addresses = lb.update_addresses(path_shp_addresses, showFig=False, explain=T
 
 print(err_addresses)
 #%%
+
+#%%
 import geopandas as gpd
 
 df = gpd.GeoDataFrame(err_addresses)
@@ -752,13 +755,18 @@ list_category = [
     "sport"
     ]
 all_pois = lb.download_POI(list_category,explain=True)
-
+# save poi file
+poi_file = "all_poi_20210702.pkl"
+with open(poi_file,'wb') as stream:
+    pickle.dump(all_pois, stream)
 # poi
 lb.delete_all_types(True)
+db.session.rollback()
 # lb.poi_query.filter_by(osm_type=poi['type'], osm_id=poi['id']).one_or_none()
 err_poi = lb.update_POI(all_pois,explain=True)
-#db.session.rollback()
-
+print(err_poi)
+df = gpd.GeoDataFrame(err_poi)
+df.to_csv('err_poi.csv')
 #%% Posti acquei
 path_posti_acquei = "mille_mila_posti_barca.json"
 posti = lb.upload_waterPOIS(path_posti_acquei,explain=True)
