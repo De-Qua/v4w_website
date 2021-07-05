@@ -1328,7 +1328,7 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
     global neigh_query, streets_query, location_query
     closest = []
     distance = np.inf
-    p = Point(lat, lon)
+    p = Point(lon, lat)
     pwkt = p.to_wkt()
     if housenumber == True:
         # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
