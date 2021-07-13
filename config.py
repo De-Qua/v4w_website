@@ -10,7 +10,8 @@ class Config(object):
     # Database
     # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
     #     'postgresql:///' + os.path.join(basedir, 'dequa.db')
-    SQLALCHEMY_DATABASE_URI = "postgresql://127.0.0.1:5432/dequa"
+    #SQLALCHEMY_DATABASE_URI = "postgresql://127.0.0.1:5432/dequa"
+    SQLALCHEMY_DATABASE_URI = "postgresql:///opendata_ve_pg"
     SQLALCHEMY_BINDS = {
         "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
         "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),

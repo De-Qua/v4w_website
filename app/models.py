@@ -124,13 +124,12 @@ class Address(db.Model):
     #     self.address_neigh = f"{self.location.neighborhood.name} {housenumber}"
     #     self.address_street = f"{self.location.street.name} {housenumber}"
 
+
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
 Esempio: Santa Marta, Baia del Re
 """
-
-
 class Area(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)

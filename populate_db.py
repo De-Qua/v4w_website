@@ -682,6 +682,7 @@ from sqlalchemy import literal
 #         phone = p[4].phone,
 #         ).filter(Poi.types.is_(p[4].types)).first()
 #
+import pdb
 
 #%%
 # Idea di Palma
@@ -689,15 +690,18 @@ from sqlalchemy import literal
 import pickle
 import geopandas as gpd
 import os#
-%load_ext autoreload
-%autoreload 2
+#%load_ext autoreload
+#%autoreload 2
 import library_database as lb
 from app import db
 from importlib import reload
 lb.create_query_objects()
 folder = os.getcwd()
 # folder_file = os.path.join(folder,"app","static","files")
-folder_file = "/Volumes/Maxtor/Venezia/data/OpenDataVenezia"
+#folder_file = "/Volumes/Maxtor/Venezia/data/OpenDataVenezia"
+folder_file = "/Users/Palma/Documents/Projects/DeQua/opendata_ve_pg/"
+
+pdb.set_trace()
 # lb.delete_all(explain=True)
 #%% Delete all
 # lb.delete_all_neighborhoods(explain=True)
@@ -705,13 +709,14 @@ lb.delete_all(explain=True)
 
 #%% Sestieri
 # path_shp_sestieri =  os.path.join(folder_file, "Localita", "Località.shp")
-path_shp_sestieri =  os.path.join(folder_file, "Localita", "Localita_v4.shp")
+path_shp_sestieri =  os.path.join(folder_file, 'sestieri', 'Localita_v4.shp')
+# "Localita", "Localita_v4.shp")
 err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
 
 print(err_sestieri)
 
 #%% Strade
-path_shp_streets = os.path.join(folder_file, "TP_STR", "TP_STR_v3.shp")
+path_shp_streets =os.path.join(folder_file, 'toponimi_strade', "TP_STR_v3.shp")
 err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
 
 
