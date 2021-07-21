@@ -778,7 +778,7 @@ def update_addresses(shp, showFig=False, explain=False):
         civ=len(location_query.all()),
         new=add_civ
         ))
-    with open('address_err_report', 'w') as f:
+    with open('address_err_report.csv', 'w') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
         write.writerows(err_report)
