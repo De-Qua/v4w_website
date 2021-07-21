@@ -29,6 +29,7 @@ from geoalchemy2.shape import to_shape
 
 from lista_sestieri import list_sest_cap
 
+import csv
 import ipdb
 
 global neigh_query, streets_query, location_query, poi_query, category_query, type_query, address_query
@@ -233,7 +234,8 @@ def update_sestieri(shp, showFig=False, explain=False):
         #geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
         # case insensitive se no impazzisco
         # title non ci serve piu
-        geom = sestieri[sestieri["A_SCOM_NOM"].str.contains(s, case=False)]["geometry"]
+        #geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
+        geom = sestieri[sestieri["A_SCOM_NOM"].str.match(s, case=False)]["geometry"]
         if geom.empty:
             #pdb.set_trace()
             err_neighb.append((s,c))
@@ -355,7 +357,7 @@ def update_streets(shp, showFig=False, explain=False):
         for i in range(len(streets_query)):
             random_choice = random.randint(0,random_range)
             if random_choice > random_range/2:
-                plt.plot(s[i].shape.exterior.xy)
+                plot(s[i].shape.exterior.xy)
         plt.show()
 
     return err_streets
@@ -627,7 +629,6 @@ def select_best_match(candidates, denomination, denomination1, shape):
             if street_found:
                 break
 
-    print(f"In a dubious case, street found: {street_found} - {matching_street} , with name {matching_street.name}")
     return matching_street, street_found
 
 def update_addresses(shp, showFig=False, explain=False):
@@ -642,6 +643,8 @@ def update_addresses(shp, showFig=False, explain=False):
     civici = convert_SHP(civici)
 
     err_civ = []
+    err_report = []
+    err_report.append("Denominazione, Denominazione 1, Civico Num, Sub, Sestiere, Strada")
     add_civ = 0
     tot_civ_added = 0
     civ_without_number = 0
@@ -652,7 +655,7 @@ def update_addresses(shp, showFig=False, explain=False):
     if explain:
         print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
     for num, sub, den, den1, pol in civici[["CIVICO_NUM", "CIVICO_SUB", \
-            "DENOMINAZI", "DENOMINA_1", "geometry"]].values[:500]:
+            "DENOMINAZI", "DENOMINA_1", "geometry"]].values:
         tot_civ_added += 1
         progressbar_pip_style(tot_civ_added, tot_civ_in_file)
         if not den and not den1:
@@ -662,23 +665,11 @@ def update_addresses(shp, showFig=False, explain=False):
             err_civ.append((2, num, sub, den, den1, pol))
             continue
 
-        # if more than one match, we keep all of them
-        loc_neighbs = get_neighborhoods_from_shape(pol)
-        loc_neighb = None
-        string_neighb = ''
-        if len(loc_neighbs) == 1:
-            loc_neighb = loc_neighbs[0]
-            string_neighb = loc_neighb.name
-        elif len(loc_neighbs) > 1:
-            print('piu di un sestiere..')
-            for i in range(len(loc_neighbs)):
-                if i == 0:
-                    string_neighb += loc_neighbs[i].name
-                else:
-                    string_neighb += ", " + loc_neighbs[i].name
-            print(string_neighb)
-        streets, found_a_street = get_streets_from_shape(pol)
+        # streets
+        # prima troviamo la strada,scegliamo il punto di intersezione
+        # e poi possiamo aggiungere il sestiere
 
+        streets, found_a_street = get_streets_from_shape(pol)
         loc_street = None
         # if more than one match, we select the best
         if found_a_street is False and len(streets) > 0:
@@ -699,6 +690,34 @@ def update_addresses(shp, showFig=False, explain=False):
             repr_point = pol.representative_point()
             # should we still add the location
             err_civ.append((3, num, sub, den, den1, pol))
+            continue
+
+        # # if more than one match, we keep all of them
+        # loc_neighbs = get_neighborhoods_from_shape(pol)
+        # loc_neighb = None
+        # string_neighb = ''
+        # if len(loc_neighbs) == 1:
+        #     loc_neighb = loc_neighbs[0]
+        #     string_neighb = loc_neighb.name
+        # elif len(loc_neighbs) > 1:
+        #     print('piu di un sestiere..')
+        #     for i in range(len(loc_neighbs)):
+        #         if i == 0:
+        #             string_neighb += loc_neighbs[i].name
+        #         else:
+        #             string_neighb += ", " + loc_neighbs[i].name
+        #     print(string_neighb)
+        #
+
+        #string_neighb = loc_street.neighborhood.name
+
+        found_neighb = False
+        loc_neighb = get_neighborhoods_from_shape(repr_point)
+        if len(loc_neighb) == 1:
+            string_neighb = loc_neighb[0].name #loc_street.neighborhood.name
+            found_neighb = True
+        else:
+            print("missed sestiere")
 
         lat = repr_point.y
         lon = repr_point.x
@@ -709,7 +728,7 @@ def update_addresses(shp, showFig=False, explain=False):
         )
         #pdb.set_trace()
         db.session.add(location)
-        print(f"This location, {den}, hat sestieri {location.neighborhood}")
+        #print(f"This location, {den}, hat sestieri {location.neighborhood}")
 
         # ipdb.set_trace()
         housenumber_num, housenumber_sub = get_housenumber(den, den1, num, sub)
@@ -718,8 +737,15 @@ def update_addresses(shp, showFig=False, explain=False):
             housenumber += f'/{housenumber_sub}'
 
         if housenumber_num:
-            if not found_a_street or len(loc_neighbs) == 0:
+            if not found_a_street or not found_neighb: #or len(loc_neighbs) == 0:
                 missing_neighborhood_or_streets += 1
+                sest = "MISSING"
+                street = "MISSING"
+                if found_neighb:
+                    sest = string_neighb
+                if found_a_street:
+                    street = f"{loc_street.name} {housenumber}"
+                err_report.append(den + "," + den1 + "," + housenumber + "," + sest + "," + street)
             #pdb.set_trace()
             else:
                 address = Address(
@@ -739,7 +765,6 @@ def update_addresses(shp, showFig=False, explain=False):
         print("committo nel database..")
     try:
         db.session.commit()
-        print(f"This location, {den}, hat sestieri {location.neighborhood}")
     except:
         db.session.rollback()
         warnings.warn("Errore nel commit")
@@ -753,6 +778,11 @@ def update_addresses(shp, showFig=False, explain=False):
         civ=len(location_query.all()),
         new=add_civ
         ))
+    with open('address_err_report', 'w') as f:
+        # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerows(err_report)
+
     ipdb.set_trace()
     return err_civ
 
@@ -919,6 +949,7 @@ def update_POI(pois,explain=False):
                 continue
             # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
             elif dist > max_dist:
+                pdb.set_trace()
                 err_poi.append((4,poi))
                 continue
             loc = closest
