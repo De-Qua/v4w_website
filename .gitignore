@@ -150,3 +150,4 @@ dequa.db
 ideas.db
 feed_err.db
 *.db
+.pgsql
