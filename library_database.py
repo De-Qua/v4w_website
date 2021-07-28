@@ -943,18 +943,17 @@ def update_POI(pois,explain=False):
         else:
             # il poi va aggiunto ad una location con indirizzo
             # cerco la location più vicina
-            closest, dist = closest_location(lat,lon,housenumber=True)
+            closest, dist = closest_location(lat, lon, housenumber=True)
             if not closest:
                 err_poi.append((3,poi))
                 continue
             # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
             elif dist > max_dist:
-                pdb.set_trace()
                 err_poi.append((4,poi))
                 continue
             loc = closest
         # creo il poi
-        p = Poi(location=loc,osm_id=poi['id'])
+        p = Poi(location=loc, osm_id=poi['id'])
         # loop sui tag del poi
         for tag_name in poi['tags']:
             # aggiungo attributi al poi
@@ -969,14 +968,19 @@ def update_POI(pois,explain=False):
                         value = False
                 else:
                     value = poi['tags'][tag_name]
-                setattr(p,col_name,value)
+                    # control length
+                    if tag_name == 'phone':
+                        if len(value) > 32:
+                            print("truncating phone numbers..")
+                            value = value[:32]
+                setattr(p, col_name, value)
             # aggiungo categorie al poi
             elif tag_name in tags_cat.keys():
                 cat_name = tags_cat[tag_name]
                 # estraggo o creo la categoria corrispondente
                 c = category_query.filter_by(name=cat_name).one_or_none()
                 if not c:
-                    c = PoiCategory(name=cat_name)
+                    c = PoiCategory(name = cat_name)
                     db.session.add(c)
                     new_cat += 1
                 # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
@@ -1002,7 +1006,7 @@ def update_POI(pois,explain=False):
     if explain:
         print("committo nel database..")
     try:
-        # in realtà probabilmente non serve, ma boh
+        # forse non serve
         db.session.commit()
     except:
         db.session.rollback()

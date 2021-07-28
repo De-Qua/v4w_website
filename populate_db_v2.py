@@ -83,7 +83,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding sestieri..")
-    path_shp_sestieri =  os.path.join(folder_file, 'sestieri', 'Localita_v4.shp')
+    path_shp_sestieri = os.path.join(folder_file, 'sestieri', 'Localita_v5.shp')
     # "Localita", "Localita_v4.shp")
     err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
     print(f"done.\n\nReport: Error in:\n{err_sestieri}.\n\nnext comes the streets.")
@@ -125,7 +125,7 @@ else:
     print('skipping addresses..')
 
 if DEBUG:
-    working = input("Want to add POIs? (y = yes, s = skip)   ")
+    working = input("Want to add POIs? (y = yes, s = skip)        ")
 
 if working == 'y':
     print("")
