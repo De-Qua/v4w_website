@@ -3,7 +3,7 @@ import library_database as lb
 import pdb
 from app import app, db
 import psycopg2
-import pickle
+import pickle, json
 from app.models import *
 
 folder_file = "/Users/Palma/Documents/Projects/DeQua/opendata_ve_pg/"
@@ -117,8 +117,6 @@ if working == 'y':
     path_shp_addresses = os.path.join(folder_file, "civici", "CIVICO_4326VE_v2.shp")
     err_addresses = lb.update_addresses(path_shp_addresses, showFig=False, explain=True)
     print(f"done.\n\nReport: Error in:\n{err_addresses}.\n\nnext comes the pois.")
-    if DEBUG:
-        print("Do you want to continue?")
     print('*' * LENGTH_ASTERISK_ROW)
     print("")
 else:
@@ -148,10 +146,38 @@ if working == 'y':
             all_pois = pickle.load(stream)
 
     err_poi = lb.update_POI(all_pois, explain=True)
-    print(f"done.\n\nReport: Error in:\n{err_poi}.\n\nnext comes the water pois.")
-    if DEBUG:
-        print("Do you want to continue?")
+    print(f"done.\n\nReport: {len(err_poi)} errors.\n\nnext comes the water pois.")
     print('*' * LENGTH_ASTERISK_ROW)
     print("")
 else:
     print('skipping pois..')
+
+if DEBUG:
+    working = input("Want to add water POIs? (y = yes, s = skip)  ")
+
+if working == 'y':
+    print("")
+    print('*' * LENGTH_ASTERISK_ROW)
+    print("adding Water POIs..")
+    json_file = input("Insert json file name:\n")
+    if not json_file:
+        print("Without file we do not go very far.. :( ")
+        print("we try 'posti_barca.json' but otherwise it will fail")
+        json_file = 'posti_barca.json'
+    #else:
+    wPOI_path = os.path.join(folder_file, "waterPOI", json_file)
+    print('loading file..')
+    wPOIs = lb.upload_waterPOIS(wPOI_path, explain=True)
+    print('loaded file, writing to db..')
+    err_wpoi = lb.update_waterPois(wPOIs, type='all', explain=True)
+    print(f"done.\n\nReport: {len(err_wpoi)} errors.\n")
+    print('*' * LENGTH_ASTERISK_ROW)
+    print("")
+else:
+    print('skipping water pois..')
+
+print('*' * LENGTH_ASTERISK_ROW)
+print("")
+print("we are done!")
+print("")
+print('*' * LENGTH_ASTERISK_ROW)

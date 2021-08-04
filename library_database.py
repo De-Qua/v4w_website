@@ -1089,7 +1089,7 @@ def upload_waterPOIS(json_posti, explain=False):
 
     return posti_unici
 
-def update_waterPois(posti,type='all',explain=False):
+def update_waterPois(posti, type='all', explain=False):
     """
     Updates the DB by adding the water POIs, i.e. rive, traghetti, taxi, vincoli
     """
@@ -1158,7 +1158,7 @@ def update_taxi(posti,explain):
             err_tax.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
@@ -1207,7 +1207,10 @@ def update_traghetti(posti,explain):
             err_tra.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
+        ## ha bisogno di poi_point.to_wkt, se no lancia errore ()
+        # psycopg2.ProgrammingError: can't adapt type 'Point'
+        #, ma sotto dove aggiunge la location non serve piu. boh
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
@@ -1255,7 +1258,10 @@ def update_rive(posti,explain):
         distance = np.inf
         closest = []
         for street in streets:
-            dist = street[0].shape.distance(poi_point)
+            # street that comes back from postGIS is now a WKBElement
+            # we convert it to a shapely shape with to_shape
+            street_shapely = to_shape(street[0].shape)
+            dist = street_shapely.distance(poi_point)
             if dist < distance:
                 distance = dist
                 closest = street[0]
@@ -1263,7 +1269,7 @@ def update_rive(posti,explain):
             err_riv.append((1,posto))
             continue
 
-        neighborhoods = closest.neighborhoods.all()
+        neighborhoods = closest.neighborhood #.all()
         if len(neighborhoods)==0:
             err_riv.append((2,posto))
             continue
@@ -1272,7 +1278,7 @@ def update_rive(posti,explain):
             err_riv.append((3,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],street=closest,shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],street=closest,shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point)
             db.session.add(loc)
@@ -1327,16 +1333,25 @@ def update_spazi(posti,explain):
             err_spa.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['ID_SPAZIO'],location=loc).one_or_none()
+        #### ATTENTION
+        # convertire a str il nome serve a evitare errori con postgres,
+        # ma non mi sembra ottimo che il nome sia un ID
+        # in piu perdiamo molte info come lunghezza e larghezza
+        p = poi_query.filter_by(name=str(posto['attributes']['ID_SPAZIO']),location=loc).one_or_none()
         if p:
             continue
+
+        #### ATTENTION
+        # convertire a str il nome serve a evitare errori con postgres,
+        # ma non mi sembra ottimo che il nome sia un ID
+        # in piu perdiamo molte info come lunghezza e larghezza
         # creo poi
-        p = Poi(name=posto['attributes']['ID_SPAZIO'],location=loc)
+        p = Poi(name=str(posto['attributes']['ID_SPAZIO']),location=loc)
         # aggiungo categoria
         cat_name = "riva"
         typ_name = "spazi_tempo"
@@ -1376,16 +1391,16 @@ def update_vincoli(posti,explain):
             err_vin.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,shape=poi_polygon).one_or_none()
+        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,shape=poi_polygon.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['PK_ID'],location=loc).one_or_none()
+        p = poi_query.filter_by(name=str(posto['attributes']['PK_ID']),location=loc).one_or_none()
         if p:
             continue
         # creo poi
-        p = Poi(name=posto['attributes']['PK_ID'],location=loc)
+        p = Poi(name=str(posto['attributes']['PK_ID']),location=loc)
         # aggiungo categoria water_stop
         cat_name = "vincolo"
         typ_name = posto['attributes']['TIPO']
