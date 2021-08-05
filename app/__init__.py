@@ -144,7 +144,7 @@ with app.app_context():
 #
 # TrackUsage setup
 #
-track_datastore = SQLStorage(engine=db.get_engine(bind="trackusage"))
+track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models

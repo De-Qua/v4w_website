@@ -395,11 +395,12 @@ def get_closest_object(class_object: str, shape):
 roles_users_table = db.Table('roles_users',
     db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
     db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
-    info={'bind_key': 'users'})
+    info={'bind_key': 'internal', 'tablename': 'roles_users'})
 
 
 class Users(db.Model, UserMixin):
-    __bind_key__ = 'users'
+    __tablename__ = 'users'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     email = db.Column(db.String(255), unique=True)
     password = db.Column(db.String(80))
@@ -412,6 +413,7 @@ class Users(db.Model, UserMixin):
         return self._repr(id=self.id,
                           email=self.email
                           )
+
     def __str__(self):
         return self.email
     # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
@@ -425,7 +427,8 @@ class Users(db.Model, UserMixin):
 
 
 class Roles(db.Model, RoleMixin):
-    __bind_key__ = 'users'
+    __tablename__ = 'roles'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
@@ -436,7 +439,8 @@ class Roles(db.Model, RoleMixin):
 
 
 class Tokens(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'tokens'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     token = db.Column(db.String(500))
     jti = db.Column(db.String(36))
@@ -460,11 +464,12 @@ class Tokens(db.Model):
 types_apis_table = db.Table('types_apis',
     db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
     db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
-    info={'bind_key': 'users'})
+    info={'bind_key': 'internal', 'tablename': 'types_apis'})
 
 
 class TokenTypes(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'token_types'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     type = db.Column(db.String(80), unique=True)
     tokens = db.relationship('Tokens', lazy=True, backref=db.backref('type', lazy=True))
@@ -480,7 +485,8 @@ class TokenTypes(db.Model):
 
 
 class Apis(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'apis'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     path = db.Column(db.String(100))
@@ -491,7 +497,8 @@ class Apis(db.Model):
 
 
 class TokenApiCounters(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'token_api_counters'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     token_id = db.Column(db.Integer(), db.ForeignKey('tokens.id'), nullable=False)
     api_id = db.Column(db.Integer(), db.ForeignKey('apis.id'), nullable=False)
@@ -499,7 +506,8 @@ class TokenApiCounters(db.Model):
 
 
 class Languages(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'languages'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
     code = db.Column(db.String(5), unique=True)
@@ -510,7 +518,8 @@ class Languages(db.Model):
 
 
 class ErrorGroups(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_groups'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(10), unique=True)
     codes = db.relationship('ErrorCodes', lazy=True, backref=db.backref('group', lazy=True))
@@ -520,7 +529,8 @@ class ErrorGroups(db.Model):
 
 
 class ErrorCodes(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_codes'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     code = db.Column(db.Integer(), unique=True)
     description = db.Column(db.String(100))
@@ -532,7 +542,8 @@ class ErrorCodes(db.Model):
 
 
 class ErrorTranslations(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_translation'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     code_id = db.Column(db.Integer(), db.ForeignKey('error_codes.id'))
     language_id = db.Column(db.Integer(), db.ForeignKey('languages.id'))
@@ -544,7 +555,7 @@ class ErrorTranslations(db.Model):
 ###
 class FlaskUsage(db.Model):
     __tablename__ = 'flask_usage'
-    __bind_key__ = 'trackusage'
+    __bind_key__ = 'collected_data'
 
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String(128))
@@ -569,8 +580,8 @@ class FlaskUsage(db.Model):
 # TABELLA INIZIATIVE E VOTI
 ####
 class Ideas(db.Model):
-    __tablename__ = 'Ideas' # nome della tabella nel file ideas.db
-    __bind_key__ = 'ideas' # bind per SQLAlchemy del file ideas.db
+    __tablename__ = 'ideas'  # nome della tabella nel file ideas.db
+    __bind_key__ = 'collected_data'  # bind per SQLAlchemy del file ideas.db
 
     id = db.Column(db.Integer(), primary_key=True)
     idea_title = db.Column(db.String(128))
@@ -610,8 +621,8 @@ class Ideas(db.Model):
 # TABELLE PER FEEDBACK E ERRORI
 ######
 class Feedbacks(db.Model):
-    __tablename__ = "Feedbacks"
-    __bind_key__ = "feed_err"
+    __tablename__ = "feedbacks"
+    __bind_key__ = "collected_data"
 
     id = db.Column(db.Integer(), primary_key=True)
     version = db.Column(db.String(16))
@@ -633,8 +644,8 @@ class Feedbacks(db.Model):
     solved = db.Column(db.Boolean, default=False)
 
 class Errors(db.Model):
-    __tablename__ = "Errors"
-    __bind_key__ = "feed_err"
+    __tablename__ = "runtime_errors"
+    __bind_key__ = "collected_data"
 
     id = db.Column(db.Integer(), primary_key=True)
     version = db.Column(db.String(16))

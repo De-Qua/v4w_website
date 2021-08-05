@@ -1,0 +1,8 @@
+## COMMAND TO CREATE THE DATABASES IN postgres
+
+# assuming you have Postgres (with postGIS) installed, you should just access
+
+CREATE DATABASE opendata_ve_pg;
+CREATE DATABASE dequa_collected_data;
+CREATE DATABASE dequa_config_data;
+CREATE DATABASE dequa_internal;
