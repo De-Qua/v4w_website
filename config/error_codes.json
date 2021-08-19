@@ -1,0 +1,62 @@
+[
+    {
+        "code": 0,
+        "description": "OK",
+        "group_id": null,
+        "id": 1
+    },
+    {
+        "code": -1,
+        "description": "Generic Error",
+        "group_id": null,
+        "id": 2
+    },
+    {
+        "code": 1,
+        "description": "Token type wrong",
+        "group_id": 1,
+        "id": 3
+    },
+    {
+        "code": 2,
+        "description": "Token not authorized",
+        "group_id": 1,
+        "id": 4
+    },
+    {
+        "code": 10,
+        "description": "Address not found",
+        "group_id": 2,
+        "id": 5
+    },
+    {
+        "code": 20,
+        "description": "Coordinates bad format",
+        "group_id": 3,
+        "id": 6
+    },
+    {
+        "code": 11,
+        "description": "Address multiple results",
+        "group_id": 2,
+        "id": 7
+    },
+    {
+        "code": 12,
+        "description": "Path not found",
+        "group_id": 2,
+        "id": 8
+    },
+    {
+        "code": 21,
+        "description": "Wrong input",
+        "group_id": 3,
+        "id": 9
+    },
+    {
+        "code": 3,
+        "description": "Token revoked or non-existing",
+        "group_id": 1,
+        "id": 10
+    }
+]
