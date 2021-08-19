@@ -114,7 +114,9 @@ class StreetModelView(AdminModelView):
     column_searchable_list = ['name', 'name_alt']
     column_editable_list = ['name_alt', 'score']
     column_exclude_list = ['shape']
-    column_filters = ['name_alt','name_spe', 'name_den', 'score', 'neighborhoods', 'areas']
+    column_filters = ['name_alt','name_spe', 'name_den', 'score']
+    # not anymore in postgres, they are automatically binded but not columns
+    # , 'neighborhoods', 'areas']
 
 
 class AreaModelView(AdminModelView):
