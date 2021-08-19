@@ -1,0 +1,2 @@
+# PYTHON SCRIPT TO POPULATE
+# dequa_config_data DATABASE

@@ -403,7 +403,7 @@ class Users(db.Model, UserMixin):
     __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     email = db.Column(db.String(255), unique=True)
-    password = db.Column(db.String(80))
+    password = db.Column(db.String(160))
     active = db.Column(db.Boolean(), default=False)
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))

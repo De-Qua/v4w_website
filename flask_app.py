@@ -19,7 +19,7 @@ def make_shell_context():
 def before_first_request():
     if app.debug:
         # Create any database tables that don't exist yet.
-        db.create_all(bind='users')
+        db.create_all(bind='internal')
 
         # Create the Roles "admin" and "end-user" -- unless they already exist
         user_datastore.find_or_create_role(name='admin', description='Administrator')
@@ -27,8 +27,8 @@ def before_first_request():
 
         # Create two Users for testing purposes -- unless they already exists.
         # In each case, use Flask-Security utility function to encrypt the password.
-        someone_password = 'someone'
-        admin_password = 'admin'
+        someone_password = 'some61294'
+        admin_password = '123de_456qua'
         if not user_datastore.get_user('someone'):
             user_datastore.create_user(email='someone', password=utils.hash_password(someone_password))
         if not user_datastore.get_user('admin'):
