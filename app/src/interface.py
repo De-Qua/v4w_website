@@ -390,6 +390,7 @@ def find_what_needs_to_be_found(params_research, gt=False):
             # prepara il messaggio da mandare a javascript
             modus_operandi = 1
             final_dict = prepare_our_message_to_javascript(modus_operandi, [da, a],[match_dict_da[0]], params_research, path_list_of_dictionaries, [match_dict_a[0]])
+            #pdb.set_trace()
             final_dict['gt'] = gt_dict['data']
 
     return final_dict

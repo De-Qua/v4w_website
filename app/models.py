@@ -95,14 +95,14 @@ class Location(db.Model):
     # def __str__(self):
     #     return f"{self.longitude}, {self.latitude}"
     #
-    # def get_description(self):
-    #     try:
-    #         if self.housenumber:
-    #             return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-    #         else:
-    #             return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-    #     except:
-    #         return self.__repr__()
+    def get_description(self):
+        try:
+            if self.address.housenumber:
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.address.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+            else:
+                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+        except:
+            return self.__repr__()
 
 
 class Address(db.Model):
@@ -123,7 +123,6 @@ class Address(db.Model):
     #     self.housenumber = housenumber
     #     self.address_neigh = f"{self.location.neighborhood.name} {housenumber}"
     #     self.address_street = f"{self.location.street.name} {housenumber}"
-
 
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
@@ -212,8 +211,9 @@ class Street(db.Model):
 #                           name=self.name,
 #                           neighborhood=[n.name for n in self.neighborhoods.all()]
 #                           )
-#     def __str__(self):
-#         return self.name
+    # fuzzywuzzy relies on this for the matching
+    def __str__(self):
+        return self.name
 #     def get_description(self):
 # #        try:
 #         all_neighb = [n.name for n in self.neighborhoods.all()]
@@ -248,6 +248,7 @@ class Neighborhood(db.Model):
         primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
         # secondary=streets_neighborhoods,
         backref=db.backref("neighborhood", uselist=True),
+        #lazy="dynamic",
         viewonly=True,
         uselist=True
     )
@@ -255,6 +256,7 @@ class Neighborhood(db.Model):
         "Location",
         primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
         backref=db.backref("neighborhood", uselist=False),
+        lazy="dynamic",
         viewonly=True,
         uselist=True
     )
@@ -264,9 +266,9 @@ class Neighborhood(db.Model):
     #                       name=self.name,
     #                       zipcode=self.zipcode
     #                       )
-    #
-    # def __str__(self):
-    #     return self.name
+    # fuzzywuzzy relies on this for the matching
+    def __str__(self):
+        return self.name
     #
     # def get_description(self):
     #     return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
@@ -558,7 +560,7 @@ class FlaskUsage(db.Model):
     __bind_key__ = 'collected_data'
 
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(128))
+    url = db.Column(db.String(256))
     ua_browser = db.Column(db.String(16))
     ua_language = db.Column(db.String(16))
     ua_platform = db.Column(db.String(16))

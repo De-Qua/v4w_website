@@ -6,9 +6,10 @@ import logging
 import time
 import shapely, shapely.wkt, shapely.geometry
 import pdb
+from geoalchemy2.shape import to_shape
 
 # IMPORT FOR THE DATABASE - db is the database object
-from app.models import Neighborhood, Street, Location, Area, Poi, PoiCategoryType, poi_types, PoiCategory
+from app.models import Neighborhood, Street, Location, Area, Poi, PoiCategoryType, poi_types, PoiCategory, Address
 from app import app, db
 from fuzzywuzzy import fuzz, process
 import fuzzywuzzy
@@ -398,10 +399,11 @@ def find_address_in_db(input_string):
                 edge_info_dict = {}
                 edge_info_dict['street_type'] = 'calle'
                 edge_info_dict['bridge'] = 0
+                polygon_shapely_geom = to_shape(polygon_shape)
                 geojson = {
                     "type": "Feature",
                     "properties": edge_info_dict,
-                    "geometry": dict(mapping(polygon_shape))
+                    "geometry": dict(mapping(polygon_shapely_geom))
                 }
                 result_dict.append({"nome":nome,
                             "descrizione":address.get_description(),
@@ -446,12 +448,12 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
 
     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
     if isThereaCivico:
-#         # geo type = 0 dice che usiamo un punto
+#       # geo type = 0 dice che usiamo un punto
         geo_type = 0
-        with_num=actual_location.locations.filter_by(housenumber=number).first()
+        with_num=actual_location.locations.join(Location.address, aliased=True).filter_by(housenumber=number).first()
         if not with_num:
             # controlliamo che non ci siano altri indirizzi che semplicemente contengano il numero (ad esempio per San Polo 1421 vogliamo San Polo 1421/A)
-            with_num = actual_location.locations.filter(Location.housenumber.contains(number)).all()
+            with_num = actual_location.locations.join(Location.address, aliased=True).filter(Address.housenumber.contains(number)).all()
             with_num = with_num[0] if len(with_num) == 1 else None
 
         # pdb.set_trace()
