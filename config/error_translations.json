@@ -1,0 +1,110 @@
+[
+    {
+        "code_id": 2,
+        "id": 1,
+        "language_id": 1,
+        "message": "Error"
+    },
+    {
+        "code_id": 2,
+        "id": 2,
+        "language_id": 2,
+        "message": "Errore"
+    },
+    {
+        "code_id": 3,
+        "id": 3,
+        "language_id": 1,
+        "message": "Token not supported"
+    },
+    {
+        "code_id": 3,
+        "id": 4,
+        "language_id": 2,
+        "message": "Token non supportato"
+    },
+    {
+        "code_id": 4,
+        "id": 5,
+        "language_id": 1,
+        "message": "Access denied"
+    },
+    {
+        "code_id": 4,
+        "id": 6,
+        "language_id": 2,
+        "message": "Accesso non consentito"
+    },
+    {
+        "code_id": 5,
+        "id": 7,
+        "language_id": 1,
+        "message": "Address not found"
+    },
+    {
+        "code_id": 5,
+        "id": 8,
+        "language_id": 2,
+        "message": "Indirizzo non trovato"
+    },
+    {
+        "code_id": 6,
+        "id": 9,
+        "language_id": 1,
+        "message": "Wrong format for coordinates"
+    },
+    {
+        "code_id": 6,
+        "id": 10,
+        "language_id": 2,
+        "message": "Formato delle coordinate non riconosciuto"
+    },
+    {
+        "code_id": 7,
+        "id": 11,
+        "language_id": 1,
+        "message": "We've found multiple results"
+    },
+    {
+        "code_id": 7,
+        "id": 12,
+        "language_id": 2,
+        "message": "Il risultato non è univoco"
+    },
+    {
+        "code_id": 8,
+        "id": 13,
+        "language_id": 1,
+        "message": "Path not found"
+    },
+    {
+        "code_id": 8,
+        "id": 14,
+        "language_id": 2,
+        "message": "Percorso non trovato"
+    },
+    {
+        "code_id": 9,
+        "id": 15,
+        "language_id": 1,
+        "message": "Bad input format"
+    },
+    {
+        "code_id": 9,
+        "id": 16,
+        "language_id": 2,
+        "message": "Formato dell'input non valido"
+    },
+    {
+        "code_id": 10,
+        "id": 17,
+        "language_id": 1,
+        "message": "The token does not exist or it has been revoked"
+    },
+    {
+        "code_id": 10,
+        "id": 18,
+        "language_id": 2,
+        "message": "Il token non esiste o è stato revocato"
+    }
+]
