@@ -26,5 +26,5 @@ For the default settings/values, you can use these scripts:
 
 - For the tables in `opendata_ve_pg` you can use the python script `populate_db_v2.py`. Run it and it will ask you questions.
 - The tables in `dequa_internal` should be created from the first execution of flask run, as described in `flask_app.py` (otherwise `db.create_all(bind="internal")`)
-- The tables in `dequa_collected_data` should be empty at the beginning, as the name suggests.
-- The tables in `dequa_config_data` can be loaded using `setup_bd_config.py`
+- The tables in `dequa_collected_data` should be initiated using `setup_bd_collected_data.py`
+- The tables in `dequa_config_data` can be loaded using `setup_db_config.py`
