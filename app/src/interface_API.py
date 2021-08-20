@@ -109,7 +109,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     # try:
     v_list, e_list = fn_shortest_path(start, end, **params)
     # and format for js
-    info_dict = fn_info_path(v_list, e_list, params)
+    path_dict = fn_info_path(v_list, e_list, params)
     # except errors.NoPathFound:
     #     return {'code': NO_PATH_FOUND, 'data': None}
     # except NotImplementedError:
@@ -117,7 +117,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     # except Exception:
     #     return {'code': UNKNOWN_EXCEPTION, 'data': None}
 
-    return info_dict
+    return {'code': 0, 'data': path_dict}
 
 
 def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
