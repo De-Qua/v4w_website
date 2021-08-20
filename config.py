@@ -8,15 +8,23 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     WTF_CSRF_TIME_LIMIT = None
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'dequa.db')
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    #     'postgresql:///' + os.path.join(basedir, 'dequa.db')
+    #SQLALCHEMY_DATABASE_URI = "postgresql://127.0.0.1:5432/dequa"
+    SQLALCHEMY_DATABASE_URI = "postgresql:///opendata_ve_pg"
     SQLALCHEMY_BINDS = {
-        "trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
-        "users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
-        "errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
-        "ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
-        "feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
-        }
+        # dequa_collected_data has usage, errors, feedback and so on
+        "collected_data": 'postgresql:///dequa_collected_data',
+        # dequa_config_data has error codes, languages and so on
+        "config_data": 'postgresql:///dequa_config_data',
+        # dequa_internal has the registered users, the tokens and apis
+        "internal": 'postgresql:///dequa_internal'
+    }
+        #"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
+        #"users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
+        #"errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
+        #"ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
+        #"feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # TrackUsage
     TRACK_USAGE_USE_FREEGEOIP = False

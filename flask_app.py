@@ -3,6 +3,13 @@ from app.models import Location,Street,Neighborhood,Poi
 from flask_admin import helpers as admin_helpers
 from flask import url_for
 from flask_security import utils
+from dotenv import load_dotenv
+import os
+
+# load DEQUA_SECRETS
+load_dotenv('DEQUA_SECRETS.env')
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
+SOMEONE_PASSWORD = os.getenv('SOMEONE_PASSWORD')
 
 @app.shell_context_processor
 def make_shell_context():
@@ -19,7 +26,7 @@ def make_shell_context():
 def before_first_request():
     if app.debug:
         # Create any database tables that don't exist yet.
-        db.create_all(bind='users')
+        db.create_all(bind='internal')
 
         # Create the Roles "admin" and "end-user" -- unless they already exist
         user_datastore.find_or_create_role(name='admin', description='Administrator')
@@ -27,8 +34,8 @@ def before_first_request():
 
         # Create two Users for testing purposes -- unless they already exists.
         # In each case, use Flask-Security utility function to encrypt the password.
-        someone_password = 'someone'
-        admin_password = 'admin'
+        someone_password = SOMEONE_PASSWORD
+        admin_password = ADMIN_PASSWORD
         if not user_datastore.get_user('someone'):
             user_datastore.create_user(email='someone', password=utils.hash_password(someone_password))
         if not user_datastore.get_user('admin'):

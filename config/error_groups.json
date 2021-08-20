@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "name": "AUTH"
+    },
+    {
+        "id": 2,
+        "name": "SEARCH"
+    },
+    {
+        "id": 3,
+        "name": "FORMAT"
+    }
+]

@@ -8,6 +8,7 @@ flask db stamp head
 flask db migrate
 flask db upgrade
 """
+import warnings
 from app import db
 import pdb
 import datetime
@@ -16,6 +17,10 @@ from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import create_access_token
 import pdb
+from geoalchemy2.types import Geometry
+from geoalchemy2.shape import to_shape
+import shapely
+from shapely import geometry
 #from app.token_helper import add_token_to_database
 # # TODO: FUTUREWARNING
 # .format is deprecated
@@ -34,46 +39,62 @@ poi_types =  db.Table("poi_types",
     db.Column("type_id",db.Integer,db.ForeignKey("poi_category_type.id"),primary_key=True)
     )
 
-"""
-Tabella per collegamento molti-a-molti Area-Street
-"""
-area_streets = db.Table("area_streets",
-    db.Column("area_id", db.Integer, db.ForeignKey("area.id"),primary_key=True),
-    db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True)
-    )
+# """
+# Tabella per collegamento molti-a-molti Area-Street
+# """
+# area_streets = db.Table("area_streets",
+#     db.Column("area_id", db.Integer, db.ForeignKey("area.id"),primary_key=True),
+#     db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True)
+#     )
+#
+# """
+# Tabella per collegamento molti-a-molti Street-Neighborhood
+# """
+# streets_neighborhoods = db.Table("streets_neighborhoods",
+#     db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True),
+#     db.Column("neighborhood_id", db.Integer, db.ForeignKey("neighborhood.id"),primary_key=True)
+#     )
 
 """
-Tabella per collegamento molti-a-molti Street-Neighborhood
-"""
-streets_neighborhoods = db.Table("streets_neighborhoods",
-    db.Column("street_id", db.Integer, db.ForeignKey("street.id"),primary_key=True),
-    db.Column("neighborhood_id", db.Integer, db.ForeignKey("neighborhood.id"),primary_key=True)
-    )
-
-"""
-Location indica un punto sulla mappa. Può avere un numero civico ma non è obbligatorio.
+Location indica un punto sulla mappa.
 """
 class Location(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     latitude = db.Column(db.Float,index=True,nullable=False)
     longitude = db.Column(db.Float,index=True,nullable=False)
-    street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
-    neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
-    housenumber = db.Column(db.String(8),index=True)
-    shape = db.Column(db.PickleType,nullable=False)
+    # TODO: Guarda questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
+    # oppure questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
+    # street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
+    # neighborhood_id = db.Column(db.Integer,db.ForeignKey("neighborhood.id"),nullable=False)
+    # housenumber = db.Column(db.String(8),index=True)
+    # shape = db.Column(db.PickleType,nullable=False)
+    shape = db.Column(Geometry('POINT'), nullable=False)
     pois = db.relationship("Poi", backref="location", lazy="dynamic")
-    def __repr__(self):
-        return self._repr(id=self.id,
-                          latitude=self.latitude,
-                          longitude=self.longitude,
-                          neighborhood=self.neighborhood.name,
-                          housenumber=self.housenumber)
-    # cosa ritorniamo da __str__
-    def __str__(self):
-        if self.housenumber and self.street:
-            return "{neighborhood} {housenumber}".format(street=self.street.name,housenumber=self.housenumber,neighborhood=self.neighborhood.name)
-        else:
-            return "({neighborhood}) {lat},{lon}".format(neighborhood=self.neighborhood.name,lat=self.latitude,lon=self.longitude)
+    address = db.relationship("Address", backref="location", lazy="dynamic")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.longitude and self.latitude:
+            self.shape = f'POINT ({self.longitude} {self.latitude})'
+        elif type(self.shape) is str:
+            repr_point = shapely.wkt.loads(self.shape).representative_point()
+            self.longitude = repr_point.x
+            self.latitude = repr_point.y
+        elif type(self.shape) in [geometry.linestring.LineString, geometry.point.Point]:
+            repr_point = self.shape.representative_point()
+            self.longitude = repr_point.x
+            self.latitude = repr_point.y
+            self.shape = repr_point.to_wkt()
+
+    # def __repr__(self):
+    #     return self._repr(id=self.id,
+    #                       latitude=self.latitude,
+    #                       longitude=self.longitude)
+    #
+    # # cosa ritorniamo da __str__
+    # def __str__(self):
+    #     return f"{self.longitude}, {self.latitude}"
+    #
     def get_description(self):
         try:
             return fillDictionary(
@@ -89,24 +110,65 @@ class Location(db.Model):
                 neighborhood_obj=self.neighborhood.get_description())
         except:
             return self.__repr__()
+
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    housenumber_num = db.Column(db.Integer, nullable=False)
+    housenumber_sub = db.Column(db.String(1))
+    housenumber = db.Column(db.String(8), index=True)
+    address_neigh = db.Column(db.String(64), index=True)
+    address_street = db.Column(db.String(128), index=True)
+    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
+
+    # def __init__(self, **kwargs):
+    #     super(Address, self).__init__(**kwargs)
+    #     # initialize address_neigh and address_street
+    #     housenumber = self.housenumber_num
+    #     if self.housenumber_sub:
+    #         housenumber += f'/{self.housenumber_sub}'
+    #     self.housenumber = housenumber
+    #     self.address_neigh = f"{self.location.neighborhood.name} {housenumber}"
+    #     self.address_street = f"{self.location.street.name} {housenumber}"
+
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
 Esempio: Santa Marta, Baia del Re
 """
 class Area(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)
-    shape = db.Column(db.PickleType)
-    streets = db.relationship("Street",secondary=area_streets,
-        lazy = "subquery", backref=db.backref("areas",lazy="dynamic"))
+    # shape = db.Column(db.PickleType)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    streets = db.relationship(
+        "Street",
+        primaryjoin='func.ST_Intersects(foreign(Area.shape), Street.shape).as_comparison(1, 2)',
+        # lazy="dynamic",
+        # backref=db.backref("area", lazy="dynamic"),
+        backref=db.backref("area", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Intersects(foreign(Area.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("area", uselist=True),
+        viewonly=True,
+        uselist=True
+    )
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name)
+
     def __str__(self):
         return self.name
+
     def get_description(self):
         return fillDictionary(modelName='Area', id=self.id, name=self.name)
+
+
 """
 Strade intere (senza numeri)
 Hanno:
@@ -116,19 +178,34 @@ Hanno:
  - shape: un poligono che ha la forma della strada
  - locations: la relazione con la tabella degli indirizzi (uno a molti)
 """
+
+
 class Street(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(64),index=True,nullable=False)
-    name_alt = db.Column(db.String(64),index=True)
-    name_spe = db.Column(db.String(64),index=True)
-    name_den = db.Column(db.String(64),index=True)
-    shape = db.Column(db.PickleType, unique=True,nullable=False) # db.Column(db.String(512)) #opzione 2 con una stringa json
-    locations = db.relationship("Location",backref="street",lazy="dynamic")
-    neighborhoods = db.relationship("Neighborhood",secondary=streets_neighborhoods,
-        lazy = "dynamic", backref=db.backref("streets",lazy="dynamic"))
-    score = db.Column(db.Integer,nullable=False,default=0)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), index=True, nullable=False)
+    name_alt = db.Column(db.String(64), index=True)
+    name_spe = db.Column(db.String(64), index=True)
+    name_den = db.Column(db.String(64), index=True)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    # shape = db.Column(db.PickleType, unique=True,nullable=False) # db.Column(db.String(512)) #opzione 2 con una stringa json
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Intersects(foreign(Street.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("street", uselist=False),
+        viewonly=True,
+        uselist=True
+        )
+    # locations = db.relationship("Location", backref="street", lazy="dynamic")
+    # neighborhoods = db.relationship(
+    #     "Neighborhood",
+    #     secondary=streets_neighborhoods,
+    #     lazy="dynamic",
+    #     backref=db.backref("streets", lazy="dynamic")
+    #     )
+    score = db.Column(db.Integer, nullable=False, default=0)
     # check constraint serve per dare dei constraint alla tabella, questi vengono controllati a db.session.commit()
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
+
     def add_neighborhood(self,neighborhood):
         if not self.belongs(neighborhood):
             self.neighborhoods.append(neighborhood)
@@ -154,6 +231,7 @@ class Street(db.Model):
             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
 #        except:
 #            return self.__repr__()
+
 """
 Sestieri:
  - name: nome del sestiere (consideriamo anche Sant'Elena e le isole)
@@ -161,18 +239,48 @@ Sestieri:
  - streets: relazione con le strade in quel sestiere (molti a molti)
 """
 class Neighborhood(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(16),index=True,nullable=False)
-    zipcode = db.Column(db.Integer,nullable=False)
-    shape = db.Column(db.PickleType,nullable=False)
-    locations = db.relationship("Location",backref="neighborhood",lazy="dynamic")
-    def __repr__(self):
-        return self._repr(id=self.id,
-                          name=self.name,
-                          zipcode=self.zipcode
-                          )
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), index=True, nullable=False)
+    zipcode = db.Column(db.Integer, nullable=False)
+    shape = db.Column(Geometry('MULTIPOLYGON'), nullable=False)
+    # shape = db.Column(db.PickleType,nullable=False)
+    # streets = db.relationship(
+    #     "Street",
+    #     secondary=streets_neighborhoods,
+    #     lazy="dynamic",
+    #     backref=db.backref("neighborhoods", lazy="dynamic")
+    #     )
+    # locations = db.relationship(
+    #     "Location",
+    #     backref="neighborhood", lazy="dynamic"
+    #     )
+    streets = db.relationship(
+        "Street",
+        primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
+        # secondary=streets_neighborhoods,
+        backref=db.backref("neighborhood", uselist=True),
+        #lazy="dynamic",
+        viewonly=True,
+        uselist=True
+    )
+    locations = db.relationship(
+        "Location",
+        primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Location.shape).as_comparison(1, 2)',
+        backref=db.backref("neighborhood", uselist=False),
+        lazy="dynamic",
+        viewonly=True,
+        uselist=True
+    )
+
+    # def __repr__(self):
+    #     return self._repr(id=self.id,
+    #                       name=self.name,
+    #                       zipcode=self.zipcode
+    #                       )
+    # fuzzywuzzy relies on this for the matching
     def __str__(self):
         return self.name
+
     def get_description(self):
         return fillDictionary(
             modelName='Neighborhood',
@@ -187,12 +295,14 @@ Comprende bar, caffe, negozi, chiese, ecc.
  - name: nome
  - location_id:
 """
+
+
 class Poi(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(128),index=True)
-    name_alt = db.Column(db.String(128),index=True)
-    location_id = db.Column(db.Integer,db.ForeignKey("location.id"),nullable=False)
-    categorytype_id = db.Column(db.Integer,db.ForeignKey("poi_category_type.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), index=True)
+    name_alt = db.Column(db.String(128), index=True)
+    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
+    categorytype_id = db.Column(db.Integer, db.ForeignKey("poi_category_type.id"))
     opening_hours = db.Column(db.String(256))
     wheelchair = db.Column(db.String(8))
     toilets = db.Column(db.Boolean)
@@ -200,14 +310,17 @@ class Poi(db.Model):
     wikipedia = db.Column(db.String(128))
     atm = db.Column(db.Boolean)
     phone = db.Column(db.String(32))
-    last_change = db.Column(db.DateTime,default=datetime.datetime.utcnow,nullable=False)
-    types = db.relationship("PoiCategoryType",secondary=poi_types,
-        lazy = "dynamic", backref=db.backref("pois",lazy="dynamic"))
-    score = db.Column(db.Integer,nullable=False,default=0)
+    last_change = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    types = db.relationship("PoiCategoryType",
+                            secondary=poi_types,
+                            lazy="dynamic",
+                            backref=db.backref("pois", lazy="dynamic")
+                            )
+    score = db.Column(db.Integer, nullable=False, default=0)
     osm_type = db.Column(db.String(8))
-    osm_id = db.Column(db.Integer,nullable=True)
+    osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
-    __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
+    __table_args__ = (CheckConstraint(db.and_(0<=score, score<=100), name="check_score"),)
     def add_type(self,type):
         if not self.is_type(type):
             self.types.append(type)
@@ -215,7 +328,7 @@ class Poi(db.Model):
         if self.is_type(type):
             self.types.remove(type)
     def is_type(self,type):
-        return self.types.filter(poi_types.c.type_id==type.id).count() > 0
+        return self.types.filter(poi_types.c.type_id == type.id).count() > 0
 
     def get_description(self):
         try:
@@ -282,13 +395,25 @@ class PoiCategoryType(db.Model):
             name=self.name
         )
 
-
 def fillDictionary(**kwargs):
     dict_description = {}
     #pdb.set_trace()
     for key, value in kwargs.items():
         dict_description[key] = value
     return dict_description
+
+
+def get_closest_object(class_object: str, shape):
+    if class_object.lower() == 'neighborhood':
+        model = Neighborhood
+    elif class_object.lower() == 'street':
+        model = Street
+    elif class_object.lower() == 'area':
+        model = Area
+    else:
+        warnings.warn(f'Model {class_object} not supported')
+        return None
+
 
 ###
 # MODELS FOR USERS
@@ -297,14 +422,15 @@ def fillDictionary(**kwargs):
 roles_users_table = db.Table('roles_users',
     db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
     db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
-    info={'bind_key': 'users'})
+    info={'bind_key': 'internal', 'tablename': 'roles_users'})
 
 
 class Users(db.Model, UserMixin):
-    __bind_key__ = 'users'
+    __tablename__ = 'users'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     email = db.Column(db.String(255), unique=True)
-    password = db.Column(db.String(80))
+    password = db.Column(db.String(160))
     active = db.Column(db.Boolean(), default=False)
     confirmed_at = db.Column(db.DateTime())
     roles = db.relationship('Roles', secondary=roles_users_table, backref=db.backref('user', lazy=True))
@@ -314,6 +440,7 @@ class Users(db.Model, UserMixin):
         return self._repr(id=self.id,
                           email=self.email
                           )
+
     def __str__(self):
         return self.email
     # def create_token(self, expiration=datetime.timedelta(minutes=10), token_type='base'):
@@ -327,7 +454,8 @@ class Users(db.Model, UserMixin):
 
 
 class Roles(db.Model, RoleMixin):
-    __bind_key__ = 'users'
+    __tablename__ = 'roles'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
@@ -338,7 +466,8 @@ class Roles(db.Model, RoleMixin):
 
 
 class Tokens(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'tokens'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     token = db.Column(db.String(500))
     jti = db.Column(db.String(36))
@@ -362,11 +491,12 @@ class Tokens(db.Model):
 types_apis_table = db.Table('types_apis',
     db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
     db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
-    info={'bind_key': 'users'})
+    info={'bind_key': 'internal', 'tablename': 'types_apis'})
 
 
 class TokenTypes(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'token_types'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     type = db.Column(db.String(80), unique=True)
     tokens = db.relationship('Tokens', lazy=True, backref=db.backref('type', lazy=True))
@@ -382,7 +512,8 @@ class TokenTypes(db.Model):
 
 
 class Apis(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'apis'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     path = db.Column(db.String(100))
@@ -393,7 +524,8 @@ class Apis(db.Model):
 
 
 class TokenApiCounters(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'token_api_counters'
+    __bind_key__ = 'internal'
     id = db.Column(db.Integer(), primary_key=True)
     token_id = db.Column(db.Integer(), db.ForeignKey('tokens.id'), nullable=False)
     api_id = db.Column(db.Integer(), db.ForeignKey('apis.id'), nullable=False)
@@ -401,7 +533,8 @@ class TokenApiCounters(db.Model):
 
 
 class Languages(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'languages'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
     code = db.Column(db.String(5), unique=True)
@@ -412,7 +545,8 @@ class Languages(db.Model):
 
 
 class ErrorGroups(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_groups'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(10), unique=True)
     codes = db.relationship('ErrorCodes', lazy=True, backref=db.backref('group', lazy=True))
@@ -422,7 +556,8 @@ class ErrorGroups(db.Model):
 
 
 class ErrorCodes(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_codes'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     code = db.Column(db.Integer(), unique=True)
     description = db.Column(db.String(100))
@@ -434,7 +569,8 @@ class ErrorCodes(db.Model):
 
 
 class ErrorTranslations(db.Model):
-    __bind_key__ = 'errors'
+    __tablename__ = 'error_translation'
+    __bind_key__ = 'config_data'
     id = db.Column(db.Integer(), primary_key=True)
     code_id = db.Column(db.Integer(), db.ForeignKey('error_codes.id'))
     language_id = db.Column(db.Integer(), db.ForeignKey('languages.id'))
@@ -446,10 +582,10 @@ class ErrorTranslations(db.Model):
 ###
 class FlaskUsage(db.Model):
     __tablename__ = 'flask_usage'
-    __bind_key__ = 'trackusage'
+    __bind_key__ = 'collected_data'
 
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(128))
+    url = db.Column(db.String(256))
     ua_browser = db.Column(db.String(16))
     ua_language = db.Column(db.String(16))
     ua_platform = db.Column(db.String(16))
@@ -471,8 +607,8 @@ class FlaskUsage(db.Model):
 # TABELLA INIZIATIVE E VOTI
 ####
 class Ideas(db.Model):
-    __tablename__ = 'Ideas' # nome della tabella nel file ideas.db
-    __bind_key__ = 'ideas' # bind per SQLAlchemy del file ideas.db
+    __tablename__ = 'ideas'  # nome della tabella nel file ideas.db
+    __bind_key__ = 'collected_data'  # bind per SQLAlchemy del file ideas.db
 
     id = db.Column(db.Integer(), primary_key=True)
     idea_title = db.Column(db.String(128))
@@ -512,8 +648,8 @@ class Ideas(db.Model):
 # TABELLE PER FEEDBACK E ERRORI
 ######
 class Feedbacks(db.Model):
-    __tablename__ = "Feedbacks"
-    __bind_key__ = "feed_err"
+    __tablename__ = "feedbacks"
+    __bind_key__ = "collected_data"
 
     id = db.Column(db.Integer(), primary_key=True)
     version = db.Column(db.String(16))
@@ -535,8 +671,8 @@ class Feedbacks(db.Model):
     solved = db.Column(db.Boolean, default=False)
 
 class Errors(db.Model):
-    __tablename__ = "Errors"
-    __bind_key__ = "feed_err"
+    __tablename__ = "runtime_errors"
+    __bind_key__ = "collected_data"
 
     id = db.Column(db.Integer(), primary_key=True)
     version = db.Column(db.String(16))
