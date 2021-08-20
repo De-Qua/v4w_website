@@ -606,7 +606,7 @@ def takeSecond(elem):
     return elem[1]
 
 
-def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process,threshold=98):
+def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuzzywuzzy.utils.full_process,threshold=98, n_limit=15, score_cutoff=50):
     """
     Search the input string using the fuzzy library, returns the best matches.
 
@@ -614,8 +614,8 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
     """
     #raise custom_errors.DeveloperError("fasullissimo")
     exact = False
-    n_limit = 15
-    score_cutoff = 50
+
+
     final_matches = []
     if isThereaCivico:
         matches_neigh = process.extractBests(word,Neighborhood.query.all(),scorer=scorer,processor=processor,score_cutoff=score_cutoff,limit=n_limit)
@@ -655,7 +655,7 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
         final_matches=[(match,score) for match,score in final_matches if score>=threshold]
     # se i risultati sono esatti non voglio escludere nessuna soluzione!
     if not exact:
-        final_matches = final_matches[0:4]
+        final_matches = final_matches[0:n_limit]
 
     return [match for match,score in final_matches], [score for match,score in final_matches], exact
 

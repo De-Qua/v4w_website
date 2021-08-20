@@ -14,7 +14,7 @@ from app import custom_errors
 from dequa_graph.topology import calculate_path
 from dequa_graph.formatting import retrieve_info_from_path_streets
 from dequa_graph import weights as dqg_w
-from app.src.interface_API import get_current_tide_level, get_suggestions
+from app.src.interface_API import get_current_tide_level, get_suggestions, get_places
 import traceback
 
 # ERROR_CODES
@@ -181,6 +181,39 @@ class getSuggestions(Resource):
             return api_response(code=RETURNED_EXCEPTION, lang=lang)
 
         return api_response(data=suggestions)
+
+
+class getPlace(Resource):
+    """
+    API to retrieve address, streets or pois from the database
+    """
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('name', type=str, required=True,
+                                   help="No name provided")
+        self.reqparse.add_argument('max_num', type=int, default=10)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getSuggestions, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        name = args['name']
+        max_num = args['max_num']
+        lang = args['language']
+        try:
+            places = get_places(name, max_num=max_num)
+        except Exception:
+            return api_response(code=RETURNED_EXCEPTION, lang=lang)
+
+        return api_response(data=places)
 # OLD API
 
 class getAddress(Resource):
@@ -212,7 +245,11 @@ class getAddress(Resource):
         except Exception:
             return api_response(code=RETURNED_EXCEPTION, lang=lang)
         if len(result_dict) > 1:
-            return api_response(code=UNCLEAR_SEARCH, lang=lang)
+            data = [{'address': r['nome'],
+                     'longitude': r['coordinate'][0],
+                     'latitude': r['coordinate'][1]
+                    } for r in result_dict]
+            return api_response(code=UNCLEAR_SEARCH, lang=lang, data=data)
         data = {'address': result_dict[0]['nome'],
                 'longitude': result_dict[0]['coordinate'][0],
                 'latitude': result_dict[0]['coordinate'][1]

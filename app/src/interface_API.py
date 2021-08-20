@@ -132,13 +132,13 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
     # get the path
     try:
         v_list, e_list = dqg_topo.calculate_path(
-                    graph=graph['graph'],
-                    coords_start=start,
-                    coords_end=end,
-                    coords_stop=stop,
-                    weight=weight,
-                    all_vertices=graph['all_vertices']
-                    )
+            graph=graph['graph'],
+            coords_start=start,
+            coords_end=end,
+            coords_stop=stop,
+            weight=weight,
+            all_vertices=graph['all_vertices']
+        )
     except dqg_err.NoPathFound:
         raise errors.NoPathFound(start, end)
     return v_list, e_list
@@ -158,18 +158,19 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=
     if alternatives:
         raise errors.WorkInProgressError("Alternatives not implemented yet")
     else:
-        weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges, avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
+        weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges,
+                                       avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
         weights = [weight]
     # get the path
     try:
         v_list, e_list = dqg_topo.calculate_path(
-                    graph=graph['graph'],
-                    coords_start=start,
-                    coords_end=end,
-                    coords_stop=stop,
-                    weight=weights,
-                    all_vertices=graph['all_vertices']
-                    )
+            graph=graph['graph'],
+            coords_start=start,
+            coords_end=end,
+            coords_stop=stop,
+            weight=weights,
+            all_vertices=graph['all_vertices']
+        )
 
     except dqg_err.NoPathFound:
         raise errors.NoPathFound(start, end)
@@ -189,7 +190,8 @@ def format_path_walk_data(v_list, e_list, mode, **kwargs):
     Function to format the data of a path
     """
 
-    info = dqg_form.retrieve_info_from_path_streets(graph=current_app.graphs['street']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+    info = dqg_form.retrieve_info_from_path_streets(
+        graph=current_app.graphs['street']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
 
     return info
 
@@ -199,7 +201,8 @@ def format_path_boat_data(v_list, e_list, mode, **kwargs):
     Function to format the data of a path
     """
 
-    info = dqg_form.retrieve_info_from_path_water(graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+    info = dqg_form.retrieve_info_from_path_water(
+        graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
     return info
 
 
@@ -229,14 +232,15 @@ def get_current_tide_level():
     start_time = time.time()
     while not tide_level_dict or elapsed_time < max_waiting_time:
         try:
-            with open(os.path.join(os.getcwd(), site_params.high_tide_file),'r') as stream:
+            with open(os.path.join(os.getcwd(), site_params.high_tide_file), 'r') as stream:
                 tide_level_dict = json.load(stream)
         except:
             app.logger.error('Error in reading tide file')
             time.sleep(0.001)
-            elapsed_time = time.time()-start_time
+            elapsed_time = time.time() - start_time
     tide_level_value = tide_level_dict.get('valore', None)
-    tide_level = int(float(tide_level_value[:-2])*100) if tide_level_value else None
+    tide_level = int(
+        float(tide_level_value[:-2]) * 100) if tide_level_value else None
 
     return tide_level
 
@@ -250,16 +254,43 @@ def get_suggestions(input, max_num=5):
     # divide number and text
     text, number, _ = ls.dividiEtImpera(clean_string)
     # get the suggestions
-    suggestions = ls.suggest_address_from_db(text=text, number=number, max_n=max_num)
+    suggestions = ls.suggest_address_from_db(
+        text=text, number=number, max_n=max_num)
+
+    # formatted_suggestions = [
+    #     {'address': f"{s.neighborhood.name} {s.housenumber}",
+    #      'longitude': s.longitude,
+    #      'latitude': s.latitude,
+    #      'neighborhood': s.neighborhood.name,
+    #      'street': s.street.name,
+    #      'housenumber': s.housenumber
+    #      } for s in suggestions
+    # ]
+    formatted_suggestions = [
+        {'type': s.__tablename__,
+         'description': s.get_description()
+        } for s in suggestions
+    ]
+
+    return formatted_suggestions
+
+
+def get_places(input, max_num=20):
+    """
+    Retrieve from the databases addresses, streets, pois and whatever is the closest match to the input string.
+    """
+    # clean the string
+    clean_string = ls.correct_name(input)
+    # divide number and text
+    text, number, isAddress = ls.dividiEtImpera(clean_string)
+    # search in the db
+    places, score_list, exact = ls.fuzzy_search(input, isAddress, score_cutoff=70)
+    # suggestions = ls.suggest_address_from_db(text=text, number=number, max_n=max_num)
 
     formatted_suggestions = [
-        {'address': f"{s.neighborhood.name} {s.housenumber}",
-         'longitude': s.longitude,
-         'latitude': s.latitude,
-         'neighborhood': s.neighborhood.name,
-         'street': s.street.name,
-         'housenumber': s.housenumber
-         } for s in suggestions
+        {'type': p.__tablename__,
+         'description': p.get_description()
+         } for p, s in zip(places, score_list)
     ]
 
     return formatted_suggestions

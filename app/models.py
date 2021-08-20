@@ -97,10 +97,17 @@ class Location(db.Model):
     #
     def get_description(self):
         try:
-            if self.address.housenumber:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name,housenumber=self.address.housenumber, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
-            else:
-                return fillDictionary(modelName='Location', id=self.id, name=self.street.name, neighborhood=self.neighborhood.name, zipcode=self.neighborhood.zipcode)
+            return fillDictionary(
+                modelName='Location',
+                id=self.id,
+                latitude=self.latitude,
+                longitude=self.longitude,
+                address=f"{self.neighborhood.name} {self.housenumber}" if self.housenumber else "",
+                housenumber=self.housenumber,
+                street=self.street.name,
+                neighborhood=self.neighborhood.name,
+                street_obj=self.street.get_description(),
+                neighborhood_obj=self.neighborhood.get_description())
         except:
             return self.__repr__()
 
@@ -198,29 +205,33 @@ class Street(db.Model):
     score = db.Column(db.Integer, nullable=False, default=0)
     # check constraint serve per dare dei constraint alla tabella, questi vengono controllati a db.session.commit()
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
-#     def add_neighborhood(self,neighborhood):
-#         if not self.belongs(neighborhood):
-#             self.neighborhoods.append(neighborhood)
-#     def remove_neighborhood(self,neighborhood):
-#         if self.belongs(neighborhood):
-#             self.neighborhoods.remove(neighborhood)
-#     def belongs(self,neighborhood):
-#         return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
-#     def __repr__(self):
-#         return self._repr(id=self.id,
-#                           name=self.name,
-#                           neighborhood=[n.name for n in self.neighborhoods.all()]
-#                           )
-    # fuzzywuzzy relies on this for the matching
+
+    def add_neighborhood(self,neighborhood):
+        if not self.belongs(neighborhood):
+            self.neighborhoods.append(neighborhood)
+    def remove_neighborhood(self,neighborhood):
+        if self.belongs(neighborhood):
+            self.neighborhoods.remove(neighborhood)
+    def belongs(self,neighborhood):
+        return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
+    def __repr__(self):
+        return self._repr(id=self.id,
+                          name=self.name,
+                          neighborhood=[n.name for n in self.neighborhoods]
+                          )
     def __str__(self):
         return self.name
-#     def get_description(self):
-# #        try:
-#         all_neighb = [n.name for n in self.neighborhoods.all()]
-#         return fillDictionary(modelName='Street',id=self.id, name=self.name, neighborhood=all_neighb)
-#             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
-# #        except:
-# #            return self.__repr__()
+    def get_description(self):
+#        try:
+        return fillDictionary(
+            modelName='Street',
+            id=self.id,
+            name=self.name,
+            neighborhoods=[n.get_description() for n in self.neighborhoods])
+            #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
+#        except:
+#            return self.__repr__()
+
 """
 Sestieri:
  - name: nome del sestiere (consideriamo anche Sant'Elena e le isole)
@@ -269,9 +280,13 @@ class Neighborhood(db.Model):
     # fuzzywuzzy relies on this for the matching
     def __str__(self):
         return self.name
-    #
-    # def get_description(self):
-    #     return fillDictionary(modelName='Neighborhood', id=self.id, name=self.name, zipcode=self.zipcode)
+
+    def get_description(self):
+        return fillDictionary(
+            modelName='Neighborhood',
+            id=self.id,
+            name=self.name,
+            zipcode=self.zipcode)
 
 
 """
@@ -317,14 +332,29 @@ class Poi(db.Model):
 
     def get_description(self):
         try:
-            types = [t.__str__() for t in self.types.all()]
-            return fillDictionary(modelName='Poi', id=self.id, name=self.name, type=types, address="{}".format(self.location))
+            # types=[t.__str__() for t in self.types]
+            return fillDictionary(
+                modelName='Poi',
+                id=self.id,
+                name=self.name,
+                location=self.location.get_description(),
+                opening_hours=self.opening_hours,
+                wheelchair=self.wheelchair,
+                toilets=self.toilets,
+                toilets_wheelchair=self.toilets_wheelchair,
+                wikipedia=self.wikipedia,
+                atm=self.atm,
+                phone=self.phone,
+                last_change=self.last_change,
+                types=[t.get_description() for t in self.types],
+                address="{}".format(self.location)
+                )
         except:
             return self.__repr__()
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
-                          types=[t.__str__() for t in self.types.all()]
+                          types=[t.__str__() for t in self.types]
                           )
     def __str__(self):
         if self.name:
@@ -339,7 +369,7 @@ class PoiCategory(db.Model):
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
-                          types=[t.name for t in self.types.all()]
+                          types=[t.name for t in self.types]
                           )
     def __str__(self):
         return self.name
@@ -358,23 +388,18 @@ class PoiCategoryType(db.Model):
     def __str__(self):
         return "{name} ({category})".format(
         name=self.name, category=self.category)
-
+    def get_description(self):
+        return fillDictionary(
+            modelName="Type",
+            id=self.id,
+            name=self.name
+        )
 
 def fillDictionary(**kwargs):
-    dict_description = {
-        'modelName': '', # nome della tabella
-        'id': '',
-        'name': '',
-        'neighborhood':[],
-        'address': '',
-        'housenumber':'',
-        'type':[],
-        'zipcode':''
-    }
+    dict_description = {}
     #pdb.set_trace()
     for key, value in kwargs.items():
-        if key in dict_description.keys():
-            dict_description[key] = value
+        dict_description[key] = value
     return dict_description
 
 
