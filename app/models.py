@@ -16,7 +16,6 @@ from sqlalchemy import CheckConstraint
 from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import create_access_token
-import pdb
 from geoalchemy2.types import Geometry
 from geoalchemy2.shape import to_shape
 import shapely
@@ -102,12 +101,14 @@ class Location(db.Model):
                 id=self.id,
                 latitude=self.latitude,
                 longitude=self.longitude,
-                address=f"{self.neighborhood.name} {self.housenumber}" if self.housenumber else "",
-                housenumber=self.housenumber,
-                street=self.street.name,
-                neighborhood=self.neighborhood.name,
-                street_obj=self.street.get_description(),
-                neighborhood_obj=self.neighborhood.get_description())
+                address=f"{self.neighborhood.name} {self.address[0].housenumber}" if self.address else "",
+                housenumber=self.address[0].housenumber if self.address else "",
+                street=self.street.name if self.street else "",
+                neighborhood=self.neighborhood.name if self.neighborhood else "",
+                #shape=to_shape(self.shape),
+                street_obj=self.street.get_description() if self.street else "",
+                neighborhood_obj=self.neighborhood.get_description() if self.neighborhood else ""
+            )
         except:
             return self.__repr__()
 
@@ -130,6 +131,26 @@ class Address(db.Model):
     #     self.housenumber = housenumber
     #     self.address_neigh = f"{self.location.neighborhood.name} {housenumber}"
     #     self.address_street = f"{self.location.street.name} {housenumber}"
+
+    def get_description(self):
+        try:
+            return fillDictionary(
+                modelName='Location',
+                id=self.id,
+                latitude=self.latitude,
+                longitude=self.longitude,
+                address=f"{self.neighborhood.name} {self.housenumber}" if self.housenumber else "",
+                housenumber=self.housenumber,
+                street=self.street.name if self.street else "",
+                neighborhood=self.neighborhood.name if self.neighborhood else "",
+                address_neigh=self.address_neigh if self.address_neigh else None,
+                address_street=self.address_street if self.address_street else None,
+                location_id=self.location.id,
+                street_obj=self.street.get_description() if self.street else "",
+                neighborhood_obj=self.neighborhood.get_description() if self.neighborhood else ""
+            )
+        except:
+            return self.__repr__()
 
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
@@ -166,8 +187,12 @@ class Area(db.Model):
         return self.name
 
     def get_description(self):
-        return fillDictionary(modelName='Area', id=self.id, name=self.name)
-
+        return fillDictionary(
+            #modelName='Area', # c'è già esterno
+            id=self.id,
+            name=self.name
+            #shape=to_shape(self.shape) #is not JSON serializable
+        )
 
 """
 Strade intere (senza numeri)
@@ -178,8 +203,6 @@ Hanno:
  - shape: un poligono che ha la forma della strada
  - locations: la relazione con la tabella degli indirizzi (uno a molti)
 """
-
-
 class Street(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)
@@ -196,12 +219,14 @@ class Street(db.Model):
         uselist=True
         )
     # locations = db.relationship("Location", backref="street", lazy="dynamic")
-    # neighborhoods = db.relationship(
-    #     "Neighborhood",
-    #     secondary=streets_neighborhoods,
-    #     lazy="dynamic",
-    #     backref=db.backref("streets", lazy="dynamic")
-    #     )
+    neighborhoods = db.relationship(
+        "Neighborhood",
+        primaryjoin='func.ST_Intersects(foreign(Street.shape), Neighborhood.shape).as_comparison(1, 2)',
+        lazy="dynamic",
+        backref=db.backref("street", lazy="dynamic"),
+        viewonly=True,
+        uselist=True
+        )
     score = db.Column(db.Integer, nullable=False, default=0)
     # check constraint serve per dare dei constraint alla tabella, questi vengono controllati a db.session.commit()
     __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
@@ -227,7 +252,12 @@ class Street(db.Model):
             modelName='Street',
             id=self.id,
             name=self.name,
-            neighborhoods=[n.get_description() for n in self.neighborhoods])
+            name_alt=self.name_alt if self.name_alt else None,
+            name_spe=self.name_spe,
+            name_den=self.name_den,
+            neighborhoods_dict=[n.get_description() for n in self.neighborhoods],
+            neighborhoods=[n.name for n in self.neighborhoods]
+        )
             #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
 #        except:
 #            return self.__repr__()
@@ -259,7 +289,7 @@ class Neighborhood(db.Model):
         primaryjoin='func.ST_Intersects(foreign(Neighborhood.shape), Street.shape).as_comparison(1, 2)',
         # secondary=streets_neighborhoods,
         backref=db.backref("neighborhood", uselist=True),
-        #lazy="dynamic",
+        lazy="dynamic",
         viewonly=True,
         uselist=True
     )
@@ -286,8 +316,9 @@ class Neighborhood(db.Model):
             modelName='Neighborhood',
             id=self.id,
             name=self.name,
-            zipcode=self.zipcode)
-
+            zipcode=self.zipcode
+            #shape=to_shape(self.shape) #is not JSON serializable
+        )
 
 """
 POI = Punti di Interesse
@@ -295,8 +326,6 @@ Comprende bar, caffe, negozi, chiese, ecc.
  - name: nome
  - location_id:
 """
-
-
 class Poi(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
@@ -337,6 +366,7 @@ class Poi(db.Model):
                 modelName='Poi',
                 id=self.id,
                 name=self.name,
+                location_id=self.location.id,
                 location=self.location.get_description(),
                 opening_hours=self.opening_hours,
                 wheelchair=self.wheelchair,
@@ -346,8 +376,13 @@ class Poi(db.Model):
                 atm=self.atm,
                 phone=self.phone,
                 last_change=self.last_change,
-                types=[t.get_description() for t in self.types],
-                address="{}".format(self.location)
+                types_dict=[t.get_description() for t in self.types],
+                types=[t.name + ", " + t.category.name for t in self.types],
+                address_street="{}".format(self.location.address[0].address_street if self.location.address else self.location),
+                address_neigh="{}".format(self.location.address[0].address_neigh if self.location.address else self.location),
+                osm_type=self.osm_type,
+                osm_id=self.osm_id,
+                osm_other_tags=self.osm_other_tags
                 )
         except:
             return self.__repr__()
@@ -422,7 +457,7 @@ def get_closest_object(class_object: str, shape):
 roles_users_table = db.Table('roles_users',
     db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
     db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
-    info={'bind_key': 'internal', 'tablename': 'roles_users'})
+    info={'bind_key':'internal', 'tablename':'roles_users'})
 
 
 class Users(db.Model, UserMixin):
@@ -451,6 +486,15 @@ class Users(db.Model, UserMixin):
     #                                        expires_delta=expiration)
     #     add_token_to_database(access_token, self)
     #     return access_token
+
+    def to_dict(self):
+        return {
+            'id':self.id,
+            'email':self.email,
+            'active':self.active,
+            'confirmed_at':self.confirmed_at,
+            'roles':self.roles
+        }
 
 
 class Roles(db.Model, RoleMixin):
@@ -491,7 +535,7 @@ class Tokens(db.Model):
 types_apis_table = db.Table('types_apis',
     db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
     db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
-    info={'bind_key': 'internal', 'tablename': 'types_apis'})
+    info={'bind_key':'internal', 'tablename':'types_apis'})
 
 
 class TokenTypes(db.Model):
@@ -522,6 +566,17 @@ class Apis(db.Model):
     def __str__(self):
         return self.name
 
+    # we use this to create a dictionary
+    # that will be passed to the API
+    # should be json-like
+    # I think, there is no need for back-refs
+    def to_dict(self):
+        return {
+            'id':self.id,
+            'name':self.name,
+            'path':self.path,
+        }
+
 
 class TokenApiCounters(db.Model):
     __tablename__ = 'token_api_counters'
@@ -543,6 +598,16 @@ class Languages(db.Model):
     def __str__(self):
         return f"{self.code} - {self.name}"
 
+    # we use this to create a dictionary
+    # that will be passed to the API
+    # should be json-like
+    # I think, there is no need for back-refs
+    def to_dict(self):
+        return {
+            'id':self.id,
+            'name':self.name,
+            'code':self.code
+        }
 
 class ErrorGroups(db.Model):
     __tablename__ = 'error_groups'

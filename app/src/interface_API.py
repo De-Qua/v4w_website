@@ -10,6 +10,7 @@ import os
 import json
 import time
 import ipdb
+import pdb
 
 # FLASK APP
 from app import app
@@ -279,18 +280,45 @@ def get_places(input, max_num=20):
     """
     Retrieve from the databases addresses, streets, pois and whatever is the closest match to the input string.
     """
-    # clean the string
-    clean_string = ls.correct_name(input)
-    # divide number and text
-    text, number, isAddress = ls.dividiEtImpera(clean_string)
-    # search in the db
-    places, score_list, exact = ls.fuzzy_search(input, isAddress, score_cutoff=70)
-    # suggestions = ls.suggest_address_from_db(text=text, number=number, max_n=max_num)
+    result_list = ls.find_address_in_db(input)
 
-    formatted_suggestions = [
-        {'type': p.__tablename__,
-         'description': p.get_description()
-         } for p, s in zip(places, score_list)
-    ]
+    ## NEW FORMAT
+    formatted_suggestions = []
+    for result in result_list:
+        formatted_suggestions.append(
+            {
+                'id': result.get('id') if result.get('id') else -1,
+                'latitude': result.get('coordinate')[0] if result.get('coordinate') else -1,
+                'longitude': result.get('coordinate')[1] if result.get('coordinate') else -1,
+                'coordinates': result.get('coordinate') if result.get('coordinate') else -1,
+                'type': result.get('type'), # it should always be there
+                # only one object will be filled,
+                # the others will be None
+                # which one? it is defined by 'type'
+                'location': result.get('location'),
+                'poi': result.get('poi'),
+                'address': result.get('address'),
+                'neighborhood': result.get('neighborhood'),
+                'street': result.get('street'),
+                'area': result.get('area'),
+                'geo-tag': result.get('geo-tag')
+            }
+        )
+
+    # # clean the string
+    # clean_string = ls.correct_name(input)
+    # # divide number and text
+    # text, number, isAddress = ls.dividiEtImpera(clean_string)
+    # # search in the db
+    # places, score_list, exact = ls.fuzzy_search(input, isAddress, score_cutoff=70)
+    # # suggestions = ls.suggest_address_from_db(text=text, number=number, max_n=max_num)
+    ## OLD FORMAT
+    # formatted_suggestions = [
+    #     {'type': p.__tablename__,
+    #      'description': p.get_description()
+    #      } for p, s in zip(places, score_list)
+    # ]
+
+
 
     return formatted_suggestions
