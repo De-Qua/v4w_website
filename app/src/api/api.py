@@ -89,7 +89,7 @@ class getPathStreet(Resource):
             return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
 
 
-class getWaterStreet(Resource):
+class getPathWater(Resource):
     """
     Api to retrieve the time and the length of the shortest water path
     between two coordinates
@@ -112,7 +112,7 @@ class getWaterStreet(Resource):
         self.reqparse.add_argument('height', type=float, default=0)
         self.reqparse.add_argument('alternatives', type=bool, default=False)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(getWaterStreet, self).__init__()
+        super(getPathWater, self).__init__()
 
     @permission_required
     @update_api_counter
@@ -201,12 +201,8 @@ class getSuggestions(Resource):
 
         return api_response(data=suggestions)
 
-<<<<<<< HEAD
 
 class getPlaces(Resource):
-=======
-class getPlace(Resource):
->>>>>>> 41a1b6a54594b899b1b63048c420d6f728ff76b8
     """
     API to retrieve address, streets or pois from the database
     """
