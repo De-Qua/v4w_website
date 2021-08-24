@@ -350,14 +350,14 @@ def suggest_address_from_db(text, number, max_n=5):
     """
 
     # retrieve locations that match with number and text
-    suggestions = Location.query.filter(
-        Location.address[0].housenumber.isnot(None), Location.address[0].housenumber.startswith(number)
+    suggestions = Location.query.join(Address).filter(
+        Address.housenumber.isnot(None), Address.housenumber.startswith(number)
         ).join(Neighborhood).join(Street).filter(or_(
         Neighborhood.name.startswith(text),
         Street.name.startswith(text))
         ).order_by(
         Neighborhood.name,
-        Location.address[0].housenumber
+        Address.housenumber
         ).limit(max_n).all()
 
     return suggestions
