@@ -113,33 +113,35 @@ def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, *
             'walkways_cm' (float): Height of walkways in cm
             'streets_id' (int): Database id of the street
     """
-    info = {'n_paths': len(paths_edges),
-            'info': []}
-    for idx, edges in enumerate(paths_edges):
-        distances = []
-        geometries = []
+    all_info = []
+    for alternative_path in paths_edges:
+        info = []
+        for edges in alternative_path:
+            distances = []
+            geometries = []
 
-        for e in edges:
-            # Calculate distance
-            distances.append(graph.ep['length'][e])
-            # append geometries
-            geojson = {
-                "type": "Feature",
-                "geometry": mapping(graph.ep['geometry'][e])
-            }
-            geometries.append(geojson)
+            for e in edges:
+                # Calculate distance
+                distances.append(graph.ep['length'][e])
+                # append geometries
+                geojson = {
+                    "type": "Feature",
+                    "geometry": mapping(graph.ep['geometry'][e])
+                }
+                geometries.append(geojson)
 
-        distance = sum(distances)
+            distance = sum(distances)
 
-        info['info'].append({
-            'distance': distance,
-            'num_edges': len(edges),
-            'edges': {
-                'distances': distances,
-                'geometry': geometries,
-            }
-        })
-    return info
+            info.append({
+                'distance': distance,
+                'num_edges': len(edges),
+                'edges': {
+                    'distances': distances,
+                    'geometry': geometries,
+                }
+            })
+        all_info.append(info)
+    return all_info
 
 
 def length_of_edges(graph, edge_list):
