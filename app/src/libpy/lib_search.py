@@ -360,6 +360,8 @@ def suggest_address_from_db(text, number, max_n=5):
         Address.housenumber
         ).limit(max_n).all()
 
+    # Location.query.filter(Address.housenumber.isnot(None)).join(Location.neighborhood).join(Location.street).filter(or_(Neighborhood.name.startswith(text),Street.name.startswith(text))).order_by(Neighborhood.name,Address.housenumber).limit(max_n).all()
+
     return suggestions
 
 
