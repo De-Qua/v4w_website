@@ -16,25 +16,33 @@ import warnings
 import re
 from fuzzywuzzy import process
 from shapely.geometry import Point, Polygon
-from sqlalchemy import literal
+from sqlalchemy import literal, func
 import geopy.distance
 from poi import library_overpass as op
 import sqlalchemy
 import time
 import json
+from shapely.geometry.polygon import Polygon
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely import wkt
+from geoalchemy2.shape import to_shape
 
-import pdb
+from lista_sestieri import list_sest_cap
 
-global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+import csv
+import ipdb
+
+global neigh_query, streets_query, location_query, poi_query, category_query, type_query, address_query
 
 def create_query_objects():
     """
     Skyrocketing our performances with few lines of code (it creates the query objects to be used later).
     """
-    global neigh_query, streets_query, location_query, poi_query, category_query, type_query
+    global neigh_query, streets_query, location_query, poi_query, category_query, type_query, address_query
     neigh_query = Neighborhood.query #serve l'all?
     streets_query = Street.query
     location_query = Location.query
+    address_query = Address.query
     poi_query = Poi.query
     aree_query = Area.query
     category_query = PoiCategory.query
@@ -121,6 +129,20 @@ def delete_all_streets(explain=False):
         db.session.rollback()
         warnings.warn("Errore nel commit")
 
+def delete_all_addresses(explain=False):
+    """
+    Deletes all the entries from the location Table
+    """
+    global address_query
+    num_addresses = address_query.delete()
+    if explain:
+        print("Eliminati {num} luoghi\ncommitto nel database..".format(num=num_addresses))
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
 def delete_all_locations(explain=False):
     """
     Deletes all the entries from the location Table
@@ -196,27 +218,8 @@ def update_sestieri(shp, showFig=False, explain=False):
     sestieri =  gpd.read_file(shp)
     sestieri =  convert_SHP(sestieri,explain)
 
-    #%% Aggiungi sestieri
-    list_sest_cap = [
-       ("CANNAREGIO",30121),
-       ("CASTELLO",30122),
-       ("DORSODURO",30123),
-       ("SAN MARCO",30124),
-       ("SAN POLO",30125),
-       ("SANTA CROCE",30135),
-       ("GIUDECCA",30133),
-       ("SACCA SAN BIAGIO",30133),
-       ("ISOLA SAN GIORGIO",30124),
-       ("TRONCHETTO",30135),
-       ("MALAMOCCO",30126),
-       ("ALBERONI",30126),
-       ("LIDO",30126),
-       ("SACCA FISOLA",30133),
-       ("SANT'ELENA",30122),
-       ("BURANO",30012),
-       ("MURANO",30141),
-       ("SANTA MARTA", 30123)
-       ]
+    #importo la lista di sestieri da lista_sestieri.py
+
     if explain:
         print("Aggiungo i sestieri.. ne abbiamo {} in totale nel file.".format(len(list_sest_cap)))
 
@@ -228,22 +231,34 @@ def update_sestieri(shp, showFig=False, explain=False):
         tot_neighb += 1
         progressbar(tot_neighb,all_neighb)
         # controlla geometria
-        geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
+        #geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
+        # case insensitive se no impazzisco
+        # title non ci serve piu
+        #geom = sestieri[sestieri["A_SCOM_NOM"]==s.title()]["geometry"]
+        geom = sestieri[sestieri["A_SCOM_NOM"].str.match(s, case=False)]["geometry"]
         if geom.empty:
+            #pdb.set_trace()
             err_neighb.append((s,c))
             continue
         geom = geom.iloc[0]
+        if type(geom) is Polygon:
+            geom = MultiPolygon([geom])
+        # ipdb.set_trace()
         # aggiungi se non è già presente
-        neig = neigh_query.filter_by(shape=geom).first()
+        try:
+            neig = neigh_query.filter_by(shape=geom.to_wkt()).first()
+        except:
+            neig = None
         if not neig:
             # TODO: possiamo usare la query gia esistente qui?
-            n = Neighborhood(name=s,zipcode=c, shape=geom)
+            n = Neighborhood(name=s.title().upper(), zipcode=c, shape=geom.to_wkt())
             add_neighb += 1
             db.session.add(n)
 
     if explain:
         print("committo nel database..")
     try:
+        #ipdb.set_trace()
         db.session.commit()
     except:
         db.session.rollback()
@@ -286,7 +301,8 @@ def update_streets(shp, showFig=False, explain=False):
         if not name:
             err_streets.append((0,name,name_spe,name_den,pol))
             continue
-        sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
+        # sestieri = [n for n in neigh_query.all() if n.shape.distance(pol)==0]
+        sestieri = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, pol.to_wkt())).all()
         # se la strada non è contenuta in nessun sestiere passa al successivo
         if len(sestieri)==0:
             continue
@@ -294,7 +310,9 @@ def update_streets(shp, showFig=False, explain=False):
         #     # se c'è più di un sestiere aggiungi agli errori e passa al successivo
         #     err_streets.append((1,name,name_spe,name_den,pol))
         #     continue
-        s = streets_query.filter_by(shape=pol).one_or_none()
+        pol = MultiPolygon([pol])
+        s = streets_query.filter(func.ST_Equals(Street.shape,pol.to_wkt())).one_or_none()
+        # s = streets_query.filter_by(shape=pol.to_wkt()).one_or_none()
         if not s:
             #if explain:
                 #percentage = tot_street / len(streets['TP_STR_NOM']) * 10
@@ -304,16 +322,17 @@ def update_streets(shp, showFig=False, explain=False):
                 #percentage = np.round(tot_street / all_streets * 100).astype(int)
                 #print("{num:03d}: {tot}/ {tot2}: Aggiungo {str}                                            ".format(num=percentage, bar=string_to_be_print, ot=tot_street, tot2=len(streets['TP_STR_NOM']), str=name), end="\r", flush=True)
 
-            st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol)
+            st = Street(name=name,name_spe=name_spe,name_den=name_den,shape=pol.to_wkt())
             db.session.add(st)
-            for sestiere in sestieri:
-                st.add_neighborhood(sestiere)
+            # for sestiere in sestieri:
+            #     st.add_neighborhood(sestiere)
             add_streets += 1
 
 
     if explain:
         print("committo nel database..")
     try:
+        ipdb.set_trace()
         db.session.commit()
     except:
         db.session.rollback()
@@ -338,7 +357,7 @@ def update_streets(shp, showFig=False, explain=False):
         for i in range(len(streets_query)):
             random_choice = random.randint(0,random_range)
             if random_choice > random_range/2:
-                plt.plot(s[i].shape.exterior.xy)
+                plot(s[i].shape.exterior.xy)
         plt.show()
 
     return err_streets
@@ -365,13 +384,15 @@ def update_locations(shp, showFig=False, explain=False):
     for num, sub, den, den1, pol in civici[["CIVICO_NUM","CIVICO_SUB","DENOMINAZI","DENOMINA_1","geometry"]].values:
         tot_civ_added += 1
         progressbar_pip_style(tot_civ_added,tot_civ_in_file)
-        sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
+        # sestieri = [n for n in neigh_query.all() if n.shape.intersects(pol)]
+        sestieri = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, pol.to_wkt())).all()
         # se il civico non è contenuto in nessun passa al successivo
         if len(sestieri) == 0:
             continue
         elif len(sestieri) == 1:
             sestiere = sestieri[0]
         elif len(sestieri) > 1:
+            ipdb.set_trace()
             # se c'è più di un sestiere cerca di capire quale è quello giusto
             sestiere = []
 
@@ -525,6 +546,250 @@ def update_locations(shp, showFig=False, explain=False):
 
     return err_civ
 
+
+def get_text_and_number(text_with_number):
+    text = None
+    number = None
+    subnumber = None
+    if not text_with_number:
+        return text, number, subnumber
+    the_numbers = re.search(r"(\d+)/?([A-Z])?$", text_with_number)
+    if the_numbers:
+        number = int(the_numbers.group(1))
+        subnumber = the_numbers.group(2)
+
+        text = text_with_number[:-len(the_numbers.group(0))]
+        text = text.strip()
+    else:
+        text = text_with_number.strip()
+    return text, number, subnumber
+
+
+def get_housenumber(den, den1, num, sub):
+    number = 0
+    subnumber = None
+    # start checking den
+    _, den_num, den_sub = get_text_and_number(den)
+    _, den1_num, den1_sub = get_text_and_number(den1)
+
+    if str(den_num) == str(den1_num) == num:
+        number = den_num
+    elif str(den_num) == num:
+        number = den_num
+    elif str(den1_num) == num:
+        number = den1_num
+    else:
+        number = den_num
+
+    if den_sub == den1_sub == sub:
+        subnumber = den_sub
+    elif den_sub == sub:
+        subnumber = den_sub
+    elif den1_sub == sub:
+        subnumber = den1_sub
+    else:
+        subnumber = den_sub
+
+    return number, subnumber
+
+
+
+def get_neighborhoods_from_shape(shape):
+    """Return the neighborhoods that the shape intersects. It's a list (could be empty or longer than one)."""
+    neighbs = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, shape.to_wkt())).all()
+    return neighbs
+
+def get_streets_from_shape(shape):
+    """Return the streets that the shape intersects and a boolean to tell if it's one. It's a list (could be empty or longer than one)."""
+    streets = streets_query.filter(func.ST_Intersects(Street.shape, shape.to_wkt())).all()
+    found_one_street = False
+    if len(streets) == 1:
+        found_one_street = True
+    return streets, found_one_street
+
+def select_best_match(candidates, denomination, denomination1, shape):
+    street_found = False
+    for street in candidates:
+        if (denomination and denomination.startswith(street.name)) or \
+                (denomination1 and denomination1.startswith(street.name)):
+            street_found = True
+            matching_street = street
+            break
+    if not street_found:
+        for street in candidates:
+            for d in [denomination, denomination1]:
+                d_text, _, _ = get_text_and_number(d)
+                if not d_text:
+                    continue
+                namestr, score = process.extractOne(d_text, [s.name for s in candidates])
+                if score >= 90:
+                    street_found = True
+                    matching_street = [s for s in candidates if s.name == namestr][0]
+                    break
+            if street_found:
+                break
+
+    return matching_street, street_found
+
+def update_addresses(shp, showFig=False, explain=False):
+    """
+    Updates the Address Table and returns the number of errors, so 0 is the desired output.
+    """
+
+    global neigh_query, streets_query, location_query
+    civici = gpd.read_file(shp)
+    # rimuovo righe senza geometria che danno problemi
+    civici = civici.loc[~pd.isna(civici["geometry"])]
+    civici = convert_SHP(civici)
+
+    err_civ = []
+    err_report = []
+    err_report.append("Denominazione, Denominazione 1, Civico Num, Sub, Sestiere, Strada")
+    add_civ = 0
+    tot_civ_added = 0
+    civ_without_number = 0
+    missing_neighborhood_or_streets = 0
+    tot_civ_in_file = len(civici['CIVICO_NUM'])
+    #step_civ = np.round(tot_civ_in_file / 100)
+
+    if explain:
+        print("Aggiungiamo i civici, ne abbiamo {} in totale nel file.".format(tot_civ_in_file))
+    for num, sub, den, den1, pol in civici[["CIVICO_NUM", "CIVICO_SUB", \
+            "DENOMINAZI", "DENOMINA_1", "geometry"]].values:
+        tot_civ_added += 1
+        progressbar_pip_style(tot_civ_added, tot_civ_in_file)
+        if not den and not den1:
+            err_civ.append((1, num, sub, den, den1, pol))
+            continue
+        if not num:
+            err_civ.append((2, num, sub, den, den1, pol))
+            continue
+
+        # streets
+        # prima troviamo la strada,scegliamo il punto di intersezione
+        # e poi possiamo aggiungere il sestiere
+
+        streets, found_a_street = get_streets_from_shape(pol)
+        loc_street = None
+        # if more than one match, we select the best
+        if found_a_street is False and len(streets) > 0:
+            loc_street, found_a_street = select_best_match(streets, den, den1, pol)
+        # if we have only one, we assign it to loc_street
+        elif found_a_street is True:
+            loc_street = streets[0]
+
+        # here we assume loc_street is set
+        # it cannot go in the elif, because found_a_street could become true
+        # when selecting the best match
+        if found_a_street is True:
+            st_boundary = db.session.scalar(func.ST_Boundary(loc_street.shape))
+            intersection_point = db.session.scalar(func.ST_AsText(func.ST_ClosestPoint(st_boundary, pol.to_wkt())))
+            # intersection_point=db.session.scalar(func.ST_Intersection(st_boundary, pol.to_wkt()))
+            repr_point = wkt.loads(intersection_point)
+        else:
+            repr_point = pol.representative_point()
+            # should we still add the location
+            err_civ.append((3, num, sub, den, den1, pol))
+            continue
+
+        # # if more than one match, we keep all of them
+        # loc_neighbs = get_neighborhoods_from_shape(pol)
+        # loc_neighb = None
+        # string_neighb = ''
+        # if len(loc_neighbs) == 1:
+        #     loc_neighb = loc_neighbs[0]
+        #     string_neighb = loc_neighb.name
+        # elif len(loc_neighbs) > 1:
+        #     print('piu di un sestiere..')
+        #     for i in range(len(loc_neighbs)):
+        #         if i == 0:
+        #             string_neighb += loc_neighbs[i].name
+        #         else:
+        #             string_neighb += ", " + loc_neighbs[i].name
+        #     print(string_neighb)
+        #
+
+        #string_neighb = loc_street.neighborhood.name
+
+        found_neighb = False
+        loc_neighb = get_neighborhoods_from_shape(repr_point)
+        if len(loc_neighb) == 1:
+            string_neighb = loc_neighb[0].name #loc_street.neighborhood.name
+            found_neighb = True
+        else:
+            print("missed sestiere")
+
+        lat = repr_point.y
+        lon = repr_point.x
+        location = Location(
+                    latitude=lat,
+                    longitude=lon,
+                    shape=repr_point
+        )
+        #pdb.set_trace()
+        db.session.add(location)
+        #print(f"This location, {den}, hat sestieri {location.neighborhood}")
+
+        # ipdb.set_trace()
+        housenumber_num, housenumber_sub = get_housenumber(den, den1, num, sub)
+        housenumber = str(housenumber_num)
+        if housenumber_sub:
+            housenumber += f'/{housenumber_sub}'
+
+        if housenumber_num:
+            if not found_a_street or not found_neighb: #or len(loc_neighbs) == 0:
+                missing_neighborhood_or_streets += 1
+                sest = "MISSING"
+                street = "MISSING"
+                if found_neighb:
+                    sest = string_neighb
+                if found_a_street:
+                    street = f"{loc_street.name} {housenumber}"
+                err_report.append(den + "," + den1 + "," + housenumber + "," + sest + "," + street)
+            #pdb.set_trace()
+            else:
+                address = Address(
+                    housenumber_num=housenumber_num,
+                    housenumber_sub=housenumber_sub,
+                    housenumber=housenumber,
+                    location=location,
+                    address_neigh=string_neighb,
+                    address_street=f"{loc_street.name} {housenumber}"
+                )
+                db.session.add(address)
+                add_civ += 1
+        else:
+            civ_without_number += 1
+
+    if explain:
+        print("committo nel database..")
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+        warnings.warn("Errore nel commit")
+
+    print(f"{missing_neighborhood_or_streets} civici per cui non abbiamo trovato strada o sestiere")
+    print(f"{civ_without_number} civici senza numero, lasciati fuori perche housenumber e' non-null")
+    print("Errori: {err}\nSestieri: {ses}\nStrade: {str}\nCivici: {civ}\nNuovi: {new}".format(
+        err=len(err_civ),
+        ses=len(neigh_query.all()),
+        str=len(streets_query.all()),
+        civ=len(location_query.all()),
+        new=add_civ
+        ))
+    with open('address_err_report.csv', 'w') as f:
+        # using csv.writer method from CSV package
+        write = csv.writer(f)
+        write.writerows(err_report)
+
+    ipdb.set_trace()
+    return err_civ
+
+
+def update_addresses_info():
+    return 1
+
 def download_POI(categories,bbox=44741,explain=False):
     """
     Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
@@ -547,7 +812,7 @@ def download_POI(categories,bbox=44741,explain=False):
             if (poi['type'],poi['id']) not in ids_already_there:
                 ids_already_there.append((poi['type'],poi['id']))
                 all_pois.append(poi)
-        time.sleep(5)
+        time.sleep(15)
 
     if explain:
         print("aggiunti {} poi".format(len(all_pois)))
@@ -617,7 +882,7 @@ def update_POI(pois,explain=False):
         progressbar_pip_style(poi_num,poi_tot)
 
         # Estrai poi in base all'id di OSM
-        p = poi_query.filter_by(osm_type=poi['type'],osm_id = poi['id']).one_or_none()
+        p = poi_query.filter_by(osm_type=poi['type'], osm_id = poi['id']).one_or_none()
 
         # osm_id è un campo unique quindi ritorna o un elemento se esiste il POI oppure None se non esiste
         # caso in cui nel db esiste già il POI
@@ -634,8 +899,9 @@ def update_POI(pois,explain=False):
             lat = poi['center']['lat']
             lon = poi['center']['lon']
         # controllo che il poi appartenga a uno dei neighborhood
-        poi_point = Point(lon,lat)
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        poi_point = Point(lon, lat)
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
         # se il poi non è contenuto in nessun passa al successivo
         if len(neighborhoods)==0:
             continue
@@ -654,10 +920,11 @@ def update_POI(pois,explain=False):
                     break
         if without_address:
             # controllo che non esista già la location a quelle coordinate
-            loc = location_query.filter_by(latitude=lat,longitude=lon).first()
+            loc = location_query.filter_by(latitude=lat, longitude=lon).first()
             if not loc:
                 # trovo la strada a cui appartiene il POI
-                streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
                 if len(streets) == 0:
                     # se non ho trovato nessuna strada cerco la location più vicina
                     # closest,dist = closest_location(poi['lat'],poi['lon'])
@@ -668,14 +935,15 @@ def update_POI(pois,explain=False):
                 elif len(streets) > 1:
                     err_poi.append((2,poi))
                     continue
-                loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                loc = Location(latitude=lat, longitude=lon, shape=poi_point)
                 db.session.add(loc)
                 new_loc += 1
 
         else:
             # il poi va aggiunto ad una location con indirizzo
             # cerco la location più vicina
-            closest,dist = closest_location(lat,lon,housenumber=True)
+            closest, dist = closest_location(lat, lon, housenumber=True)
             if not closest:
                 err_poi.append((3,poi))
                 continue
@@ -685,7 +953,7 @@ def update_POI(pois,explain=False):
                 continue
             loc = closest
         # creo il poi
-        p = Poi(location=loc,osm_id=poi['id'])
+        p = Poi(location=loc, osm_id=poi['id'])
         # loop sui tag del poi
         for tag_name in poi['tags']:
             # aggiungo attributi al poi
@@ -700,14 +968,19 @@ def update_POI(pois,explain=False):
                         value = False
                 else:
                     value = poi['tags'][tag_name]
-                setattr(p,col_name,value)
+                    # control length
+                    if tag_name == 'phone':
+                        if len(value) > 32:
+                            print("truncating phone numbers..")
+                            value = value[:32]
+                setattr(p, col_name, value)
             # aggiungo categorie al poi
             elif tag_name in tags_cat.keys():
                 cat_name = tags_cat[tag_name]
                 # estraggo o creo la categoria corrispondente
                 c = category_query.filter_by(name=cat_name).one_or_none()
                 if not c:
-                    c = PoiCategory(name=cat_name)
+                    c = PoiCategory(name = cat_name)
                     db.session.add(c)
                     new_cat += 1
                 # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
@@ -733,7 +1006,7 @@ def update_POI(pois,explain=False):
     if explain:
         print("committo nel database..")
     try:
-        # in realtà probabilmente non serve, ma boh
+        # forse non serve
         db.session.commit()
     except:
         db.session.rollback()
@@ -816,7 +1089,7 @@ def upload_waterPOIS(json_posti, explain=False):
 
     return posti_unici
 
-def update_waterPois(posti,type='all',explain=False):
+def update_waterPois(posti, type='all', explain=False):
     """
     Updates the DB by adding the water POIs, i.e. rive, traghetti, taxi, vincoli
     """
@@ -875,7 +1148,8 @@ def update_taxi(posti,explain):
         i+=1
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
         if len(neighborhoods)==0:
             err_tax.append((0,posto))
             continue
@@ -884,9 +1158,9 @@ def update_taxi(posti,explain):
             err_tax.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
-            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
         p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
@@ -923,7 +1197,8 @@ def update_traghetti(posti,explain):
         i+=1
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
         if len(neighborhoods)==0:
             err_tra.append((0,posto))
             continue
@@ -932,9 +1207,12 @@ def update_traghetti(posti,explain):
             err_tra.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        ## ha bisogno di poi_point.to_wkt, se no lancia errore ()
+        # psycopg2.ProgrammingError: can't adapt type 'Point'
+        #, ma sotto dove aggiunge la location non serve piu. boh
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
-            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
+            loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
         p = poi_query.filter_by(name=posto['attributes']['DENOMINAZIONE'],location=loc).one_or_none()
@@ -980,7 +1258,10 @@ def update_rive(posti,explain):
         distance = np.inf
         closest = []
         for street in streets:
-            dist = street[0].shape.distance(poi_point)
+            # street that comes back from postGIS is now a WKBElement
+            # we convert it to a shapely shape with to_shape
+            street_shapely = to_shape(street[0].shape)
+            dist = street_shapely.distance(poi_point)
             if dist < distance:
                 distance = dist
                 closest = street[0]
@@ -988,7 +1269,7 @@ def update_rive(posti,explain):
             err_riv.append((1,posto))
             continue
 
-        neighborhoods = closest.neighborhoods.all()
+        neighborhoods = closest.neighborhood #.all()
         if len(neighborhoods)==0:
             err_riv.append((2,posto))
             continue
@@ -997,12 +1278,12 @@ def update_rive(posti,explain):
             err_riv.append((3,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],street=closest,shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],street=closest,shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['UBICAZIONE'],location=loc).one_or_none()
+        p = poi_query.filter_by(name=posto['attributes']['UBICAZIONE']).one_or_none()
         if p:
             continue
         # aggiungo fermata taxi
@@ -1042,7 +1323,8 @@ def update_spazi(posti,explain):
         progressbar_pip_style(i,len(posti))
         poi_point = Point(posto['geometry']["x"],posto['geometry']["y"])
         # cerco sestiere
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
         if len(neighborhoods)==0:
             err_spa.append((0,posto))
             continue
@@ -1051,16 +1333,25 @@ def update_spazi(posti,explain):
             err_spa.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point).one_or_none()
+        loc = location_query.filter_by(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],shape=poi_point.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=posto['geometry']["y"],longitude=posto['geometry']["x"],neighborhood=neighborhoods[0],shape=poi_point)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['ID_SPAZIO'],location=loc).one_or_none()
+        #### ATTENTION
+        # convertire a str il nome serve a evitare errori con postgres,
+        # ma non mi sembra ottimo che il nome sia un ID
+        # in piu perdiamo molte info come lunghezza e larghezza
+        p = poi_query.filter_by(name=str(posto['attributes']['ID_SPAZIO']),location=loc).one_or_none()
         if p:
             continue
+
+        #### ATTENTION
+        # convertire a str il nome serve a evitare errori con postgres,
+        # ma non mi sembra ottimo che il nome sia un ID
+        # in piu perdiamo molte info come lunghezza e larghezza
         # creo poi
-        p = Poi(name=posto['attributes']['ID_SPAZIO'],location=loc)
+        p = Poi(name=str(posto['attributes']['ID_SPAZIO']),location=loc)
         # aggiungo categoria
         cat_name = "riva"
         typ_name = "spazi_tempo"
@@ -1090,7 +1381,8 @@ def update_vincoli(posti,explain):
         progressbar_pip_style(i,len(posti))
         poi_polygon = Polygon(posto['geometry']['rings'][0])
         # cerco sestiere
-        neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_polygon)]
+        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_polygon)]
+        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_polygon.to_wkt())).all()
         if len(neighborhoods)==0:
             err_vin.append((0,posto))
             continue
@@ -1099,16 +1391,16 @@ def update_vincoli(posti,explain):
             err_vin.append((1,posto))
             continue
         # creo la location
-        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon).one_or_none()
+        loc = location_query.filter_by(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,shape=poi_polygon.to_wkt()).one_or_none()
         if not loc:
             loc = Location(latitude=poi_polygon.centroid.y,longitude=poi_polygon.centroid.x,neighborhood=neighborhoods[0],shape=poi_polygon)
             db.session.add(loc)
         # controllo che non sia già presente
-        p = poi_query.filter_by(name=posto['attributes']['PK_ID'],location=loc).one_or_none()
+        p = poi_query.filter_by(name=str(posto['attributes']['PK_ID']),location=loc).one_or_none()
         if p:
             continue
         # creo poi
-        p = Poi(name=posto['attributes']['PK_ID'],location=loc)
+        p = Poi(name=str(posto['attributes']['PK_ID']),location=loc)
         # aggiungo categoria water_stop
         cat_name = "vincolo"
         typ_name = posto['attributes']['TIPO']
@@ -1134,25 +1426,38 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
     global neigh_query, streets_query, location_query
     closest = []
     distance = np.inf
+    p = Point(lon, lat)
+    pwkt = p.to_wkt()
     if housenumber == True:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance),
-                Location.housenumber != None
-                ))
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance),
+        #         Location.housenumber != None
+        #         ))
+        loc = Location.query.join(Address).filter(Address.housenumber != None).order_by(
+                        Location.shape.distance_box(pwkt)).limit(1).one()
     elif housenumber == False:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance),
-                Location.housenumber == None
-                ))
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance),
+        #         Location.housenumber == None
+        #         ))
+        loc = Location.query.join(Address).filter(Address.housenumber == None).order_by(
+                        Location.shape.distance_box(pwkt)).limit(1).one()
     else:
-        query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
-                db.between(Location.latitude,lat-tolerance,lat+tolerance)
-                ))
-    for loc in query.all():
-        dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
+        # query = Location.query.filter(db.and_(db.between(Location.longitude,lon-tolerance,lon+tolerance),
+        #         db.between(Location.latitude,lat-tolerance,lat+tolerance)
+        #         ))
+        loc = Location.query.order_by(Location.shape.distance_box(pwkt)).limit(1).one()
+    if loc:
+        dist = db.session.scalar(func.ST_DistanceSphere(loc.shape, pwkt))
         if dist < distance:
             distance = dist
             closest = loc
+    # for loc in query.all():
+    #     dist = geopy.distance.distance((loc.latitude, loc.longitude),(lat,lon)).meters
+    #     if dist < distance:
+    #         distance = dist
+    #         closest = loc
+
     return closest,distance
 
 def tell_me_something_I_dont_know():

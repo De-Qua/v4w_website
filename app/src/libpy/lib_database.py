@@ -17,7 +17,7 @@ def fetch_usage_data_from_db():
     Fetch the usage data to use it further
     """
     # big_data = FlaskUsage.query.all()
-    pd_db = pd.read_sql_table('flask_usage', db.get_engine(bind='trackusage'))
+    pd_db = pd.read_sql_table('flask_usage', db.get_engine(bind='collected_data'))
     usage_dict = {}
     col_names = []
     for col_name in pd_db.columns:

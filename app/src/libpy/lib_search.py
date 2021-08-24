@@ -6,9 +6,10 @@ import logging
 import time
 import shapely, shapely.wkt, shapely.geometry
 import pdb
+from geoalchemy2.shape import to_shape
 
 # IMPORT FOR THE DATABASE - db is the database object
-from app.models import Neighborhood, Street, Location, Area, Poi, PoiCategoryType, poi_types, PoiCategory
+from app.models import Neighborhood, Street, Location, Area, Poi, PoiCategoryType, poi_types, PoiCategory, Address
 from app import app, db
 from fuzzywuzzy import fuzz, process
 import fuzzywuzzy
@@ -384,13 +385,14 @@ def find_address_in_db(input_string):
         app.logger.warning("Non abbiamo trovato nulla nel database!")
         raise custom_errors.UserError("Non abbiamo trovato nessuna corrispondenza con {} sicuro di aver scritto bene?".format(input_string))
     else:
-        for address, score in zip(address_list,score_list):
+        for address, score,  in zip(address_list, score_list):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
-
             # address ritornato da fetch_coordinates e' l'elemento del database di location
             # quindi e' voluto che venga sostituito, in modo che poi nel dizionario abbiamo le infomazioni.
             geo_type, coordinates, polygon_shape, address = fetch_coordinates(address, number, isThereaCivico)
             if geo_type>=0:
+                # neighborhood, street, location, poi, ecc..
+                address_type = get_match_type(address)
                 nome=str(address) # address sostitutio ha gia il numero, non serve piu aggiungerlo!
                 # INCREDIBILE: stampando il geojson non serve invertire le coordinate!
                 # inverti x e y nella shape, è più facile farlo ora piuttosto che dopo
@@ -398,20 +400,26 @@ def find_address_in_db(input_string):
                 edge_info_dict = {}
                 edge_info_dict['street_type'] = 'calle'
                 edge_info_dict['bridge'] = 0
+                polygon_shapely_geom = polygon_shape
                 geojson = {
                     "type": "Feature",
                     "properties": edge_info_dict,
-                    "geometry": dict(mapping(polygon_shape))
+                    "geometry": dict(mapping(polygon_shapely_geom))
                 }
                 result_dict.append({"nome":nome,
-                            "descrizione":address.get_description(),
+                            #"descrizione":address.get_description(),
                             "coordinate":coordinates,
                             #"shape":polygon_shape_as_list,
                             "shape":polygon_shape,
                             "geotype":geo_type,
                             "score":score,
+                            "type":address_type,
                             "exact":exact,
-                            "geojson":geojson
+                            "geojson":geojson,
+                            ## this is the description of the object found,
+                            ## that could be address, street, poi, whatever
+                            ## transformed in a json-like dict
+                            f"{address_type}":address.get_description()
                             })
             else:
                 app.logger.debug("in this one there was nothing")
@@ -422,8 +430,33 @@ def find_address_in_db(input_string):
             raise custom_errors.UserError("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
         # once upon a time there was a sort_results! why? nobody knows
         app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
+
     return result_dict
 
+def get_match_type(db_obj):
+    """
+    Returns a string describing the type of the object.
+    It matches against the types defined in models.py, otherwise it returns "unknown".
+    """
+    obj_type = "unknown"
+    if type(db_obj) == Location:
+        obj_type = "location"
+        try:
+            if db_obj.address is not None:
+                obj_type = "address"
+        except:
+            app.logger.debug("correct the get_match_type method, please")
+    # this most likely does not work
+    elif type(db_obj) == Address:
+        obj_type = "address"
+    elif type(db_obj) == Neighborhood:
+        obj_type = "neighborhood"
+    elif type(db_obj) == Street:
+        obj_type = "street"
+    elif type(db_obj) == Poi:
+        obj_type = "poi"
+
+    return obj_type
 
 def correct_name(name):
     """
@@ -446,12 +479,12 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
 
     # SE ABBIAMO UN CIVICO, SCEGLIAMO UN PUNTO!
     if isThereaCivico:
-#         # geo type = 0 dice che usiamo un punto
+#       # geo type = 0 dice che usiamo un punto
         geo_type = 0
-        with_num=actual_location.locations.filter_by(housenumber=number).first()
+        with_num=actual_location.locations.join(Location.address, aliased=True).filter_by(housenumber=number).first()
         if not with_num:
             # controlliamo che non ci siano altri indirizzi che semplicemente contengano il numero (ad esempio per San Polo 1421 vogliamo San Polo 1421/A)
-            with_num = actual_location.locations.filter(Location.housenumber.contains(number)).all()
+            with_num = actual_location.locations.join(Location.address, aliased=True).filter(Address.housenumber.contains(number)).all()
             with_num = with_num[0] if len(with_num) == 1 else None
 
         # pdb.set_trace()
@@ -459,7 +492,8 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         # if len(with_num) == 1:
             actual_location=with_num
             coords = [actual_location.longitude, actual_location.latitude]
-            polygon_shape = actual_location.shape
+            # to shape is needed to convert from wkb to shapely
+            polygon_shape = to_shape(actual_location.shape)
         # elif len(with_num) > 1:
         #     # TODO: ritorna tutte le possibilità
         #
@@ -475,11 +509,13 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
     elif type(actual_location)==Poi:
         geo_type = 0
         coords = [actual_location.location.longitude,actual_location.location.latitude]
-        polygon_shape = actual_location.location.shape
+        # to shape is needed to convert from wkb to shapely
+        polygon_shape = to_shape(actual_location.location.shape)
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo
     elif actual_location.shape:
         geo_type = 1
-        polygon_shape = actual_location.shape
+        # to shape is needed to convert from wkb to shapely
+        polygon_shape = to_shape(actual_location.shape)
         # if polygon_shape.geom_type == 'MultiPolygon':
         #     # do multipolygon things.
         #     polygon_shape_as_list = []
@@ -612,7 +648,6 @@ def fuzzy_search(word, isThereaCivico,scorer=fuzz.token_sort_ratio,processor=fuz
     """
     #raise custom_errors.DeveloperError("fasullissimo")
     exact = False
-
 
     final_matches = []
     if isThereaCivico:

@@ -144,7 +144,7 @@ with app.app_context():
 #
 # TrackUsage setup
 #
-track_datastore = SQLStorage(engine=db.get_engine(bind="trackusage"))
+track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app,[track_datastore])
 
 from app import routes, errors, models
@@ -210,7 +210,7 @@ api_rest.add_resource(api.getPathStreet, '/gt_path')
 api_rest.add_resource(api.getPathWater, '/gt_path_water')
 api_rest.add_resource(api.getCurrentTide, '/tide')
 api_rest.add_resource(api.getSuggestions, '/suggest')
-api_rest.add_resource(api.getPlaces, '/search')
+api_rest.add_resource(api.getPlace, '/search')
 
 #
 # Flask JWT extended

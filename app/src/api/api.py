@@ -201,8 +201,12 @@ class getSuggestions(Resource):
 
         return api_response(data=suggestions)
 
+<<<<<<< HEAD
 
 class getPlaces(Resource):
+=======
+class getPlace(Resource):
+>>>>>>> 41a1b6a54594b899b1b63048c420d6f728ff76b8
     """
     API to retrieve address, streets or pois from the database
     """
