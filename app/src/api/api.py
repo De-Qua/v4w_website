@@ -87,43 +87,62 @@ class getPathStreet(Resource):
         except Exception as e:
             current_app.logger.error(str(e))
             return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
-        # # Define the weight that we will use
-        # if args['avoid_tide']:
-        #     if not args['tide']:
-        #         args['tide'] = get_current_tide_level()
-        #     weight = dqg_w.get_weight_tide(
-        #                 graph=current_app.graphs['street']['graph'],
-        #                 tide_level=args['tide'],
-        #                 speed=args['speed'],
-        #                 use_weight_bridges=args['avoid_bridges'])
-        # elif args['avoid_bridges']:
-        #     weight = dqg_w.get_weight_bridges(
-        #                 graph=current_app.graphs['street']['graph'],
-        #                 speed=args['speed'])
-        # else:  # default is walk
-        #     weight = dqg_w.get_weight_time(
-        #                 graph=current_app.graphs['street']['graph'],
-        #                 speed=5)
-        # # check the format, maybe we can change it with just a try/except
-        # try:
-        #     v_list, e_list = calculate_path(
-        #                 graph=current_app.graphs['street']['graph'],
-        #                 coords_start=[start_coords],
-        #                 coords_end=[end_coords],
-        #                 coords_stop=stop_coords,
-        #                 weight=weight,
-        #                 all_vertices=current_app.graphs['street']['all_vertices']
-        #                 )
-        #
-        #     info = retrieve_info_from_path_streets(
-        #                 graph=current_app.graphs['street']['graph'],
-        #                 paths_vertices=v_list,
-        #                 paths_edges=e_list
-        #                 )
-        #     return api_response(data=info)
-        # except Exception:
-        #     traceback.print_exc()
-        #     return api_response(code=NOT_FOUND, lang=lang)
+
+
+class getWaterStreet(Resource):
+    """
+    Api to retrieve the time and the length of the shortest water path
+    between two coordinates
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('start', type=str, required=True,
+                                   help="No starting point provided")
+        self.reqparse.add_argument('end', type=str, required=True,
+                                   help="No ending point provided")
+        self.reqparse.add_argument('stop', type=str, required=False,
+                                   action="append", default=None)
+        self.reqparse.add_argument('speed', type=float, default=5)
+        # self.reqparse.add_argument('mode', type=str,
+        #                            choices=["walk", "bridge", "tide"],
+        #                            default="walk")
+        self.reqparse.add_argument('motor', type=bool, default=False)
+        self.reqparse.add_argument('width', type=float, default=0)
+        self.reqparse.add_argument('height', type=float, default=0)
+        self.reqparse.add_argument('alternatives', type=bool, default=False)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getWaterStreet, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        args = parse_args(self.reqparse)
+        ipdb.set_trace()
+        lang = args['language']
+        # validate the coordinates
+        try:
+            start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
+            if args['stop']:
+                stop_coords = check_format_coordinates(args['stop'])
+            else:
+                stop_coords = None
+        except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
+            return api_response(code=e.code, lang=lang)
+        # call the interface to handle everythin
+        try:
+            info = iAPI.find_shortest_path_from_coordinates(
+                mode="boat",
+                start=start_coords, end=end_coords, stop=stop_coords,
+                motor=args['motor'], boat_speed=args['speed'],
+                boat_width=args['width'], boat_height=args['height'],
+                alternatives=args['alternatives']
+            )
+            return api_response(data=info, lang=lang)
+        except Exception as e:
+            current_app.logger.error(str(e))
+            return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
+
 
 
 class getCurrentTide(Resource):
@@ -183,7 +202,7 @@ class getSuggestions(Resource):
         return api_response(data=suggestions)
 
 
-class getPlace(Resource):
+class getPlaces(Resource):
     """
     API to retrieve address, streets or pois from the database
     """

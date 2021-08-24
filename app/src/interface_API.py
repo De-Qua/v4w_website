@@ -120,15 +120,25 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     return info_dict
 
 
-def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
+def gt_shortest_path_boat_wrapper(start, end, stop=None,
+                                  motor=False, boat_speed=5,
+                                  boat_width=0, boat_height=0,
+                                  alternatives=False,
+                                  **kwargs):
     """
-    NOT IMPLEMENTED YET
+    WALK PATH NOT IMPLEMENTED YET
     It calculates the shortest path using a boat
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
     graph = current_app.graphs['water']
     # Define the weight that we will use
-    weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat')
+    if alternatives:
+        raise errors.WorkInProgressError("Alternatives not implemented yet")
+    else:
+        weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat',
+                                       motor_boat=motor, boat_speed=boat_speed,
+                                       boat_width=boat_width, boat_height=boat_height)
+        weights = [weight]
     # get the path
     try:
         v_list, e_list = dqg_topo.calculate_path(
@@ -136,7 +146,7 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None, **kwargs):
             coords_start=start,
             coords_end=end,
             coords_stop=stop,
-            weight=weight,
+            weight=weights,
             all_vertices=graph['all_vertices']
         )
     except dqg_err.NoPathFound:

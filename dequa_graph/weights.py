@@ -45,7 +45,9 @@ import graph_tool.all as gt
 
 
 def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
-boat_speed=5, starting_hour=None):
+               starting_hour=None,
+               boat_speed=5, motor_boat=False,
+               boat_width=0, boat_height=0):
     """
     Helper function to get the correct weight base on the requested mode and the other variables.
     Available modes:
@@ -56,14 +58,19 @@ boat_speed=5, starting_hour=None):
     if mode == 'walk':
         if avoid_tide:
             return get_weight_tide(graph=graph, tide_level=tide_level,
-                                boots_height=boots_height, speed=speed,
-                                use_weight_bridges=avoid_bridges)
+                                   boots_height=boots_height, speed=speed,
+                                   use_weight_bridges=avoid_bridges)
         elif avoid_bridges:
             return get_weight_bridges(graph=graph, speed=speed)
         else:
             return get_weight_time(graph=graph, speed=speed)
     elif mode == 'boat':
-        return get_weight_motorboat(graph=graph, speed=boat_speed)
+        if motor_boat:
+            return get_weight_motorboat(graph=graph, speed=boat_speed,
+                                        width=boat_width, height=boat_height)
+        else:
+            return get_weight_rowboat(graph=graph, speed=boat_speed,
+                                      width=boat_width, height=boat_height)
     else:
         raise ValueError(f"Mode {mode} not implemented")
 
@@ -165,13 +172,20 @@ def get_weight_tide(graph, tide_level, high_tide_multiplier=10000,
 # WEIGHTS FOR BOATS
 #
 
-def get_weight_rowboat(graph, speed=5):
+def get_weight_rowboat(graph, speed=5, width=0, height=0, dimension_multiplier=1e6):
     """Returns a graph edge property that can be used in searching the shortest path in a water graph.
     Weights correspond to the time of each edge (length/speed).
     Since rowboat do not have any restriction all the canals are allowed, and the graph is considered undirected.
     """
     graph_row = gt.GraphView(graph, directed=False)
     weight = get_weight_time(graph_row, speed)
+
+    # exclude small canals (big multiplier to avoid problem if the path starts from there)
+    can_width = graph_row.ep['larghezza'].a+0
+    can_width[can_width == 0] = np.inf
+    weight.a[can_width < width] += dimension_multiplier
+    # exclude low canals (big multiplier to avoid problem if the path starts from there)
+    weight.a[graph_row.ep['altezza'].a < height] += dimension_multiplier
 
     return weight
 
@@ -200,7 +214,7 @@ def get_weight_motorboat(graph, speed=5, start_time=None, type="private", width=
     weight.a += graph.ep['solo_remi'].a * rio_blu_multiplier
     # exclude small canals (big multiplier to avoid problem if the path starts from there)
     can_width = graph.ep['larghezza'].a+0
-    can_width[can_width==0] = np.inf
+    can_width[can_width == 0] = np.inf
     weight.a[can_width < width] += dimension_multiplier
     # exclude low canals (big multiplier to avoid problem if the path starts from there)
     weight.a[graph.ep['altezza'].a < height] += dimension_multiplier
