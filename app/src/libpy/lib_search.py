@@ -344,6 +344,11 @@ def check_if_is_already_a_coordinate(input_string):
     coordinates = [lon, lat]
     return are_coordinates, coordinates
 
+def suggest_sql(clean_string, max_num=5):
+    suggestions = db.session.execute('SELECT * FROM fn_GetSuggest(:p1, :p2)',
+                    {'p1':clean_string, 'p2':max_num}).all()
+    return suggestions
+
 def suggest_address_from_db(text, number, max_n=5):
     """
     Wrapper functions that looks for address in the database with the input string as substring

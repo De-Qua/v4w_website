@@ -263,11 +263,11 @@ def get_suggestions(input, max_num=5):
     # clean the string
     clean_string = ls.correct_name(input)
     # divide number and text
-    text, number, _ = ls.dividiEtImpera(clean_string)
+    #text, number, _ = ls.dividiEtImpera(clean_string)
     # get the suggestions
-    suggestions = ls.suggest_address_from_db(
-        text=text, number=number, max_n=max_num)
-
+    # suggestions = ls.suggest_address_from_db(
+    #    text=text, number=number, max_n=max_num)
+    suggestions = ls.suggest_sql(clean_string, max_num)
     # formatted_suggestions = [
     #     {'address': f"{s.neighborhood.name} {s.housenumber}",
     #      'longitude': s.longitude,
@@ -277,13 +277,8 @@ def get_suggestions(input, max_num=5):
     #      'housenumber': s.housenumber
     #      } for s in suggestions
     # ]
-    formatted_suggestions = [
-        {'type': s.__tablename__,
-         'description': s.get_description()
-        } for s in suggestions
-    ]
 
-    return formatted_suggestions
+    return suggestions
 
 
 def get_places(input, max_num=20):
