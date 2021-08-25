@@ -277,8 +277,39 @@ def get_suggestions(input, max_num=5):
     #      'housenumber': s.housenumber
     #      } for s in suggestions
     # ]
-
-    return suggestions
+    # resulttype text,
+	# address_street varchar,
+	# address_neigh varchar,
+	# housenumber varchar,
+	# latitude float8,
+	# longitude float8,
+	# poiname varchar,
+	# poicategoryname character varying[],
+	# opening_hours varchar,
+	# wheelchair varchar,
+	# toilets bool,
+	# toilets_wheelchair bool,
+	# wikipedia varchar,
+	# phone varchar
+    formatted_suggestions = [
+        {
+            'type': s[0],
+            'address_street': s[1],
+            'address_neigh': s[2],
+            'housenumber': s[3],
+            'latitude': s[4],
+            'longitude': s[5],
+            'poiname': s[6],
+            'poicategoryname': s[7],
+            'opening_hours': s[8],
+            'wheelchair': s[9],
+            'toilets': s[10],
+            'toilets_wheelchair': s[11],
+            'wikipedia': s[12],
+            'phone': s[13]
+        } for s in suggestions
+    ]
+    return formatted_suggestions
 
 
 def get_places(input, max_num=20):
