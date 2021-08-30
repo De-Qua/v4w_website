@@ -182,7 +182,6 @@ class getSuggestions(Resource):
         super(getSuggestions, self).__init__()
 
     @permission_required
-    @update_api_counter
     def get(self):
         try:
             args = self.reqparse.parse_args()
