@@ -35,6 +35,31 @@ from app.src.api.utils import create_url_from_inputs, set_default_request_variab
 from app.src import interface_API as iAPI
 from app.src.interface_API import check_format_coordinates
 
+
+AVAILABLE_APIS = {
+    "getPlace": {
+        "name": "ricerca",
+        "endpoint": "search"
+    },
+    "getSuggestions": {
+        "name": "suggerimenti",
+        "endpoint": "suggest"
+    },
+    "getPathStreet": {
+        "name": "path street",
+        "endpoint": "gt_path"
+    },
+    "getPathWater": {
+        "name": "path water",
+        "endpoint": "gt_path_water"
+    },
+    "getAddress": {
+        "name": "old address",
+        "endpoint": "address"
+    }
+}
+
+
 class getPathStreet(Resource):
     """
     Api to retrieve the time and the length of the shortest path
@@ -142,7 +167,6 @@ class getPathWater(Resource):
         except Exception as e:
             current_app.logger.error(str(e))
             return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
-
 
 
 class getCurrentTide(Resource):

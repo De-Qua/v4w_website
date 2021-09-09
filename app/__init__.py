@@ -203,14 +203,17 @@ api_rest = Api(app, prefix='/api')
 
 from app.src.api import api
 
-api_rest.add_resource(api.getAddress, '/address')
-api_rest.add_resource(api.getPath, '/path')
-api_rest.add_resource(api.getMultiplePaths, '/multi_path')
-api_rest.add_resource(api.getPathStreet, '/gt_path')
-api_rest.add_resource(api.getPathWater, '/gt_path_water')
-api_rest.add_resource(api.getCurrentTide, '/tide')
-api_rest.add_resource(api.getSuggestions, '/suggest')
-api_rest.add_resource(api.getPlace, '/search')
+for function, info in api.AVAILABLE_APIS.items():
+    if hasattr(api, function) and "endpoint" in info.keys():
+        api_rest.add_resource(getattr(api, function), f'/{info["endpoint"]}')
+# api_rest.add_resource(api.getAddress, '/address')
+# api_rest.add_resource(api.getPath, '/path')
+# api_rest.add_resource(api.getMultiplePaths, '/multi_path')
+# api_rest.add_resource(api.getPathStreet, '/gt_path')
+# api_rest.add_resource(api.getPathWater, '/gt_path_water')
+# api_rest.add_resource(api.getCurrentTide, '/tide')
+# api_rest.add_resource(api.getSuggestions, '/suggest')
+# api_rest.add_resource(api.getPlace, '/search')
 
 #
 # Flask JWT extended

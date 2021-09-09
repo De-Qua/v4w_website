@@ -1,5 +1,6 @@
 from app import app, db, user_datastore, security, admin
-from app.models import Location,Street,Neighborhood,Poi
+from app.models import Location, Street, Neighborhood, Poi, Apis, TokenTypes
+from app.src.api.api import AVAILABLE_APIS
 from flask_admin import helpers as admin_helpers
 from flask import url_for
 from flask_security import utils
@@ -26,29 +27,60 @@ def make_shell_context():
 def before_first_request():
     if app.debug:
         # Create any database tables that don't exist yet.
+        app.logger.debug("Before first request")
         db.create_all(bind='internal')
+        create_first_user_role(db.session)
+        app.logger.debug("User created")
+        create_all_api(db.session)
+        app.logger.debug("Api created")
+        create_admin_token(db.session)
+        app.logger.debug("Admin token created")
 
-        # Create the Roles "admin" and "end-user" -- unless they already exist
-        user_datastore.find_or_create_role(name='admin', description='Administrator')
-        user_datastore.find_or_create_role(name='end-user', description='End user')
 
-        # Create two Users for testing purposes -- unless they already exists.
-        # In each case, use Flask-Security utility function to encrypt the password.
-        someone_password = SOMEONE_PASSWORD
-        admin_password = ADMIN_PASSWORD
-        if not user_datastore.get_user('someone'):
-            user_datastore.create_user(email='someone', password=utils.hash_password(someone_password))
-        if not user_datastore.get_user('admin'):
-            user_datastore.create_user(email='admin', password=utils.hash_password(admin_password))
+def create_all_api(session):
+    # loop and create api if the endpoint does not exist
+    for function, info in AVAILABLE_APIS.items():
+        endpoint_api = Apis.query.filter_by(path=info['endpoint']).one_or_none()
+        if not endpoint_api:
+            endpoint_api = Apis(name=info["name"], path=info["endpoint"])
+            session.add(endpoint_api)
+            session.commit()
 
-        # Commit any database changes; the User and Roles must exist before we can add a Role to the User
-        db.session.commit()
 
-        # Give one User has the "end-user" role, while the other has the "admin" role. (This will have no effect if the
-        # Users already have these Roles.) Again, commit any database changes.
-        user_datastore.add_role_to_user('someone', 'end-user')
-        user_datastore.add_role_to_user('admin', 'admin')
-        db.session.commit()
+def create_admin_token(session):
+    # create or update the role admin for the tokens
+    admin_role = TokenTypes.query.filter_by(type="admin").one_or_none()
+    if not admin_role:
+        admin_role = TokenTypes(type="admin")
+        session.add(admin_role)
+    for an_api in Apis.query.all():
+        if an_api not in admin_role.permissions:
+            admin_role.permissions.append(an_api)
+    session.commit()
+
+
+def create_first_user_role(session):
+    # Create the Roles "admin" and "end-user" -- unless they already exist
+    user_datastore.find_or_create_role(name='admin', description='Administrator')
+    user_datastore.find_or_create_role(name='end-user', description='End user')
+
+    # Create two Users for testing purposes -- unless they already exists.
+    # In each case, use Flask-Security utility function to encrypt the password.
+    someone_password = SOMEONE_PASSWORD
+    admin_password = ADMIN_PASSWORD
+    if not user_datastore.get_user('someone'):
+        user_datastore.create_user(email='someone', password=utils.hash_password(someone_password))
+    if not user_datastore.get_user('admin'):
+        user_datastore.create_user(email='admin', password=utils.hash_password(admin_password))
+
+    # Commit any database changes; the User and Roles must exist before we can add a Role to the User
+    session.commit()
+
+    # Give one User has the "end-user" role, while the other has the "admin" role. (This will have no effect if the
+    # Users already have these Roles.) Again, commit any database changes.
+    user_datastore.add_role_to_user('someone', 'end-user')
+    user_datastore.add_role_to_user('admin', 'admin')
+    session.commit()
 
 # Include security variable to admin views
 @security.context_processor
@@ -59,158 +91,3 @@ def security_context_processor():
         h = admin_helpers,
         get_url = url_for
     )
-# from flask import Flask, render_template, request, send_from_directory
-# import os
-# import sys
-# import logging
-# import git
-# import hmac
-# import hashlib
-
-# logging.basicConfig(filename='example.log',format='[%(asctime)s - %(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',level=logging.DEBUG)
-# sys.path.append(os.path.join(os.getcwd(), "v4w", "src"))
-# sys.path.append(os.path.join(os.getcwd(), "v4w", "libpy"))
-# import pyAny_lib
-# from library_coords import civico2coord_first_result, civico2coord_find_address
-
-# # check webhook github signature
-# def is_valid_signature(x_hub_signature, data, private_key):
-#     # x_hub_signature and data are from the webhook payload
-#     # private key is your webhook secret
-#     hash_algorithm, github_signature = x_hub_signature.split('=',1)
-#     algorithm = hashlib.__dict__.get(hash_algorithm)
-#     encoded_key = bytes(private_key, 'latin_1')
-#     mac = hmac.new(encoded_key, msg=data, digestmod=algorithm)
-#     return hmac.compare_digest(mac.hexdigest(), github_signature)
-# w_secret = os.getenv("WEBHOOK_SECRET_KEY")
-
-# app = Flask(__name__,
-#     template_folder=sys.path.append(os.path.join(os.getcwd(),'templates')))
-# app.config["DEBUG"] = True
-# logging.info('carico flask')
-# folder = os.getcwd()
-# folder_lib = folder + "/v4w/lib/"
-# folder_db = folder + "/v4w/db/"
-# path_pickle = folder_db + "grafo_pickle"
-# #path_civ = folder_db + "lista_civici_csv.txt"
-# #path_coords = folder_db + "lista_coords.txt"
-# path_civ = folder_db + "lista_key.txt"
-# path_coords = folder_db + "lista_coords.txt"
-# G_un, civici_tpn, coords = pyAny_lib.load_files(pickle_path=path_pickle, civici_tpn_path=path_civ, coords_path=path_coords)
-# G_list = list(G_un.nodes)
-# logging.info("Carico i nodi")
-
-# @app.route('/update_server',methods=['POST'])
-# def webhook():
-#     if request.method != 'POST':
-#         return 'OK'
-#     else:
-#         abort_code = 418
-#         # Do initial validations on required headers
-#         if 'X-Github-Event' not in request.headers:
-#             abort(abort_code)
-#         if 'X-Github-Delivery' not in request.headers:
-#             abort(abort_code)
-#         if 'X-Hub-Signature' not in request.headers:
-#             abort(abort_code)
-#         if not request.is_json:
-#             abort(abort_code)
-#         if 'User-Agent' not in request.headers:
-#             abort(abort_code)
-#         ua = request.headers.get('User-Agent')
-#         if not ua.startswith('GitHub-Hookshot/'):
-#             abort(abort_code)
-
-#         event = request.headers.get('X-GitHub-Event')
-#         if event == "ping":
-#             return json.dumps({'msg': 'Hi!'})
-#         if event != "push":
-#             return json.dumps({'msg': "Wrong event type"})
-
-#         x_hub_signature = request.headers.get('X-Hub-Signature')
-#         # webhook content type should be application/json for request.data to have the payload
-#         # request.data is empty in case of x-www-form-urlencoded
-#         if not is_valid_signature(x_hub_signature, request.data, w_secret):
-#             print('Deploy signature failed: {sig}'.format(sig=x_hub_signature))
-#             abort(abort_code)
-
-#         payload = request.get_json()
-#         if payload is None:
-#             print('Deploy payload is empty: {payload}'.format(
-#                 payload=payload))
-#             abort(abort_code)
-
-#         if payload['ref'] != 'refs/heads/master':
-#             return json.dumps({'msg': 'Not master; ignoring'})
-
-#         repo = git.Repo('/home/rafiki')
-#         origin = repo.remotes.origin
-
-#         pull_info = origin.pull()
-
-#         if len(pull_info) == 0:
-#             return json.dumps({'msg': "Didn't pull any information from remote!"})
-#         if pull_info[0].flags > 128:
-#             return json.dumps({'msg': "Didn't pull any information from remote!"})
-
-#         commit_hash = pull_info[0].commit.hexsha
-#         build_commit = f'build_commit = "{commit_hash}"'
-#         print(f'{build_commit}')
-#         return 'Updated PythonAnywhere server to commit {commit}'.format(commit=commit_hash)
-
-# @app.route('/', methods=['GET', 'POST'])
-# def index():
-
-#     return render_template('index.html')
-
-# @app.route('/direzione', methods=['GET', 'POST'])
-# def short_path():
-
-#     logging.info('grazie per aver aperto short_path')
-
-#     if request.method == 'POST':
-#         da = request.form['partenza']
-#         a = request.form['arrivo']
-#         start_coord, start_name = civico2coord_first_result(G_list, da, civici_tpn, coords)
-#         stop_coord, stop_name =  civico2coord_first_result(G_list, a, civici_tpn, coords)
-#         if request.form.get('meno_ponti'):
-#             f_ponti=True
-#         else:
-#             f_ponti=False
-#         strada, length = pyAny_lib.calculate_path(G_un, start_coord, stop_coord, flag_ponti=f_ponti)
-#         logging.info(strada)
-#         return render_template('find_path.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada, tempi=length*12*3.6 )
-#     else:
-#         return render_template('find_path.html')
-
-# @app.route('/indirizzo', methods=['GET', 'POST'])
-# def find_address():
-
-#     if request.method == 'POST':
-#         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-#         da = request.form['partenza']
-#         #a = request.form['arrivo']
-#         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
-#         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-#         return render_template('map_pa.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
-#     else:
-#         logging.info('grazie per aver aperto find_address')
-#         return render_template('map_pa.html')
-
-# @app.route('/degoogling', methods=['GET', 'POST'])
-# def degoogle_us_please():
-
-#     if request.method == 'POST':
-#         logging.info('grazie per aver mandato il tuo indirizzo in find_address')
-#         da = request.form['partenza']
-#         #a = request.form['arrivo']
-#         start_coord, start_name = civico2coord_find_address(da, civici_tpn, coords)
-#         #return render_template('index.html', start_name=start_name, stop_name=stop_name, start_coordx=start_coord[1], start_coordy=start_coord[0], stop_coordx=stop_coord[1], stop_coordy=stop_coord[0],path=strada)
-#         return render_template('degoogling.html', searched_name=da, start_name=start_name, start_coordx=start_coord[1], start_coordy=start_coord[0])
-#     else:
-#         logging.info('grazie per aver aperto find_address')
-#         return render_template('degoogling.html')
-
-# @app.route('/download_path', methods=['GET', 'POST'])
-# def download():
-#     return send_from_directory(directory=folder+ "/v4w/tmp/", filename="path.gpx")
