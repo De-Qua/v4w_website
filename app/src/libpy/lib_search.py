@@ -6,6 +6,7 @@ import logging
 import time
 import shapely, shapely.wkt, shapely.geometry
 import pdb
+import ipdb
 from geoalchemy2.shape import to_shape
 
 # IMPORT FOR THE DATABASE - db is the database object
@@ -371,6 +372,13 @@ def suggest_address_from_db(text, number, max_n=5):
     return suggestions
 
 
+def places_sql(clean_string, max_num=5):
+    places = db.session.execute('SELECT * FROM fn_GetPlaces(:p1, :p2)',
+                    {'p1': clean_string, 'p2': max_num}).all()
+
+    return [list(s) for s in places]
+
+
 def find_address_in_db(input_string):
     """
     Wrapper functions that looks for an address in the database.
@@ -380,13 +388,20 @@ def find_address_in_db(input_string):
     search_parameters = get_parameters()
 
     # pulisci la stringa col metodo di ale
+    start_time = time.time()
     clean_string = correct_name(input_string)
+    app.logger.info(f"Correct name: {time.time()-start_time:.5f}")
     # dividi numero e dicci come e fatta
+    start_time = time.time()
     text, number, isThereaCivico = dividiEtImpera(clean_string)
+    app.logger.info(f"Dividi et impera: {time.time()-start_time:.5f}")
     # cerca nel database - qua dentro avviene la magia
     #found_something, actual_address, address_type = find_address(text)
+    start_time = time.time()
     address_list, score_list, exact = fuzzy_search(text, isThereaCivico)
+    app.logger.info(f"Fuzzy: {time.time()-start_time:.5f}")
     app.logger.debug("Lista {}, scores {}".format(address_list, score_list))
+    start_time = time.time()
     result_dict = []
     # dammi coordinate, del punto o del poligono
     if not address_list:
@@ -397,6 +412,7 @@ def find_address_in_db(input_string):
             # geo_type, coordinates, polygon_shape_as_list, polygon_shape = fetch_coordinates(address, number, isThereaCivico)
             # address ritornato da fetch_coordinates e' l'elemento del database di location
             # quindi e' voluto che venga sostituito, in modo che poi nel dizionario abbiamo le infomazioni.
+            # ipdb.set_trace()
             geo_type, coordinates, polygon_shape, address = fetch_coordinates(address, number, isThereaCivico)
             if geo_type>=0:
                 # neighborhood, street, location, poi, ecc..
@@ -438,6 +454,7 @@ def find_address_in_db(input_string):
             raise custom_errors.UserError("L'indirizzo non è presente nel sestiere o nella strada, ti hanno dato l'indirizzo sbagliato?")
         # once upon a time there was a sort_results! why? nobody knows
         app.logger.debug("__________________________dizionario risultante\n{}".format(result_dict))
+        app.logger.info(f"Dictionary: {time.time()-start_time:.5f}")
 
     return result_dict
 
@@ -520,7 +537,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         # to shape is needed to convert from wkb to shapely
         polygon_shape = to_shape(actual_location.location.shape)
     # SE NON ABBIAMO UN CIVICO, E' UNA STRADA O UN SESTIERE! in quel caso estraiamo la shape e un punto rappresentativo
-    elif actual_location.shape:
+    elif actual_location.shape is not None:
         geo_type = 1
         # to shape is needed to convert from wkb to shapely
         polygon_shape = to_shape(actual_location.shape)
@@ -550,7 +567,7 @@ def fetch_coordinates(actual_location, number, isThereaCivico):
         #polygon_shape_as_list = None
         polygon_shape = None
 
-    print("print del fetch", geo_type, coords, polygon_shape)
+    app.logger.debug("print del fetch", geo_type, coords, polygon_shape)
     # coords e' solo le coordinate di actual location che e' l'elemento del DATABASE
     # ora ci serve actual_location per le info, descrizione e ID
     # coords non ci serve piu mi sa perche si puo sempre ricavare da actual_location

@@ -294,19 +294,20 @@ def get_suggestions(input, max_num=5):
     formatted_suggestions = [
         {
             'type': s[0],
-            'address_street': s[1],
-            'address_neigh': s[2],
-            'housenumber': s[3],
-            'latitude': s[4],
-            'longitude': s[5],
-            'poiname': s[6],
-            'poicategoryname': s[7],
-            'opening_hours': s[8],
-            'wheelchair': s[9],
-            'toilets': s[10],
-            'toilets_wheelchair': s[11],
-            'wikipedia': s[12],
-            'phone': s[13]
+            'latitude': s[1],
+            'longitude': s[2],
+            'shape': s[3],
+            'address_street': s[4],
+            'address_neigh': s[5],
+            'housenumber': s[6],
+            'poiname': s[7],
+            'poicategoryname': s[8],
+            'opening_hours': s[9],
+            'wheelchair': s[10],
+            'toilets': s[11],
+            'toilets_wheelchair': s[12],
+            'wikipedia': s[13],
+            'phone': s[14]
         } for s in suggestions
     ]
     return formatted_suggestions
@@ -316,30 +317,44 @@ def get_places(input, max_num=20):
     """
     Retrieve from the databases addresses, streets, pois and whatever is the closest match to the input string.
     """
-    result_list = ls.find_address_in_db(input)
+    # result_list = ls.find_address_in_db(input)
+    # clean the string
+    clean_string = ls.correct_name(input)
+
+    result_list = ls.places_sql(clean_string, max_num)
 
     ## NEW FORMAT
-    formatted_suggestions = []
-    for result in result_list:
-        formatted_suggestions.append(
+    formatted_suggestions = [
             {
-                'id': result.get('id') if result.get('id') else -1,
-                'latitude': result.get('coordinate')[0] if result.get('coordinate') else -1,
-                'longitude': result.get('coordinate')[1] if result.get('coordinate') else -1,
-                'coordinates': result.get('coordinate') if result.get('coordinate') else -1,
-                'type': result.get('type'), # it should always be there
-                # only one object will be filled,
-                # the others will be None
-                # which one? it is defined by 'type'
-                'location': result.get('location'),
-                'poi': result.get('poi'),
-                'address': result.get('address'),
-                'neighborhood': result.get('neighborhood'),
-                'street': result.get('street'),
-                'area': result.get('area'),
-                'geo-tag': result.get('geo-tag')
+                'type': result[0],
+                'sim': result[1],
+                'latitude': result[2],
+                'longitude': result[3],
+                'shape': result[4],
+                # ADDRESS
+                'address_street': result[5],
+                'address_neigh': result[6],
+                'housenumber': result[7],
+                # POI
+                'poiname': result[8],
+                'poicategoryname': result[9],
+                'opening_hours': result[10],
+                'wheelchair': result[11],
+                'toilets': result[12],
+                'toilets_wheelchair': result[13],
+                'wikipedia': result[14],
+                'phone': result[15],
+                # STREET
+                'street_name': result[16],
+                'name_alt': result[17],
+                'name_spe': result[18], 
+                'name_den': result[19],
+                # NEIGHBORHOOD
+                'neighborhood_name': result[20],
+                'zipcode': result[21]
             }
-        )
+        for result in result_list
+    ]
 
     # # clean the string
     # clean_string = ls.correct_name(input)
