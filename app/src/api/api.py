@@ -37,7 +37,7 @@ from app.src.interface_API import check_format_coordinates
 
 
 AVAILABLE_APIS = {
-    "getPlace": {
+    "getPlaces": {
         "name": "ricerca",
         "endpoint": "search"
     },
@@ -225,7 +225,7 @@ class getSuggestions(Resource):
         return api_response(data=suggestions)
 
 
-class getPlace(Resource):
+class getPlaces(Resource):
     """
     API to retrieve address, streets or pois from the database
     """
