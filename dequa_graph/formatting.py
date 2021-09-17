@@ -90,7 +90,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
 
 
 def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, **kwargs):
-    """Retrieve useful informations from the output of a path of streets (list
+    """Retrieve useful informations from the output of a path of canals (list
     of list of vertices and edges). The length of the two lists corresponds to
     the number of paths, i.e. if there are no stops betweem the start and the
     end point there will be only one path, otherwise there will be multiple
@@ -118,26 +118,66 @@ def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, *
         info = []
         for edges in alternative_path:
             distances = []
-            geometries = []
+            times = []
+            geojsons = []
 
             for e in edges:
-                # Calculate distance
-                distances.append(graph.ep['length'][e])
+                max_speed = graph.ep['vel_max'][e]
+                edge_info = {
+                    # Calculate distance
+                    'distance': graph.ep['length'][e],
+                    # Calculate time
+                    'time': graph.ep['length'][e]/min(speed, max_speed),
+                    # append the width
+                    'width': graph.ep['larghezza'][e],
+                    # append height
+                    'height': graph.ep['altezza'][e],
+                    # append the max speed allowed
+                    'max_speed': graph.ep['vel_max'][e],
+                    # append alternative max speed allowed
+                    'max_speed_alt': graph.ep['vel_max_mp'][e],
+                    # append rii blu
+                    'rio_blu': graph.ep['solo_remi'][e],
+                    # append name
+                    'name': graph.ep['nome'][e],
+                    # append one way
+                    'one_way': graph.ep['senso_unic'][e],
+                    # append starting hour
+                    'start_h': graph.ep['h_su_start'][e],
+                    # append ending hour
+                    'end_h': graph.ep['h_su_end'][e],
+                    # append starting dt
+                    'start_dt': graph.ep['dt_start'][e],
+                    # append ending dt
+                    'end_dt': graph.ep['dt_end'][e]
+                }
+                # correct for NaN values
+                for k, v in edge_info.items():
+                    if np.isnan(v):
+                        edge_info[k] = None
+
                 # append geometries
                 geojson = {
                     "type": "Feature",
+                    "properties": edge_info,
                     "geometry": mapping(graph.ep['geometry'][e])
                 }
-                geometries.append(geojson)
+                geojsons.append(geojson)
+
+                # update distance, time and bridges
+                distances.append(edge_info['distance'])
+                times.append(edge_info['time'])
 
             distance = sum(distances)
+            time = sum(times)
 
             info.append({
                 'distance': distance,
+                'time': time,
                 'num_edges': len(edges),
                 'edges': {
                     'distances': distances,
-                    'geometry': geometries,
+                    'geometry': geojsons,
                 }
             })
         all_info.append(info)
