@@ -50,6 +50,7 @@ def create_entry(values):
 def classify_entry_type(entry_table, entry_type_text, entry):
     """
     Classifying types:
+    # locations
     0: location (no address)
     1: address (indirizzo)
     2: street (strada, calle, salizada, fondamenta, sotoportego, )
@@ -57,6 +58,7 @@ def classify_entry_type(entry_table, entry_type_text, entry):
     4: bridge (ponte, )
     5: area (area, zona, )
     6: neighborhood (sestiere, )
+    # pois
     7: restaurant (poi-restaurant, poi-cuisine, )
     8: bar (poi-bar, )
     9: cafe (poi-caffe, )
@@ -64,9 +66,10 @@ def classify_entry_type(entry_table, entry_type_text, entry):
     11: supermarket (poi-supermercato)
     12: shop (poi-negozio, )
     13: hotels (poi-hotel, albergo, )
-    14: stop (fermata battelli, fermata traghetti, )
-    15: building (stazione, ospedale, )
-    16: sport (campo sportivo, )
+    14: building (stazione, ospedale, )
+    15: sport (campo sportivo, )
+    # water pois
+    16: stop (fermata battelli, fermata traghetti, )
     17: riva (riva pubblica, )
     18: vincolo (posto barca, )
     ..
@@ -99,6 +102,27 @@ def classify_entry_type(entry_table, entry_type_text, entry):
     elif entry_table == 'neighborhood':
         return 6
     elif entry_table == 'poi':
+        poi_7_words = ['restaurant', 'ristorante', 'risto', 'cucina', 'cuisine', 'trattoria']
+        poi_8_words = ['bar', 'pub', 'locanda']
+        poi_9_words = ['caff', 'coff']
+        poi_10_words = ['apothe', 'farmacia', 'croce verde']
+        poi_11_words = ['supermarket', 'supermercato', 'minimarket', 'kiosk']
+        poi_12_words = ['shop', 'negozio']
+        poi_13_words = ['hotel', 'hostel', 'albergo', 'pension']
+        poi_14_words = ['building', 'station', 'stazione', 'ospedale', 'hospital']
+        poi_15_words = ['sport', 'swimming', 'pool', 'palestra']
+        poi_16_words = ['stop', 'fermata', 'battello']
+        poi_17_words = ['riva', 'pubblica']
+        poi_17_words = ['vincolo']
+    if any(w in entry.name_den for w in type_2_den):
+        return 2
+    elif any(w in entry.name_den for w in type_3_den):
+        return 3
+    elif any(w in entry.name_den for w in type_4_den):
+        return 4
+    else:
+        print('weird, street, but what?', entry.name_den)
+        return 99
 
 
 def add_locations(search_id):
