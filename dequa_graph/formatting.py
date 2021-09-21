@@ -153,7 +153,7 @@ def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, *
                 }
                 # correct for NaN values
                 for k, v in edge_info.items():
-                    if np.isnan(v):
+                    if type(v) is not str and np.isnan(v):
                         edge_info[k] = None
 
                 # append geometries
