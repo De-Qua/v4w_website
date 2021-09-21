@@ -143,7 +143,7 @@ class getPathWater(Resource):
     @update_api_counter
     def get(self):
         args = parse_args(self.reqparse)
-        ipdb.set_trace()
+        # ipdb.set_trace()
         lang = args['language']
         # validate the coordinates
         try:
