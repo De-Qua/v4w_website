@@ -175,10 +175,7 @@ def retrieve_info_from_path_water(graph, paths_vertices, paths_edges, speed=5, *
                 'distance': distance,
                 'time': time,
                 'num_edges': len(edges),
-                'edges': {
-                    'distances': distances,
-                    'geometry': geojsons,
-                }
+                'edges': geojsons
             })
         all_info.append(info)
     return all_info
