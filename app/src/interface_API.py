@@ -104,7 +104,8 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
         fn_shortest_path = gt_shortest_path_boat_wrapper
         fn_info_path = format_path_boat_data
     else:
-        return {'code': MISSING_PARAMETER, 'data': None}
+        raise errors.WorkInProgressError("There are only two modes: walk and boat")
+        # return {'code': MISSING_PARAMETER, 'data': None}
 
     # get the edges and nodes
     # try:
@@ -118,7 +119,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     # except Exception:
     #     return {'code': UNKNOWN_EXCEPTION, 'data': None}
 
-    return {'code': 0, 'data': path_dict}
+    return path_dict
 
 
 def gt_shortest_path_boat_wrapper(start, end, stop=None,
@@ -347,7 +348,7 @@ def get_places(input, max_num=20):
                 # STREET
                 'street_name': result[16],
                 'name_alt': result[17],
-                'name_spe': result[18], 
+                'name_spe': result[18],
                 'name_den': result[19],
                 # NEIGHBORHOOD
                 'neighborhood_name': result[20],
