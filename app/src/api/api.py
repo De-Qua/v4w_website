@@ -1,7 +1,7 @@
 import ipdb
 
 # FLASK IMPORTS
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, inputs
 from flask import current_app
 
 
@@ -78,11 +78,11 @@ class getPathStreet(Resource):
         # self.reqparse.add_argument('mode', type=str,
         #                            choices=["walk", "bridge", "tide"],
         #                            default="walk")
-        self.reqparse.add_argument('avoid_bridges', type=bool, default=False)
-        self.reqparse.add_argument('avoid_tide', type=bool, default=False)
+        self.reqparse.add_argument('avoid_bridges', type=inputs.boolean, default=False)
+        self.reqparse.add_argument('avoid_tide', type=inputs.boolean, default=False)
         self.reqparse.add_argument('tide', type=int, default=None)
-        self.reqparse.add_argument('waterbus', type=bool, default=False)
-        self.reqparse.add_argument('alternatives', type=bool, default=False)
+        self.reqparse.add_argument('waterbus', type=inputs.boolean, default=False)
+        self.reqparse.add_argument('alternatives', type=inputs.boolean, default=False)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getPathStreet, self).__init__()
 
@@ -132,10 +132,10 @@ class getPathWater(Resource):
         # self.reqparse.add_argument('mode', type=str,
         #                            choices=["walk", "bridge", "tide"],
         #                            default="walk")
-        self.reqparse.add_argument('motor', type=bool, default=False)
+        self.reqparse.add_argument('motor', type=inputs.boolean, default=False)
         self.reqparse.add_argument('width', type=float, default=0)
         self.reqparse.add_argument('height', type=float, default=0)
-        self.reqparse.add_argument('alternatives', type=bool, default=False)
+        self.reqparse.add_argument('alternatives', type=inputs.boolean, default=False)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getPathWater, self).__init__()
 
