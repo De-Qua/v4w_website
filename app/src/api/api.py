@@ -93,7 +93,7 @@ class getGeneralPath(Resource):
         alternatives = False
         try:
             start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
-            if args['stop']:
+            if 'stop' in args.keys():
                 stop_coords = check_format_coordinates(args['stop'])
             else:
                 stop_coords = None
