@@ -94,23 +94,6 @@ def update_api_counter(fn):
     return wrapper
 
 
-# API arguments
-def parse_args(reqparse):
-    """Function to parse the arguments of an api.
-
-    :param reqparse: reqparse object.
-    :return: dictionary with the arguments.
-
-    """
-    try:
-        args = reqparse.parse_args()
-        return args
-    except Exception as e:
-        err_msg = e.data['message']
-        all_err = [err_msg[argument] for argument in err_msg.keys()]
-        msg = '. '.join(all_err)
-        return api_response(code=cst.BAD_FORMAT_REQUEST, message=msg)
-
 # Token
 
 def extract_current_token():
