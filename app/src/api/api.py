@@ -1,4 +1,5 @@
 import ipdb
+import json
 
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse, inputs
@@ -45,6 +46,10 @@ AVAILABLE_APIS = {
         "name": "suggerimenti",
         "endpoint": "suggest"
     },
+    "getGeneralPath": {
+        "name": "general path",
+        "endpoint": "path"
+    },
     "getPathStreet": {
         "name": "path street",
         "endpoint": "gt_path"
@@ -58,6 +63,82 @@ AVAILABLE_APIS = {
         "endpoint": "address"
     }
 }
+
+class getGeneralPath(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('start', type=str, required=True,
+                                   help="No starting point provided")
+        self.reqparse.add_argument('end', type=str, required=True,
+                                   help="No ending point provided")
+        self.reqparse.add_argument('stop', type=str, required=False,
+                                   action="append", default=None)
+        self.reqparse.add_argument('method', type=str, required=True)
+        self.reqparse.add_argument('time', type=inputs.datetime, required=False)
+        self.reqparse.add_argument('tideLevel', type=int, required=False)
+        self.reqparse.add_argument('walkingOptions', type=json, required=False)
+        self.reqparse.add_argument('boatOptions', type=json, required=False)
+        self.reqparse.add_argument('accessibleOptions', type=json, required=False)
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        self.reqparse.add_argument('alternatives', type=inputs.boolean, default=False)
+        super(getGeneralPath, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def post(self):
+        args = parse_args(self.reqparse)
+        lang = args['language']
+        try:
+            start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
+            if args['stop']:
+                stop_coords = check_format_coordinates(args['stop'])
+            else:
+                stop_coords = None
+        except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
+            return api_response(code=e.code, lang=lang)
+        # call the interface to handle everythin
+        if args['method'] == "walk":
+            method = "walk"
+            avoid_bridges = args['walkingOptions']['bridgeWeight'] > 1
+            walk_speed = args['walkingOptions']['walkSpeed']
+            avoid_tide = args['walkingOptions']['avoidTide']
+            avoid_public_transport = args['walkingOptions']['avoidPublicTransport']
+            boots_height = args['walkingOptions']['bootsHeight']
+        elif args['method'] == "boat":
+            method = "boat"
+            walk_speed = args["boatOptions"]["walkSpeed"]
+            avoid_tide = args["boatOptions"]["avoidTide"]
+            avoid_public_transport = args["boatOptions"]["avoidPublicTransport"]
+            avoid_bridges = args['boatOptions']['bridgeWeight'] > 1
+            boots_height = args['boatOptions']['bootsHeight']
+        else:
+            method = "walk"
+            avoid_bridges = args['accessibleOptions']['bridgeWeight'] > 1
+            walk_speed = args['accessibleOptions']['walkSpeed']
+            avoid_tide = args['accessibleOptions']['avoidTide']
+            avoid_public_transport = args['accessibleOptions']['avoidPublicTransport']
+            boots_height = args['accessibleOptions']['bootsHeight']
+        boat_speed = args['boatOptions']["boatSpeed"]
+        boat_width = args['boatOptions']["width"]
+        boat_height = args['boatOptions']["height"]
+        boat_draft = args['boatOptions']["draft"]
+        boat_type = args["boatOptions"]["type"]
+        accessible_width = args['accessibleOptions']['width']
+        try:
+            info = iAPI.find_shortest_path_from_coordinates(
+                method=method,
+                start=start_coords, end=end_coords, stop=stop_coords,
+                speed=walk_speed, avoid_bridges=avoid_bridges,
+                avoid_tide=avoid_tide, tide=args['tideLevel'],
+                waterbus=avoid_public_transport, alternatives=args['alternatives'],
+                motor=boat_type, boat_speed=boat_speed,
+                boat_width=boat_width, boat_height=boat_height,
+                alternatives=args['alternatives']
+            )
+            return api_response(data=info, lang=lang)
+        except Exception as e:
+            current_app.logger.error(str(e))
+            return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
 
 
 class getPathStreet(Resource):

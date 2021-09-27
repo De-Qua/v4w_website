@@ -206,3 +206,33 @@ def set_default_request_variables():
         'tide_level': None
     }
     return params
+
+def get_options_from_json(args):
+    opt = {}
+    if args['method'] == "walk":
+        method = "walk"
+        avoid_bridges = args['walkingOptions']['bridgeWeight'] > 1
+        walk_speed = args['walkingOptions']['walkSpeed']
+        avoid_tide = args['walkingOptions']['avoidTide']
+        avoid_public_transport = args['walkingOptions']['avoidPublicTransport']
+        boots_height = args['walkingOptions']['bootsHeight']
+    elif args['method'] == "boat":
+        method = "boat"
+        walk_speed = args["boatOptions"]["walkSpeed"]
+        avoid_tide = args["boatOptions"]["avoidTide"]
+        avoid_public_transport = args["boatOptions"]["avoidPublicTransport"]
+        avoid_bridges = args['boatOptions']['bridgeWeight'] > 1
+        boots_height = args['boatOptions']['bootsHeight']
+        boat_speed = args['boatOptions']["boatSpeed"]
+        boat_width = args['boatOptions']["width"]
+        boat_height = args['boatOptions']["height"]
+        boat_draft = args['boatOptions']["draft"]
+        boat_type = args["boatOptions"]["type"]
+    else:
+        method = "walk"
+        avoid_bridges = args['accessibleOptions']['bridgeWeight'] > 1
+        walk_speed = args['accessibleOptions']['walkSpeed']
+        avoid_tide = args['accessibleOptions']['avoidTide']
+        avoid_public_transport = args['accessibleOptions']['avoidPublicTransport']
+        boots_height = args['accessibleOptions']['bootsHeight']
+        accessible_width = args['accessibleOptions']['width']
