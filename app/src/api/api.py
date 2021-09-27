@@ -3,7 +3,7 @@ import json
 
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse, inputs
-from flask import current_app
+from flask import current_app, request
 
 
 # INTERNAL IMPORTS
@@ -66,27 +66,29 @@ AVAILABLE_APIS = {
 
 class getGeneralPath(Resource):
     def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('start', type=str, required=True,
-                                   help="No starting point provided")
-        self.reqparse.add_argument('end', type=str, required=True,
-                                   help="No ending point provided")
-        self.reqparse.add_argument('stop', type=str, required=False,
-                                   action="append", default=None)
-        self.reqparse.add_argument('method', type=str, required=True)
-        self.reqparse.add_argument('time', type=inputs.datetime, required=False)
-        self.reqparse.add_argument('tideLevel', type=int, required=False)
-        self.reqparse.add_argument('walkingOptions', type=json, required=False)
-        self.reqparse.add_argument('boatOptions', type=json, required=False)
-        self.reqparse.add_argument('accessibleOptions', type=json, required=False)
-        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        self.reqparse.add_argument('alternatives', type=inputs.boolean, default=False)
+        # self.reqparse = reqparse.RequestParser()
+        # self.reqparse.add_argument('start', type=str, required=True,
+        #                            help="No starting point provided")
+        # self.reqparse.add_argument('end', type=str, required=True,
+        #                            help="No ending point provided")
+        # self.reqparse.add_argument('stop', type=str, required=False,
+        #                            action="append", default=None)
+        # self.reqparse.add_argument('method', type=str, required=True)
+        # self.reqparse.add_argument('time', type=inputs.datetime, required=False)
+        # self.reqparse.add_argument('tideLevel', type=int, required=False)
+        # self.reqparse.add_argument('walkingOptions', type=json, required=False)
+        # self.reqparse.add_argument('boatOptions', type=json, required=False)
+        # self.reqparse.add_argument('accessibleOptions', type=json, required=False)
+        # self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        # self.reqparse.add_argument('alternatives', type=inputs.boolean, default=False)
         super(getGeneralPath, self).__init__()
 
     @permission_required
     @update_api_counter
     def post(self):
-        args = parse_args(self.reqparse)
+        
+        # args = parse_args(self.reqparse)
+        args = request.get_json()
         lang = args['language']
         try:
             start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
