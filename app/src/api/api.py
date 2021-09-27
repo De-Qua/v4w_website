@@ -86,10 +86,11 @@ class getGeneralPath(Resource):
     @permission_required
     @update_api_counter
     def post(self):
-        
+
         # args = parse_args(self.reqparse)
         args = request.get_json()
         lang = args['language']
+        alternatives = False
         try:
             start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
             if args['stop']:
@@ -99,43 +100,43 @@ class getGeneralPath(Resource):
         except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
             return api_response(code=e.code, lang=lang)
         # call the interface to handle everythin
-        if args['method'] == "walk":
+        if args['options']['method'] == "walk":
             method = "walk"
-            avoid_bridges = args['walkingOptions']['bridgeWeight'] > 1
-            walk_speed = args['walkingOptions']['walkSpeed']
-            avoid_tide = args['walkingOptions']['avoidTide']
-            avoid_public_transport = args['walkingOptions']['avoidPublicTransport']
-            boots_height = args['walkingOptions']['bootsHeight']
-        elif args['method'] == "boat":
+            avoid_bridges = args['options']['walkingOptions']['bridgeWeight'] > 1
+            walk_speed = args['options']['walkingOptions']['walkSpeed']
+            avoid_tide = args['options']['walkingOptions']['avoidTide']
+            avoid_public_transport = args['options']['walkingOptions']['avoidPublicTransport']
+            boots_height = args['options']['walkingOptions']['bootsHeight']
+        elif args['options']['method'] == "boat":
             method = "boat"
-            walk_speed = args["boatOptions"]["walkSpeed"]
-            avoid_tide = args["boatOptions"]["avoidTide"]
-            avoid_public_transport = args["boatOptions"]["avoidPublicTransport"]
-            avoid_bridges = args['boatOptions']['bridgeWeight'] > 1
-            boots_height = args['boatOptions']['bootsHeight']
+            walk_speed = args['options']["boatOptions"]["walkSpeed"]
+            avoid_tide = args['options']["boatOptions"]["avoidTide"]
+            avoid_public_transport = args['options']["boatOptions"]["avoidPublicTransport"]
+            avoid_bridges = args['options']['boatOptions']['bridgeWeight'] > 1
+            boots_height = args['options']['boatOptions']['bootsHeight']
         else:
             method = "walk"
-            avoid_bridges = args['accessibleOptions']['bridgeWeight'] > 1
-            walk_speed = args['accessibleOptions']['walkSpeed']
-            avoid_tide = args['accessibleOptions']['avoidTide']
-            avoid_public_transport = args['accessibleOptions']['avoidPublicTransport']
-            boots_height = args['accessibleOptions']['bootsHeight']
-        boat_speed = args['boatOptions']["boatSpeed"]
-        boat_width = args['boatOptions']["width"]
-        boat_height = args['boatOptions']["height"]
-        boat_draft = args['boatOptions']["draft"]
-        boat_type = args["boatOptions"]["type"]
-        accessible_width = args['accessibleOptions']['width']
+            avoid_bridges = args['options']['accessibleOptions']['bridgeWeight'] > 1
+            walk_speed = args['options']['accessibleOptions']['walkSpeed']
+            avoid_tide = args['options']['accessibleOptions']['avoidTide']
+            avoid_public_transport = args['options']['accessibleOptions']['avoidPublicTransport']
+            boots_height = args['options']['accessibleOptions']['bootsHeight']
+        boat_speed = args['options']['boatOptions']["boatSpeed"]
+        boat_width = args['options']['boatOptions']["width"]
+        boat_height = args['options']['boatOptions']["height"]
+        boat_draft = args['options']['boatOptions']["draft"]
+        boat_type = args['options']["boatOptions"]["type"]
+        accessible_width = args['options']['accessibleOptions']['width']
         try:
             info = iAPI.find_shortest_path_from_coordinates(
                 method=method,
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk_speed, avoid_bridges=avoid_bridges,
-                avoid_tide=avoid_tide, tide=args['tideLevel'],
+                avoid_tide=avoid_tide, tide=args['options']['tideLevel'],
                 waterbus=avoid_public_transport,
                 motor=boat_type, boat_speed=boat_speed,
                 boat_width=boat_width, boat_height=boat_height,
-                alternatives=args['alternatives']
+                alternatives=alternatives
             )
             return api_response(data=info, lang=lang)
         except Exception as e:
