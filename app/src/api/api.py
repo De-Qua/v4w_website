@@ -129,7 +129,7 @@ class getGeneralPath(Resource):
         accessible_width = args['options']['accessibleOptions']['width']
         try:
             info = iAPI.find_shortest_path_from_coordinates(
-                method=method,
+                mode=method,
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk_speed, avoid_bridges=avoid_bridges,
                 avoid_tide=avoid_tide, tide=args['options']['tideLevel'],
