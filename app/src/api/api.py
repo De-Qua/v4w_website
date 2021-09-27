@@ -130,7 +130,7 @@ class getGeneralPath(Resource):
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk_speed, avoid_bridges=avoid_bridges,
                 avoid_tide=avoid_tide, tide=args['tideLevel'],
-                waterbus=avoid_public_transport, alternatives=args['alternatives'],
+                waterbus=avoid_public_transport,
                 motor=boat_type, boat_speed=boat_speed,
                 boat_width=boat_width, boat_height=boat_height,
                 alternatives=args['alternatives']
