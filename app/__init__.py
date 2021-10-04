@@ -26,7 +26,7 @@ from flask_cors import CORS
 
 folder = os.getcwd()
 folder_db = os.path.join(folder,"app","static","files")
-path_graph_street = os.path.join(folder_db,"dequa_ve_terra_v13_1711.gt")
+path_graph_street = os.path.join(folder_db,"dequa_ve_terra_v14_0410.gt")
 path_graph_water = os.path.join(folder_db,"dequa_ve_acqua_v7_1609_directed.gt")
 
 #
