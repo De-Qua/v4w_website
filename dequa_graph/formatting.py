@@ -85,7 +85,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
                 'num_edges': len(edges),
                 'edges': geojsons
             })
-        all_info.append(info)
+        all_info.append(info[0])
     return all_info
 
 
