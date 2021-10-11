@@ -27,7 +27,7 @@ from flask_cors import CORS
 folder = os.getcwd()
 folder_db = os.path.join(folder, "app", "static", "files")
 folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
-path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_0910.gt")
+path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_1110.gt")
 path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
 path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 
@@ -83,7 +83,9 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 
+app.logger.info("Loading the graphs...")
 graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
+app.logger.info("Adding waterbus to the graph...")
 graph_street_only, graph_stret_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
 # Add graphs info as attributes of the app
 app.graphs = {

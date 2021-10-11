@@ -27,7 +27,7 @@ from app.src.api.constants import (
 from app.src.api import errors as err
 # UTILS
 from app.src.api.utils import (
-    api_response, parse_args,
+    api_response,
     permission_required, update_api_counter
 )
 # Utils for networkx graph
@@ -88,21 +88,21 @@ class getGeneralPath(Resource):
         self.walkparse = reqparse.RequestParser()
         self.walkparse.add_argument("walkSpeed", type=float, default=5, location=('walkingOptions',))
         self.walkparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=('walkingOptions',))
-        self.walkparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=False, location=('walkingOptions',))
+        self.walkparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=('walkingOptions',))
         self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
         self.walkparse.add_argument("bootsHeight", type=int, default=30, location=('walkingOptions',))
 
         self.boatparse = reqparse.RequestParser()
         self.boatparse.add_argument("walkSpeed", type=float, default=5, location=("boatOptions",))
         self.boatparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("boatOptions",))
-        self.boatparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=False, location=("boatOptions",))
+        self.boatparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=("boatOptions",))
         self.boatparse.add_argument("bridgeWeight", type=int, default=1, location=("boatOptions",))
         self.boatparse.add_argument("bootsHeight", type=int, default=30, location=("boatOptions",))
         self.boatparse.add_argument("boatSpeed", type=float, default=5, location=("boatOptions",))
         self.boatparse.add_argument("width", type=float, default=1.5, location=("boatOptions",))
         self.boatparse.add_argument("height", type=float, default=1, location=("boatOptions",))
         self.boatparse.add_argument("draft", type=float, default=0.3, location=("boatOptions",))
-        self.boatparse.add_argument("type", type=str, choices=("motor", "row"), default="motor", location=("boatOptions",))
+        self.boatparse.add_argument("type", type=str, choices=("motor", "row", "generic"), default="motor", location=("boatOptions",))
 
         self.accessparse = reqparse.RequestParser()
         self.accessparse.add_argument("walkSpeed", type=float, default=5, location=("accessibleOptions",))
@@ -143,7 +143,7 @@ class getGeneralPath(Resource):
         # alternatives = False
         try:
             start_coords, end_coords = check_format_coordinates(args['start'], args['end'])
-            if 'stop' in args.keys():
+            if args['stop']:
                 stop_coords = check_format_coordinates(args['stop'])
             else:
                 stop_coords = None
@@ -157,8 +157,8 @@ class getGeneralPath(Resource):
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
                 avoid_tide=walk["avoidTide"], tide=opt['tideLevel'],
-                waterbus=walk["avoidPublicTransport"],
-                motor=boat["type"], boat_speed=boat["boatSpeed"],
+                avoid_public_transport=walk["avoidPublicTransport"],
+                motor=boat["type"]=="motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                 alternatives=opt["alternatives"]
             )

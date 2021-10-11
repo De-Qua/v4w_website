@@ -125,7 +125,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
 def gt_shortest_path_boat_wrapper(start, end, stop=None,
                                   motor=False, boat_speed=5,
                                   boat_width=0, boat_height=0,
-                                  alternatives=False,
+                                  alternatives=False, avoid_public_transport=True,
                                   **kwargs):
     """
     WALK PATH NOT IMPLEMENTED YET
@@ -156,13 +156,20 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
     return v_list, e_list
 
 
-def gt_shortest_path_walk_wrapper(start, end, stop=None, speed=5, avoid_bridges=False, avoid_tide=False, tide_level=None, boots_height=0, alternatives=False, **kwargs):
+def gt_shortest_path_walk_wrapper(start, end, stop=None,
+                                  speed=5, avoid_bridges=False,
+                                  avoid_tide=False, tide_level=None, boots_height=0,
+                                  alternatives=False, avoid_public_transport=True,
+                                  **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
     # get the correct graph
-    graph = current_app.graphs['street']
+    if avoid_public_transport:
+        graph = current_app.graphs['street']
+    else:
+        graph = current_app.graphs['waterbus']
     # get tide if not present
     if avoid_tide and not tide_level:
         tide_level = get_current_tide_level()

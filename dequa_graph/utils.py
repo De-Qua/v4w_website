@@ -2,6 +2,8 @@
 
 import numpy as np
 from itertools import groupby
+from shapely.geometry import LineString
+from shapely.ops import transform
 
 import graph_tool.all as gt
 import ipdb
@@ -26,16 +28,16 @@ def add_waterbus_to_street(graph, path_gtfs):
     """Add gtfs vertices and edges to graph"""
     # add transport boolean vertex property
     transport = graph.new_vp("bool")
-    graph.vertex_properties["transport"] = transport
+    graph.vp.transport = transport
     # add timetable edge property
     timetable = graph.new_ep("python::object")
-    graph.edge_properties["timetable"] = timetable
+    graph.ep.timetable = timetable
     # add route edge property
     route = graph.new_ep("python::object")
-    graph.edge_properties["route"] = timetable
+    graph.ep.route = timetable
     # add duration edge property
     duration = graph.new_ep("double")
-    graph.edge_properties["duration"] = duration
+    graph.ep.duration = duration
     # get a copy of the original graph without the transports
     g_orig = gt.GraphView(graph, vfilt=lambda v: not transport[v])
     pos = get_all_coordinates(g_orig)
@@ -44,6 +46,8 @@ def add_waterbus_to_street(graph, path_gtfs):
     missing_stops = gtfs.check_stops_coordinates(feed, pos)
     if len(missing_stops) > 0:
         logger.warning(f"Some stops are not present in the graph: {missing_stops}")
+    else:
+        logger.info("All the stops are present in the graph!")
     count = 1
     all_routes = gtfs.get_all_routes_id(feed)
     for route_id in all_routes:
@@ -52,7 +56,7 @@ def add_waterbus_to_street(graph, path_gtfs):
         route_df = gtfs.get_route_sequence(feed, route_id)
         last_v = None
         for idx, row in route_df.iterrows():
-            logger.debug(f"\t{idx+1}/{len(route_df)}")
+            # logger.debug(f"\t{idx+1}/{len(route_df)}")
             if row["end_stop_id"] is np.nan:
                 continue
             if (row["start_stop_id"] in missing_stops) or (row["end_stop_id"] in missing_stops):
@@ -64,8 +68,10 @@ def add_waterbus_to_street(graph, path_gtfs):
             new_v = add_route_vertex_and_edge(graph, g_orig, pos, feed, row["end_stop_id"], row)
             edge = graph.add_edge(last_v, new_v)
             # ipdb.set_trace()
-            duration[edge] = int(row["duration"].total_seconds())
-            route[edge] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+            graph.ep.duration[edge] = int(row["duration"].total_seconds())
+            graph.ep.route[edge] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+            graph.ep.geometry[edge] = transform(lambda x, y: (y, x), row["geometry"])
+            last_v = new_v
 
     return g_orig, graph
 
@@ -88,14 +94,15 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     platform = graph_orig.vertex(get_id_from_coordinates(pos, start_stop_coordinate))
     # add a vertex for the route-specific platform
     v = graph.add_vertex()
-    graph.vertex_properties["transport"][v] = True
-    graph.vertex_properties["latlon"][v] = start_stop_coordinate
+    graph.vp.transport[v] = True
+    graph.vp.latlon[v] = start_stop_coordinate
     # add edge between platform and route
     e = graph.add_edge(platform, v)
     # add timetable to e
     time_info = gtfs.get_stop_times_from_stop_route(feed, stop_id, row["route_id"])
-    graph.edge_properties["timetable"][e] = time_info[["service_id", "departure_time"]]
-    graph.edge_properties["route"][e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+    graph.ep.timetable[e] = time_info[["service_id", "departure_time"]]
+    graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+    graph.ep.geometry[e] = LineString()
     return v
 
 
