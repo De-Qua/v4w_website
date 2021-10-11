@@ -25,9 +25,11 @@ from flask_cors import CORS
 # import flask_monitoringdashboard as dashboard
 
 folder = os.getcwd()
-folder_db = os.path.join(folder,"app","static","files")
-path_graph_street = os.path.join(folder_db,"dequa_ve_terra_v14_0410.gt")
-path_graph_water = os.path.join(folder_db,"dequa_ve_acqua_v7_1609_directed.gt")
+folder_db = os.path.join(folder, "app", "static", "files")
+folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
+path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_0910.gt")
+path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
+path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 
 #
 # Create Flask app
@@ -79,18 +81,23 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 # Graph setup
 #
-from dequa_graph.utils import load_graphs, get_all_coordinates
+from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 
 graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
+graph_street_only, graph_stret_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
 # Add graphs info as attributes of the app
 app.graphs = {
     'street': {
-        'graph': graph_street,
+        'graph': graph_street_only,
         'all_vertices': get_all_coordinates(graph_street),
     },
     'water': {
         'graph': graph_water,
         'all_vertices': get_all_coordinates(graph_water),
+    },
+    'waterbus': {
+        'graph': graph_stret_waterbus,
+        'all_vertices': get_all_coordinates(graph_stret_waterbus),
     }
 }
 
