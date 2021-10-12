@@ -72,6 +72,9 @@ def add_waterbus_to_street(graph, path_gtfs):
             graph.ep.route[edge] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
             graph.ep.geometry[edge] = transform(lambda x, y: (y, x), row["geometry"])
             last_v = new_v
+    comp, hist = gt.label_components(graph)
+    comp.a += 1
+    graph.vp.component_waterbus = comp
 
     return g_orig, graph
 
