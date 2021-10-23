@@ -35,6 +35,18 @@ def load_feed(path):
     return feed
 
 
+def convert_departure_to_array(time_info, feed):
+    """magie incredibili per gli orari"""
+    time_info2 = time_info.merge(feed.calendar, on="service_id")
+    time_info2 = time_info2.drop(["stop_id", "service_id", "stop_headsign", "start_date", "end_date"], axis=1)
+    time_info2.departure_time = time_info2.departure_time.dt.total_seconds()  #  orrai in secondi
+    weekdays = time_info2.drop("departure_time", axis=1).values  #  1 o 0 a seocnda del giorno
+    dep = np.tile(time_info2["departure_time"].values, (weekdays.shape[1], 1)).transpose()  # ripetutti 7 volte lgi orari
+    matrix_time = np.multiply(dep, weekdays) + np.multiply(weekdays, np.arange(0, 7)*24*3600)  # orari rispetto a lunedi
+    flat_time = np.mod(np.ravel(matrix_time), 7*24*3600)  # notte tra domenica e lunedi riportata a lunedi
+    return np.sort(flat_time[flat_time.nonzero()])
+
+
 def get_latest_data(url=URL_ACTV, file=LAST_FILE, output=OUTPUT_FOLDER):
     url_data = urljoin(url, file)
     output_name = Path(output) / file
@@ -134,9 +146,9 @@ def create_stops_for_round_trips(feed):
         # create the new name
         new_id = f"{stop_id}_{stop_iter}"
         # check if the new stop is already present in the dataframe
-        if len(feed.stops[feed.stops["stop_id"]==new_id]) == 0:
+        if len(feed.stops[feed.stops["stop_id"] == new_id]) == 0:
             # find the original stop
-            original_stop = feed.stops[feed.stops["stop_id"]==stop_id]
+            original_stop = feed.stops[feed.stops["stop_id"] == stop_id]
             # change the id
             original_stop["stop_id"] = new_id
             # append the new stop to the dataframe
@@ -144,6 +156,7 @@ def create_stops_for_round_trips(feed):
         # update the stop id in the stop_times dataframe
         feed.stop_times.loc[idx, "stop_id"] = new_id
     return
+
 
 def get_shape_between_stops(feed, shape_id, stop_id_x, stop_id_y):
     if not shape_id:

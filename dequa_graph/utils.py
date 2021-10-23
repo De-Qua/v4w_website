@@ -13,6 +13,7 @@ from . import lib_gtfs as gtfs
 
 logger = set_up_logging()
 
+
 def load_graphs(*paths_gt_graphs):
     """Load graph-tool graphs, one for each input path."""
     all_graphs = []
@@ -26,15 +27,16 @@ def load_graphs(*paths_gt_graphs):
 
 def add_waterbus_to_street(graph, path_gtfs):
     """Add gtfs vertices and edges to graph"""
+    # ipdb.set_trace()
     # add transport boolean vertex property
     transport = graph.new_vp("bool")
     graph.vp.transport = transport
     # add timetable edge property
-    timetable = graph.new_ep("python::object")
+    timetable = graph.new_ep("vector<int>")
     graph.ep.timetable = timetable
     # add route edge property
     route = graph.new_ep("python::object")
-    graph.ep.route = timetable
+    graph.ep.route = route
     # add duration edge property
     duration = graph.new_ep("double")
     graph.ep.duration = duration
@@ -91,7 +93,9 @@ def get_id_from_coordinates(pos, coordinates):
     except IndexError:
         ipdb.set_trace()
 
+
 def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
+    # ipdb.set_trace()
     # find the platform on the original graph
     start_stop_coordinate = gtfs.get_stop_coordinates(feed, stop_id)
     platform = graph_orig.vertex(get_id_from_coordinates(pos, start_stop_coordinate))
@@ -103,7 +107,8 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     e = graph.add_edge(platform, v)
     # add timetable to e
     time_info = gtfs.get_stop_times_from_stop_route(feed, stop_id, row["route_id"])
-    graph.ep.timetable[e] = time_info[["service_id", "departure_time"]]
+    # graph.ep.timetable[e] = time_info[["service_id", "departure_time"]]
+    graph.ep.timetable[e] = gtfs.convert_departure_to_array(time_info, feed)
     graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
     graph.ep.geometry[e] = LineString()
     return v

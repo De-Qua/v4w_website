@@ -44,9 +44,9 @@ import numpy as np
 import graph_tool.all as gt
 
 
-def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
+def get_weight(graph, mode='walk', speed=5/3.6, avoid_bridges=False, avoid_tide=False, tide_level=80, boots_height=0,
                starting_hour=None,
-               boat_speed=5, motor_boat=False,
+               boat_speed=5/3.6, motor_boat=False,
                boat_width=0, boat_height=0):
     """
     Helper function to get the correct weight base on the requested mode and the other variables.
@@ -56,23 +56,32 @@ def get_weight(graph, mode='walk', speed=5, avoid_bridges=False, avoid_tide=Fals
         tide:   get_weight_tide()
     """
     if mode == 'walk':
+        weight = get_weight_time(graph=graph, speed=speed)
+        if avoid_bridges:
+            weight = get_weight_bridges(graph=graph, weight=weight, speed=speed)
         if avoid_tide:
-            return get_weight_tide(graph=graph, tide_level=tide_level,
-                                   boots_height=boots_height, speed=speed,
-                                   use_weight_bridges=avoid_bridges)
-        elif avoid_bridges:
-            return get_weight_bridges(graph=graph, speed=speed)
-        else:
-            return get_weight_time(graph=graph, speed=speed)
+            weight = get_weight_tide(graph=graph, weight=weight, tide_level=tide_level,
+                                     boots_height=boots_height, speed=speed,
+                                     use_weight_bridges=avoid_bridges)
+        # if avoid_tide:
+        #     return get_weight_tide(graph=graph, tide_level=tide_level,
+        #                            boots_height=boots_height, speed=speed,
+        #                            use_weight_bridges=avoid_bridges)
+        # elif avoid_bridges:
+        #     return get_weight_bridges(graph=graph, speed=speed)
+        # else:
+        #     return get_weight_time(graph=graph, speed=speed)
     elif mode == 'boat':
         if motor_boat:
-            return get_weight_motorboat(graph=graph, speed=boat_speed,
-                                        width=boat_width, height=boat_height)
+            weight = get_weight_motorboat(graph=graph, speed=boat_speed,
+                                          width=boat_width, height=boat_height)
         else:
-            return get_weight_rowboat(graph=graph, speed=boat_speed,
-                                      width=boat_width, height=boat_height)
+            weight = get_weight_rowboat(graph=graph, speed=boat_speed,
+                                        width=boat_width, height=boat_height)
     else:
         raise ValueError(f"Mode {mode} not implemented")
+
+    return weight
 
 
 def get_weight_length(graph):
@@ -86,35 +95,37 @@ def get_weight_length(graph):
     return weight
 
 
-def get_weight_time(graph, speed=5):
+def get_weight_time(graph, weight=None, speed=5/3.6):
     """Returns a graph edge property that can be used in searching the shortest
     path.
     Weights correspond to the length of each edge.
     """
     if not speed:
         return get_weight_length(graph)
-    weight = graph.new_ep('double')
-    weight.a = graph.ep['length'].a/speed
+    if not weight:
+        weight = graph.new_ep('double')
+    weight.a = graph.ep['length'].a/speed + graph.ep['duration'].a
     return weight
 
 
-def get_weight_bridges(graph, bridge_multiplier=100, speed=5):
+def get_weight_bridges(graph, weight=None, bridge_multiplier=100, speed=5/3.6):
     """Returns a graph edge property that can be used in searching the shortest
     path.
     Weights correspond to the length of each edge if the edge is not a
     bridge, otherwise the length multiplied by the bridge_multiplier factor.
     """
-
-    # retrieve from edges basic ltimeength and which edge is a bridge
-    weight = get_weight_time(graph, speed)
+    if not weight:
+        weight = graph.new_ep('double')
+    # # retrieve from edges basic ltimeength and which edge is a bridge
+    # weight = get_weight_time(graph, speed)
     # calculate the weight adding the bridge multiplier only to the bridges
     weight.a += graph.ep['ponte'].a * bridge_multiplier
     return weight
 
 
-def get_weight_tide(graph, tide_level, high_tide_multiplier=10000,
+def get_weight_tide(graph, tide_level, weight=None, high_tide_multiplier=10000,
                     edge_default_height=80, safety_diff_tide=5,
-                    boots_height=0, boots_speed=2.5, speed=5,
+                    boots_height=0, boots_speed=2.5/3.6, speed=5/3.6,
                     use_weight_bridges=False, bridge_multiplier=100):
     """Returns a graph edge property that can be used in searching the shortest
     path.
@@ -127,11 +138,13 @@ def get_weight_tide(graph, tide_level, high_tide_multiplier=10000,
     height is calculated as the height plus the height of the walkways.
     Finally, to the edge height it is added the boots_height.
     """
-    # initially define the weight as a length
-    if use_weight_bridges:
-        weight_tide = get_weight_bridges(graph, bridge_multiplier, speed=None)
-    else:
-        weight_tide = get_weight_length(graph)
+    # # initially define the weight as a length
+    # if use_weight_bridges:
+    #     weight_tide = get_weight_bridges(graph, bridge_multiplier, speed=None)
+    # else:
+    #     weight_tide = get_weight_length(graph)
+    if not weight:
+        weight = graph.new_ep('double')
 
     # retrieve the edge height
     # otherwise use the walkways (passerelle) height
@@ -161,18 +174,19 @@ def get_weight_tide(graph, tide_level, high_tide_multiplier=10000,
     cm_under_water[bridges] = 0
     # calculate the weight adding to the length the tide multiplier times the
     # cm under water
-    weight_tide.a[cm_below_boots == 0] /= speed
-    weight_tide.a[cm_below_boots > 0] /= boots_speed
+    weight.a[cm_below_boots == 0] /= speed
+    weight.a[cm_below_boots > 0] /= boots_speed
 
-    weight_tide.a += high_tide_multiplier * cm_under_water
+    weight.a += high_tide_multiplier * cm_under_water
 
-    return weight_tide
+    return weight
 
 #
 # WEIGHTS FOR BOATS
 #
 
-def get_weight_rowboat(graph, speed=5, width=0, height=0, dimension_multiplier=1e6):
+
+def get_weight_rowboat(graph, speed=5/3.6, width=0, height=0, dimension_multiplier=1e6):
     """Returns a graph edge property that can be used in searching the shortest path in a water graph.
     Weights correspond to the time of each edge (length/speed).
     Since rowboat do not have any restriction all the canals are allowed, and the graph is considered undirected.
@@ -190,7 +204,7 @@ def get_weight_rowboat(graph, speed=5, width=0, height=0, dimension_multiplier=1
     return weight
 
 
-def get_weight_motorboat(graph, speed=5, start_time=None, type="private", width=0, height=0, rio_blu_multiplier=1e6, dimension_multiplier=1e6):
+def get_weight_motorboat(graph, speed=5/3.6, start_time=None, type="private", width=0, height=0, rio_blu_multiplier=1e6, dimension_multiplier=1e6):
     """Returns a graph edge property that can be used in searching the shortest path in a water graph.
     Weights correspond to the time of each edge (length/speed).
     Speed is calculated as the minimum between the speed of the boat and the limit of the canals.

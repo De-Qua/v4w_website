@@ -64,6 +64,7 @@ AVAILABLE_APIS = {
     }
 }
 
+
 class getGeneralPath(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -86,7 +87,7 @@ class getGeneralPath(Resource):
         self.optparse.add_argument('accessibleOptions', type=dict, required=False, location=('options',))
 
         self.walkparse = reqparse.RequestParser()
-        self.walkparse.add_argument("walkSpeed", type=float, default=5, location=('walkingOptions',))
+        self.walkparse.add_argument("walkSpeed", type=float, default=5/3.6, location=('walkingOptions',))
         self.walkparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=('walkingOptions',))
         self.walkparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=('walkingOptions',))
         self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
@@ -98,14 +99,14 @@ class getGeneralPath(Resource):
         self.boatparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=("boatOptions",))
         self.boatparse.add_argument("bridgeWeight", type=int, default=1, location=("boatOptions",))
         self.boatparse.add_argument("bootsHeight", type=int, default=30, location=("boatOptions",))
-        self.boatparse.add_argument("boatSpeed", type=float, default=5, location=("boatOptions",))
+        self.boatparse.add_argument("boatSpeed", type=float, default=5/3.6, location=("boatOptions",))
         self.boatparse.add_argument("width", type=float, default=1.5, location=("boatOptions",))
         self.boatparse.add_argument("height", type=float, default=1, location=("boatOptions",))
         self.boatparse.add_argument("draft", type=float, default=0.3, location=("boatOptions",))
         self.boatparse.add_argument("type", type=str, choices=("motor", "row", "generic"), default="motor", location=("boatOptions",))
 
         self.accessparse = reqparse.RequestParser()
-        self.accessparse.add_argument("walkSpeed", type=float, default=5, location=("accessibleOptions",))
+        self.accessparse.add_argument("walkSpeed", type=float, default=5/3.6, location=("accessibleOptions",))
         self.accessparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("accessibleOptions",))
         self.accessparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=False, location=("accessibleOptions",))
         self.accessparse.add_argument("bridgeWeight", type=int, default=1, location=("accessibleOptions",))
@@ -158,7 +159,7 @@ class getGeneralPath(Resource):
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
                 avoid_tide=walk["avoidTide"], tide=opt['tideLevel'],
                 avoid_public_transport=walk["avoidPublicTransport"],
-                motor=boat["type"]=="motor", boat_speed=boat["boatSpeed"],
+                motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                 alternatives=opt["alternatives"]
             )
@@ -323,6 +324,7 @@ class getSuggestions(Resource):
     """
     API to retrieve names from the database
     """
+
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name', type=str, required=True,
@@ -355,6 +357,7 @@ class getPlaces(Resource):
     """
     API to retrieve address, streets or pois from the database
     """
+
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('name', type=str, required=True,
@@ -383,6 +386,7 @@ class getPlaces(Resource):
 
         return api_response(data=places)
 # OLD API
+
 
 class getAddress(Resource):
     """
@@ -416,7 +420,7 @@ class getAddress(Resource):
             data = [{'address': r['nome'],
                      'longitude': r['coordinate'][0],
                      'latitude': r['coordinate'][1]
-                    } for r in result_dict]
+                     } for r in result_dict]
             return api_response(code=UNCLEAR_SEARCH, lang=lang, data=data)
         data = {'address': result_dict[0]['nome'],
                 'longitude': result_dict[0]['coordinate'][0],
@@ -504,7 +508,7 @@ class getMultiplePaths(Resource):
                                    help="No ending point provided")
         self.reqparse.add_argument('speed', type=float, default=5)
         self.reqparse.add_argument('mode', type=str, choices=('walk'), default="walk",
-                                    help="Mode {mode} not supported")
+                                   help="Mode {mode} not supported")
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
         super(getMultiplePaths, self).__init__()
 
@@ -529,6 +533,6 @@ class getMultiplePaths(Resource):
             if not is_coord:
                 return api_response(code=MISSING_PARAMETER, lang=lang)
             all_length_time[start_point] = estimate_path_length_time(start_coords, end_coords,
-                    speed=args['speed'])
+                                                                     speed=args['speed'])
 
         return api_response(data=all_length_time)
