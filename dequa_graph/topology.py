@@ -49,7 +49,7 @@ from .errors import NoPathFound, MultipleSourcesError, FormatError
 logger = set_up_logging()
 
 
-def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None):
+def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None, use_public_transport=False):
     """Calculate the shortest path that starts with the first coodinates in the
     list, make stops for each intermediate coordinates, and end with the last
     coordinates in the list.
@@ -68,7 +68,11 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None):
         tmp_v_list = []
         tmp_e_list = []
         for weight in weights:
-            tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
+            if use_public_transport:
+                # il nuovo visitor
+                pass
+            else:
+                tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
             if not tmp_v_list_weight:
                 logger.warning(f"No path between {last_v} and {v}")
                 raise NoPathFound(last_v, v)

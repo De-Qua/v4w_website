@@ -108,7 +108,8 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     # add timetable to e
     time_info = gtfs.get_stop_times_from_stop_route(feed, stop_id, row["route_id"])
     # graph.ep.timetable[e] = time_info[["service_id", "departure_time"]]
-    graph.ep.timetable[e] = gtfs.convert_departure_to_array(time_info, feed)
+    normal_dates, exception_dates = gtfs.convert_departure_to_array(time_info, feed)
+    graph.ep.timetable[e] = normal_dates
     graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
     graph.ep.geometry[e] = LineString()
     return v

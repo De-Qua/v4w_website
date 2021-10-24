@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 URL_ACTV = "https://actv.avmspa.it/sites/default/files/attachments/opendata/navigazione/"
 LAST_FILE = "actv_nav.zip"
 OUTPUT_FOLDER = Path(os.getcwd()) / "app/static/gtfs"
+WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 
 def load_feed(path):
@@ -37,14 +38,31 @@ def load_feed(path):
 
 def convert_departure_to_array(time_info, feed):
     """magie incredibili per gli orari"""
-    time_info2 = time_info.merge(feed.calendar, on="service_id")
-    time_info2 = time_info2.drop(["stop_id", "service_id", "stop_headsign", "start_date", "end_date"], axis=1)
-    time_info2.departure_time = time_info2.departure_time.dt.total_seconds()  #  orrai in secondi
-    weekdays = time_info2.drop("departure_time", axis=1).values  #  1 o 0 a seocnda del giorno
-    dep = np.tile(time_info2["departure_time"].values, (weekdays.shape[1], 1)).transpose()  # ripetutti 7 volte lgi orari
+    # Standard dates
+    time_info_standard = time_info.merge(feed.calendar, on="service_id")
+    time_info_standard = time_info_standard.drop(["stop_id", "service_id", "stop_headsign", "start_date", "end_date"], axis=1)
+    time_info_standard.departure_time = time_info_standard.departure_time.dt.total_seconds()  #  orrai in secondi
+    weekdays = time_info_standard.drop("departure_time", axis=1).values  #  1 o 0 a seocnda del giorno
+    dep = np.tile(time_info_standard["departure_time"].values, (weekdays.shape[1], 1)).transpose()  # ripetutti 7 volte lgi orari
     matrix_time = np.multiply(dep, weekdays) + np.multiply(weekdays, np.arange(0, 7)*24*3600)  # orari rispetto a lunedi
     flat_time = np.mod(np.ravel(matrix_time), 7*24*3600)  # notte tra domenica e lunedi riportata a lunedi
-    return np.sort(flat_time[flat_time.nonzero()])
+    standard_dates_array = np.sort(flat_time[flat_time.nonzero()])
+
+    # exceptional dates
+    exceptional_dates = {}
+    if feed.calendar_dates is not None:
+
+        removed_dates = feed.calendar_dates[feed.calendar_dates["exception_type"] == 2]
+        # mettere a zero il giorno speciale invece che rimuovere il service!
+        calendar_exceptions = feed.calendar[~feed.calendar["service_id"].isin(removed_dates["service_id"])].drop(["start_date", "end_date"], axis=1)
+
+        new_dates = feed.calendar_dates[feed.calendar_dates["exception_type"] == 1]
+        new_dates["weekday"] = pd.to_datetime(new_dates["date"]).dt.weekday
+
+    # check if in new_dates there is also the following day
+    # otherwise take from calendar the service of the following weekday
+
+    return standard_dates_array, exceptional_dates
 
 
 def get_latest_data(url=URL_ACTV, file=LAST_FILE, output=OUTPUT_FOLDER):
