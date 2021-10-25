@@ -31,6 +31,9 @@ def add_waterbus_to_street(graph, path_gtfs):
     # add transport boolean vertex property
     transport = graph.new_vp("bool")
     graph.vp.transport = transport
+    # add info StopI
+    stop_info = graph.new_vp("python::object")
+    graph.vp.stop_info = stop_info
     # add timetable edge property
     timetable = graph.new_ep("vector<int>")
     graph.ep.timetable = timetable
@@ -71,7 +74,7 @@ def add_waterbus_to_street(graph, path_gtfs):
             edge = graph.add_edge(last_v, new_v)
             # ipdb.set_trace()
             graph.ep.duration[edge] = int(row["duration"].total_seconds())
-            graph.ep.route[edge] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+            graph.ep.route[edge] = row
             graph.ep.geometry[edge] = transform(lambda x, y: (y, x), row["geometry"])
             last_v = new_v
     comp, hist = gt.label_components(graph)
@@ -103,6 +106,7 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     v = graph.add_vertex()
     graph.vp.transport[v] = True
     graph.vp.latlon[v] = start_stop_coordinate
+    graph.vp.stop_info[v] = {"id": stop_id, "name": feed.stops[feed.stops.stop_id == stop_id]["stop_name"].iloc[0]}
     # add edge between platform and route
     e = graph.add_edge(platform, v)
     # add timetable to e

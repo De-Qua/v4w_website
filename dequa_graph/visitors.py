@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import graph_tool.all as gt
 import time
@@ -68,7 +68,7 @@ class dequaVisitor(gt.DijkstraVisitor):
                 return np.min(waiting_times)
             else:
                 if TOTAL_SECONDS_IN_WEEK - (self.time_from_source[e.source()] + self.start_time) > 0:
-                    print(g.ep['timetable'][e].a[0])
+                    # print(g.ep['timetable'][e].a[0])
                     return g.ep['timetable'][e].a[0] + TOTAL_SECONDS_IN_WEEK - (self.time_from_source[e.source()] + self.start_time)
                 else:
                     print("\n\n\nè per caso domenica sera??! Sera tardi: pesi negativi, strano\n\n\n")
@@ -171,8 +171,8 @@ if __name__ == "__main__":
     # print(f'Target {target}')elaxed(
     target = g.vertex(id_closest_vertex_target[0])
     source = g.vertex(id_closest_vertex_source[0])
-    today = datetime.today()
-    start_time = today.weekday() * 24 * 3600 + today.hour * 3600 + today.minute * 60 + today.second
+    start_time = datetime.today() + timedelta(minutes=20)
+    start_seconds = start_time.weekday() * 24 * 3600 + start_time.hour * 3600 + start_time.minute * 60 + start_time.second
     time_from_source[source] = 0  # start_time
     dist, pred = gt.dijkstra_search(g=g,
                                     weight=weight_time,
@@ -183,36 +183,48 @@ if __name__ == "__main__":
                                                          target=target,
                                                          time_from_source=time_from_source,
                                                          graph_weights=weight_time,
-                                                         start_time=start_time,
+                                                         start_time=start_seconds,
                                                          time_edges=weight_time))
 
     v = target
+    all_v = []
     counter = 0
     counter_vertices = 0
     while v != source:
-        counter_vertices += 1
-        #print(f"siamo a {time_from_source[v]} secondi")
+        all_v.append(v)
         p = g.vertex(pred[v])
-        if g.vp['transport'][p]:
-            salita_timestamp = start_time + time_from_source[v]
-            salita = datetime.fromtimestamp(salita_timestamp)
-            print(f"pontile finale alle {salita} - da {p} a {v}")
-            scesa_timestamp = start_time + time_from_source[p]
-            scesi = datetime.fromtimestamp(scesa_timestamp)
-            print(f"pontile iniziale dalle {scesi} - da {p} a {v}")
-            linea = g.ep.route[g.edge(p, v)].route_short_name
-            print(f"linea {linea}")
-            for trip_time in g.ep.timetable[g.edge(p, v)]:
-                print(datetime.fromtimestamp(trip_time))
         v = p
 
-    time_trip = (time_from_source[target]-time_from_source[source])
-    time_trip_min = time_trip/60
-    time_trip_hours = time_trip_min/60
-    print(f"ci abbiamo messo {time_trip_min} minuti o {time_trip_hours} ore")
-    arrivo_timestamp = start_time + time_trip
-    partenza = datetime.fromtimestamp(start_time)
-    arrivo = datetime.fromtimestamp(arrivo_timestamp)
-    print(f"partenza: {partenza}, arrivo: {arrivo}")
+    all_v = all_v[-1::-1]
 
-    ipdb.set_trace()
+    print(f"Partenza da {source}: {start_time}")
+    for v in all_v:
+        if g.vp.transport[v]:
+            name = g.vp.stop_info[v]["name"]
+            elapsed_time = timedelta(seconds=time_from_source[v])
+            print(f"Dopo {elapsed_time} arriviamo a {name}")
+            if not g.vp.transport[pred[v]]:
+                waiting_time = time_from_source[v]-time_from_source[pred[v]]
+                waiting_time = timedelta(seconds=waiting_time)
+                print(f"\tAbbiamo aspettato {waiting_time}")
+                print("\tSaliamo in battello")
+            else:
+                print("\tRestiamo in battello")
+            linea = g.ep.route[g.edge(pred[v], v)].route_short_name
+            print(f"\tBattello {linea} delle {start_time+elapsed_time}")
+        elif g.vp.transport[pred[v]]:
+            print(f"Scendiamo dal battello")
+    tot_elapsed_time = timedelta(seconds=time_from_source[target])
+    print(f"Arrivo a {target}: {start_time+tot_elapsed_time}")
+    print(f"Il percorso è durato {tot_elapsed_time}")
+
+    # time_trip = (time_from_source[target]-time_from_source[source])
+    # time_trip_min = time_trip/60
+    # time_trip_hours = time_trip_min/60
+    # print(f"ci abbiamo messo {time_trip_min} minuti o {time_trip_hours} ore")
+    # arrivo_timestamp = start_time + time_trip
+    # partenza = datetime.fromtimestamp(start_time)
+    # arrivo = datetime.fromtimestamp(arrivo_timestamp)
+    # print(f"partenza: {partenza}, arrivo: {arrivo}")
+
+    # ipdb.set_trace()
