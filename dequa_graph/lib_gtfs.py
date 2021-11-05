@@ -9,13 +9,13 @@ import os
 import math
 from urllib.request import urlretrieve
 from urllib.parse import urljoin
-import pdb
+import ipdb
 
 URL_ACTV = "https://actv.avmspa.it/sites/default/files/attachments/opendata/navigazione/"
 LAST_FILE = "actv_nav.zip"
 OUTPUT_FOLDER = Path(os.getcwd()) / "app/static/gtfs"
-WEEKDAYS = ["monday", "tuesday", "wednesday",
-            "thursday", "friday", "saturday", "sunday"]
+WEEKDAYS = np.array(["monday", "tuesday", "wednesday",
+                     "thursday", "friday", "saturday", "sunday"])
 
 
 def load_feed(path):
@@ -31,6 +31,9 @@ def load_feed(path):
         feed.calendar["start_date"])
     feed.calendar.loc[:, "end_date"] = pd.to_datetime(
         feed.calendar["end_date"])
+    if feed.calendar_dates:
+        feed.calendar_dates.loc[:, "date"] = pd.to_datetime(
+            feed.calendar_dates["date"])
     append_duration_to_stop_times(feed)
     append_shape_id_to_routes(feed)
     append_stop_to_shapes(feed)
@@ -53,11 +56,11 @@ def convert_departure_to_array(time_info, feed):
     if feed.calendar_dates is not None:
 
         # removed_dates = feed.calendar_dates[feed.calendar_dates["exception_type"] == 2]
-        pdb.set_trace()
+        # ipdb.set_trace()
 
-        # write down the special dates
-        # tuples with special date and weekday (as int)
-        special_dates = []
+        # create a calendar adding to the standard one all the special dates
+        calendar_exceptions = create_calendar_exceptions(feed)
+
         # loop over the special dates
         # for each date we
         # 0) reset calendar (because it's a loop)
@@ -66,80 +69,50 @@ def convert_departure_to_array(time_info, feed):
         # 3) create array for special day + day after
         unique_dates = np.unique(feed.calendar_dates['date'].values)
         for unique_date in unique_dates:
-            # getting a datetime object
-            datetime_day = datetime.strptime(unique_date, '%Y%m%d')
-            # weekday, monday = 0, tuesday = 1, ...
-            c_weekday = datetime_day.weekday()
-            # in the format of the gtfs one
-            date_ff = datetime.strftime(datetime_day, '%Y-%m-%d')
-            # for the dictionary, we save date and weekday
-            special_dates.append((date_ff, c_weekday))
-            ###
-            # 0) reset calendar to avoid keeping other special dates
-            ###
-            calendar_exceptions = feed.calendar.copy()
-            exceptions = feed.calendar_dates.loc[feed.calendar_dates['date'] == unique_date]
-            print("adding exceptions for date", unique_date)
-            for i in range(len(exceptions)):
-                ###
-                # 1) include special fares in the calendar
-                ###
-                # the row with the data we need
-                row = exceptions.iloc[i]
-                # create a list with 0, .. 1, 0, 0 for the days
-                days = [0] * 7  # list with seven zeroes
-                days[c_weekday] = 1  # set one the day we want
-                # exception == 1 --> we need to add this
-                if row['exception_type'] == 1:
-                    print("adding", row['service_id'])
-                    # this is a list
-                    row_to_append_list = [row['service_id'],
-                                          *days, date_ff, date_ff]
-                    # pandas wants a dictionary
-                    row_to_append = {}
-                    # for each column, we put the key and the value of the list
-                    for j in range(len(row_to_append_list)):
-                        row_to_append[calendar_exceptions.columns[j]
-                                      ] = row_to_append_list[j]
+            # get the days before and after
+            day_before = unique_date - np.timedelta64(1, 'D')
+            day_after = unique_date + np.timedelta64(1, 'D')
+            exception_period = [day_before, unique_date, day_after]
+            # filter the calendar excluding services that are not included in our dates
+            calendar = calendar_exceptions[(calendar_exceptions.start_date <= exception_period[-1]) & (calendar_exceptions.end_date >= exception_period[0])]
+            # get from the calendar_dates, the service in the exception period that should be removed
+            dates_to_remove = feed.calendar_dates[(feed.calendar_dates.date.isin(exception_period)) & (feed.calendar_dates.exception_type == 2)]
+            # get the weekday of the dates to remove
+            dates_to_remove["weekday"] = WEEKDAYS[dates_to_remove.date.dt.weekday]
+            # remove the service for that single day
+            for idx, row in dates_to_remove.iterrows():
+                calendar.loc[calendar.service_id == row.service_id, row.weekday] = 0
 
-                    calendar_exceptions = calendar_exceptions.append(
-                        row_to_append, ignore_index=True)
-                # exception == 2 --> we need to remove this (set to 0)
-                elif row['exception_type'] == 2:
-                    print("setting to zero", row['service_id'])
-                    calendar_exceptions.loc[calendar_exceptions.service_id == '1A0502_000', [
-                        'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']] = 0
-                    calendar_exceptions.loc[calendar_exceptions.service_id == '1A0502_000', [
-                        calendar_exceptions.columns[2 + c_weekday]]] = 0
-
-            ###
-            # 2) check that day after is not special
-            #    - now calendar_exceptions should have the special ones
-            ###
-            next_day = datetime_day.date() + timedelta(days=1)
-            next_weekday_ff = datetime.strftime(next_day, '%Y-%m-%d')
-            if next_weekday_ff in unique_dates:
-                print("noooooooo")
-                pdb.set_trace()
-            else:
-                print("the next day is not special, yeah")
-            ###
-            # 3) create array for special day + day after
-            # (the special and the ones before and after)
-            ###
-            for special_date_key, sd_weekday in special_dates:
-                exceptional_dates[special_date_key] = create_special_array(sd_weekday, time_info, calendar_exceptions)
-    # mettere a zero il giorno speciale invece che rimuovere il service!
-    # calendar_exceptions = feed.calendar[~feed.calendar["service_id"].isin(
-    #     removed_dates["service_id"])].drop(["start_date", "end_date"], axis=1)
-
-    # new_dates = feed.calendar_dates[feed.calendar_dates["exception_type"] == 1]
-    # new_dates["weekday"] = pd.to_datetime(new_dates["date"]).dt.weekday
-
-    # check if in new_dates there is also the following day
-    # otherwise take from calendar the service of the following weekday
+            # loop on the days to get the active services
+            service_period = []
+            for day in exception_period:
+                c_weekday = pd.to_datetime(day).weekday()
+                service = calendar.loc[(calendar[WEEKDAYS[c_weekday]] == 1)
+                                       & (calendar.start_date <= day)
+                                       & (calendar.end_date >= day),
+                                       "service_id"]
+                service_period = np.concatenate([service_period, service])
+            # filter the calendar with only the correct services
+            calendar = calendar[calendar.service_id.isin(service_period)]
+            # add to exceptional dates
+            date_as_string = pd.to_datetime(unique_date).strftime("%Y-%m-%d")
+            exceptional_dates[date_as_string] = create_array_from_calendar(calendar, time_info)
 
     return standard_dates_array, exceptional_dates
+
+
+def create_calendar_exceptions(feed):
+    new_dates = feed.calendar_dates.loc[feed.calendar_dates["exception_type"] == 1, :]
+    n_original_col = len(new_dates.columns)
+    new_dates[WEEKDAYS] = 0
+    new_dates["start_date"] = new_dates.date
+    new_dates["end_date"] = new_dates.date
+    for idx, row in new_dates.iterrows():
+        weekday = row.date.weekday()
+        col_weekday = n_original_col+weekday
+        new_dates.loc[idx, new_dates.columns[col_weekday]] = 1
+    calendar_exceptions = pd.concat([feed.calendar, new_dates.drop(["date", "exception_type"], axis=1)]).reset_index(drop=True)
+    return calendar_exceptions
 
 
 def create_special_array(weekday: int,
