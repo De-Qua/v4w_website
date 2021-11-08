@@ -49,6 +49,7 @@ folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
 path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_1110.gt")
 path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
 path_graph_waterbus = os.path.join(folder_db, "dequa_ve_waterbus_0711.gt")
+path_graph_street_waterbus = os.path.join(folder_db, "dequa_ve_terra_v14_1110_wb.gt")
 path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 
 #
@@ -103,11 +104,14 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 # Graph setup
 #
-
-app.logger.info("Loading the graphs...")
-graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
-app.logger.info("Adding waterbus to the graph...")
-graph_street_only, graph_stret_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
+if os.path.exists(path_graph_street_waterbus) and os.path.exists(path_graph_waterbus):
+    app.logger.info("Loading the graphs...")
+    graph_street_only, graph_water, graph_stret_waterbus = load_graphs(path_graph_street_waterbus, path_graph_water, path_graph_waterbus)
+else:
+    app.logger.info("Loading the graphs...")
+    graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
+    app.logger.info("Adding waterbus to the graph...")
+    graph_street_only, graph_stret_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
 # Add graphs info as attributes of the app
 app.graphs = {
     'street': {
