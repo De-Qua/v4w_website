@@ -31,3 +31,5 @@ from . import topology
 from . import utils
 from . import weights
 from . import errors
+from . import lib_gtfs
+from . import visitors

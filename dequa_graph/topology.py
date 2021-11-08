@@ -35,7 +35,7 @@ vel_max_mp     (edge)    (type: double)
 
 """
 import ipdb
-from numbers import Number
+# from numbers import Number
 
 import numpy as np
 
@@ -45,11 +45,15 @@ from . import set_up_logging
 from .geographic import find_closest_vertices
 from .utils import get_all_coordinates
 from .errors import NoPathFound, MultipleSourcesError, FormatError
+from .visitors import dequaVisitor
+
 
 logger = set_up_logging()
 
 
-def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None, use_public_transport=False):
+def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None,
+             use_public_transport=False, start_time=None, time_edge_property=None,
+             transport_property=None, timetable_property=None):
     """Calculate the shortest path that starts with the first coodinates in the
     list, make stops for each intermediate coordinates, and end with the last
     coordinates in the list.
@@ -70,7 +74,7 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None, 
         for weight in weights:
             if use_public_transport:
                 # il nuovo visitor
-                pass
+                tmp_v_list_weight, tmp_e_list_weight = td_shortest_path(graph, last_v, v, weight, start_time, time_edge_property, transport_property, timetable_property)
             else:
                 tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
             if not tmp_v_list_weight:
@@ -87,8 +91,50 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None, 
     return v_list, e_list
 
 
+def td_shortest_path(graph, source, target, weight, start_time, time_edge_property, transport_property, timetable_property):
+    """
+    Get the time-dependent shortest path by using Dijkstra algorithm
+    """
+    # convert start time to seconds
+    start_seconds = start_time.weekday() * 24 * 3600 + start_time.hour * 3600 + start_time.minute * 60 + start_time.second
+
+    # define some porperty for internal use
+    touch_v = graph.new_vertex_property("bool")
+    time_from_source = graph.new_vertex_property("double")
+    dist, pred = gt.dijkstra_search(g=graph,
+                                    weight=weight,
+                                    source=source,
+                                    visitor=dequaVisitor(touched_v=touch_v,
+                                                         target=target,
+                                                         time_from_source=time_from_source,
+                                                         graph_weights=weight,
+                                                         start_time=start_seconds,
+                                                         time_edges=time_edge_property,
+                                                         transport_property=transport_property,
+                                                         timetable_property=timetable_property))
+    # no path to target
+    if pred[target] == int(target):
+        return [], []
+    # Create list of vertices and edges
+    v = target
+    vlist = [v]
+    elist = []
+    while v != source:
+        p = graph.vertex(pred[v])
+        vlist.append(p)
+        elist.append(graph.edge(v, p))
+        v = p
+    # reverse list of vertex and edges
+    vlist.reverse()
+    elist.reverse()
+
+    return vlist, elist
+
+
 def calculate_path(graph, coords_start, coords_end, coords_stop=None,
-                   weight=None, all_vertices=np.ndarray(0)):
+                   weight=None, all_vertices=np.ndarray(0),
+                   use_public_transport=False, start_time=None, time_edge_property=None,
+                   transport_property=None, timetable_property=None):
     """Calculate the shortest path between two coordinates."""
     # if all_vertices.size == 0:
     #     all_vertices = get_all_coordinates(graph)
@@ -109,7 +155,7 @@ def calculate_path(graph, coords_start, coords_end, coords_stop=None,
         end_v = end_v[0]
     stop_v = find_closest_vertices(coords_stop, all_vertices)
 
-    v_list, e_list = get_path(graph, start_v, end_v, stop_v, weight)
+    v_list, e_list = get_path(graph, start_v, end_v, stop_v, weight, use_public_transport, start_time, time_edge_property, transport_property, timetable_property)
     return v_list, e_list
 
 

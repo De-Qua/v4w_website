@@ -31,7 +31,7 @@ def load_feed(path):
         feed.calendar["start_date"])
     feed.calendar.loc[:, "end_date"] = pd.to_datetime(
         feed.calendar["end_date"])
-    if feed.calendar_dates:
+    if feed.calendar_dates is not None:
         feed.calendar_dates.loc[:, "date"] = pd.to_datetime(
             feed.calendar_dates["date"])
     append_duration_to_stop_times(feed)
@@ -46,7 +46,10 @@ def load_feed(path):
 
 
 def convert_departure_to_array(time_info, feed):
-    """magie incredibili per gli orari"""
+    """
+    magie incredibili per gli orari
+    returns a dictionary with date as string
+    """
     # Standard dates
     standard_dates_array = create_array_from_calendar(
         feed.calendar, time_info)
@@ -62,11 +65,8 @@ def convert_departure_to_array(time_info, feed):
         calendar_exceptions = create_calendar_exceptions(feed)
 
         # loop over the special dates
-        # for each date we
-        # 0) reset calendar (because it's a loop)
-        # 1) include special fares in the calendar
-        # 2) check that day after is not special
-        # 3) create array for special day + day after
+        # for each date we create a exception perido calendar
+        # with 3 days: the one before, the special, and the one after
         unique_dates = np.unique(feed.calendar_dates['date'].values)
         for unique_date in unique_dates:
             # get the days before and after
@@ -95,13 +95,18 @@ def convert_departure_to_array(time_info, feed):
             # filter the calendar with only the correct services
             calendar = calendar[calendar.service_id.isin(service_period)]
             # add to exceptional dates
-            date_as_string = pd.to_datetime(unique_date).strftime("%Y-%m-%d")
-            exceptional_dates[date_as_string] = create_array_from_calendar(calendar, time_info)
+            # date_as_string = pd.to_datetime(unique_date).strftime("%Y-%m-%d")
+            date_as_key = pd.to_datetime(unique_date).date()
+            exceptional_dates[date_as_key] = create_array_from_calendar(calendar, time_info)
 
     return standard_dates_array, exceptional_dates
 
 
 def create_calendar_exceptions(feed):
+    """
+    Formats the calendar dates better as the calendar exceptions we need.
+    It contains stadnard and exceptional fares.
+    """
     new_dates = feed.calendar_dates.loc[feed.calendar_dates["exception_type"] == 1, :]
     n_original_col = len(new_dates.columns)
     new_dates[WEEKDAYS] = 0

@@ -1,3 +1,22 @@
+from app.src.api.utils import api_response
+from app.token_helper import is_token_revoked
+from app.src.api import api
+from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
+from app.views import FeedbacksModelView, FeedbackVisualizationView
+from app.views import ErrorsModelView
+from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+from app.views import IdeasModelView
+from app.views import UsageModelView, AnalyticsView
+from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
+from app.views import AdminModelView, UserModelView, RolesModelView
+from app.models import Errors, Feedbacks
+from app.models import Ideas
+from app.models import FlaskUsage
+from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
+from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
+from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
+from app import routes, errors, models
+from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
 
@@ -8,7 +27,7 @@ import logging
 import colorlog
 import typing
 from logging.handlers import RotatingFileHandler
-from flask_sqlalchemy import Model,SQLAlchemy
+from flask_sqlalchemy import Model, SQLAlchemy
 from flask_migrate import Migrate
 import sqlalchemy as sa
 from sqlalchemy import MetaData
@@ -29,6 +48,7 @@ folder_db = os.path.join(folder, "app", "static", "files")
 folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
 path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_1110.gt")
 path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
+path_graph_waterbus = os.path.join(folder_db, "dequa_ve_waterbus_0711.gt")
 path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 
 #
@@ -58,12 +78,14 @@ file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 
 
-
 app.logger.info("Starting the website...")
 
 # version of the software
+
+
 def getCurrentVersion():
     return app.config.get('VERSION')
+
 
 __version__ = getCurrentVersion()
 app.logger.info(f"Version: {__version__}")
@@ -81,7 +103,6 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 # Graph setup
 #
-from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 
 app.logger.info("Loading the graphs...")
 graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
@@ -107,6 +128,8 @@ app.graphs = {
 # Model setup
 #
 # Crea un modello base per scrivere in modo più leggibile i repr delle classi
+
+
 class BaseModel(Model):
     def __repr__(self) -> str:
         return self._repr(id=self.id)
@@ -128,6 +151,7 @@ class BaseModel(Model):
             return f"<{self.__class__.__name__}({','.join(field_strings)})>"
         return f"<{self.__class__.__name__} {id(self)}>"
 
+
 #
 # Database setup
 #
@@ -141,8 +165,8 @@ naming_convention = {
 }
 
 # create database for data
-db = SQLAlchemy(app,metadata=MetaData(naming_convention=naming_convention),model_class=BaseModel)
-migrate = Migrate(app=app,db=db)
+db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention), model_class=BaseModel)
+migrate = Migrate(app=app, db=db)
 #altre magie per sqlalchemy per sqlite
 with app.app_context():
     if db.engine.url.drivername == 'sqlite':
@@ -154,15 +178,8 @@ with app.app_context():
 # TrackUsage setup
 #
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
-t = TrackUsage(app,[track_datastore])
+t = TrackUsage(app, [track_datastore])
 
-from app import routes, errors, models
-from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
-from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
-from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
-from app.models import FlaskUsage
-from app.models import Ideas
-from app.models import Errors, Feedbacks
 
 #
 # Users setup
@@ -175,14 +192,6 @@ security = Security(app, user_datastore)
 #
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
-from app.views import AdminModelView, UserModelView, RolesModelView
-from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
-from app.views import UsageModelView, AnalyticsView
-from app.views import IdeasModelView
-from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
-from app.views import ErrorsModelView
-from app.views import FeedbacksModelView, FeedbackVisualizationView
-from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
 
 admin.add_view(UserModelView(Users, db.session, category="Users"))
 admin.add_view(RolesModelView(Roles, db.session, category="Users"))
@@ -210,7 +219,6 @@ admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visu
 #
 api_rest = Api(app, prefix='/api')
 
-from app.src.api import api
 
 for function, info in api.AVAILABLE_APIS.items():
     if hasattr(api, function) and "endpoint" in info.keys():
@@ -229,12 +237,13 @@ for function, info in api.AVAILABLE_APIS.items():
 #
 jwt = JWTManager(app)
 
-from app.token_helper import is_token_revoked
-from app.src.api.utils import api_response
 # Define our callback function to check if a token has been revoked or not
+
+
 @jwt.token_in_blacklist_loader
 def check_if_token_revoked(decoded_token):
     return is_token_revoked(decoded_token)
+
 
 @jwt.revoked_token_loader
 def revoked_token_response():
@@ -243,5 +252,6 @@ def revoked_token_response():
 # Dashboard setup
 #
 # dashboard.bind(app)
+
 
 app.logger.info('Website is up')

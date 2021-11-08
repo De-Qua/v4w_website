@@ -1,6 +1,7 @@
 """Useful functions."""
 
 import numpy as np
+import pandas as pd
 from itertools import groupby
 from shapely.geometry import LineString
 from shapely.ops import transform
@@ -43,11 +44,24 @@ def add_waterbus_to_street(graph, path_gtfs):
     # add duration edge property
     duration = graph.new_ep("double")
     graph.ep.duration = duration
+    # add special dates as graph property
+    special_dates = graph.new_gp("python::object")
+    graph.gp.special_dates = special_dates
     # get a copy of the original graph without the transports
     g_orig = gt.GraphView(graph, vfilt=lambda v: not transport[v])
     pos = get_all_coordinates(g_orig)
     # load feed gtfs
     feed = gtfs.load_feed(path_gtfs)
+    unique_special_dates = []
+    special_dates_dict = {}
+    if feed.calendar_dates is not None:
+        unique_special_dates = np.unique(feed.calendar_dates.date.values)
+    for unique_special_date in unique_special_dates:
+        special_date_key = pd.to_datetime(unique_special_date).date()
+        special_dates_dict[special_date_key] = special_date_key.strftime("%Y-%m-%D")
+        graph.edge_properties[special_dates_dict[special_date_key]] = graph.new_ep("vector<int>")
+    graph.gp.special_dates = special_dates_dict
+
     missing_stops = gtfs.check_stops_coordinates(feed, pos)
     if len(missing_stops) > 0:
         logger.warning(f"Some stops are not present in the graph: {missing_stops}")
@@ -114,6 +128,11 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     # graph.ep.timetable[e] = time_info[["service_id", "departure_time"]]
     normal_dates, exception_dates = gtfs.convert_departure_to_array(time_info, feed)
     graph.ep.timetable[e] = normal_dates
+    # old code: {'standard': normal_dates} # | exception_dates  # merge two dictionaries
+    for exception_date_key, values in exception_dates.items():
+        edge_property_name = graph.gp.special_dates[exception_date_key]
+        # the edge property must have a string
+        graph.ep[edge_property_name][e] = values  # array with timetable
     graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
     graph.ep.geometry[e] = LineString()
     return v

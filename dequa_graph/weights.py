@@ -39,7 +39,7 @@ vel_max_mp     (edge)    (type: double)
 """
 
 import numpy as np
-# import datetime
+import datetime as dt
 
 import graph_tool.all as gt
 
@@ -234,3 +234,28 @@ def get_weight_motorboat(graph, speed=5/3.6, start_time=None, type="private", wi
     weight.a[graph.ep['altezza'].a < height] += dimension_multiplier
 
     return weight
+
+
+def get_timetables(graph, date):
+    """
+    Fetches timetable checking for special days.
+    """
+    actual_date = date.date()
+    day_before = actual_date - dt.timedelta(days=1)
+    day_after = actual_date + dt.timedelta(days=1)
+    hour = date.hour
+    timet = []
+    if day_after in graph.gp.special_dates.keys() and hour > 12:
+        # evening - check if tomorrow is special
+        timet = graph.ep[graph.gp.special_dates[day_after]]
+    elif day_before in graph.gp.special_dates.keys() and hour < 12:
+        # morning - check if yday was special
+        timet = graph.ep[graph.gp.special_dates[day_before]]
+    elif actual_date in graph.gp.special_dates.keys():
+        # check if today is special
+        timet = graph.ep[graph.gp.special_dates[actual_date]]
+    else:
+        # otherwise is a standard day
+        timet = graph.ep.timetable
+
+    return timet

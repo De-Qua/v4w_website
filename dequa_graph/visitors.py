@@ -3,7 +3,7 @@ import numpy as np
 import graph_tool.all as gt
 import time
 import ipdb
-from weights import get_weight_time
+from .weights import get_weight_time
 from graph_tool.util import find_vertex
 speed = 5/3.6
 
@@ -12,24 +12,28 @@ TOTAL_SECONDS_IN_WEEK = 24*7*3600
 
 class dequaVisitor(gt.DijkstraVisitor):
 
-    def __init__(self, g, touched_v, touched_e, target, time_from_source, graph_weights, start_time, time_edges):
-        self.g = g
+    # def __init__(self, g, touched_v, touched_e, target, time_from_source, graph_weights, start_time, time_edges):
+    def __init__(self, touched_v, target, time_from_source,
+                 graph_weights, start_time, time_edges,
+                 transport_property, timetable_property):
         self.touched_v = touched_v
-        self.touched_e = touched_e
+        # self.touched_e = touched_e
         self.target = target
         self.weight = graph_weights
         self.time_from_source = time_from_source
         self.time_edges = time_edges
         self.name = np.random.rand()
         self.start_time = start_time
+        self.transport = transport_property
+        self.timetable = timetable_property
 
     def discover_vertex(self, u):
         self.touched_v[u] = True
 
     def examine_edge(self, e):
-        self.touched_e[e] = True
+        # self.touched_e[e] = True
         # andando in pontile, metto il tempo d'attesa
-        if g.vp['transport'][e.target()] and not g.vp['transport'][e.source()]:
+        if self.transport[e.target()] and not self.transport[e.source()]:
             waiting_time = self.calculate_waiting_time(e)
             self.weight[e] = waiting_time
             if self.touched_v[e.target()]:
@@ -54,22 +58,22 @@ class dequaVisitor(gt.DijkstraVisitor):
 
     def calculate_waiting_time(self, e):
         try:
-            if g.ep['timetable'][e].a.size == 0:
+            if self.timetable[e].a.size == 0:
                 print(f"Edge {e} tra {e.source()} e {e.target()}")
                 print("# WARNING: non c'è nulla nell'array! é una corsa che c'è solo nei giorni speciali?")
                 return int(TOTAL_SECONDS_IN_WEEK)
 
             moduled_week_time = (self.time_from_source[e.source()] + self.start_time) % TOTAL_SECONDS_IN_WEEK
-            diff_times = g.ep['timetable'][e].a - moduled_week_time
+            diff_times = self.timetable[e].a - moduled_week_time
             if np.abs(moduled_week_time - (self.time_from_source[e.source()] + self.start_time)) > 100:
-                print(f"siamo alle {datetime.fromtimestamp(moduled_week_time)}, primo battello alle {g.ep['timetable'][e].a[0]}")
+                print(f"siamo alle {datetime.fromtimestamp(moduled_week_time)}, primo battello alle {self.timetable[e].a[0]}")
             waiting_times = diff_times[diff_times > 0]
             if len(waiting_times) > 0:
                 return np.min(waiting_times)
             else:
                 if TOTAL_SECONDS_IN_WEEK - (self.time_from_source[e.source()] + self.start_time) > 0:
                     # print(g.ep['timetable'][e].a[0])
-                    return g.ep['timetable'][e].a[0] + TOTAL_SECONDS_IN_WEEK - (self.time_from_source[e.source()] + self.start_time)
+                    return self.timetable[e].a[0] + TOTAL_SECONDS_IN_WEEK - (self.time_from_source[e.source()] + self.start_time)
                 else:
                     print("\n\n\nè per caso domenica sera??! Sera tardi: pesi negativi, strano\n\n\n")
                     ipdb.set_trace()
@@ -174,17 +178,22 @@ if __name__ == "__main__":
     start_time = datetime.today() + timedelta(minutes=20)
     start_seconds = start_time.weekday() * 24 * 3600 + start_time.hour * 3600 + start_time.minute * 60 + start_time.second
     time_from_source[source] = 0  # start_time
+
+    transport_property = g.vp.transport
+    timetable_property = g.ep.timetable
+
     dist, pred = gt.dijkstra_search(g=g,
                                     weight=weight_time,
                                     source=source,
-                                    visitor=dequaVisitor(g=g,
-                                                         touched_v=touch_v,
-                                                         touched_e=touch_e,
+                                    visitor=dequaVisitor(touched_v=touch_v,
+                                                         # touched_e=touch_e,
                                                          target=target,
                                                          time_from_source=time_from_source,
                                                          graph_weights=weight_time,
                                                          start_time=start_seconds,
-                                                         time_edges=weight_time))
+                                                         time_edges=weight_time,
+                                                         transport_property=transport_property,
+                                                         timetable_property=timetable_property))
 
     v = target
     all_v = []

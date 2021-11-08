@@ -11,6 +11,7 @@ import json
 import time
 import ipdb
 import pdb
+import datetime as dt
 
 # FLASK APP
 from app import app
@@ -160,16 +161,31 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                                   speed=5, avoid_bridges=False,
                                   avoid_tide=False, tide_level=None, boots_height=0,
                                   alternatives=False, avoid_public_transport=True,
+                                  start_time=None,
                                   **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
+    if start_time is None:
+        start_time = dt.datetime.now()
     # get the correct graph
     if avoid_public_transport:
         graph = current_app.graphs['street']
+        use_public_transport = False
+        time_edge_property = None
+        transport_property = None
+        timetable_property = None
     else:
         graph = current_app.graphs['waterbus']
+        use_public_transport = True
+        # TODO
+        # assegniamo le properties qua perche
+        # speed non viene passata dentro calculate_path
+        time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
+        transport_property = graph['graph'].vp.transport
+        timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
+
     # get tide if not present
     if avoid_tide and not tide_level:
         tide_level = get_current_tide_level()
@@ -188,7 +204,12 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             coords_end=end,
             coords_stop=stop,
             weight=weights,
-            all_vertices=graph['all_vertices']
+            all_vertices=graph['all_vertices'],
+            use_public_transport=use_public_transport,
+            start_time=start_time,
+            time_edge_property=time_edge_property,
+            transport_property=transport_property,
+            timetable_property=timetable_property
         )
 
     except dqg_err.NoPathFound:
@@ -286,19 +307,19 @@ def get_suggestions(input, max_num=5):
     #      } for s in suggestions
     # ]
     # resulttype text,
-	# address_street varchar,
-	# address_neigh varchar,
-	# housenumber varchar,
-	# latitude float8,
-	# longitude float8,
-	# poiname varchar,
-	# poicategoryname character varying[],
-	# opening_hours varchar,
-	# wheelchair varchar,
-	# toilets bool,
-	# toilets_wheelchair bool,
-	# wikipedia varchar,
-	# phone varchar
+# address_street varchar,
+# address_neigh varchar,
+# housenumber varchar,
+# latitude float8,
+# longitude float8,
+# poiname varchar,
+# poicategoryname character varying[],
+# opening_hours varchar,
+# wheelchair varchar,
+# toilets bool,
+# toilets_wheelchair bool,
+# wikipedia varchar,
+# phone varchar
     formatted_suggestions = [
         {
             'type': s[0],
@@ -377,7 +398,5 @@ def get_places(input, max_num=20):
     #      'description': p.get_description()
     #      } for p, s in zip(places, score_list)
     # ]
-
-
 
     return formatted_suggestions
