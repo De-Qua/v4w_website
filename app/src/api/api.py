@@ -78,7 +78,7 @@ class getGeneralPath(Resource):
                                    help="No options provided")
         self.optparse = reqparse.RequestParser()
         self.optparse.add_argument('method', type=str, required=False, choices=("walk", "boat", "accessible"), default="walk", location=('options',))
-        self.optparse.add_argument('time', type=inputs.datetime, required=False, location=('options',))
+        self.optparse.add_argument('time', type=inputs.datetime, required=False, default=None, location=('options',))
         self.optparse.add_argument('tideLevel', type=int, required=False, default=0, location=('options',))
         self.optparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE, location=('options',))
         self.optparse.add_argument('alternatives', type=inputs.boolean, default=False, location=('options',))
@@ -159,6 +159,7 @@ class getGeneralPath(Resource):
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
                 avoid_tide=walk["avoidTide"], tide=opt['tideLevel'],
                 avoid_public_transport=walk["avoidPublicTransport"],
+                start_time=opt["time"],
                 motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                 alternatives=opt["alternatives"]
