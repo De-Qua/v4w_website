@@ -66,17 +66,21 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None,
         weights = [weights]
     v_list = []
     e_list = []
+    t_list = []
     last_v = vertex_start
     vertices_stop.append(vertex_end)
     for v in vertices_stop:
         tmp_v_list = []
         tmp_e_list = []
+        tmp_t_list = []
         for weight in weights:
             if use_public_transport:
                 # il nuovo visitor
-                tmp_v_list_weight, tmp_e_list_weight = td_shortest_path(graph, last_v, v, weight, start_time, time_edge_property, transport_property, timetable_property)
+                tmp_v_list_weight, tmp_e_list_weight, tmp_t_list_weight = td_shortest_path(graph, last_v, v, weight, start_time, time_edge_property, transport_property, timetable_property)
             else:
                 tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
+                # times are the weights since it is not time-dependent path
+                tmp_t_list_weight = tmp_e_list_weight
             if not tmp_v_list_weight:
                 logger.warning(f"No path between {last_v} and {v}")
                 raise NoPathFound(last_v, v)
@@ -85,10 +89,12 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None,
             last_v = v
             tmp_v_list.append(tmp_v_list_weight)
             tmp_e_list.append(tmp_e_list_weight)
+            tmp_t_list.append(tmp_t_list_weight)
         v_list.append(tmp_v_list)
         e_list.append(tmp_e_list)
+        t_list.append(tmp_t_list)
 
-    return v_list, e_list
+    return v_list, e_list, t_list
 
 
 def td_shortest_path(graph, source, target, weight, start_time, time_edge_property, transport_property, timetable_property):
@@ -119,16 +125,19 @@ def td_shortest_path(graph, source, target, weight, start_time, time_edge_proper
     v = target
     vlist = [v]
     elist = []
+    tlist = []  # times of each edge
     while v != source:
         p = graph.vertex(pred[v])
         vlist.append(p)
         elist.append(graph.edge(v, p))
+        tlist.append(time_from_source[v]-time_from_source[p])
         v = p
     # reverse list of vertex and edges
     vlist.reverse()
     elist.reverse()
+    tlist.reverse()
 
-    return vlist, elist
+    return vlist, elist, tlist
 
 
 def calculate_path(graph, coords_start, coords_end, coords_stop=None,
@@ -155,8 +164,8 @@ def calculate_path(graph, coords_start, coords_end, coords_stop=None,
         end_v = end_v[0]
     stop_v = find_closest_vertices(coords_stop, all_vertices)
 
-    v_list, e_list = get_path(graph, start_v, end_v, stop_v, weight, use_public_transport, start_time, time_edge_property, transport_property, timetable_property)
-    return v_list, e_list
+    v_list, e_list, t_list = get_path(graph, start_v, end_v, stop_v, weight, use_public_transport, start_time, time_edge_property, transport_property, timetable_property)
+    return v_list, e_list, t_list
 
 
 def get_distance(graph, vertex_start, vertices_end, weight):

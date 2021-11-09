@@ -40,7 +40,7 @@ class dequaVisitor(gt.DijkstraVisitor):
                 self.time_from_source[e.target()] = np.minimum(self.time_from_source[e.source()] + waiting_time, self.time_from_source[e.target()])
             else:
                 self.time_from_source[e.target()] = self.time_from_source[e.source()] + waiting_time
-            print(f"visitor now between {e.source()} and {e.target()} with time {self.time_from_source[e.target()]:.3f}, avendo appena aggiunto {waiting_time}")
+            #print(f"visitor now between {e.source()} and {e.target()} with time {self.time_from_source[e.target()]:.3f}, avendo appena aggiunto {waiting_time}")
         else:
             if self.touched_v[e.target()]:
                 self.time_from_source[e.target()] = np.minimum(self.time_from_source[e.source()] + self.time_edges[e], self.time_from_source[e.target()])
@@ -59,8 +59,8 @@ class dequaVisitor(gt.DijkstraVisitor):
     def calculate_waiting_time(self, e):
         try:
             if self.timetable[e].a.size == 0:
-                print(f"Edge {e} tra {e.source()} e {e.target()}")
-                print("# WARNING: non c'è nulla nell'array! é una corsa che c'è solo nei giorni speciali?")
+                #print(f"Edge {e} tra {e.source()} e {e.target()}")
+                #print("# WARNING: non c'è nulla nell'array! é una corsa che c'è solo nei giorni speciali?")
                 return int(TOTAL_SECONDS_IN_WEEK)
 
             moduled_week_time = (self.time_from_source[e.source()] + self.start_time) % TOTAL_SECONDS_IN_WEEK

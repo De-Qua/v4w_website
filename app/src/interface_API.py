@@ -82,7 +82,7 @@ def check_format_coordinates(*args):
         return all_coordinates
 
 
-def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
+def find_shortest_path_from_coordinates(start, end, mode='walk', start_time=None, **params):
     """
     Search for the shortest path from coordinates A to B.
     If A or B are not coordinates, gives back a warning and does not calculate anything.
@@ -98,6 +98,9 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     #     return {'code':INPUT_SHOULD_BE_COORDINATES, 'data':None}
 
     # check how the street should be calculated
+    if start_time is None:
+        start_time = dt.datetime.now()
+
     if mode == 'walk':
         fn_shortest_path = gt_shortest_path_walk_wrapper
         fn_info_path = format_path_walk_data
@@ -110,9 +113,9 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
 
     # get the edges and nodes
     # try:
-    v_list, e_list = fn_shortest_path(start, end, **params)
+    v_list, e_list, t_list = fn_shortest_path(start, end, start_time=start_time, **params)
     # and format for js
-    path_dict = fn_info_path(v_list, e_list, **params)
+    path_dict = fn_info_path(v_list, e_list, t_list, start_time=start_time, **params)
     # except errors.NoPathFound:
     #     return {'code': NO_PATH_FOUND, 'data': None}
     # except NotImplementedError:
@@ -127,6 +130,7 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
                                   motor=False, boat_speed=5,
                                   boat_width=0, boat_height=0,
                                   alternatives=False, avoid_public_transport=True,
+                                  start_time=None,
                                   **kwargs):
     """
     WALK PATH NOT IMPLEMENTED YET
@@ -144,7 +148,7 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
         weights = [weight]
     # get the path
     try:
-        v_list, e_list = dqg_topo.calculate_path(
+        v_list, e_list, t_list = dqg_topo.calculate_path(
             graph=graph['graph'],
             coords_start=start,
             coords_end=end,
@@ -154,7 +158,7 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
         )
     except dqg_err.NoPathFound:
         raise errors.NoPathFound(start, end)
-    return v_list, e_list
+    return v_list, e_list, t_list
 
 
 def gt_shortest_path_walk_wrapper(start, end, stop=None,
@@ -167,8 +171,6 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
-    if start_time is None:
-        start_time = dt.datetime.now()
     # get the correct graph
     if avoid_public_transport:
         graph = current_app.graphs['street']
@@ -198,7 +200,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
         weights = [weight]
     # get the path
     try:
-        v_list, e_list = dqg_topo.calculate_path(
+        v_list, e_list, t_list = dqg_topo.calculate_path(
             graph=graph['graph'],
             coords_start=start,
             coords_end=end,
@@ -215,7 +217,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     except dqg_err.NoPathFound:
         raise errors.NoPathFound(start, end)
 
-    return v_list, e_list
+    return v_list, e_list, t_list
     # # retrieve info of the path
     # info = lgt.retrieve_info_from_path_streets(
     #             graph=graph['graph'],
@@ -225,7 +227,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     # return info
 
 
-def format_path_walk_data(v_list, e_list, avoid_public_transport=False, **kwargs):
+def format_path_walk_data(v_list, e_list, t_list, avoid_public_transport=False, start_time=None, **kwargs):
     """
     Function to format the data of a path
     """
@@ -234,12 +236,13 @@ def format_path_walk_data(v_list, e_list, avoid_public_transport=False, **kwargs
     else:
         graph = current_app.graphs['waterbus']['graph']
     info = dqg_form.retrieve_info_from_path_streets(
-        graph=graph, paths_vertices=v_list, paths_edges=e_list, **kwargs)
+        graph=graph, paths_vertices=v_list, paths_edges=e_list,
+        times_edges=t_list, start_time=start_time, **kwargs)
 
     return info
 
 
-def format_path_boat_data(v_list, e_list, avoid_public_transport=False, **kwargs):
+def format_path_boat_data(v_list, e_list, t_list, avoid_public_transport=False, start_time=None, **kwargs):
     """
     Function to format the data of a path
     """
