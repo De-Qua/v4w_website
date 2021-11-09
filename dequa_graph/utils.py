@@ -29,9 +29,12 @@ def load_graphs(*paths_gt_graphs):
 def add_waterbus_to_street(graph, path_gtfs):
     """Add gtfs vertices and edges to graph"""
     # ipdb.set_trace()
-    # add transport boolean vertex property
-    transport = graph.new_vp("bool")
-    graph.vp.transport = transport
+    # add transport stop boolean vertex property
+    transport_stop = graph.new_vp("bool")
+    graph.vp.transport_stop = transport_stop
+    # add transport boolean edge property
+    transport = graph.new_ep("bool")
+    graph.ep.transport = transport
     # add info StopI
     stop_info = graph.new_vp("python::object")
     graph.vp.stop_info = stop_info
@@ -47,19 +50,25 @@ def add_waterbus_to_street(graph, path_gtfs):
     # add special dates as graph property
     special_dates = graph.new_gp("python::object")
     graph.gp.special_dates = special_dates
+    # get components
+    comp, hist = gt.label_components(graph)
+    comp.a += 1
+    graph.vp.component_street = comp
     # get a copy of the original graph without the transports
-    g_orig = gt.GraphView(graph, vfilt=lambda v: not transport[v])
+    g_orig = gt.GraphView(graph, vfilt=lambda v: not transport_stop[v])
     pos = get_all_coordinates(g_orig)
     # load feed gtfs
     feed = gtfs.load_feed(path_gtfs)
+    # create edge properties for special dates
     unique_special_dates = []
     special_dates_dict = {}
     if feed.calendar_dates is not None:
         unique_special_dates = np.unique(feed.calendar_dates.date.values)
     for unique_special_date in unique_special_dates:
         special_date_key = pd.to_datetime(unique_special_date).date()
-        special_dates_dict[special_date_key] = special_date_key.strftime("%Y-%m-%D")
+        special_dates_dict[special_date_key] = special_date_key.strftime("%Y-%m-%d")
         graph.edge_properties[special_dates_dict[special_date_key]] = graph.new_ep("vector<int>")
+    # add all special dates in the graph property
     graph.gp.special_dates = special_dates_dict
 
     missing_stops = gtfs.check_stops_coordinates(feed, pos)
@@ -87,8 +96,9 @@ def add_waterbus_to_street(graph, path_gtfs):
             new_v = add_route_vertex_and_edge(graph, g_orig, pos, feed, row["end_stop_id"], row)
             edge = graph.add_edge(last_v, new_v)
             # ipdb.set_trace()
+            graph.ep.transport[edge] = True
             graph.ep.duration[edge] = int(row["duration"].total_seconds())
-            graph.ep.route[edge] = row
+            graph.ep.route[edge] = row[["route_id", "route_short_name", "route_color", "route_text_color"]].to_dict()
             graph.ep.geometry[edge] = transform(lambda x, y: (y, x), row["geometry"])
             last_v = new_v
     comp, hist = gt.label_components(graph)
@@ -118,7 +128,7 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
     platform = graph_orig.vertex(get_id_from_coordinates(pos, start_stop_coordinate))
     # add a vertex for the route-specific platform
     v = graph.add_vertex()
-    graph.vp.transport[v] = True
+    graph.vp.transport_stop[v] = True
     graph.vp.latlon[v] = start_stop_coordinate
     graph.vp.stop_info[v] = {"id": stop_id, "name": feed.stops[feed.stops.stop_id == stop_id]["stop_name"].iloc[0]}
     # add edge between platform and route
@@ -133,7 +143,7 @@ def add_route_vertex_and_edge(graph, graph_orig, pos, feed, stop_id, row):
         edge_property_name = graph.gp.special_dates[exception_date_key]
         # the edge property must have a string
         graph.ep[edge_property_name][e] = values  # array with timetable
-    graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]]
+    graph.ep.route[e] = row[["route_id", "route_short_name", "route_color", "route_text_color"]].to_dict()
     graph.ep.geometry[e] = LineString()
     return v
 

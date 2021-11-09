@@ -1,22 +1,3 @@
-from app.src.api.utils import api_response
-from app.token_helper import is_token_revoked
-from app.src.api import api
-from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
-from app.views import FeedbacksModelView, FeedbackVisualizationView
-from app.views import ErrorsModelView
-from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
-from app.views import IdeasModelView
-from app.views import UsageModelView, AnalyticsView
-from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
-from app.views import AdminModelView, UserModelView, RolesModelView
-from app.models import Errors, Feedbacks
-from app.models import Ideas
-from app.models import FlaskUsage
-from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
-from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
-from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
-from app import routes, errors, models
-from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
 
@@ -104,6 +85,8 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 # Graph setup
 #
+from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
+
 if os.path.exists(path_graph_street_waterbus) and os.path.exists(path_graph_waterbus):
     app.logger.info("Loading the graphs...")
     graph_street_only, graph_water, graph_stret_waterbus = load_graphs(path_graph_street_waterbus, path_graph_water, path_graph_waterbus)
@@ -116,7 +99,7 @@ else:
 app.graphs = {
     'street': {
         'graph': graph_street_only,
-        'all_vertices': get_all_coordinates(graph_street),
+        'all_vertices': get_all_coordinates(graph_street_only),
     },
     'water': {
         'graph': graph_water,
@@ -184,6 +167,13 @@ with app.app_context():
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app, [track_datastore])
 
+from app import routes, errors, models
+from app.models import Errors, Feedbacks
+from app.models import Ideas
+from app.models import FlaskUsage
+from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
+from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
+from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
 
 #
 # Users setup
@@ -194,6 +184,15 @@ security = Security(app, user_datastore)
 #
 # Flask-Admin setup
 #
+from app.views import ApiErrorLanguageModelView, ApiErrorGroupModelView, ApiErrorCodeModelView, ApiErrorTranslationModelView
+from app.views import FeedbacksModelView, FeedbackVisualizationView
+from app.views import ErrorsModelView
+from app.views import StreetModelView, AreaModelView, NeighborhoodModelView, PoiModelView
+from app.views import IdeasModelView
+from app.views import UsageModelView, AnalyticsView
+from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
+from app.views import AdminModelView, UserModelView, RolesModelView
+
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
 
@@ -221,6 +220,8 @@ admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visu
 #
 # Flask Restful API setup
 #
+from app.src.api import api
+
 api_rest = Api(app, prefix='/api')
 
 
@@ -239,10 +240,12 @@ for function, info in api.AVAILABLE_APIS.items():
 #
 # Flask JWT extended
 #
+from app.src.api.utils import api_response
+from app.token_helper import is_token_revoked
+
 jwt = JWTManager(app)
 
 # Define our callback function to check if a token has been revoked or not
-
 
 @jwt.token_in_blacklist_loader
 def check_if_token_revoked(decoded_token):

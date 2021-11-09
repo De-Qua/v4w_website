@@ -13,7 +13,7 @@ import ipdb
 
 URL_ACTV = "https://actv.avmspa.it/sites/default/files/attachments/opendata/navigazione/"
 LAST_FILE = "actv_nav.zip"
-OUTPUT_FOLDER = Path(os.getcwd()) / "app/static/gtfs"
+OUTPUT_FOLDER = Path(os.getcwd()) / "app" / "static" / "gtfs"
 WEEKDAYS = np.array(["monday", "tuesday", "wednesday",
                      "thursday", "friday", "saturday", "sunday"])
 

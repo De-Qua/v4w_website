@@ -4,7 +4,7 @@ import graph_tool.all as gt
 import time
 import ipdb
 from .weights import get_weight_time
-from graph_tool.util import find_vertex
+
 speed = 5/3.6
 
 TOTAL_SECONDS_IN_WEEK = 24*7*3600
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     start_seconds = start_time.weekday() * 24 * 3600 + start_time.hour * 3600 + start_time.minute * 60 + start_time.second
     time_from_source[source] = 0  # start_time
 
-    transport_property = g.vp.transport
+    transport_property = g.vp.transport_stop
     timetable_property = g.ep.timetable
 
     dist, pred = gt.dijkstra_search(g=g,
@@ -208,11 +208,11 @@ if __name__ == "__main__":
 
     print(f"Partenza da {source}: {start_time}")
     for v in all_v:
-        if g.vp.transport[v]:
+        if g.vp.transport_stop[v]:
             name = g.vp.stop_info[v]["name"]
             elapsed_time = timedelta(seconds=time_from_source[v])
             print(f"Dopo {elapsed_time} arriviamo a {name}")
-            if not g.vp.transport[pred[v]]:
+            if not g.vp.transport_stop[pred[v]]:
                 waiting_time = time_from_source[v]-time_from_source[pred[v]]
                 waiting_time = timedelta(seconds=waiting_time)
                 print(f"\tAbbiamo aspettato {waiting_time}")
@@ -221,7 +221,7 @@ if __name__ == "__main__":
                 print("\tRestiamo in battello")
             linea = g.ep.route[g.edge(pred[v], v)].route_short_name
             print(f"\tBattello {linea} delle {start_time+elapsed_time}")
-        elif g.vp.transport[pred[v]]:
+        elif g.vp.transport_stop[pred[v]]:
             print(f"Scendiamo dal battello")
     tot_elapsed_time = timedelta(seconds=time_from_source[target])
     print(f"Arrivo a {target}: {start_time+tot_elapsed_time}")

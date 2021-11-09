@@ -112,7 +112,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', **params):
     # try:
     v_list, e_list = fn_shortest_path(start, end, **params)
     # and format for js
-    path_dict = fn_info_path(v_list, e_list, params)
+    path_dict = fn_info_path(v_list, e_list, **params)
     # except errors.NoPathFound:
     #     return {'code': NO_PATH_FOUND, 'data': None}
     # except NotImplementedError:
@@ -183,7 +183,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
         # assegniamo le properties qua perche
         # speed non viene passata dentro calculate_path
         time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
-        transport_property = graph['graph'].vp.transport
+        transport_property = graph['graph'].vp.transport_stop
         timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
 
     # get tide if not present
@@ -225,22 +225,24 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     # return info
 
 
-def format_path_walk_data(v_list, e_list, mode, **kwargs):
+def format_path_walk_data(v_list, e_list, avoid_public_transport=False, **kwargs):
     """
     Function to format the data of a path
     """
-
+    if avoid_public_transport:
+        graph = current_app.graphs['street']['graph']
+    else:
+        graph = current_app.graphs['waterbus']['graph']
     info = dqg_form.retrieve_info_from_path_streets(
-        graph=current_app.graphs['street']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+        graph=graph, paths_vertices=v_list, paths_edges=e_list, **kwargs)
 
     return info
 
 
-def format_path_boat_data(v_list, e_list, mode, **kwargs):
+def format_path_boat_data(v_list, e_list, avoid_public_transport=False, **kwargs):
     """
     Function to format the data of a path
     """
-
     info = dqg_form.retrieve_info_from_path_water(
         graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
     return info

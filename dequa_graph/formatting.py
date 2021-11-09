@@ -4,7 +4,7 @@ from shapely.geometry import mapping
 from .utils import adjacent_one
 
 
-def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5, **kwargs):
+def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5/3.6, **kwargs):
     """Retrieve useful informations from the output of a path of streets (list
     of list of vertices and edges). The length of the two lists corresponds to
     the number of paths, i.e. if there are no stops betweem the start and the
@@ -35,15 +35,35 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
             distances = []
             times = []
             is_bridge = []
+            is_transport = []
             geojsons = []
+            routes = []
+            stops = []
 
             for e in edges:
+                if graph.ep['route'][e]:
+                    route = graph.ep["route"][e]["route_short_name"]
+                else:
+                    route = None
+                v = e.source()
+                if graph.vp.stop_info[v]:
+                    stop = graph.vp.stop_info[v]
+                else:
+                    stop = None
 
                 edge_info = {
                     # Calculate distance
                     'distance': graph.ep['length'][e],
                     # Calculate time
                     'time': graph.ep['length'][e]/speed,
+                    # Check if it is a transport
+                    'transport': graph.ep['transport'][e],
+                    # Duration
+                    'duration': graph.ep['duration'][e],
+                    # Route
+                    'route': route,
+                    # Stop
+                    'stop': stop,
                     # Calculate number of bridges
                     'bridge': graph.ep['ponte'][e],
                     # append maximum tide level
@@ -59,8 +79,9 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
                 }
                 # correct for NaN values
                 for k, v in edge_info.items():
-                    if np.isnan(v):
-                        edge_info[k] = None
+                    if k not in ["route", "stop"]:
+                        if np.isnan(v):
+                            edge_info[k] = None
                 # append geometries
                 geojson = {
                     "type": "Feature",
@@ -73,16 +94,26 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, speed=5,
                 distances.append(edge_info['distance'])
                 times.append(edge_info['time'])
                 is_bridge.append(edge_info['bridge'])
+                is_transport.append(edge_info["transport"])
+                if route:
+                    routes.append(route)
+                if stop:
+                    stops.append(stop)
 
             distance = sum(distances)
             time = sum(times)
             num_bridges = adjacent_one(is_bridge)
+            num_transports = adjacent_one(is_transport)
+            routes = list(set(routes))
 
             info.append({
                 'distance': distance,
                 'time': time,
                 'num_bridges': num_bridges,
                 'num_edges': len(edges),
+                'num_transports': num_transports,
+                'routes': routes,
+                'stops': stops,
                 'edges': geojsons
             })
         all_info.append(info)
