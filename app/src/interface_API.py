@@ -325,9 +325,11 @@ def get_suggestions(input, max_num=5):
 # toilets_wheelchair bool,
 # wikipedia varchar,
 # phone varchar
+
     formatted_suggestions = [
         {
             'type': s[0],
+            'title': f"{s[7]}" if s[0] == "poi" else f"{s[5]} {s[6]}",
             'latitude': s[1],
             'longitude': s[2],
             'shape': s[3],
