@@ -443,7 +443,8 @@ def find_address_in_db(input_string):
                             ## this is the description of the object found,
                             ## that could be address, street, poi, whatever
                             ## transformed in a json-like dict
-                            f"{address_type}":address.get_description()
+                            f"{address_type}":address.get_description(),
+                            "info":address.get_description()
                             })
             else:
                 app.logger.debug("in this one there was nothing")
