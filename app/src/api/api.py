@@ -78,8 +78,6 @@ AVAILABLE_APIS = {
 # ██      ██   ██    ██    ██   ██
 
 
-
-
 class getGeneralPath(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -408,7 +406,6 @@ class getPlaces(Resource):
             return api_response(code=RETURNED_EXCEPTION, lang=lang)
 
         return api_response(data=places)
-# OLD API
 
 
 class getAddress(Resource):
@@ -458,6 +455,14 @@ class getAddress(Resource):
             data_candidate[_key] = r[_key]
         data.append(data_candidate)
         return api_response(data=data)
+
+
+#
+#  ██████  ██      ██████       █████  ██████  ██
+# ██    ██ ██      ██   ██     ██   ██ ██   ██ ██
+# ██    ██ ██      ██   ██     ███████ ██████  ██
+# ██    ██ ██      ██   ██     ██   ██ ██      ██
+#  ██████  ███████ ██████      ██   ██ ██      ██
 
 
 class getPath(Resource):

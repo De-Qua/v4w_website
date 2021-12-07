@@ -290,61 +290,68 @@ def get_current_tide_level():
     return tide_level
 
 
+def format_response_address(**kwargs):
+    formatted_address = {
+        'type': kwargs.get("type", "undefined"),
+        'similarity': kwargs.get("similarity", 0),
+        'title': kwargs.get("title", ""),
+        'latitude': kwargs.get("latitude", 0),
+        'longitude': kwargs.get("longitude", 0),
+        'shape': kwargs.get("longitude", None),
+        # ADDRESS
+        'address_street': kwargs.get("address_street", ""),
+        'address_neigh': kwargs.get("address_neigh", ""),
+        'housenumber': kwargs.get("housenumber", ""),
+        # POI
+        'poiname': kwargs.get("poiname", ""),
+        'poicategoryname': kwargs.get("poicategoryname", ""),
+        'opening_hours': kwargs.get("opening_hours", ""),
+        'wheelchair': kwargs.get("wheelchair", ""),
+        'toilets': kwargs.get("toilets", False),
+        'toilets_wheelchair': kwargs.get("toilets_wheelchair", False),
+        'wikipedia': kwargs.get("wikipedia", ""),
+        'phone': kwargs.get("phone", ""),
+        # STREET
+        'street_name': kwargs.get("street_name", ""),
+        'name_alt': kwargs.get("name_alt", ""),
+        'name_spe': kwargs.get("name_spe", ""),
+        'name_den':  kwargs.get("name_den", ""),
+        # NEIGHBORHOOD
+        'neighborhood_name': kwargs.get("neighborhood_name", ""),
+        'zipcode': kwargs.get("zipcode", 30100)
+    }
+    return formatted_address
+
+
 def get_suggestions(input, max_num=5):
     """
     Retrieve from the databases addresses that have a partial match with the input string.
     """
     # clean the string
     clean_string = ls.correct_name(input)
-    # divide number and text
-    #text, number, _ = ls.dividiEtImpera(clean_string)
-    # get the suggestions
-    # suggestions = ls.suggest_address_from_db(
-    #    text=text, number=number, max_n=max_num)
+
     suggestions = ls.suggest_sql(clean_string, max_num)
-    # formatted_suggestions = [
-    #     {'address': f"{s.neighborhood.name} {s.housenumber}",
-    #      'longitude': s.longitude,
-    #      'latitude': s.latitude,
-    #      'neighborhood': s.neighborhood.name,
-    #      'street': s.street.name,
-    #      'housenumber': s.housenumber
-    #      } for s in suggestions
-    # ]
-    # resulttype text,
-# address_street varchar,
-# address_neigh varchar,
-# housenumber varchar,
-# latitude float8,
-# longitude float8,
-# poiname varchar,
-# poicategoryname character varying[],
-# opening_hours varchar,
-# wheelchair varchar,
-# toilets bool,
-# toilets_wheelchair bool,
-# wikipedia varchar,
-# phone varchar
 
     formatted_suggestions = [
-        {
-            'type': s[0],
-            'title': f"{s[7]}" if s[0] == "poi" else f"{s[5]} {s[6]}",
-            'latitude': s[1],
-            'longitude': s[2],
-            'shape': s[3],
-            'address_street': s[4],
-            'address_neigh': s[5],
-            'housenumber': s[6],
-            'poiname': s[7],
-            'poicategoryname': s[8],
-            'opening_hours': s[9],
-            'wheelchair': s[10],
-            'toilets': s[11],
-            'toilets_wheelchair': s[12],
-            'wikipedia': s[13],
-            'phone': s[14]
-        } for s in suggestions
+        ## use method to be sure
+        format_response_address(
+            type=s[0],
+            title=f"{s[7]}" if s[0] == "poi" else f"{s[5]} {s[6]}",
+            latitude=s[1],
+            longitude=s[2],
+            shape=s[3],
+            address_street=s[4],
+            address_neigh=s[5],
+            housenumber=s[6],
+            poiname=s[7],
+            poicategoryname=s[8],
+            opening_hours=s[9],
+            wheelchair=s[10],
+            toilets=s[11],
+            toilets_wheelchair=s[12],
+            wikipedia=s[13],
+            phone=s[14]
+        ) for s in suggestions
     ]
     return formatted_suggestions
 
@@ -361,34 +368,34 @@ def get_places(input, max_num=20):
 
     ## NEW FORMAT
     formatted_suggestions = [
-            {
-                'type': result[0],
-                'sim': result[1],
-                'latitude': result[2],
-                'longitude': result[3],
-                'shape': result[4],
+            format_response_address(
+                type=result[0],
+                similarity=result[1],
+                latitude=result[2],
+                longitude=result[3],
+                shape=result[4],
                 # ADDRESS
-                'address_street': result[5],
-                'address_neigh': result[6],
-                'housenumber': result[7],
+                address_street=result[5],
+                address_neigh=result[6],
+                housenumber=result[7],
                 # POI
-                'poiname': result[8],
-                'poicategoryname': result[9],
-                'opening_hours': result[10],
-                'wheelchair': result[11],
-                'toilets': result[12],
-                'toilets_wheelchair': result[13],
-                'wikipedia': result[14],
-                'phone': result[15],
+                poiname=result[8],
+                poicategoryname=result[9],
+                opening_hours=result[10],
+                wheelchair=result[11],
+                toilets=result[12],
+                toilets_wheelchair=result[13],
+                wikipedia=result[14],
+                phone=result[15],
                 # STREET
-                'street_name': result[16],
-                'name_alt': result[17],
-                'name_spe': result[18],
-                'name_den': result[19],
+                street_name=result[16],
+                name_alt=result[17],
+                name_spe=result[18],
+                name_den=result[19],
                 # NEIGHBORHOOD
-                'neighborhood_name': result[20],
-                'zipcode': result[21]
-            }
+                neighborhood_name=result[20],
+                zipcode=result[21]
+            )
         for result in result_list
     ]
 
