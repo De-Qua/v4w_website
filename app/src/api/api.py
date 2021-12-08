@@ -385,7 +385,7 @@ class getPlaces(Resource):
                                    help="No name provided")
         self.reqparse.add_argument('max_num', type=int, default=10)
         self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
-        super(getSuggestions, self).__init__()
+        super(getPlaces, self).__init__()
 
     @permission_required
     @update_api_counter
