@@ -370,6 +370,7 @@ def get_places(input, max_num=20):
     formatted_suggestions = [
             format_response_address(
                 type=result[0],
+                title=f"{result[8]}" if result[0] == "poi" else f"{result[6]} {result[7]}",
                 similarity=result[1],
                 latitude=result[2],
                 longitude=result[3],
