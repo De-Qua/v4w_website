@@ -67,13 +67,17 @@ def format_path_steps(**kwargs):
         "distance": kwargs.get("distance", 0),
         "duration": kwargs.get("time", 0),
         # Bridges
-        "num_bridges": kwargs.get("num_bridges", 0),
+        "walk": {
+            "num_bridges": kwargs.get("num_bridges", 0)
+        } if kwargs["type"] == "walk" else None,
         # Ferry
-        "route_color": kwargs.get("route_color", "unknown"),
-        "route_text_color": kwargs.get("route_text_color", "unknown"),
-        "route_name": kwargs.get("route_name", "unknown"),
-        "route_short_name": kwargs.get("route_short_name", "unknown"),
-        "route_stops": kwargs.get("route_stops", [])
+        "ferry": {
+            "route_color": kwargs.get("route_color", None),
+            "route_text_color": kwargs.get("route_text_color", None),
+            "route_name": kwargs.get("route_name", None),
+            "route_short_name": kwargs.get("route_short_name", None),
+            "route_stops": kwargs.get("route_stops", None)
+        } if kwargs["type"] == "ferry" else None
     }
     return step
 
