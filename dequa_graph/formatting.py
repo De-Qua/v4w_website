@@ -170,20 +170,21 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 #time_at_edge += timedelta(seconds=time)
 
                 edge_info = {
-                    # Calculate distance
-                    'distance': graph.ep['length'][e],
-                    # Get hour at the edge
-                    'clock_time': time_at_edge.strftime("%H:%M:%S"),
-                    # Check if it is a transport
-                    'transport': graph.ep['transport'][e],
-                    # Duration (fixed for trasnport, calculated for walk/boat)
-                    'duration': duration,  # graph.ep['duration'][e],
+                    # # Calculate distance
+                    # 'distance': graph.ep['length'][e],
+                    # # Get hour at the edge
+                    # 'clock_time': time_at_edge.strftime("%H:%M:%S"),
+                    # # Check if it is a transport
+                    # 'transport': graph.ep['transport'][e],
+                    # # Duration (fixed for trasnport, calculated for walk/boat)
+                    # 'duration': duration,  # graph.ep['duration'][e],
                     # Route
-                    'route': route,
+                    # 'route': route,
+                    'route_color': graph.ep["route"][e]["route_color"],
                     # Stop
-                    'stop': stop,
-                    # Calculate number of bridges
-                    'bridge': graph.ep['ponte'][e],
+                    # 'stop': stop,
+                    # # Calculate number of bridges
+                    # 'bridge': graph.ep['ponte'][e],
                     # append maximum tide level
                     'max_tide': graph.ep['max_tide'][e],
                     # append accessibility
@@ -192,12 +193,13 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                     'walkway_zps': graph.ep['pas_cm_zps'][e],
                     # append walkways height
                     'walkway_cm': graph.ep['pas_height'][e],
-                    # append street id
-                    'street_id': graph.ep['street_id'][e]
+                    # # append street id
+                    # 'street_id': graph.ep['street_id'][e]
                 }
                 # correct for NaN values
                 for k, v in edge_info.items():
-                    if k not in ["route", "stop", "clock_time"]:
+                    # if k not in ["route", "stop", "clock_time"]:
+                    if k not in ["route_color"]:
                         if np.isnan(v):
                             edge_info[k] = None
                 # append geometries
