@@ -64,8 +64,8 @@ def format_path_steps(**kwargs):
         "order": kwargs.get("order", -1),
         "start_time": kwargs.get("start_time", ""),
         "end_time": kwargs.get("end_time", ""),
-        "distance": kwargs.get("distances", 0),
-        "time": kwargs.get("time", 0),
+        "distance": kwargs.get("distance", 0),
+        "duration": kwargs.get("time", 0),
         # Bridges
         "num_bridges": kwargs.get("num_bridges", 0),
         # Ferry
