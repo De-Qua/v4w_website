@@ -126,18 +126,20 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 "distance": 0,
                 "duration": 0,
                 "num_bridges": 0,
-                'start_time': start_time.strftime("%H:%M:%S"),
+                'start_time': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
             # stops = []
             time_at_edge = start_time
             # ipdb.set_trace()
 
             for e, e_time in zip(edges, edge_times):
+                distance = graph.ep["length"][e]
+
                 if graph.ep["transport"][e] == 1:
                     duration = graph.ep['duration'][e]
                     time_at_edge += timedelta(seconds=duration)
                     route = graph.ep["route"][e]["route_short_name"]
-                    stop = graph.vp.stop_info[e.source()]
+                    stop = {"name": graph.vp.stop_info[e.source()]["name"]}
                     stop['clock_time'] = time_at_edge.strftime("%H:%M:%S")
                     # routes[route] exists because we passed through ferry stop
                     ferry_routes[route]["stops"].append(stop)
@@ -150,8 +152,8 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                         route = graph.ep["route"][e]["route_short_name"]
                         # add a list with the route key
                         if route not in ferry_routes.keys():
-                            first_stop = graph.vp.stop_info[e.source()]
-                            first_stop['clock_time'] = time_at_edge.strftime("%H:%M:%S")
+                            first_stop = {"name": graph.vp.stop_info[e.source()]["name"]}
+                            first_stop['clock_time'] = time_at_edge.strftime("%Y-%m-%dT%H:%M:%S")
                             ferry_routes[route] = {
                                 "text_color": graph.ep["route"][e]["route_text_color"],
                                 "route_color": graph.ep["route"][e]["route_color"],
@@ -180,7 +182,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                     # 'duration': duration,  # graph.ep['duration'][e],
                     # Route
                     # 'route': route,
-                    'route_color': graph.ep["route"][e]["route_color"],
+                    'route_color': graph.ep["route"][e]["route_color"] if graph.ep["route"][e] else None,
                     # Stop
                     # 'stop': stop,
                     # # Calculate number of bridges
@@ -211,23 +213,23 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 geojsons.append(geojson)
 
                 # update distance, time and bridges
-                distances.append(edge_info['distance'])
-                durations.append(edge_info['duration'])
-                is_bridge.append(edge_info['bridge'])
-                is_transport.append(edge_info["transport"])
+                distances.append(distance)
+                durations.append(duration)
+                is_bridge.append(graph.ep['ponte'][e])
+                is_transport.append(graph.ep['transport'][e])
 
                 if graph.ep["transport"][e] == 0 and current_step['type'] == 'walk':
                     # update values
-                    current_step['distance'] += graph.ep['length'][e]
+                    current_step['distance'] += distance
                     current_step['duration'] += duration
                     current_step['num_bridges'] += int(graph.ep['ponte'][e])
                 elif graph.ep["transport"][e] == 1 and current_step['type'] == 'ferry':
                     # update step values
-                    current_step['distance'] += graph.ep['length'][e]
+                    current_step['distance'] += distance
                     current_step['duration'] += duration
                 elif graph.ep["transport"][e] == 1 and current_step['type'] == 'walk':
                     # close walking and start transportation step
-                    current_step['end_time'] = time_at_edge.strftime("%H:%M:%S")
+                    current_step['end_time'] = time_at_edge.strftime("%Y-%m-%dT%H:%M:%S")
                     # new step
                     last_order = current_step['order']
                     path_steps.append(format_path_steps(**current_step))
@@ -237,7 +239,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                         "distance": 0,
                         "duration": 0,
                         "num_bridges": 0,
-                        "start_time": time_at_edge.strftime("%H:%M:%S"),
+                        "start_time": time_at_edge.strftime("%Y-%m-%dT%H:%M:%S"),
                         # Ferry
                         "route_text_color": graph.ep["route"][e]["route_text_color"],
                         "route_color": graph.ep["route"][e]["route_color"],
@@ -248,7 +250,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 elif graph.ep["transport"][e] == 0 and current_step['type'] == 'ferry':
                     # close transportation step and start walking step
                     current_step["route_stops"] = ferry_routes[current_step["route_short_name"]]["stops"]
-                    current_step['end_time'] = time_at_edge.strftime("%H:%M:%S")
+                    current_step['end_time'] = time_at_edge.strftime("%Y-%m-%dT%H:%M:%S")
                     last_order = current_step['order']
                     path_steps.append(format_path_steps(**current_step))
                     # new one
@@ -258,13 +260,13 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                         "distance": 0,
                         "duration": 0,
                         "num_bridges": 0,
-                        'start_time': time_at_edge.strftime("%H:%M:%S"),
+                        'start_time': time_at_edge.strftime("%Y-%m-%dT%H:%M:%S"),
                     }
 
             # Add last step
             if current_step["type"] == "ferry":
                 current_step["route_stops"] = ferry_routes[current_step["route_short_name"]]["stops"]
-            current_step['end_time'] = time_at_edge.strftime("%H:%M:%S")
+            current_step['end_time'] = time_at_edge.strftime("%Y-%m-%dT%H:%M:%S")
 
             path_steps.append(format_path_steps(**current_step))
             tot_distance = sum(distances)
@@ -272,8 +274,8 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
             num_bridges = adjacent_one(is_bridge)
             num_transports = adjacent_one(is_transport)
             info.append({
-                'start_time': start_time.strftime("%d-%m-%Y %H:%M:%S"),
-                'end_time': time_at_edge.strftime("%d-%m-%Y %H:%M:%S"),
+                'start_time': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                'end_time': time_at_edge.strftime("%Y-%m-%dT%H:%M:%S"),
                 'distance': tot_distance,
                 'duration': tot_duration,
                 'num_bridges': num_bridges,
