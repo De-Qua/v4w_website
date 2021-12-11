@@ -139,6 +139,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 distance = graph.ep["length"][e]
                 # case transport
                 if graph.ep["transport"][e] == 1:
+                    edge_type = "ferry"
                     # ipdb.set_trace()
                     # store duration
                     duration = graph.ep['duration'][e]
@@ -187,6 +188,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 # else:
                 # case ferry stop
                 elif graph.ep["route"][e] is not None and times_edges is not None:
+                    edge_type = "ferry_stop"
                     # ipdb.set_trace()
                     # store duration (that is the waiting time of the stop)
                     duration = e_time
@@ -248,6 +250,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                     # store duration
                     duration = graph.ep['length'][e]/speed
                     time_at_edge += timedelta(seconds=duration)
+                    edge_type = "bridge" if graph.ep['ponte'][e] else "walk"
 
                     if current_step["type"] == "ferry":
                         # ipdb.set_trace()
@@ -272,6 +275,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 #time_at_edge += timedelta(seconds=time)
 
                 edge_info = {
+                    "edge_type": edge_type,
                     # # Calculate distance
                     # 'distance': graph.ep['length'][e],
                     # # Get hour at the edge
@@ -300,7 +304,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 }
                 # # correct for NaN values
                 for k, v in edge_info.items():
-                    if k not in ["route_color"]:
+                    if k in ["max_tide", "accessibility", "walkway_zps", "walkway_cm"]:
                         if np.isnan(v):
                             edge_info[k] = None
                 # append geometries
