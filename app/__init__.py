@@ -89,12 +89,12 @@ from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_
 
 if os.path.exists(path_graph_street_waterbus) and os.path.exists(path_graph_waterbus):
     app.logger.info("Loading the graphs...")
-    graph_street_only, graph_water, graph_stret_waterbus = load_graphs(path_graph_street_waterbus, path_graph_water, path_graph_waterbus)
+    graph_street_only, graph_water, graph_street_waterbus = load_graphs(path_graph_street_waterbus, path_graph_water, path_graph_waterbus)
 else:
     app.logger.info("Loading the graphs...")
     graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
     app.logger.info("Adding waterbus to the graph...")
-    graph_street_only, graph_stret_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
+    graph_street_only, graph_street_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
 # Add graphs info as attributes of the app
 app.graphs = {
     'street': {
@@ -106,8 +106,8 @@ app.graphs = {
         'all_vertices': get_all_coordinates(graph_water),
     },
     'waterbus': {
-        'graph': graph_stret_waterbus,
-        'all_vertices': get_all_coordinates(graph_stret_waterbus),
+        'graph': graph_street_waterbus,
+        'all_vertices': get_all_coordinates(graph_street_waterbus),
     }
 }
 

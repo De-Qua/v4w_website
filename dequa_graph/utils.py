@@ -73,7 +73,7 @@ def add_waterbus_to_street(graph, path_gtfs):
 
     missing_stops = gtfs.check_stops_coordinates(feed, pos)
     if len(missing_stops) > 0:
-        logger.warning(f"Some stops are not present in the graph: {missing_stops}")
+        logger.error(f"Some stops are not present in the graph: {missing_stops}")
     else:
         logger.info("All the stops are present in the graph!")
     count = 1

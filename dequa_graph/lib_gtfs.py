@@ -280,7 +280,7 @@ def create_stops_for_round_trips(feed):
         # if new trip reset the counters
         if row["trip_id"] != curr_trip:
             curr_trip = row["trip_id"]
-        added_stops = []
+            added_stops = []
         # get the stop id
         stop_id = row["stop_id"]
         # append the stop to the list of the trip
@@ -300,6 +300,23 @@ def create_stops_for_round_trips(feed):
                 original_stop).reset_index(drop=True)
         # update the stop id in the stop_times dataframe
         feed.stop_times.loc[idx, "stop_id"] = new_id
+
+    # check duplicated stops in shapes
+    dup_shp = feed.shapes[["shape_id", "stop_id"]][feed.shapes[["shape_id", "stop_id"]].duplicated()]
+    dup_shp = dup_shp.loc[~pd.isna(dup_shp.stop_id)]
+    curr_shape = dup_shp.iloc[0].shape_id
+    added_stops = []
+    for idx, row in dup_shp.iterrows():
+        # if new trip reset the counters
+        if row["shape_id"] != curr_shape:
+            curr_shape = row["shape_id"]
+            added_stops = []
+        stop_id = row["stop_id"]
+        added_stops.append(stop_id)
+        stop_iter = added_stops.count(stop_id)
+        new_id = f"{stop_id}_{stop_iter}"
+        # update the stop id in the stop_times dataframe
+        feed.shapes.loc[idx, "stop_id"] = new_id
     return
 
 
@@ -313,9 +330,9 @@ def get_shape_between_stops(feed, shape_id, stop_id_x, stop_id_y):
         return sg.LineString()
     shp = feed.shapes[feed.shapes["shape_id"]
                       == shape_id].reset_index(drop=True)
-    # in order to avoid problems with fake stops
-    stop_id_x = stop_id_x.split("_")[0]
-    stop_id_y = stop_id_y.split("_")[0]
+    # # in order to avoid problems with fake stops
+    # stop_id_x = stop_id_x.split("_")[0]
+    # stop_id_y = stop_id_y.split("_")[0]
     try:
         idx_x = shp.index[shp["stop_id"] == stop_id_x][0]
         idx_y = shp.index[shp["stop_id"] == stop_id_y][0]
