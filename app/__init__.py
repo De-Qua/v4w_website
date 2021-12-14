@@ -29,8 +29,8 @@ folder_db = os.path.join(folder, "app", "static", "files")
 folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
 path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_1110.gt")
 path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
-path_graph_waterbus = os.path.join(folder_db, "dequa_ve_waterbus_0711.gt")
-path_graph_street_waterbus = os.path.join(folder_db, "dequa_ve_terra_v14_1110_wb.gt")
+path_graph_waterbus = os.path.join(folder_db, "dequa_ve_waterbus_1412.gt")
+path_graph_street_waterbus = os.path.join(folder_db, "dequa_ve_terra_v14_1412_wb.gt")
 path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 
 #
