@@ -91,7 +91,7 @@ class getGeneralPath(Resource):
                                    help="No options provided")
         self.optparse = reqparse.RequestParser()
         self.optparse.add_argument('method', type=str, required=False, choices=("walk", "boat", "accessible"), default="walk", location=('options',))
-        self.optparse.add_argument('time', type=inputs.datetime, required=False, default=None, location=('options',))
+        self.optparse.add_argument('time', type=inputs.datetime_from_iso8601, required=False, default=None, location=('options',))
         self.optparse.add_argument('tideLevel', type=int, required=False, default=0, location=('options',))
         self.optparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE, location=('options',))
         self.optparse.add_argument('alternatives', type=inputs.boolean, default=False, location=('options',))
