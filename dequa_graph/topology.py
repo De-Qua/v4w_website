@@ -36,7 +36,7 @@ vel_max_mp     (edge)    (type: double)
 """
 import ipdb
 # from numbers import Number
-
+from datetime import timedelta
 import numpy as np
 
 import graph_tool.all as gt
@@ -67,16 +67,20 @@ def get_path(graph, vertex_start, vertex_end, vertices_stop=None, weights=None,
     v_list = []
     e_list = []
     t_list = []
-    last_v = vertex_start
+
     vertices_stop.append(vertex_end)
-    for v in vertices_stop:
+    # loop over the alternatives
+    for weight in weights:
         tmp_v_list = []
         tmp_e_list = []
         tmp_t_list = []
-        for weight in weights:
+        last_v = vertex_start
+        # loop over the stops
+        for v in vertices_stop:
             if use_public_transport:
                 # il nuovo visitor
                 tmp_v_list_weight, tmp_e_list_weight, tmp_t_list_weight = td_shortest_path(graph, last_v, v, weight, start_time, time_edge_property, transport_property, timetable_property)
+                start_time += timedelta(seconds=sum(tmp_t_list_weight))
             else:
                 tmp_v_list_weight, tmp_e_list_weight = gt.shortest_path(graph, last_v, v, weight)
                 # times are the weights since it is not time-dependent path

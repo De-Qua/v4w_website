@@ -112,6 +112,7 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
     all_info = []
     for alternative_path, alternative_times in zip(paths_edges, times_edges):
         info = []
+        intermediate_start_time = start_time
         for edges, edge_times in zip(alternative_path, alternative_times):
             distances = []
             durations = []
@@ -129,10 +130,10 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 "duration":     0,
                 "bridges":       [],
                 # "num_bridges":  0,
-                'start_time':   start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                'start_time':   intermediate_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
             # stops = []
-            time_at_edge = start_time
+            time_at_edge = intermediate_start_time
 
             for e, e_time in zip(edges, edge_times):
                 # general info
@@ -375,10 +376,10 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
 
             tot_distance = sum(distances)
             tot_duration = sum(durations)
-            num_bridges = adjacent_one(is_bridge)
-            num_transports = adjacent_one(is_transport)
+            # num_bridges = adjacent_one(is_bridge)
+            # num_transports = adjacent_one(is_transport)
             info.append({
-                'start_time': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+                'start_time': intermediate_start_time.strftime("%Y-%m-%dT%H:%M:%S"),
                 'end_time': time_at_edge.strftime("%Y-%m-%dT%H:%M:%S"),
                 'distance': tot_distance,
                 'duration': tot_duration,
@@ -390,7 +391,9 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
                 #'stops': stops,
                 'edges': geojsons
             })
+            intermediate_start_time = time_at_edge
         all_info.append(info)
+        ipdb.set_trace()
     return all_info
 
 
