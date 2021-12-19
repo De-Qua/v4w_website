@@ -393,7 +393,6 @@ def retrieve_info_from_path_streets(graph, paths_vertices, paths_edges, start_ti
             })
             intermediate_start_time = time_at_edge
         all_info.append(info)
-        ipdb.set_trace()
     return all_info
 
 
