@@ -277,7 +277,8 @@ def get_current_tide_level():
     start_time = time.time()
     while not tide_level_dict or elapsed_time < max_waiting_time:
         try:
-            with open(os.path.join(os.getcwd(), site_params.high_tide_file), 'r') as stream:
+            # with open(os.path.join(os.getcwd(), site_params.high_tide_file), 'r') as stream:
+            with open(app.high_tide_file, 'r') as stream:
                 tide_level_dict = json.load(stream)
         except:
             app.logger.error('Error in reading tide file')

@@ -4,6 +4,8 @@ class Config(object):
     # Version
     VERSION = '0.1.5'
     API_VERSION = '1.0'
+    STATIC_PATH = os.path.join(basedir, 'static', 'files')
+
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     WTF_CSRF_TIME_LIMIT = None

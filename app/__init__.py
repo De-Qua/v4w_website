@@ -1,6 +1,6 @@
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
-
+import yaml
 from config import Config
 import sys
 import os
@@ -24,15 +24,6 @@ from flask_cors import CORS
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
-folder = os.getcwd()
-folder_db = os.path.join(folder, "app", "static", "files")
-folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
-path_graph_street = os.path.join(folder_db, "dequa_ve_terra_v14_1110.gt")
-path_graph_water = os.path.join(folder_db, "dequa_ve_acqua_v7_1609_directed.gt")
-path_graph_waterbus = os.path.join(folder_db, "dequa_ve_waterbus_1412.gt")
-path_graph_street_waterbus = os.path.join(folder_db, "dequa_ve_terra_v14_1412_wb.gt")
-path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
-
 #
 # Create Flask app
 #
@@ -40,6 +31,28 @@ path_gtfs_waterbus = os.path.join(folder_gtfs, "actv_nav.zip")
 app = Flask(__name__)
 app.config.from_object(Config)
 
+#
+# Graph files
+#
+
+folder = app.config.get("STATIC_PATH")
+yaml_static_files = 'files_names.yaml'
+with open(os.path.join(folder, yaml_static_files), 'r') as f:
+    list_files = yaml.load(f, Loader=yaml.FullLoader)
+
+folder_db = os.path.join(folder, "app", "static", "files")
+folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
+path_graph_street = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_file"])
+path_graph_water = os.path.join(folder, list_files["graph_folder"], list_files["graph_water_file"])
+path_graph_street_plus_waterbus = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_plus_waterbus_file"])
+path_graph_street_only = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_only_file"])
+
+last_gtfs_number = list_files["gtfs_last_number"]
+
+high_tide_file = os.path.join(folder, list_files["tide_folder"], list_files["tide_file"])
+
+app.list_files = list_files
+app.high_tide_file = high_tide_file
 #
 # Logging
 #
@@ -87,14 +100,15 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 #
 from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
 
-if os.path.exists(path_graph_street_waterbus) and os.path.exists(path_graph_waterbus):
+if os.path.exists(path_graph_street_only) and os.path.exists(path_graph_street_plus_waterbus):
     app.logger.info("Loading the graphs...")
-    graph_street_only, graph_water, graph_street_waterbus = load_graphs(path_graph_street_waterbus, path_graph_water, path_graph_waterbus)
+    graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs(path_graph_street_only, path_graph_water, path_graph_street_plus_waterbus)
 else:
-    app.logger.info("Loading the graphs...")
-    graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
-    app.logger.info("Adding waterbus to the graph...")
-    graph_street_only, graph_street_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
+    raise Exception("Graph files don't exist!")
+    # app.logger.info("Loading the graphs...")
+    # graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
+    # app.logger.info("Adding waterbus to the graph...")
+    # graph_street_only, graph_street_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
 # Add graphs info as attributes of the app
 app.graphs = {
     'street': {
@@ -106,8 +120,8 @@ app.graphs = {
         'all_vertices': get_all_coordinates(graph_water),
     },
     'waterbus': {
-        'graph': graph_street_waterbus,
-        'all_vertices': get_all_coordinates(graph_street_waterbus),
+        'graph': graph_street_plus_waterbus,
+        'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
     }
 }
 
