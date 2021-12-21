@@ -1,6 +1,6 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
-staticdir = os.path.abspath(os.path.join(basedir), "..", "static")
+staticdir = os.path.abspath(os.path.join(basedir, "..", "static"))
 
 
 class Config(object):
