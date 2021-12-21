@@ -1,10 +1,13 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
+staticdir = os.path.abspath(os.path.join(basedir), "..", "static")
+
+
 class Config(object):
     # Version
     VERSION = '0.1.5'
     API_VERSION = '1.0'
-    STATIC_PATH = os.path.join(basedir, 'static', 'files')
+    STATIC_PATH = os.path.join(staticdir, 'files')
 
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
@@ -22,11 +25,11 @@ class Config(object):
         # dequa_internal has the registered users, the tokens and apis
         "internal": 'postgresql:///dequa_internal'
     }
-        #"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
-        #"users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
-        #"errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
-        #"ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
-        #"feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
+    #"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
+    #"users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
+    #"errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
+    #"ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
+    #"feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # TrackUsage
     TRACK_USAGE_USE_FREEGEOIP = False
@@ -41,12 +44,12 @@ class Config(object):
     SECURITY_REGISTERABLE = False
     SECURITY_SEND_REGISTER_EMAIL = False
     # Mail
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') #"smtps.aruba.it"
-    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25) #587
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None #1
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') #"info@dequa.it"
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') # QUA INSERIRE LA PASSWORD DELL'ACCOUNT
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') #"info@dequa.it"
+    MAIL_SERVER = os.environ.get('MAIL_SERVER')  # "smtps.aruba.it"
+    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)  # 587
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None  # 1
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')  # "info@dequa.it"
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')  # QUA INSERIRE LA PASSWORD DELL'ACCOUNT
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')  # "info@dequa.it"
     ADMINS = ['info@dequa.it']
     # Sitemap
     # SITEMAP_URL_SCHEME = 'HTTPS'
