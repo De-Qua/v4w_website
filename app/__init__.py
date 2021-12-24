@@ -21,6 +21,7 @@ from flask_security import current_user
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_apscheduler import APScheduler
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
 
@@ -36,22 +37,25 @@ app.config.from_object(Config)
 #
 
 folder = app.config.get("STATIC_PATH")
-yaml_static_files = 'files_names.yaml'
+yaml_static_files = app.config.get("STATIC_FILE_NAME")
 with open(os.path.join(folder, yaml_static_files), 'r') as f:
     list_files = yaml.load(f, Loader=yaml.FullLoader)
+folder_files = os.path.join(folder, "files")
+folder_graph = os.path.join(folder_files, list_files["graph_folder"])
 
-folder_db = os.path.join(folder, "app", "static", "files")
-folder_gtfs = os.path.join(folder, "app", "static", "gtfs")
-path_graph_street = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_file"])
-path_graph_water = os.path.join(folder, list_files["graph_folder"], list_files["graph_water_file"])
-path_graph_street_plus_waterbus = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_plus_waterbus_file"])
-path_graph_street_only = os.path.join(folder, list_files["graph_folder"], list_files["graph_street_only_file"])
+path_graph_street = os.path.join(folder_graph, list_files["graph_street_file"])
+path_graph_water = os.path.join(folder_graph, list_files["graph_water_file"])
+path_graph_street_plus_waterbus = os.path.join(folder_graph, list_files["graph_street_plus_waterbus_file"])
+path_graph_street_only = os.path.join(folder_graph, list_files["graph_street_only_file"])
 
-last_gtfs_number = list_files["gtfs_last_number"]
+# Save names of used graphs
+app.current_variables = list_files
+app.is_updating = False
 
-high_tide_file = os.path.join(folder, list_files["tide_folder"], list_files["tide_file"])
+# last_gtfs_number = list_files["gtfs_last_number"]
 
-app.list_files = list_files
+high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
+
 app.high_tide_file = high_tide_file
 #
 # Logging
@@ -124,6 +128,19 @@ app.graphs = {
         'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
     }
 }
+
+#
+# Scheduler
+#
+from app.src.libpy.lib_update_variables import update_graphs_and_variables
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+
+@scheduler.task('cron', id="check_updates", day="*", hour=3)
+def check_updates():
+    update_graphs_and_variables()
 
 #
 # Model setup

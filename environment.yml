@@ -28,6 +28,7 @@ dependencies:
   - flask-cors=3.0.8
   - pip=20.3.1
   - colorlog=5.0.1
+  - flask-apscheduler=1.12.3
   - pip:
     - flask-track-usage==2.0.0
     - flask-shell-ipython==0.4.1

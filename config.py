@@ -7,11 +7,15 @@ class Config(object):
     # Version
     VERSION = '0.1.5'
     API_VERSION = '1.0'
-    STATIC_PATH = os.path.join(staticdir, 'files')
+
+    # Static files
+    STATIC_PATH = os.path.join(staticdir)
+    STATIC_FILE_NAME = "files_names.yaml"
 
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'
     WTF_CSRF_TIME_LIMIT = None
+
     # Database
     # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
     #     'postgresql:///' + os.path.join(basedir, 'dequa.db')
@@ -31,6 +35,10 @@ class Config(object):
     #"ideas": 'sqlite:///' + os.path.join(basedir, 'ideas.db'),
     #"feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Flask-APScheduler
+    SCHEDULER_API_ENABLED = True
+    SCHEDULER_API_PREFIX = "/scheduler"
+
     # TrackUsage
     TRACK_USAGE_USE_FREEGEOIP = False
     TRACK_USAGE_INCLUDE_OR_EXCLUDE_VIEWS = 'include'
