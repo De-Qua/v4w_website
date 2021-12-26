@@ -138,10 +138,13 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 
 
-@scheduler.task('cron', id="check_updates", day="*", hour=3)
+@scheduler.task('interval', id="check_updates", minutes=1)
 def check_updates():
-    update_graphs_and_variables()
+    with scheduler.app.app_context():
+        update_graphs_and_variables()
 
+
+scheduler.start()
 #
 # Model setup
 #

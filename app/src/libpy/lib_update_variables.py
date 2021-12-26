@@ -1,7 +1,7 @@
 from flask import current_app
 import os
 import yaml
-from dequa_graph import load_graphs, add_waterbus_to_street, get_all_coordinates
+from dequa_graph.utils import load_graphs, add_waterbus_to_street, get_all_coordinates
 
 
 def update_graphs_and_variables():
