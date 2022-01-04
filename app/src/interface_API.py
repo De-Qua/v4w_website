@@ -247,7 +247,9 @@ def format_path_boat_data(v_list, e_list, t_list, avoid_public_transport=False, 
     Function to format the data of a path
     """
     info = dqg_form.retrieve_info_from_path_water(
-        graph=current_app.graphs['water']['graph'], paths_vertices=v_list, paths_edges=e_list, **kwargs)
+        graph=current_app.graphs['water']['graph'],
+        paths_vertices=v_list, paths_edges=e_list, times_edges=t_list,
+        start_time=start_time, **kwargs)
     return info
 
 
