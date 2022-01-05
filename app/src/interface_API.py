@@ -165,7 +165,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                                   speed=5, avoid_bridges=False,
                                   avoid_tide=False, tide_level=None, boots_height=0,
                                   alternatives=False, avoid_public_transport=True,
-                                  start_time=None,
+                                  prefer_public_transport=False, start_time=None,
                                   **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
@@ -175,6 +175,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     if avoid_public_transport:
         graph = current_app.graphs['street']
         use_public_transport = False
+        prefer_public_transport = False
         time_edge_property = None
         transport_property = None
         timetable_property = None
@@ -196,7 +197,8 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
         raise errors.WorkInProgressError("Alternatives not implemented yet")
     else:
         weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges,
-                                       avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height)
+                                       avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height,
+                                       prefer_public_transport=prefer_public_transport)
         weights = [weight]
     # get the path
     try:

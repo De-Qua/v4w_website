@@ -105,11 +105,13 @@ class getGeneralPath(Resource):
         self.walkparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=('walkingOptions',))
         self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
         self.walkparse.add_argument("bootsHeight", type=int, default=30, location=('walkingOptions',))
+        self.walkparse.add_argument("preferPublicTransport", type=inputs.boolean, default=False, location=('walkingOptions',))
 
         self.boatparse = reqparse.RequestParser()
         self.boatparse.add_argument("walkSpeed", type=float, default=5, location=("boatOptions",))
         self.boatparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("boatOptions",))
         self.boatparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=("boatOptions",))
+        self.boatparse.add_argument("preferPublicTransport", type=inputs.boolean, default=False, location=('boatOptions',))
         self.boatparse.add_argument("bridgeWeight", type=int, default=1, location=("boatOptions",))
         self.boatparse.add_argument("bootsHeight", type=int, default=30, location=("boatOptions",))
         self.boatparse.add_argument("boatSpeed", type=float, default=5/3.6, location=("boatOptions",))
@@ -122,6 +124,7 @@ class getGeneralPath(Resource):
         self.accessparse.add_argument("walkSpeed", type=float, default=5/3.6, location=("accessibleOptions",))
         self.accessparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("accessibleOptions",))
         self.accessparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=False, location=("accessibleOptions",))
+        self.accessparse.add_argument("preferPublicTransport", type=inputs.boolean, default=True, location=('boatOptions',))
         self.accessparse.add_argument("bridgeWeight", type=int, default=1, location=("accessibleOptions",))
         self.accessparse.add_argument("bootsHeight", type=int, default=30, location=("accessibleOptions",))
         self.accessparse.add_argument("width", type=float, default=0.7, location=("accessibleOptions",))
@@ -172,6 +175,7 @@ class getGeneralPath(Resource):
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
                 avoid_tide=walk["avoidTide"], tide=opt['tideLevel'],
                 avoid_public_transport=walk["avoidPublicTransport"],
+                prefer_public_transport=walk["preferPublicTransport"],
                 start_time=opt["time"],
                 motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
