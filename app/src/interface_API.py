@@ -171,53 +171,80 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
-    # get the correct graph
-    if avoid_public_transport:
-        graph = current_app.graphs['street']
-        use_public_transport = False
-        prefer_public_transport = False
-        time_edge_property = None
-        transport_property = None
-        timetable_property = None
-    else:
-        graph = current_app.graphs['waterbus']
-        use_public_transport = True
-        # TODO
-        # assegniamo le properties qua perche
-        # speed non viene passata dentro calculate_path
-        time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
-        transport_property = graph['graph'].vp.transport_stop
-        timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
 
-    # get tide if not present
-    if avoid_tide and not tide_level:
-        tide_level = get_current_tide_level()
-    # Define the weight that we will use
-    if alternatives:
-        raise errors.WorkInProgressError("Alternatives not implemented yet")
+    graph = current_app.graphs['waterbus']
+    start_v, end_v, stop_v = dqg_topo.find_path_vertices(start, end, stop, all_vertices=graph['all_vertices'])
+    if stop:
+        vertices_stop = stop_v + [end_v]
     else:
-        weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges,
-                                       avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height,
-                                       prefer_public_transport=prefer_public_transport)
-        weights = [weight]
-    # get the path
-    try:
-        v_list, e_list, t_list = dqg_topo.calculate_path(
-            graph=graph['graph'],
-            coords_start=start,
-            coords_end=end,
-            coords_stop=stop,
-            weight=weights,
-            all_vertices=graph['all_vertices'],
-            use_public_transport=use_public_transport,
-            start_time=start_time,
-            time_edge_property=time_edge_property,
-            transport_property=transport_property,
-            timetable_property=timetable_property
-        )
+        vertices_stop = [end_v]
+    mandatory_transport = any(graph['graph'].vp.component_street[start_v] != graph['graph'].vp.component_street[v] for v in vertices_stop)
+    if mandatory_transport or prefer_public_transport:
+        avoid_public_transport = False
+        available_transports = ["with_public_transport"]
+    elif avoid_public_transport:
+        available_transports = ["without_public_transport"]
+    else:
+        available_transports = ["with_public_transport", "without_public_transport"]
+    v_list = []
+    e_list = []
+    t_list = []
+    for transport in available_transports:
+        # get the correct graph
+        if transport == "without_public_transport":
+            graph = current_app.graphs['street']
+            use_public_transport = False
+            prefer_public_transport = False
+            time_edge_property = None
+            transport_property = None
+            timetable_property = None
+        elif transport == "with_public_transport":
+            graph = current_app.graphs['waterbus']
+            use_public_transport = True
+            # TODO
+            # assegniamo le properties qua perche
+            # speed non viene passata dentro calculate_path
+            time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
+            transport_property = graph['graph'].vp.transport_stop
+            timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
 
-    except dqg_err.NoPathFound:
-        raise errors.NoPathFound(start, end)
+        # get tide if not present
+        if avoid_tide and not tide_level:
+            tide_level = get_current_tide_level()
+        # Define the weight that we will use
+        if alternatives:
+            raise errors.WorkInProgressError("Alternatives not implemented yet")
+        else:
+            weight = dqg_weight.get_weight(graph=graph['graph'], mode='walk', speed=speed, avoid_bridges=avoid_bridges,
+                                           avoid_tide=avoid_tide, tide_level=tide_level, boots_height=boots_height,
+                                           prefer_public_transport=prefer_public_transport)
+            weights = [weight]
+        # get the path
+        try:
+            tmp_v_list, tmp_e_list, tmp_t_list = dqg_topo.calculate_path(
+                graph=graph['graph'],
+                coords_start=start,
+                coords_end=end,
+                coords_stop=stop,
+                weight=weights,
+                all_vertices=graph['all_vertices'],
+                use_public_transport=use_public_transport,
+                start_time=start_time,
+                time_edge_property=time_edge_property,
+                transport_property=transport_property,
+                timetable_property=timetable_property
+            )
+
+        except dqg_err.NoPathFound:
+            raise errors.NoPathFound(start, end)
+        v_list += tmp_v_list
+        e_list += tmp_e_list
+        t_list += tmp_t_list
+        # ipdb.set_trace()
+        if transport == "with_public_transport" and any(graph["graph"].ep.transport[e]==1 for e in tmp_e_list[0][0]):
+            continue
+        else:
+            break
 
     return v_list, e_list, t_list
     # # retrieve info of the path
