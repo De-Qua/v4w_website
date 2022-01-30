@@ -90,7 +90,7 @@ class getGeneralPath(Resource):
         self.reqparse.add_argument('options', type=dict, required=True,
                                    help="No options provided")
         self.optparse = reqparse.RequestParser()
-        self.optparse.add_argument('method', type=str, required=False, choices=("walk", "boat", "accessible"), default="walk", location=('options',))
+        self.optparse.add_argument('method', type=str, required=False, choices=("walk", "boat"), default="walk", location=('options',))
         self.optparse.add_argument('time', type=inputs.datetime_from_iso8601, required=False, default=None, location=('options',))
         self.optparse.add_argument('tideLevel', type=int, required=False, default=0, location=('options',))
         self.optparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE, location=('options',))
@@ -106,6 +106,7 @@ class getGeneralPath(Resource):
         self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
         self.walkparse.add_argument("bootsHeight", type=int, default=30, location=('walkingOptions',))
         self.walkparse.add_argument("preferPublicTransport", type=inputs.boolean, default=False, location=('walkingOptions',))
+        self.walkparse.add_argument("useAccessibleOptions", type=inputs.boolean, default=False, location=('walkingOptions', ))
 
         self.boatparse = reqparse.RequestParser()
         self.boatparse.add_argument("walkSpeed", type=float, default=5, location=("boatOptions",))
@@ -141,9 +142,12 @@ class getGeneralPath(Resource):
             if opt["method"] == "walk":
                 mode = "walk"
                 walk = self.walkparse.parse_args(req=opt)
-            elif opt["method"] == "accessible":
-                mode = "walk"
-                walk = self.accessparse.parse_args(req=opt)
+                if walk["useAccessibleOptions"]:
+                    walk = self.accessparse.parse_args(req=opt)
+
+            # elif opt["method"] == "accessible":
+            #     mode = "walk"
+            #     walk = self.accessparse.parse_args(req=opt)
             elif opt["method"] == "boat":
                 mode = "boat"
                 walk = boat
