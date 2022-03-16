@@ -1,6 +1,7 @@
 from flask import current_app
 import os
 import yaml
+import datetime
 from dequa_graph.utils import load_graphs, add_waterbus_to_street, get_all_coordinates
 
 
@@ -73,6 +74,8 @@ def update_graphs_and_variables():
     # update internal variable list
     current_app.current_variables = new_variables
     current_app.is_updating = False
+    updated_at = datetime.datetime.now()
+    current_app.info["updated_at"] = updated_at.strftime("%d/%m/%Y %H:%M:%S")
     current_app.logger.info("Variables are now up to date")
     return
 

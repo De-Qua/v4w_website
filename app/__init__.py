@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
 import yaml
@@ -88,6 +89,14 @@ def getCurrentVersion():
 
 __version__ = getCurrentVersion()
 app.logger.info(f"Version: {__version__}")
+
+started_at = datetime.datetime.now()
+
+app.info = {
+    "version": __version__,
+    "started_at": started_at.strftime("%d/%m/%Y %H:%M:%S"),
+    "updated_at": None
+}
 
 #
 # Email setup

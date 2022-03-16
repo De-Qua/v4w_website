@@ -61,6 +61,10 @@ AVAILABLE_APIS = {
     "getAddress": {
         "name": "old address",
         "endpoint": "address"
+    },
+    "getSystemInfo": {
+        "name": "system info",
+        "endpoint": "system_info"
     }
 }
 
@@ -464,6 +468,27 @@ class getAddress(Resource):
         data.append(data_candidate)
         return api_response(data=data)
 
+
+# ███████ ██    ██ ███████ ████████ ███████ ███    ███     ██ ███    ██ ███████  ██████
+# ██       ██  ██  ██         ██    ██      ████  ████     ██ ████   ██ ██      ██    ██
+# ███████   ████   ███████    ██    █████   ██ ████ ██     ██ ██ ██  ██ █████   ██    ██
+#      ██    ██         ██    ██    ██      ██  ██  ██     ██ ██  ██ ██ ██      ██    ██
+# ███████    ██    ███████    ██    ███████ ██      ██     ██ ██   ████ ██       ██████
+
+
+class getSystemInfo(Resource):
+    """
+    API to retrieve info about the system
+    """
+
+    def __init__(self):
+        super(getSystemInfo, self).__init__()
+
+    def get(self):
+        info = current_app.info
+        variables = current_app.current_variables
+        data = info | variables
+        return api_response(data=data)
 
 #
 #  ██████  ██      ██████       █████  ██████  ██
