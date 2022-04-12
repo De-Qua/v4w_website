@@ -368,7 +368,11 @@ def get_suggestions(input, max_num=5):
         ## use method to be sure
         format_response_address(
             type=s[0],
-            title=f"{s[7]}" if s[0] == "poi" else f"{s[5]} {s[6]}",
+            title=f"{s[5]}" if s[0] == "neighborhood"
+                  else f"{s[4]}" if s[0] == "street"
+                  else f"{s[5]} {s[6]}" if s[0] == "address"
+                  else f"{s[7]}" if s[0] == "poi"
+                  else "No name",
             latitude=s[1],
             longitude=s[2],
             shape=s[3],
