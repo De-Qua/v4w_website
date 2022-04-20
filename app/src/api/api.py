@@ -181,7 +181,7 @@ class getGeneralPath(Resource):
                 mode=mode,
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
-                avoid_tide=walk["avoidTide"], tide=opt['tideLevel'],
+                avoid_tide=walk["avoidTide"], tide_level=opt['tideLevel'],
                 avoid_public_transport=walk["avoidPublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
                 start_time=opt["time"],
