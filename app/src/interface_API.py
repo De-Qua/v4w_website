@@ -12,9 +12,12 @@ import time
 import ipdb
 import pdb
 import datetime as dt
+from random import choice
+import string
+
 
 # FLASK APP
-from app import app
+from app import app, db
 from flask import current_app
 # CODICI DI ERRORE
 from app.src.api.constants import (
@@ -37,6 +40,9 @@ from app.src.libpy import lib_search as ls
 #from app.src.libpy.libcommunication import format_path_data
 # errors
 from app.src.api import errors
+
+from app.models import ShortURL, ShortURLCounter
+
 
 
 def check_format_coordinates(*args):
@@ -451,3 +457,29 @@ def get_places(input, max_num=20):
     # ]
 
     return formatted_suggestions
+
+
+def generate_short_url(payload: str, endpoint: str, length: int):
+    """
+    Saves the payload in the database (as text in a json file) and the endpoint,
+    generates a short code which is saved as well and returned to the frontend.
+    """
+    generation_date = dt.datetime.today()
+    expiration_date = generation_date + dt.timedelta(days=7)
+    short_code = generate_short_code(num_of_chars=length)
+    short_url = ShortURL(endpoint=endpoint, shortcode=short_code, payload=payload, generation_date=generation_date, expiration_date=expiration_date)
+    db.session.add(short_url)
+    db.session.commit()
+    return {"short_code": short_code}
+
+
+def generate_short_code(num_of_chars: int):
+    """Function to generate short_id of specified number of characters"""
+    return ''.join(choice(string.ascii_letters+string.digits) for _ in range(num_of_chars))
+
+
+def get_from_short_code(short_code):
+    short_url = ShortURL.query.filter_by(shortcode=short_code).one_or_none()
+    if not short_url:
+        raise ValueError("Short code does not exist")
+    return short_url.endpoint, short_url.payload

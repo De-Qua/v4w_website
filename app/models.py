@@ -642,6 +642,25 @@ class ErrorTranslations(db.Model):
     message = db.Column(db.String(200))
 
 
+class ShortURL(db.Model):
+    __tablename__ = 'short_url'
+    __bind_key__ = 'internal'
+    id = db.Column(db.Integer(), primary_key=True)
+    endpoint = db.Column(db.String(50))
+    shortcode = db.Column(db.String(25))
+    payload = db.Column(db.Text(), nullable=False)
+    count = db.Column(db.Integer(), nullable=False, default=0)
+    generation_date = db.Column(db.DateTime)
+    expiration_date = db.Column(db.DateTime)
+
+
+class ShortURLCounter(db.Model):
+    __tablename__ = 'short_url_counter'
+    __bind_key__ = 'internal'
+    id = db.Column(db.Integer(), primary_key=True)
+    shorturl_id = db.Column(db.Integer, db.ForeignKey('short_url.id'))
+    time = db.Column(db.DateTime)
+
 ###
 # FLASK USAGE
 ###

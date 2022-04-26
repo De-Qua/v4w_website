@@ -65,6 +65,14 @@ AVAILABLE_APIS = {
     "getSystemInfo": {
         "name": "system info",
         "endpoint": "system_info"
+    },
+    "generateShortUrl": {
+        "name": "generate url",
+        "endpoint": "generate_url"
+    },
+    "resolveShortUrl": {
+        "name": "resolve url",
+        "endpoint": "resolve_url"
     }
 }
 
@@ -485,11 +493,131 @@ class getSystemInfo(Resource):
     def __init__(self):
         super(getSystemInfo, self).__init__()
 
+    @permission_required
+    @update_api_counter
     def get(self):
         info = current_app.info
         variables = current_app.current_variables
         data = info | variables
         return api_response(data=data)
+
+
+# ███████ ██   ██  ██████  ██████  ████████     ██    ██ ██████  ██
+# ██      ██   ██ ██    ██ ██   ██    ██        ██    ██ ██   ██ ██
+# ███████ ███████ ██    ██ ██████     ██        ██    ██ ██████  ██
+#      ██ ██   ██ ██    ██ ██   ██    ██        ██    ██ ██   ██ ██
+# ███████ ██   ██  ██████  ██   ██    ██         ██████  ██   ██ ███████
+
+class generateShortUrl(Resource):
+    """
+    API to generate a unique short url
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('payload', type=dict, required=True,
+                                   help="No payload provided")
+        self.reqparse.add_argument('endpoint', type=str, required=True,
+                                   help="No endpoint provided")
+        super(generateShortUrl, self).__init__()
+
+    def post(self):
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        DEFAULT_LENGTH = 5
+        payload = json.dumps(args['payload'])
+        data = iAPI.generate_short_url(payload=payload, endpoint=args['endpoint'], length=DEFAULT_LENGTH)
+        return api_response(data=data)
+
+
+class resolveShortUrl(Resource):
+    """
+    API to retrieve a unique short url
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('short_code', type=str, required=True,
+                                   help="No short code provided")
+        super(resolveShortUrl, self).__init__()
+
+    def get(self):
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        try:
+            endpoint, payload = iAPI.get_from_short_code(args['short_code'])
+        except ValueError:
+            msg = "Short Code does not exist"
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        if endpoint == 'path':
+            print('path')
+            # load dictionary from string
+            payload_dict = json.loads(payload)
+            labels_dict = {
+                'start_label': payload_dict['startLabel'],
+                'end_label': payload_dict['endLabel'],
+            }
+            stop_labels = payload_dict.get('stopLabels', None)
+            if stop_labels:
+                labels_dict['stop_labels'] = stop_labels
+            # options for the search
+            search_options = payload_dict['options']
+            boat = search_options['boatOptions']
+            method = search_options['method']
+            if method == "walk":
+                mode = "walk"
+                walk = search_options['walkingOptions']
+                if walk["useAccessibleOptions"]:
+                    walk = search_options['accessibleOptions']
+
+            # elif opt["method"] == "accessible":
+            #     mode = "walk"
+            #     walk = self.accessparse.parse_args(req=opt)
+            elif method == "boat":
+                mode = "boat"
+                walk = boat
+
+            # walk takes different shapes so that later only those
+            # parameters are used.
+            # we always use walk[speed] but if you are walking walk is walk
+            # but if you are by boat walk is boat so walk[speed] is actually
+            # boat[speed]
+            avoid_bridges = walk["bridgeWeight"] > 1
+
+            ## launch the search
+            try:
+                info = iAPI.find_shortest_path_from_coordinates(
+                    mode=mode,
+                    start=payload_dict["start"], end=payload_dict["end"], stop=payload_dict.get("stop", None),
+                    speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
+                    avoid_tide=walk["avoidTide"], tide_level=search_options['tideLevel'],
+                    boots_height=walk['bootsHeight'],
+                    avoid_public_transport=walk["avoidPublicTransport"],
+                    prefer_public_transport=walk["preferPublicTransport"],
+                    start_time=search_options["time"],
+                    motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
+                    boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
+                    alternatives=search_options.get("alternatives", None)
+                )
+                final_data = info | labels_dict
+                return api_response(data=final_data)
+            except Exception as e:
+                current_app.logger.error(str(e))
+                return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE))
+
+        elif endpoint == 'search':
+            pass
+
 
 #
 #  ██████  ██      ██████       █████  ██████  ██
