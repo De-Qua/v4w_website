@@ -594,11 +594,21 @@ class resolveShortUrl(Resource):
             # boat[speed]
             avoid_bridges = walk["bridgeWeight"] > 1
 
+            try:
+                start_coords, end_coords = check_format_coordinates(payload_dict['start'], payload_dict['end'])
+                if payload_dict.get('stop', None):
+                    stop_coords = check_format_coordinates(payload_dict['stop'])
+                else:
+                    stop_coords = None
+            except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
+                return api_response(code=e.code)
+
             ## launch the search
             try:
+                ipdb.set_trace()
                 info = iAPI.find_shortest_path_from_coordinates(
                     mode=mode,
-                    start=payload_dict["start"], end=payload_dict["end"], stop=payload_dict.get("stop", None),
+                    start=start_coords, end=end_coords, stop=stop_coords,
                     speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
                     avoid_tide=walk["avoidTide"], tide_level=search_options['tideLevel'],
                     boots_height=walk['bootsHeight'],
@@ -609,7 +619,10 @@ class resolveShortUrl(Resource):
                     boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                     alternatives=search_options.get("alternatives", None)
                 )
-                final_data = info | labels_dict
+                final_data = {
+                        'data': info,
+                        'labels': labels_dict
+                    }
                 return api_response(data=final_data)
             except Exception as e:
                 current_app.logger.error(str(e))
