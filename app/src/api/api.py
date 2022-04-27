@@ -498,7 +498,12 @@ class getSystemInfo(Resource):
     def get(self):
         info = current_app.info
         variables = current_app.current_variables
-        data = info | variables
+        tide_values = current_app.tide_values
+        data = {
+            "info": info,
+            "variables": variables,
+            "tide": tide_values
+            }
         return api_response(data=data)
 
 

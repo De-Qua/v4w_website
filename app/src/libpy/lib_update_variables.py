@@ -1,7 +1,9 @@
 from flask import current_app
 import os
 import yaml
+import time
 import datetime
+import json
 from dequa_graph.utils import load_graphs, add_waterbus_to_street, get_all_coordinates
 
 
@@ -88,3 +90,35 @@ def load_new_variables(file_path):
     with open(os.path.join(file_path), 'r') as f:
         new_variables = yaml.load(f, Loader=yaml.FullLoader)
     return new_variables
+
+
+def update_tide():
+    """
+    Function to update the tide level
+    """
+    current_app.logger.debug("Updating the tide...")
+    tide_level_dict = None
+    max_waiting_time = 10
+    elapsed_time = 0
+    start_time = time.time()
+    while not tide_level_dict and elapsed_time < max_waiting_time:
+        try:
+            # with open(os.path.join(os.getcwd(), site_params.high_tide_file), 'r') as stream:
+            with open(current_app.high_tide_file, 'r') as stream:
+                tide_level_dict = json.load(stream)
+        except:
+            current_app.logger.error('Error in reading tide file')
+            time.sleep(0.001)
+            elapsed_time = time.time() - start_time
+
+    tide_level_value = tide_level_dict.get('valore', None)
+    tide_level = int(
+        float(tide_level_value[:-2]) * 100) if tide_level_value else None
+    tide_level_dict['tide_level'] = tide_level
+    # update the saved values
+    current_app.tide_values = tide_level_dict
+    if tide_level:
+        current_app.logger.debug(f"Tide updated. Time of record: {tide_level_dict.get('data', None)}. Value: {tide_level}cm")
+    else:
+        current_app.logger.error("Tide not updated!")
+    return

@@ -56,8 +56,8 @@ app.is_updating = False
 # last_gtfs_number = list_files["gtfs_last_number"]
 
 high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
-
 app.high_tide_file = high_tide_file
+
 #
 # Logging
 #
@@ -141,7 +141,8 @@ app.graphs = {
 #
 # Scheduler
 #
-from app.src.libpy.lib_update_variables import update_graphs_and_variables
+from app.src.libpy.lib_update_variables import update_graphs_and_variables, update_tide
+update_tide()
 
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -151,6 +152,12 @@ scheduler.init_app(app)
 def check_updates():
     with scheduler.app.app_context():
         update_graphs_and_variables()
+
+
+@scheduler.task('interval', id="check_tide", minutes=5)
+def check_tide():
+    with scheduler.app.app_context():
+        update_tide()
 
 
 scheduler.start()

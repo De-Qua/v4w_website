@@ -308,22 +308,7 @@ def get_current_tide_level():
     """
     Fetch the high tide level from the JSON file.
     """
-    tide_level_dict = None
-    max_waiting_time = 10
-    elapsed_time = 0
-    start_time = time.time()
-    while not tide_level_dict and elapsed_time < max_waiting_time:
-        try:
-            # with open(os.path.join(os.getcwd(), site_params.high_tide_file), 'r') as stream:
-            with open(app.high_tide_file, 'r') as stream:
-                tide_level_dict = json.load(stream)
-        except:
-            app.logger.error('Error in reading tide file')
-            time.sleep(0.001)
-            elapsed_time = time.time() - start_time
-    tide_level_value = tide_level_dict.get('valore', None)
-    tide_level = int(
-        float(tide_level_value[:-2]) * 100) if tide_level_value else None
+    tide_level = current_app.tide_values.get('tide_level', None)
 
     return tide_level
 
