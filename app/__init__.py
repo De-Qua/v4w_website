@@ -142,7 +142,8 @@ app.graphs = {
 # Scheduler
 #
 from app.src.libpy.lib_update_variables import update_graphs_and_variables, update_tide
-update_tide()
+with app.app_context():
+    update_tide()
 
 scheduler = APScheduler()
 scheduler.init_app(app)
