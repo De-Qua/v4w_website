@@ -112,8 +112,8 @@ def update_tide():
             elapsed_time = time.time() - start_time
 
     tide_level_value = tide_level_dict.get('valore', None)
-    tide_level = int(
-        float(tide_level_value[:-2]) * 100) if tide_level_value else None
+    tide_level = int(round(
+        float(tide_level_value[:-2]) * 100)) if tide_level_value else None
     tide_level_dict['tide_level'] = tide_level
     # update the saved values
     if not tide_level:
