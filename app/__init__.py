@@ -57,7 +57,7 @@ app.is_updating = False
 
 high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
 app.high_tide_file = high_tide_file
-
+app.tide_values = {}
 #
 # Logging
 #

@@ -97,7 +97,7 @@ def update_tide():
     Function to update the tide level
     """
     current_app.logger.debug("Updating the tide...")
-    tide_level_dict = None
+    tide_level_dict = {}
     max_waiting_time = 10
     elapsed_time = 0
     start_time = time.time()
@@ -116,9 +116,14 @@ def update_tide():
         float(tide_level_value[:-2]) * 100) if tide_level_value else None
     tide_level_dict['tide_level'] = tide_level
     # update the saved values
-    current_app.tide_values = tide_level_dict
-    if tide_level:
-        current_app.logger.debug(f"Tide updated. Time of record: {tide_level_dict.get('data', None)}. Value: {tide_level}cm")
+    if not tide_level:
+        current_app.logger.error("No tide level! Tide not updated!")
+    elif tide_level_dict.get("data", None) is None:
+        current_app.logger.error("No data! Tide not updated!")
+    elif tide_level_dict["data"] == current_app.tide_values.get("data", None):
+        current_app.logger.error("Current data already in memory! Tide not updated!")
     else:
-        current_app.logger.error("Tide not updated!")
+        current_app.tide_values = tide_level_dict
+        current_app.logger.debug(f"Tide updated. Time of record: {tide_level_dict.get('data', None)}. Value: {tide_level}cm")
+
     return
