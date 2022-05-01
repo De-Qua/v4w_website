@@ -25,6 +25,8 @@ from flask_cors import CORS
 from flask_apscheduler import APScheduler
 # from flask_sitemap import Sitemap
 # import flask_monitoringdashboard as dashboard
+import src.api.libpy.words_gen.words_list as words_list
+import src.api.libpy.words_gen.words_gen as wg
 
 #
 # Create Flask app
@@ -33,6 +35,9 @@ from flask_apscheduler import APScheduler
 app = Flask(__name__)
 app.config.from_object(Config)
 
+### words
+app.words_list = words_list
+app.wcg = wg.WordsCodeGen()
 #
 # Graph files
 #

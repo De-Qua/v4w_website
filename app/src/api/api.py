@@ -524,6 +524,8 @@ class generateShortUrl(Resource):
                                    help="No payload provided")
         self.reqparse.add_argument('endpoint', type=str, required=True,
                                    help="No endpoint provided")
+        self.reqparse.add_argument('words', type=str, required=False,
+                                   help="use to choose words generator instead of short code")
         super(generateShortUrl, self).__init__()
 
     def post(self):
@@ -536,7 +538,14 @@ class generateShortUrl(Resource):
             return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         DEFAULT_LENGTH = 5
         payload = json.dumps(args['payload'])
-        data = iAPI.generate_short_url(payload=payload, endpoint=args['endpoint'], length=DEFAULT_LENGTH)
+        # if words is in the request, we should use words code generation
+        words_code = False
+        if args['words']:
+            words_code = True
+        data = iAPI.generate_short_url(payload=payload,
+                                       endpoint=args['endpoint'],
+                                       length=DEFAULT_LENGTH,
+                                       words_code=words_code)
         return api_response(data=data)
 
 

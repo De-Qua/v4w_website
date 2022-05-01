@@ -444,14 +444,17 @@ def get_places(input, max_num=20):
     return formatted_suggestions
 
 
-def generate_short_url(payload: str, endpoint: str, length: int):
+def generate_short_url(payload: str, endpoint: str, length: int, words_code: bool):
     """
     Saves the payload in the database (as text in a json file) and the endpoint,
     generates a short code which is saved as well and returned to the frontend.
     """
     generation_date = dt.datetime.today()
     expiration_date = generation_date + dt.timedelta(days=7)
-    short_code = generate_short_code(num_of_chars=length)
+    if not words_code: # use words!
+        short_code = generate_short_code(num_of_chars=length)
+    else: # efficient short code
+        short_code = generate_words_code()
     short_url = ShortURL(endpoint=endpoint, shortcode=short_code, payload=payload, generation_date=generation_date, expiration_date=expiration_date)
     db.session.add(short_url)
     db.session.commit()
@@ -461,6 +464,12 @@ def generate_short_url(payload: str, endpoint: str, length: int):
 def generate_short_code(num_of_chars: int):
     """Function to generate short_id of specified number of characters"""
     return ''.join(choice(string.ascii_letters+string.digits) for _ in range(num_of_chars))
+
+def generate_words_code():
+    """Generates a short code based on words, which is less efficient but more human and fun"""
+    # the wcg is created in __init__.py befor the graphs
+    # and is hopefully loaded into the current_app variable
+    return current_app.wcg.create_words_code()
 
 
 def get_from_short_code(short_code):
