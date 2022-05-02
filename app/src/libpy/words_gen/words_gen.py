@@ -1,5 +1,5 @@
 import random
-from words_list import words
+from app.src.libpy.words_gen.words_list import words
 import pdb
 
 class WordsCodeGen():
