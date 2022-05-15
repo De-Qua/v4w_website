@@ -19,7 +19,10 @@ words = {
         'pin floi',
         'suca baruca',
         'picinin',
-        'marghera'
+        'marghera',
+        'barche impopolae',
+        'cheba da go',
+        'acqua alta'
     ],
     'specials_after_num': [
         'ombre de rosso',

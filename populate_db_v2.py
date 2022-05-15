@@ -1,18 +1,26 @@
 import os, sys
 import library_database as lb
 import pdb
-from app import app, db
+from app import db
 import psycopg2
 import pickle, json
 from app.models import *
 
-folder_file = "/Users/Palma/Documents/Projects/DeQua/opendata_ve_pg/"
+folder_file = "~/dequa/OpenDataVE/"
 LENGTH_ASTERISK_ROW = 50
 DEBUG = True
 if len(sys.argv) > 1:
     if sys.argv[1] == '--no-debug':
         DEBUG = False
 working = 'y'
+
+"""
+To create all databases,
+psql -f create_dbs.sql
+The .sql file contains the 4 commands to create the 4 databases.
+
+After that the code creates the tables inside the databases.
+"""
 
 if DEBUG:
     print('=' * LENGTH_ASTERISK_ROW)
@@ -40,8 +48,17 @@ else:
 #
 # to create the database, use the command
 # CREATE DATABASE opendata_ve_pg;
+# probably also the others are needed (see config.py for the names)
 # from postgresql (psql postgres if using brew for example)
+# `psql -f create_dbs.sql` will creat all 4 databases
 
+
+"""
+In case of error:
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  database "dequa_collected_data" does not exist
+
+
+"""
 if DEBUG:
     working = input("Want to create tables? (y = yes, s = skip)   ")
 
@@ -83,7 +100,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding sestieri..")
-    path_shp_sestieri = os.path.join(folder_file, 'sestieri', 'Localita_v5.shp')
+    path_shp_sestieri = os.path.join(folder_file, 'Sestieri_Localita_Isole', 'Localita_v5.shp')
     # "Localita", "Localita_v4.shp")
     err_sestieri = lb.update_sestieri(path_shp_sestieri, showFig=False, explain=True)
     print(f"done.\n\nReport: Error in:\n{err_sestieri}.\n\nnext comes the streets.")
@@ -99,7 +116,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding streets..")
-    path_shp_streets = os.path.join(folder_file, 'toponimi_strade', "TP_STR_v3.shp")# "Localita", "Localita_v4.shp")
+    path_shp_streets = os.path.join(folder_file, 'Strade', "TP_STR_v3.shp")# "Localita", "Localita_v4.shp")
     err_streets = lb.update_streets(path_shp_streets, showFig=False, explain=True)
     print(f"done.\n\nReport: Error in:\n{err_streets}.\n\nnext comes the addresses.")
     print('*' * LENGTH_ASTERISK_ROW)
@@ -114,7 +131,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding addresses..")
-    path_shp_addresses = os.path.join(folder_file, "civici", "CIVICO_4326VE_v2.shp")
+    path_shp_addresses = os.path.join(folder_file, "Civici", "CIVICO_4326VE_v2.shp")
     err_addresses = lb.update_addresses(path_shp_addresses, showFig=False, explain=True)
     print(f"done.\n\nReport: Error in:\n{err_addresses}.\n\nnext comes the pois.")
     print('*' * LENGTH_ASTERISK_ROW)
@@ -129,7 +146,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding POIs..")
-    pkl_file = input("Insert pickle file name or skip:\n")
+    pkl_file = 'all_poi_20210702' #input("Insert pickle file name or skip:\n")
     if not pkl_file:
         list_category = [
             "amenity",
@@ -161,7 +178,7 @@ if working == 'y':
     print("adding Water POIs..")
     json_file = input("Insert json file name:\n")
     if not json_file:
-        print("Without file we do not go very far.. :( ")
+        print("Without file we will not go very far.. :( ")
         print("we try 'posti_barca.json' but otherwise it will fail")
         json_file = 'posti_barca.json'
     #else:
