@@ -6,7 +6,7 @@ import psycopg2
 import pickle, json
 from app.models import *
 
-folder_file = "~/dequa/OpenDataVE/"
+folder_file = "/home/palma/dequa/OpenDataVE/"
 LENGTH_ASTERISK_ROW = 50
 DEBUG = True
 if len(sys.argv) > 1:
@@ -146,7 +146,7 @@ if working == 'y':
     print("")
     print('*' * LENGTH_ASTERISK_ROW)
     print("adding POIs..")
-    pkl_file = 'all_poi_20210702' #input("Insert pickle file name or skip:\n")
+    pkl_file = 'all_poi_20210702.pkl' #input("Insert pickle file name or skip:\n")
     if not pkl_file:
         list_category = [
             "amenity",
