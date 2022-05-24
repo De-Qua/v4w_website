@@ -585,8 +585,8 @@ class resolveShortUrl(Resource):
                     },
                 'end_info': {
                     'label': payload_dict['endLabel'],
-                    'longitude': payload_dict['start'].split(',')[0],
-                    'latitude': payload_dict['start'].split(',')[1]
+                    'longitude': payload_dict['end'].split(',')[0],
+                    'latitude': payload_dict['end'].split(',')[1]
                     }
             }
             stop_labels = payload_dict.get('stopLabels', None)
