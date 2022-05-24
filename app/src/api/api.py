@@ -619,7 +619,7 @@ class resolveShortUrl(Resource):
 
             ## launch the search
             try:
-                ipdb.set_trace()
+                #ipdb.set_trace()
                 info = iAPI.find_shortest_path_from_coordinates(
                     mode=mode,
                     start=start_coords, end=end_coords, stop=stop_coords,
