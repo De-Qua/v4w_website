@@ -578,12 +578,28 @@ class resolveShortUrl(Resource):
             # load dictionary from string
             payload_dict = json.loads(payload)
             labels_dict = {
-                'start_label': payload_dict['startLabel'],
-                'end_label': payload_dict['endLabel'],
+                'start_info': {
+                    'label': payload_dict['startLabel'],
+                    'longitude': payload_dict['start'].split(',')[0],
+                    'latitude': payload_dict['start'].split(',')[1]
+                    },
+                'end_info': {
+                    'label': payload_dict['endLabel'],
+                    'longitude': payload_dict['start'].split(',')[0],
+                    'latitude': payload_dict['start'].split(',')[1]
+                    }
             }
             stop_labels = payload_dict.get('stopLabels', None)
+
             if stop_labels:
-                labels_dict['stop_labels'] = stop_labels
+                labels_dict['stop_info'] = [
+                    {
+                        'label': stop_label,
+                        'longitude': stop_coord.split(',')[0],
+                        'latitude': stop_coord.split(',')[1]
+                    }
+                    for stop_label, stop_coord in zip(payload_dict['stopLabels'], payload_dict['stop'])
+                ]
             # options for the search
             search_options = payload_dict['options']
             boat = search_options['boatOptions']
