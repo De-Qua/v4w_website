@@ -524,7 +524,7 @@ class generateShortUrl(Resource):
                                    help="No payload provided")
         self.reqparse.add_argument('endpoint', type=str, required=True,
                                    help="No endpoint provided")
-        self.reqparse.add_argument('words', type=str, required=False,
+        self.reqparse.add_argument('words', type=inputs.boolean, required=False,
                                    help="use to choose words generator instead of short code")
         super(generateShortUrl, self).__init__()
 
