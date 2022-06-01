@@ -650,6 +650,7 @@ class resolveShortUrl(Resource):
                     alternatives=search_options.get("alternatives", None)
                 )
                 final_data = {
+                        'endpoint': 'path',
                         'data': info,
                         'labels': labels_dict
                     }
@@ -658,8 +659,16 @@ class resolveShortUrl(Resource):
                 current_app.logger.error(str(e))
                 return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE))
 
-        elif endpoint == 'search':
-            pass
+        elif endpoint == 'address':
+            payload_dict = json.loads(payload)
+            final_data = {
+                'endpoint': 'address',
+                'data': payload_dict
+            }
+            return api_response(data=final_data)
+        else:
+            current_app.logger.error(f"Endpoint {endpoint} not valid!")
+            return api_response(code=GENERIC_ERROR_CODE)
 
 
 #
