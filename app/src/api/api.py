@@ -659,10 +659,10 @@ class resolveShortUrl(Resource):
                 current_app.logger.error(str(e))
                 return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE))
 
-        elif endpoint == 'address':
+        elif endpoint == 'location':
             payload_dict = json.loads(payload)
             final_data = {
-                'endpoint': 'address',
+                'endpoint': 'location',
                 'data': payload_dict
             }
             return api_response(data=final_data)
