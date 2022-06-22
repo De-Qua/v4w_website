@@ -33,7 +33,7 @@ MarkupSafe==1.1.1
 matplotlib==3.2.1
 munch==2.5.0
 networkx==2.4
-numpy==1.18.2
+numpy==1.22.0
 ogr==0.11.0
 parso==0.7.0
 pexpect==4.8.0
