@@ -10,6 +10,7 @@ host = os.getenv("HOST", "localhost")
 port = os.getenv("PORT", "5000")
 bind_env = os.getenv("BIND", None)
 use_loglevel = os.getenv("LOG_LEVEL", "info")
+set_timeout = 90
 if bind_env:
     use_bind = bind_env
 else:
@@ -29,6 +30,7 @@ loglevel = use_loglevel
 workers = web_concurrency
 bind = use_bind
 keepalive = 120
+timeout = set_timeout
 errorlog = "-"
 
 # For debugging and testing
@@ -40,5 +42,6 @@ log_data = {
     "workers_per_core": workers_per_core,
     "host": host,
     "port": port,
+    "timeout": timeout
 }
 print(json.dumps(log_data))
