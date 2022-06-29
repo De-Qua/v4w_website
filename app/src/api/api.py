@@ -2,6 +2,7 @@ import ipdb
 import json
 
 import pytz
+import datetime as dt
 
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse, inputs
@@ -189,9 +190,11 @@ class getGeneralPath(Resource):
 
         # convert time to correct timezone
         start_time = opt["time"]
-        if start_time:
-            ipdb.set_trace()
-            start_time = start_time.astimezone(TZ_VENICE)
+        if not start_time:
+            start_time = dt.datetime.now()
+
+        start_time = start_time.astimezone(TZ_VENICE)
+
         try:
             info = iAPI.find_shortest_path_from_coordinates(
                 mode=mode,
