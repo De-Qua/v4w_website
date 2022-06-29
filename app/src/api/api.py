@@ -1,6 +1,8 @@
 import ipdb
 import json
 
+import pytz
+
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse, inputs
 from flask import current_app, request
@@ -36,6 +38,7 @@ from app.src.api.utils import create_url_from_inputs, set_default_request_variab
 from app.src import interface_API as iAPI
 from app.src.interface_API import check_format_coordinates
 
+TZ_VENICE = pytz.timezone("Europe/Rome")
 
 AVAILABLE_APIS = {
     "getPlaces": {
@@ -184,6 +187,11 @@ class getGeneralPath(Resource):
             return api_response(code=e.code, lang=lang)
         # call the interface to handle everythin
 
+        # convert time to correct timezone
+        start_time = opt["time"]
+        if start_time:
+            ipdb.set_trace()
+            start_time = start_time.astimezone(TZ_VENICE)
         try:
             info = iAPI.find_shortest_path_from_coordinates(
                 mode=mode,
@@ -193,7 +201,7 @@ class getGeneralPath(Resource):
                 boots_height=walk['bootsHeight'],
                 avoid_public_transport=walk["avoidPublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
-                start_time=opt["time"],
+                start_time=start_time,
                 motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                 alternatives=opt["alternatives"]
