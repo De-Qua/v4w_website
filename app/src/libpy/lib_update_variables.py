@@ -6,6 +6,8 @@ import datetime
 import json
 from dequa_graph.utils import load_graphs, add_waterbus_to_street, get_all_coordinates
 
+from app.models import Tide
+
 
 def update_graphs_and_variables():
     """
@@ -92,7 +94,7 @@ def load_new_variables(file_path):
     return new_variables
 
 
-def update_tide():
+def old_update_tide():
     """
     Function to update the tide level
     """
@@ -125,5 +127,18 @@ def update_tide():
     else:
         current_app.tide_values = tide_level_dict
         current_app.logger.debug(f"Tide updated. Time of record: {tide_level_dict.get('data', None)}. Value: {tide_level}cm")
+
+    return
+
+
+def update_tide():
+    """
+    Function to retrieve tide level from the database
+    """
+    try:
+        last_tide = Tide.query.order_by(Tide.id.desc()).first()
+        current_app.tide_values = last_tide.get_dict()
+    except Exception:
+        current_app.logger.error("Error retrieving the tide from the database! Tide not updated!")
 
     return
