@@ -510,6 +510,11 @@ class getSystemInfo(Resource):
         info = current_app.info
         variables = current_app.current_variables
         tide_values = current_app.tide_values
+        # convert datetime that are not json serializable
+        for key, value in tide_values.items():
+            if type(value) is dt.datetime:
+                tide_values[key] = value.isoformat()
+
         data = {
             "info": info,
             "variables": variables,
