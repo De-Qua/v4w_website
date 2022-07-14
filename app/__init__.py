@@ -145,30 +145,6 @@ app.graphs = {
 }
 
 #
-# Scheduler
-#
-from app.src.libpy.lib_update_variables import update_graphs_and_variables, update_tide
-with app.app_context():
-    update_tide()
-
-scheduler = APScheduler()
-scheduler.init_app(app)
-
-
-@scheduler.task('cron', id="check_updates", day="*", hour=2, minute=30)
-def check_updates():
-    with scheduler.app.app_context():
-        update_graphs_and_variables()
-
-
-@scheduler.task('interval', id="check_tide", minutes=5)
-def check_tide():
-    with scheduler.app.app_context():
-        update_tide()
-
-
-scheduler.start()
-#
 # Model setup
 #
 # Crea un modello base per scrivere in modo più leggibile i repr delle classi
@@ -316,6 +292,31 @@ def revoked_token_response():
 # Dashboard setup
 #
 # dashboard.bind(app)
+
+#
+# Scheduler
+#
+from app.src.libpy.lib_update_variables import update_graphs_and_variables, update_tide
+with app.app_context():
+    update_tide()
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+
+@scheduler.task('cron', id="check_updates", day="*", hour=2, minute=30)
+def check_updates():
+    with scheduler.app.app_context():
+        update_graphs_and_variables()
+
+
+@scheduler.task('interval', id="check_tide", minutes=5)
+def check_tide():
+    with scheduler.app.app_context():
+        update_tide()
+
+
+scheduler.start()
 
 
 app.logger.info('Website is up')
