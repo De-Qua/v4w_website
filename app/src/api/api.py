@@ -186,7 +186,7 @@ class getGeneralPath(Resource):
                 avoid_public_transport=not walk["usePublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
                 start_time=start_time,
-                motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
+                motor=boat["boatType"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["boatWidth"], boat_height=boat["boatHeight"], boat_draft=boat["boatDraft"],
                 alternatives=opt["alternatives"]
             )
