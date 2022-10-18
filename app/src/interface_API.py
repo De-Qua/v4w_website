@@ -172,6 +172,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                                   avoid_tide=False, tide_level=None, boots_height=0,
                                   alternatives=False, avoid_public_transport=True,
                                   prefer_public_transport=False, start_time=None,
+                                  transport_change_penalty=61,
                                   **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
@@ -204,6 +205,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             time_edge_property = None
             transport_property = None
             timetable_property = None
+            direction_property = None
         elif transport == "with_public_transport":
             graph = current_app.graphs['waterbus']
             use_public_transport = True
@@ -213,6 +215,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
             transport_property = graph['graph'].vp.transport_stop
             timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
+            direction_property = graph['graph'].ep.direction
 
         # get tide if not present
         if avoid_tide and not tide_level:
@@ -238,7 +241,9 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                 start_time=start_time,
                 time_edge_property=time_edge_property,
                 transport_property=transport_property,
-                timetable_property=timetable_property
+                timetable_property=timetable_property,
+                direction_property=direction_property,
+                transport_change_penalty=transport_change_penalty
             )
 
         except dqg_err.NoPathFound:
