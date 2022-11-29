@@ -62,6 +62,10 @@ AVAILABLE_APIS = {
         "name": "path water",
         "endpoint": "gt_path_water"
     },
+    "getCurrentTide": {
+        "name": "tide",
+        "endpoint": "tide"
+    },
     "getAddress": {
         "name": "old address",
         "endpoint": "address"
