@@ -332,7 +332,7 @@ def update_streets(shp, showFig=False, explain=False):
     if explain:
         print("committo nel database..")
     try:
-        ipdb.set_trace()
+        #ipdb.set_trace()
         db.session.commit()
     except:
         db.session.rollback()
@@ -868,6 +868,7 @@ def update_POI(pois,explain=False):
     new_loc = 0
     new_cat = 0
     new_typ = 0
+    already_there = 0
     #massima distanza in metri per considerare una location
     max_dist = 50
 
@@ -882,13 +883,14 @@ def update_POI(pois,explain=False):
         progressbar_pip_style(poi_num,poi_tot)
 
         # Estrai poi in base all'id di OSM
-        p = poi_query.filter_by(osm_type=poi['type'], osm_id = poi['id']).one_or_none()
-
+        #p = poi_query.filter_by(osm_type=poi['type'], osm_id = poi['id']).one_or_none()
+        p = poi_query.filter_by(osm_id = poi['id']).first()
         # osm_id è un campo unique quindi ritorna o un elemento se esiste il POI oppure None se non esiste
         # caso in cui nel db esiste già il POI
         if p:
             # per ora skippo
             # TODO: aggiornare il POI che è già presente se ci sono informazioni nuove
+            already_there += 1
             continue
         # caso in cui nel db non esiste il POI
         # estrai coordinate
@@ -969,10 +971,18 @@ def update_POI(pois,explain=False):
                 else:
                     value = poi['tags'][tag_name]
                     # control length
+                    if tag_name == 'name':
+                        if len(value) > 127:
+                            print("truncating name..")
+                            value = value[:127]
                     if tag_name == 'phone':
                         if len(value) > 32:
                             print("truncating phone numbers..")
                             value = value[:32]
+                    if tag_name == 'wheelchair':
+                        if len(value) > 7:
+                            print("truncating wheelchair..")
+                            value = value[:7]
                 setattr(p, col_name, value)
             # aggiungo categorie al poi
             elif tag_name in tags_cat.keys():
@@ -1012,13 +1022,14 @@ def update_POI(pois,explain=False):
         db.session.rollback()
         warnings.warn("Errore nel commit")
 
-    print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}\nNuove Categorie: {new_c}\nNuovi Tipi: {new_t}".format(
+    print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}\nNuove Categorie: {new_c}\nNuovi Tipi: {new_t}\nGia' presenti: {alt}".format(
             poi=len(Poi.query.all()),
             err=len(err_poi),
             new_p=new_poi,
             new_l=new_loc,
             new_c=new_cat,
-            new_t=new_typ))
+            new_t=new_typ,
+            alt=already_there))
 
     if explain:
         err_type = [[],[],[],[],[]]
