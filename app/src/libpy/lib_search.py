@@ -347,7 +347,7 @@ def check_if_is_already_a_coordinate(input_string):
 
 def suggest_sql(clean_string, max_num=5):
     suggestions = db.session.execute('SELECT * FROM fn_GetSuggest(:p1, :p2)',
-                    {'p1':clean_string, 'p2':max_num}).all()
+                    {'p1':clean_string, 'p2':max_num}).fetchall()
 
     return [list(s) for s in suggestions]
 

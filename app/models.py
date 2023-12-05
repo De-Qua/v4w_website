@@ -33,10 +33,10 @@ from shapely import geometry
 """
 Tabella per collegamento molti-a-molti POI-Types
 """
-poi_types =  db.Table("poi_types",
-    db.Column("poi_id",db.Integer,db.ForeignKey("poi.id"),primary_key=True),
-    db.Column("type_id",db.Integer,db.ForeignKey("poi_category_type.id"),primary_key=True)
-    )
+poi_types = db.Table("poi_types",
+                     db.Column("poi_id", db.Integer, db.ForeignKey("poi.id"), primary_key=True),
+                     db.Column("type_id", db.Integer, db.ForeignKey("poi_category_type.id"), primary_key=True)
+                     )
 
 # """
 # Tabella per collegamento molti-a-molti Area-Street
@@ -57,10 +57,12 @@ poi_types =  db.Table("poi_types",
 """
 Location indica un punto sulla mappa.
 """
+
+
 class Location(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    latitude = db.Column(db.Float,index=True,nullable=False)
-    longitude = db.Column(db.Float,index=True,nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    latitude = db.Column(db.Float, index=True, nullable=False)
+    longitude = db.Column(db.Float, index=True, nullable=False)
     # TODO: Guarda questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
     # oppure questo: https://geoalchemy-2.readthedocs.io/en/latest/orm_tutorial.html
     # street_id = db.Column(db.Integer,db.ForeignKey("street.id"))
@@ -152,11 +154,14 @@ class Address(db.Model):
         except:
             return self.__repr__()
 
+
 """
 Area indica una zona (senza vincoli rispetto alle altre zone o sestieri)
 che puo essere un sottoinsieme di un sestiere o appartenere a piu sestieri
 Esempio: Santa Marta, Baia del Re
 """
+
+
 class Area(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)
@@ -194,6 +199,7 @@ class Area(db.Model):
             #shape=to_shape(self.shape) #is not JSON serializable
         )
 
+
 """
 Strade intere (senza numeri)
 Hanno:
@@ -203,6 +209,8 @@ Hanno:
  - shape: un poligono che ha la forma della strada
  - locations: la relazione con la tabella degli indirizzi (uno a molti)
 """
+
+
 class Street(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False)
@@ -229,25 +237,30 @@ class Street(db.Model):
         )
     score = db.Column(db.Integer, nullable=False, default=0)
     # check constraint serve per dare dei constraint alla tabella, questi vengono controllati a db.session.commit()
-    __table_args__ = (CheckConstraint(db.and_(0<=score,score<=100),name="check_score"),)
+    __table_args__ = (CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),)
 
-    def add_neighborhood(self,neighborhood):
+    def add_neighborhood(self, neighborhood):
         if not self.belongs(neighborhood):
             self.neighborhoods.append(neighborhood)
-    def remove_neighborhood(self,neighborhood):
+
+    def remove_neighborhood(self, neighborhood):
         if self.belongs(neighborhood):
             self.neighborhoods.remove(neighborhood)
-    def belongs(self,neighborhood):
-        return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id==neighborhood.id).count() > 0
+
+    def belongs(self, neighborhood):
+        return self.neighborhoods.filter(streets_neighborhoods.c.neighborhood_id == neighborhood.id).count() > 0
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
                           neighborhood=[n.name for n in self.neighborhoods]
                           )
+
     def __str__(self):
         return self.name
+
     def get_description(self):
-#        try:
+        #        try:
         return fillDictionary(
             modelName='Street',
             id=self.id,
@@ -258,9 +271,10 @@ class Street(db.Model):
             neighborhoods_dict=[n.get_description() for n in self.neighborhoods],
             neighborhoods=[n.name for n in self.neighborhoods]
         )
-            #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
+        #"{name} ({neighborhood})".format(name=self.name,neighborhood=', '.join(all_neighb))
 #        except:
 #            return self.__repr__()
+
 
 """
 Sestieri:
@@ -268,6 +282,8 @@ Sestieri:
  - zipcode: codice di avviamento postale del sestiere
  - streets: relazione con le strade in quel sestiere (molti a molti)
 """
+
+
 class Neighborhood(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), index=True, nullable=False)
@@ -320,12 +336,15 @@ class Neighborhood(db.Model):
             #shape=to_shape(self.shape) #is not JSON serializable
         )
 
+
 """
 POI = Punti di Interesse
 Comprende bar, caffe, negozi, chiese, ecc.
  - name: nome
  - location_id:
 """
+
+
 class Poi(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), index=True)
@@ -349,14 +368,17 @@ class Poi(db.Model):
     osm_type = db.Column(db.String(8))
     osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
-    __table_args__ = (CheckConstraint(db.and_(0<=score, score<=100), name="check_score"),)
-    def add_type(self,type):
+    __table_args__ = (CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),)
+
+    def add_type(self, type):
         if not self.is_type(type):
             self.types.append(type)
-    def remove_type(self,type):
+
+    def remove_type(self, type):
         if self.is_type(type):
             self.types.remove(type)
-    def is_type(self,type):
+
+    def is_type(self, type):
         return self.types.filter(poi_types.c.type_id == type.id).count() > 0
 
     def get_description(self):
@@ -386,49 +408,59 @@ class Poi(db.Model):
                 )
         except:
             return self.__repr__()
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
                           types=[t.__str__() for t in self.types]
                           )
+
     def __str__(self):
         if self.name:
             return self.name
         else:
             return "No name for POI {}".format(self.id)
 
+
 class PoiCategory(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(32),index=True,unique=True,nullable=False)
-    types = db.relationship("PoiCategoryType",backref="category",lazy="dynamic")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True, unique=True, nullable=False)
+    types = db.relationship("PoiCategoryType", backref="category", lazy="dynamic")
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
                           types=[t.name for t in self.types]
                           )
+
     def __str__(self):
         return self.name
 
+
 class PoiCategoryType(db.Model):
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(32),index=True,nullable=False)
-    category_id = db.Column(db.Integer,db.ForeignKey("poi_category.id"),nullable=False)
-    subtype = db.Column(db.String(32),index=True)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey("poi_category.id"), nullable=False)
+    subtype = db.Column(db.String(32), index=True)
+
     def __repr__(self):
         return self._repr(id=self.id,
                           name=self.name,
                           subtype=self.subtype,
                           category=self.category.name
                           )
+
     def __str__(self):
         return "{name} ({category})".format(
-        name=self.name, category=self.category)
+            name=self.name, category=self.category)
+
     def get_description(self):
         return fillDictionary(
             modelName="Type",
             id=self.id,
             name=self.name
         )
+
 
 def fillDictionary(**kwargs):
     dict_description = {}
@@ -455,9 +487,9 @@ def get_closest_object(class_object: str, shape):
 ###
 
 roles_users_table = db.Table('roles_users',
-    db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
-    db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
-    info={'bind_key':'internal', 'tablename':'roles_users'})
+                             db.Column('users_id', db.Integer(), db.ForeignKey('users.id')),
+                             db.Column('roles_id', db.Integer(), db.ForeignKey('roles.id')),
+                             info={'bind_key': 'internal', 'tablename': 'roles_users'})
 
 
 class Users(db.Model, UserMixin):
@@ -489,11 +521,11 @@ class Users(db.Model, UserMixin):
 
     def to_dict(self):
         return {
-            'id':self.id,
-            'email':self.email,
-            'active':self.active,
-            'confirmed_at':self.confirmed_at,
-            'roles':self.roles
+            'id': self.id,
+            'email': self.email,
+            'active': self.active,
+            'confirmed_at': self.confirmed_at,
+            'roles': self.roles
         }
 
 
@@ -503,8 +535,10 @@ class Roles(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
+
     def __str__(self):
         return self.name
+
     def __hash__(self):
         return hash(self.name)
 
@@ -533,9 +567,9 @@ class Tokens(db.Model):
 
 
 types_apis_table = db.Table('types_apis',
-    db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
-    db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
-    info={'bind_key':'internal', 'tablename':'types_apis'})
+                            db.Column('token_types_id', db.Integer(), db.ForeignKey('token_types.id')),
+                            db.Column('apis_id', db.Integer(), db.ForeignKey('apis.id')),
+                            info={'bind_key': 'internal', 'tablename': 'types_apis'})
 
 
 class TokenTypes(db.Model):
@@ -572,9 +606,9 @@ class Apis(db.Model):
     # I think, there is no need for back-refs
     def to_dict(self):
         return {
-            'id':self.id,
-            'name':self.name,
-            'path':self.path,
+            'id': self.id,
+            'name': self.name,
+            'path': self.path,
         }
 
 
@@ -604,10 +638,11 @@ class Languages(db.Model):
     # I think, there is no need for back-refs
     def to_dict(self):
         return {
-            'id':self.id,
-            'name':self.name,
-            'code':self.code
+            'id': self.id,
+            'name': self.name,
+            'code': self.code
         }
+
 
 class ErrorGroups(db.Model):
     __tablename__ = 'error_groups'
@@ -664,6 +699,8 @@ class ShortURLCounter(db.Model):
 ###
 # FLASK USAGE
 ###
+
+
 class FlaskUsage(db.Model):
     __tablename__ = 'flask_usage'
     __bind_key__ = 'collected_data'
@@ -690,6 +727,8 @@ class FlaskUsage(db.Model):
 ####
 # TABELLA INIZIATIVE E VOTI
 ####
+
+
 class Ideas(db.Model):
     __tablename__ = 'ideas'  # nome della tabella nel file ideas.db
     __bind_key__ = 'collected_data'  # bind per SQLAlchemy del file ideas.db
@@ -699,38 +738,51 @@ class Ideas(db.Model):
     idea_short_description = db.Column(db.String(256))
     num_of_votes = db.Column(db.Integer)
     # basic methods
+
     def __repr__(self):
         return self._repr(id=self.id,
                           title=self.idea_title,
                           description=self.idea_short_description,
                           votes=self.num_of_votes
                           )
+
     def __str__(self):
         return "{}, {}".format(self.idea_title, self.idea_short_description)
     # get and set
+
     def get_id(self):
         return self.id
+
     def get_title(self):
         return self.idea_title
+
     def set_title(self, new_title):
         self.idea_title = new_title
+
     def get_description(self):
         return self.idea_short_description
+
     def set_description(self, new_description):
         self.idea_short_description = new_description
+
     def get_num_of_votes(self):
         return self.num_of_votes
+
     def set_num_of_votes(self, new_num):
         self.num_of_votes = new_num
     # up- or down-vote
+
     def upvote(self):
         self.num_of_votes += 1
+
     def downvote(self):
         self.num_of_votes -= 1
 
 ######
 # TABELLE PER FEEDBACK E ERRORI
 ######
+
+
 class Feedbacks(db.Model):
     __tablename__ = "feedbacks"
     __bind_key__ = "collected_data"
@@ -754,6 +806,7 @@ class Feedbacks(db.Model):
     report = db.Column(db.String(256))
     solved = db.Column(db.Boolean, default=False)
 
+
 class Errors(db.Model):
     __tablename__ = "runtime_errors"
     __bind_key__ = "collected_data"
@@ -769,3 +822,48 @@ class Errors(db.Model):
     pickle = db.Column(db.String(256))
     report = db.Column(db.String(256))
     solved = db.Column(db.Boolean, default=False)
+
+
+#####
+# TABLELLE PER MAREA
+# {"ordine": "1",
+# "ID_stazione": "01025",
+# "stazione": "Punta Salute Canal Grande",
+# "nome_abbr": "PSalute",
+# "latDMSN": "452551.88",
+# "lonDMSE": "122010.96",
+# "latDDN": "45.431078",
+# "lonDDE": "12.336378",
+# "data": "2022-06-28 15:15:00",
+# "valore": "0.34 m"}
+#####
+
+class Tide(db.Model):
+    __tablename__ = "tide"
+
+    id = db.Column(db.Integer(), primary_key=True)
+    id_station = db.Column(db.String(8))
+    station = db.Column(db.String(64))
+    short_name = db.Column(db.String(16))
+    latDMSN = db.Column(db.Float)
+    lonDMSE = db.Column(db.Float)
+    latDDN = db.Column(db.Float)
+    lonDDE = db.Column(db.Float)
+    updated_at = db.Column(db.DateTime)
+    uploaded_at = db.Column(db.DateTime)
+    value = db.Column(db.Float)
+
+    def get_dict(self):
+        return {
+            "id_station": self.id_station,
+            "station": self.station,
+            "short_name": self.short_name,
+            "latDMSN": self.latDMSN,
+            "lonDMSE": self.lonDMSE,
+            "latDDN": self.latDDN,
+            "lonDDE": self.lonDDE,
+            "updated_at": self.updated_at,
+            "uploaded_at": self.uploaded_at,
+            "value": self.value,
+            "tide_level": int(100*self.value)
+        }

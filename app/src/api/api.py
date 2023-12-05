@@ -1,6 +1,9 @@
 import ipdb
 import json
 
+import pytz
+import datetime as dt
+
 # FLASK IMPORTS
 from flask_restful import Resource, reqparse, inputs
 from flask import current_app, request
@@ -36,6 +39,7 @@ from app.src.api.utils import create_url_from_inputs, set_default_request_variab
 from app.src import interface_API as iAPI
 from app.src.interface_API import check_format_coordinates
 
+TZ_VENICE = pytz.timezone("Europe/Rome")
 
 AVAILABLE_APIS = {
     "getPlaces": {
@@ -184,6 +188,13 @@ class getGeneralPath(Resource):
             return api_response(code=e.code, lang=lang)
         # call the interface to handle everythin
 
+        # convert time to correct timezone
+        start_time = opt["time"]
+        if not start_time:
+            start_time = dt.datetime.now()
+
+        start_time = start_time.astimezone(TZ_VENICE)
+
         try:
             info = iAPI.find_shortest_path_from_coordinates(
                 mode=mode,
@@ -193,7 +204,7 @@ class getGeneralPath(Resource):
                 boots_height=walk['bootsHeight'],
                 avoid_public_transport=walk["avoidPublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
-                start_time=opt["time"],
+                start_time=start_time,
                 motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
                 boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
                 alternatives=opt["alternatives"]
@@ -499,6 +510,11 @@ class getSystemInfo(Resource):
         info = current_app.info
         variables = current_app.current_variables
         tide_values = current_app.tide_values
+        # convert datetime that are not json serializable
+        for key, value in tide_values.items():
+            if type(value) is dt.datetime:
+                tide_values[key] = value.isoformat()
+
         data = {
             "info": info,
             "variables": variables,
@@ -650,6 +666,7 @@ class resolveShortUrl(Resource):
                     alternatives=search_options.get("alternatives", None)
                 )
                 final_data = {
+                        'endpoint': 'path',
                         'data': info,
                         'labels': labels_dict
                     }
@@ -658,8 +675,16 @@ class resolveShortUrl(Resource):
                 current_app.logger.error(str(e))
                 return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE))
 
-        elif endpoint == 'search':
-            pass
+        elif endpoint == 'location':
+            payload_dict = json.loads(payload)
+            final_data = {
+                'endpoint': 'location',
+                'data': payload_dict
+            }
+            return api_response(data=final_data)
+        else:
+            current_app.logger.error(f"Endpoint {endpoint} not valid!")
+            return api_response(code=GENERIC_ERROR_CODE)
 
 
 #
