@@ -151,6 +151,7 @@ ideas.db
 feed_err.db
 *.db
 .pgsql
+db/db_dump/*
 
 # secrets
 DEQUA_SECRETS.env

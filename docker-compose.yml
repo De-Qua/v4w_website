@@ -1,0 +1,46 @@
+# A Docker Compose must always start with the version tag.
+# We use '3' because it's the last version.
+version: '3'
+name: dequa
+# You should know that Docker Compose works with services.
+# 1 service = 1 container.
+# For example, a service, a server, a client, a database...
+# We use the keyword 'services' to start to create services.
+services:
+  # The name of our service is "database"
+  # but you can use the name of your choice.
+  # Note: This may change the commands you are going to use a little bit.
+  database:
+    # Official Postgres image from DockerHub (we use the last version)
+    image: postgis/postgis:16-3.4-alpine
+
+    # build:
+    #   dockerfile: ./docker/database.dockerfile
+    
+    container_name: dq_postgres
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+    # By default, a Postgres database is running on the 5432 port.
+    # If we want to access the database from our computer (outside the container),
+    # we must share the port with our computer's port.
+    # The syntax is [port we want on our machine]:[port we want to retrieve in the container]
+    # Note: You are free to change your computer's port,
+    # but take into consideration that it will change the way
+    # you are connecting to your database.
+    ports:
+      - 5432:5432
+
+    volumes:
+      - ./db/init_dbs.sql:/docker-entrypoint-initdb.d/init_dbs.sql
+      - ./db/pgdata:/var/lib/postgresql/data
+
+    environment:
+      POSTGRES_USER: dequa  # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: dequa # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: default # The PostgreSQL default database (automatically created at first launch)
+  
