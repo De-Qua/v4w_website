@@ -460,7 +460,6 @@ def generate_short_url(payload: str, endpoint: str, length: int, words_code: boo
             short_code = generate_short_code(num_of_chars=length)
         else: # efficient short code
             short_code = generate_words_code()
-        ipdb.set_trace()
         if not ShortURL.query.filter_by(shortcode=short_code).one_or_none():
             short_colde_valid = True
     generation_date = dt.datetime.today()
