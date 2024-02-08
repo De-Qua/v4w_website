@@ -62,6 +62,10 @@ AVAILABLE_APIS = {
         "name": "path water",
         "endpoint": "gt_path_water"
     },
+    "getCurrentTide": {
+        "name": "tide",
+        "endpoint": "tide"
+    },
     "getAddress": {
         "name": "old address",
         "endpoint": "address"
@@ -108,43 +112,32 @@ class getGeneralPath(Resource):
         self.optparse = reqparse.RequestParser()
         self.optparse.add_argument('method', type=str, required=False, choices=("walk", "boat"), default="walk", location=('options',))
         self.optparse.add_argument('time', type=inputs.datetime_from_iso8601, required=False, default=None, location=('options',))
-        self.optparse.add_argument('tideLevel', type=int, required=False, default=0, location=('options',))
         self.optparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE, location=('options',))
         self.optparse.add_argument('alternatives', type=inputs.boolean, default=False, location=('options',))
+        self.optparse.add_argument('useAccessibleOptions', type=inputs.boolean, default=False, location=('options',))
+
+        self.optparse.add_argument('tideOptions', type=dict, required=False, location=('options',))
         self.optparse.add_argument('walkingOptions', type=dict, required=False, location=('options',))
         self.optparse.add_argument('boatOptions', type=dict, required=False, location=('options',))
-        self.optparse.add_argument('accessibleOptions', type=dict, required=False, location=('options',))
+
+        self.tideparse = reqparse.RequestParser()
+        self.tideparse.add_argument('tideLevel', type=int, required=False, default=0, location=('tideOptions',))
+        self.tideparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=('tideOptions',))
+        self.tideparse.add_argument("bootsHeight", type=int, default=0, location=('tideOptions',))
 
         self.walkparse = reqparse.RequestParser()
         self.walkparse.add_argument("walkSpeed", type=float, default=5/3.6, location=('walkingOptions',))
-        self.walkparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=('walkingOptions',))
-        self.walkparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=('walkingOptions',))
-        self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
-        self.walkparse.add_argument("bootsHeight", type=int, default=30, location=('walkingOptions',))
+        self.walkparse.add_argument("usePublicTransport", type=inputs.boolean, default=False, location=('walkingOptions',))
         self.walkparse.add_argument("preferPublicTransport", type=inputs.boolean, default=False, location=('walkingOptions',))
-        self.walkparse.add_argument("useAccessibleOptions", type=inputs.boolean, default=False, location=('walkingOptions', ))
+        self.walkparse.add_argument("bridgeWeight", type=int, default=1, location=('walkingOptions',))
+        self.walkparse.add_argument("walkWidth", type=int, default=0, location=('walkingOptions',))
 
         self.boatparse = reqparse.RequestParser()
-        self.boatparse.add_argument("walkSpeed", type=float, default=5, location=("boatOptions",))
-        self.boatparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("boatOptions",))
-        self.boatparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=True, location=("boatOptions",))
-        self.boatparse.add_argument("preferPublicTransport", type=inputs.boolean, default=False, location=('boatOptions',))
-        self.boatparse.add_argument("bridgeWeight", type=int, default=1, location=("boatOptions",))
-        self.boatparse.add_argument("bootsHeight", type=int, default=30, location=("boatOptions",))
         self.boatparse.add_argument("boatSpeed", type=float, default=5/3.6, location=("boatOptions",))
-        self.boatparse.add_argument("width", type=float, default=1.5, location=("boatOptions",))
-        self.boatparse.add_argument("height", type=float, default=1, location=("boatOptions",))
-        self.boatparse.add_argument("draft", type=float, default=0.3, location=("boatOptions",))
-        self.boatparse.add_argument("type", type=str, choices=("motor", "row", "generic"), default="motor", location=("boatOptions",))
-
-        self.accessparse = reqparse.RequestParser()
-        self.accessparse.add_argument("walkSpeed", type=float, default=5/3.6, location=("accessibleOptions",))
-        self.accessparse.add_argument("avoidTide", type=inputs.boolean, default=False, location=("accessibleOptions",))
-        self.accessparse.add_argument("avoidPublicTransport", type=inputs.boolean, default=False, location=("accessibleOptions",))
-        self.accessparse.add_argument("preferPublicTransport", type=inputs.boolean, default=True, location=('boatOptions',))
-        self.accessparse.add_argument("bridgeWeight", type=int, default=1, location=("accessibleOptions",))
-        self.accessparse.add_argument("bootsHeight", type=int, default=30, location=("accessibleOptions",))
-        self.accessparse.add_argument("width", type=float, default=0.7, location=("accessibleOptions",))
+        self.boatparse.add_argument("boatWidth", type=float, default=1.5, location=("boatOptions",))
+        self.boatparse.add_argument("boatHeight", type=float, default=1, location=("boatOptions",))
+        self.boatparse.add_argument("boatDraft", type=float, default=0.3, location=("boatOptions",))
+        self.boatparse.add_argument("boatType", type=str, choices=("motor", "row", "generic"), default="row", location=("boatOptions",))
 
         super(getGeneralPath, self).__init__()
 
@@ -154,26 +147,15 @@ class getGeneralPath(Resource):
         try:
             args = self.reqparse.parse_args()
             opt = self.optparse.parse_args(req=args)
+            tide = self.tideparse.parse_args(req=opt)
+            walk = self.walkparse.parse_args(req=opt)
             boat = self.boatparse.parse_args(req=opt)
-            if opt["method"] == "walk":
-                mode = "walk"
-                walk = self.walkparse.parse_args(req=opt)
-                if walk["useAccessibleOptions"]:
-                    walk = self.accessparse.parse_args(req=opt)
 
-            # elif opt["method"] == "accessible":
-            #     mode = "walk"
-            #     walk = self.accessparse.parse_args(req=opt)
-            elif opt["method"] == "boat":
-                mode = "boat"
-                walk = boat
         except Exception as e:
             err_msg = e.data['message']
             all_err = [err_msg[argument] for argument in err_msg.keys()]
             msg = '. '.join(all_err)
             return api_response(code=BAD_FORMAT_REQUEST, message=msg)
-
-        avoid_bridges = walk["bridgeWeight"] > 1
 
         # args = request.get_json()
         lang = opt['language']
@@ -188,6 +170,9 @@ class getGeneralPath(Resource):
             return api_response(code=e.code, lang=lang)
         # call the interface to handle everythin
 
+        mode = opt["method"]
+        avoid_bridges = walk["bridgeWeight"] > 1
+
         # convert time to correct timezone
         start_time = opt["time"]
         if not start_time:
@@ -200,13 +185,13 @@ class getGeneralPath(Resource):
                 mode=mode,
                 start=start_coords, end=end_coords, stop=stop_coords,
                 speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
-                avoid_tide=walk["avoidTide"], tide_level=opt['tideLevel'],
-                boots_height=walk['bootsHeight'],
-                avoid_public_transport=walk["avoidPublicTransport"],
+                avoid_tide=tide["avoidTide"], tide_level=tide['tideLevel'],
+                boots_height=tide['bootsHeight'],
+                avoid_public_transport=not walk["usePublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
                 start_time=start_time,
-                motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
-                boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
+                motor=boat["boatType"] == "motor", boat_speed=boat["boatSpeed"],
+                boat_width=boat["boatWidth"], boat_height=boat["boatHeight"], boat_draft=boat["boatDraft"],
                 alternatives=opt["alternatives"]
             )
             return api_response(data=info, lang=lang)
