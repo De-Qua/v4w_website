@@ -602,28 +602,31 @@ class resolveShortUrl(Resource):
                     for stop_label, stop_coord in zip(payload_dict['stopLabels'], payload_dict['stop'])
                 ]
             # options for the search
-            search_options = payload_dict['options']
-            boat = search_options['boatOptions']
-            method = search_options['method']
-            if method == "walk":
-                mode = "walk"
-                walk = search_options['walkingOptions']
-                if walk["useAccessibleOptions"]:
-                    walk = search_options['accessibleOptions']
+            opt = payload_dict['options']
+            tide = opt["tideOptions"]
+            walk = opt["walkingOptions"]
+            boat = opt["boatOptions"]
 
-            # elif opt["method"] == "accessible":
-            #     mode = "walk"
-            #     walk = self.accessparse.parse_args(req=opt)
-            elif method == "boat":
-                mode = "boat"
-                walk = boat
+            if not boat:
+                boat = {
+                    "boatSpeed": 5/3.6,
+                    "boatWidth": 1.5,
+                    "boatHeight": 1,
+                    "boatDraft": 0.3,
+                    "boatType": "motor"
+                }
 
-            # walk takes different shapes so that later only those
-            # parameters are used.
-            # we always use walk[speed] but if you are walking walk is walk
-            # but if you are by boat walk is boat so walk[speed] is actually
-            # boat[speed]
+            lang = payload_dict["language"]
+
+            mode = opt["method"]
             avoid_bridges = walk["bridgeWeight"] > 1
+
+            # convert time to correct timezone
+            start_time = opt["time"]
+            if not start_time:
+                start_time = dt.datetime.now()
+            
+            start_time = start_time.astimezone(TZ_VENICE)
 
             try:
                 start_coords, end_coords = check_format_coordinates(payload_dict['start'], payload_dict['end'])
@@ -636,20 +639,20 @@ class resolveShortUrl(Resource):
 
             ## launch the search
             try:
-                #ipdb.set_trace()
                 info = iAPI.find_shortest_path_from_coordinates(
                     mode=mode,
                     start=start_coords, end=end_coords, stop=stop_coords,
                     speed=walk["walkSpeed"], avoid_bridges=avoid_bridges,
-                    avoid_tide=walk["avoidTide"], tide_level=search_options['tideLevel'],
-                    boots_height=walk['bootsHeight'],
-                    avoid_public_transport=walk["avoidPublicTransport"],
-                    prefer_public_transport=walk["preferPublicTransport"],
-                    start_time=search_options["time"],
-                    motor=boat["type"] == "motor", boat_speed=boat["boatSpeed"],
-                    boat_width=boat["width"], boat_height=boat["height"], boat_draft=boat["draft"],
-                    alternatives=search_options.get("alternatives", None)
+                    avoid_tide=tide["avoidTide"], tide_level=tide['tideLevel'],
+                    boots_height=tide['bootsHeight'],
+                    avoid_public_transport=not walk["usePublicTransport"],
+                    prefer_public_transport=walk.get("preferPublicTransport", False),
+                    start_time=start_time,
+                    motor=boat["boatType"] == "motor", boat_speed=boat["boatSpeed"],
+                    boat_width=boat["boatWidth"], boat_height=boat["boatHeight"], boat_draft=boat["boatDraft"],
+                    alternatives=opt.get("alternatives", False)
                 )
+
                 final_data = {
                         'endpoint': 'path',
                         'data': info,
@@ -658,7 +661,7 @@ class resolveShortUrl(Resource):
                 return api_response(data=final_data)
             except Exception as e:
                 current_app.logger.error(str(e))
-                return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE))
+                return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
 
         elif endpoint == 'location':
             payload_dict = json.loads(payload)

@@ -454,12 +454,17 @@ def generate_short_url(payload: str, endpoint: str, length: int, words_code: boo
     Saves the payload in the database (as text in a json file) and the endpoint,
     generates a short code which is saved as well and returned to the frontend.
     """
+    short_colde_valid = False
+    while not short_colde_valid:
+        if not words_code: # use words!
+            short_code = generate_short_code(num_of_chars=length)
+        else: # efficient short code
+            short_code = generate_words_code()
+        ipdb.set_trace()
+        if not ShortURL.query.filter_by(shortcode=short_code).one_or_none():
+            short_colde_valid = True
     generation_date = dt.datetime.today()
     expiration_date = generation_date + dt.timedelta(days=7)
-    if not words_code: # use words!
-        short_code = generate_short_code(num_of_chars=length)
-    else: # efficient short code
-        short_code = generate_words_code()
     short_url = ShortURL(endpoint=endpoint, shortcode=short_code, payload=payload, generation_date=generation_date, expiration_date=expiration_date)
     db.session.add(short_url)
     db.session.commit()
