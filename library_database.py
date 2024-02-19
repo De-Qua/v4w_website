@@ -21,6 +21,7 @@ import geopy.distance
 from poi import library_overpass as op
 import sqlalchemy
 import time
+import datetime as dt
 import json
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
@@ -392,7 +393,7 @@ def update_locations(shp, showFig=False, explain=False):
         elif len(sestieri) == 1:
             sestiere = sestieri[0]
         elif len(sestieri) > 1:
-            ipdb.set_trace()
+            # ipdb.set_trace()
             # se c'è più di un sestiere cerca di capire quale è quello giusto
             sestiere = []
 
@@ -783,7 +784,7 @@ def update_addresses(shp, showFig=False, explain=False):
         write = csv.writer(f)
         write.writerows(err_report)
 
-    ipdb.set_trace()
+    # ipdb.set_trace()
     return err_civ
 
 
@@ -890,99 +891,95 @@ def update_POI(pois,explain=False):
         if p:
             # per ora skippo
             # TODO: aggiornare il POI che è già presente se ci sono informazioni nuove
+            is_poi_new = False
             already_there += 1
-            continue
-        # caso in cui nel db non esiste il POI
-        # estrai coordinate
-        if poi['type'] == 'node':
-            lat = poi['lat']
-            lon = poi['lon']
+            # continue
         else:
-            lat = poi['center']['lat']
-            lon = poi['center']['lon']
-        # controllo che il poi appartenga a uno dei neighborhood
-        poi_point = Point(lon, lat)
-        # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
-        neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
-        # se il poi non è contenuto in nessun passa al successivo
-        if len(neighborhoods)==0:
-            continue
-        elif len(neighborhoods)>1:
-            # se c'è più di un sestiere aggiungi agli errori e passa al successivo
-            err_poi.append((0,poi))
-            continue
+            # caso in cui nel db non esiste il POI
+            # estrai coordinate
+            if poi['type'] == 'node':
+                lat = poi['lat']
+                lon = poi['lon']
+            else:
+                lat = poi['center']['lat']
+                lon = poi['center']['lon']
+            # controllo che il poi appartenga a uno dei neighborhood
+            poi_point = Point(lon, lat)
+            # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
+            neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+            # se il poi non è contenuto in nessun passa al successivo
+            if len(neighborhoods)==0:
+                continue
+            elif len(neighborhoods)>1:
+                # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+                err_poi.append((0,poi))
+                continue
 
-        # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
-        without_address = False
-        for key in types_without_address.keys():
-            if key in poi['tags'].keys():
-                if poi['tags'][key] in types_without_address[key]:
-                    without_address = True
-                    # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
-                    break
-        if without_address:
-            # controllo che non esista già la location a quelle coordinate
-            loc = location_query.filter_by(latitude=lat, longitude=lon).first()
-            if not loc:
-                # trovo la strada a cui appartiene il POI
-                # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
-                streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
-                if len(streets) == 0:
-                    # se non ho trovato nessuna strada cerco la location più vicina
-                    # closest,dist = closest_location(poi['lat'],poi['lon'])
-                    # if not closest or dist > max_dist:
-                    #     err_poi.append((1,poi))
-                    #     continue
-                    streets = [None]
-                elif len(streets) > 1:
-                    err_poi.append((2,poi))
+            # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
+            without_address = False
+            for key in types_without_address.keys():
+                if key in poi['tags'].keys():
+                    if poi['tags'][key] in types_without_address[key]:
+                        without_address = True
+                        # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
+                        break
+            if without_address:
+                # controllo che non esista già la location a quelle coordinate
+                loc = location_query.filter_by(latitude=lat, longitude=lon).first()
+                if not loc:
+                    # trovo la strada a cui appartiene il POI
+                    # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
+                    streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
+                    if len(streets) == 0:
+                        # se non ho trovato nessuna strada cerco la location più vicina
+                        # closest,dist = closest_location(poi['lat'],poi['lon'])
+                        # if not closest or dist > max_dist:
+                        #     err_poi.append((1,poi))
+                        #     continue
+                        streets = [None]
+                    elif len(streets) > 1:
+                        err_poi.append((2,poi))
+                        continue
+                    # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
+                    loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+                    db.session.add(loc)
+                    new_loc += 1
+
+            else:
+                # il poi va aggiunto ad una location con indirizzo
+                # cerco la location più vicina
+                closest, dist = closest_location(lat, lon, housenumber=True)
+                if not closest:
+                    err_poi.append((3,poi))
                     continue
-                # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
-                loc = Location(latitude=lat, longitude=lon, shape=poi_point)
-                db.session.add(loc)
-                new_loc += 1
-
-        else:
-            # il poi va aggiunto ad una location con indirizzo
-            # cerco la location più vicina
-            closest, dist = closest_location(lat, lon, housenumber=True)
-            if not closest:
-                err_poi.append((3,poi))
-                continue
-            # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
-            elif dist > max_dist:
-                err_poi.append((4,poi))
-                continue
-            loc = closest
-        # creo il poi
-        p = Poi(location=loc, osm_id=poi['id'])
+                # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
+                elif dist > max_dist:
+                    err_poi.append((4,poi))
+                    continue
+                loc = closest
+            # creo il poi
+            p = Poi(location=loc, osm_id=poi['id'])
+            is_poi_new = True
         # loop sui tag del poi
         for tag_name in poi['tags']:
             # aggiungo attributi al poi
             if tag_name in tags_col.keys():
+                value = poi['tags'][tag_name]
                 col_name = tags_col[tag_name]
-                value = None
+                col_type = p.__table__.c[col_name].type
                 # i nostri boolean su osm sono "yes"/"no"
-                if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
-                    if poi['tags'][tag_name] == "yes":
+                if type(col_type)==sqlalchemy.types.Boolean:
+                    if value == "yes":
                         value = True
-                    elif poi['tags'][tag_name] == "no":
+                    else:
                         value = False
-                else:
-                    value = poi['tags'][tag_name]
-                    # control length
-                    if tag_name == 'name':
-                        if len(value) > 127:
-                            print("truncating name..")
-                            value = value[:127]
-                    if tag_name == 'phone':
-                        if len(value) > 32:
-                            print("truncating phone numbers..")
-                            value = value[:32]
-                    if tag_name == 'wheelchair':
-                        if len(value) > 7:
-                            print("truncating wheelchair..")
-                            value = value[:7]
+
+                elif type(col_type)==sqlalchemy.types.String:
+                    col_length = col_type.length
+                    if len(value) >= col_length:
+                        print(f"Truncating {col_name}...")
+                        value = value[:col_length-1]
+
                 setattr(p, col_name, value)
             # aggiungo categorie al poi
             elif tag_name in tags_cat.keys():
@@ -1010,8 +1007,11 @@ def update_POI(pois,explain=False):
                     p.osm_other_tags = ""
                 p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
         # aggiungo al database
-        db.session.add(p)
-        new_poi += 1
+        if is_poi_new:
+            db.session.add(p)
+            new_poi += 1
+        else:
+            p.last_change = dt.datetime.now()
 
     if explain:
         print("committo nel database..")
