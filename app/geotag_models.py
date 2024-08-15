@@ -26,10 +26,10 @@ class GeotagUser(db.Model):
     active = db.Column(db.Boolean(), default=False)
     confirmed_at = db.Column(db.DateTime())
     # Relations
-    tags = db.relationship('Tag', lazy=True, backref=db.backref('creator', lazy=True))
-    layers = db.relationship('Layer', lazy=True, backref=db.backref('owner', lazy=True))
-    layer_items = db.relationship('LayerItem', lazy=True, backref=db.backref('owner', lazy=True))
-    extra_data_groups = db.relationship('LayerItemExtraDataGroup', lazy=True, backref=db.backref('owner', lazy=True))
+    tags = db.relationship('Tag', backref=db.backref('creator'))
+    layers = db.relationship('Layer', backref=db.backref('owner'))
+    layer_items = db.relationship('LayerItem', backref=db.backref('owner'))
+    extra_data_groups = db.relationship('LayerItemExtraDataGroup', backref=db.backref('owner'))
     
 
 class Language(db.Model):
@@ -64,17 +64,20 @@ class Visibility(db.Model):
     layers = db.relationship('Layer', lazy=True, backref=db.backref('visibility', lazy=True))
     
 
-
+geotag_user_table = db.table('geotag_user',
+                            db.Column('geotag_user_id', db.Integer(), db.ForeignKey('geotag_user.id')),
+                            db.Column('layer_datagroup_id', db.Integer(), db.ForeignKey('datagroup.id')))
+                            #info={'bind_key': 'geotag'})
 
 layer_tag_table = db.Table('layer_tag',
                             db.Column('layer_id', db.Integer(), db.ForeignKey('layer.id')),
-                            db.Column('tag_id', db.Integer(), db.ForeignKey('tag.id')),
-                            info={'bind_key': 'geotag'})
+                            db.Column('tag_id', db.Integer(), db.ForeignKey('tag.id')))
+                            #info={'bind_key': 'geotag'})
 
 layer_datagroup_table = db.Table('layer_datagroup',
                             db.Column('layer_id', db.Integer(), db.ForeignKey('layer.id')),
-                            db.Column('datagroup_id', db.Integer(), db.ForeignKey('datagroup.id')),
-                            info={'bind_key': 'geotag'})
+                            db.Column('datagroup_id', db.Integer(), db.ForeignKey('datagroup.id')))
+                            #info={'bind_key': 'geotag'})
 
 class Layer(db.Model):
     __bind_key__ = 'geotag'

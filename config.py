@@ -27,7 +27,9 @@ class Config(object):
         # dequa_config_data has error codes, languages and so on
         "config_data": 'postgresql:///dequa_config_data',
         # dequa_internal has the registered users, the tokens and apis
-        "internal": 'postgresql:///dequa_internal'
+        "internal": 'postgresql:///dequa_internal',
+        # geotag has the information for the geoposting part
+        "geotag": 'postgresql:///geotag'
     }
     #"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
     #"users": 'sqlite:///' + os.path.join(basedir, 'users.db'),

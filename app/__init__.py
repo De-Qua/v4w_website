@@ -184,6 +184,7 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
+
 # create database for data
 db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention), model_class=BaseModel)
 migrate = Migrate(app=app, db=db)
@@ -200,7 +201,7 @@ with app.app_context():
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app, [track_datastore])
 
-from app import routes, errors, models
+from app import routes, errors, models, geotag_models
 from app.models import Errors, Feedbacks
 from app.models import Ideas
 from app.models import FlaskUsage
