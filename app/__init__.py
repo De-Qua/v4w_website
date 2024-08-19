@@ -209,6 +209,8 @@ from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCatego
 from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
 from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
 
+from app.geotag_models import *
+
 #
 # Users setup
 #
