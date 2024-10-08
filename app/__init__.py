@@ -252,6 +252,21 @@ admin.add_view(AnalyticsView(name='Analytics', endpoint="analytics", category="U
 admin.add_view(ErrorsModelView(Errors, db.session))
 admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Feedback"))
 admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visualization", category="Feedback"))
+admin.add_view(AdminModelView(Geouser, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Language, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Tag, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Visibility, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Layer, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItem, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerContributionPolicy, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataGroup, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataType, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameter, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterValue, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterValueTranslations, db.session, category="GeoTag"))
 
 #
 # Flask Restful API setup
