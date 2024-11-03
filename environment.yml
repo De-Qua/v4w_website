@@ -25,10 +25,12 @@ dependencies:
   - flask-migrate=2.4.0
   - flask-cors=3.0.8
   - flask-mail=0.9.1
+  - flask-wtf=1.0.1
   - email-validator=1.1.2
   - flask-security=3.0.0
   - werkzeug=2.0.1
   - jinja2=3.0.3
+  - wtforms=3.0.1
   # Server
   - gunicorn=20.1.0
   # Other utils
@@ -41,6 +43,7 @@ dependencies:
     - greenlet==0.4.16
     - meinheld==1.0.2
     - geoalchemy2==0.9.2
+    - psycopg2==2.9.3
     - flask-shell-ipython==0.4.1
     - flask-track-usage==2.0.0
     - git+https://github.com/De-Qua/dequa-graph.git
