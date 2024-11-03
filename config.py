@@ -90,7 +90,7 @@ class ProductionConfig(Config):
             # dequa_internal has the registered users, the tokens and apis
             "internal": f'postgresql://{DB_SERVER}/dequa_internal',
             # geotag has the information for the geoposting part
-            "geotag": f'postgresql://{DB_SERVER}/geotag'
+            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag'
         }
 
 class DevelopmentConfig(Config):
@@ -106,5 +106,5 @@ class DevelopmentConfig(Config):
             # dequa_internal has the registered users, the tokens and apis
             "internal": f'postgresql://{DB_SERVER}/dequa_internal',
             # geotag has the information for the geoposting part
-            "geotag": f'postgresql://{DB_SERVER}/geotag'
+            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag'
         }
