@@ -2,7 +2,7 @@ import datetime
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
 import yaml
-from config import Config
+from config import ProductionConfig, DevelopmentConfig
 import sys
 import os
 import logging
@@ -32,7 +32,11 @@ from flask_apscheduler import APScheduler
 #
 
 app = Flask(__name__)
-app.config.from_object(Config)
+if os.environ.get('ENV') == 'prod':
+    app.config.from_object(ProductionConfig)
+else:
+    print("DEVELOPMENT CONFIGURATION")
+    app.config.from_object(DevelopmentConfig)
 
 ### words
 import app.src.libpy.words_gen.words_list as words_list
