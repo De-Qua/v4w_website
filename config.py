@@ -20,15 +20,24 @@ class Config(object):
     # SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
     #     'postgresql:///' + os.path.join(basedir, 'dequa.db')
     #SQLALCHEMY_DATABASE_URI = "postgresql://127.0.0.1:5432/dequa"
-    SQLALCHEMY_DATABASE_URI = "postgresql:///opendata_ve_pg"
-    SQLALCHEMY_BINDS = {
-        # dequa_collected_data has usage, errors, feedback and so on
-        "collected_data": 'postgresql:///dequa_collected_data',
-        # dequa_config_data has error codes, languages and so on
-        "config_data": 'postgresql:///dequa_config_data',
-        # dequa_internal has the registered users, the tokens and apis
-        "internal": 'postgresql:///dequa_internal'
-    }
+    # DB_SERVER = 'localhost:5432'
+
+    # @property
+    # def SQLALCHEMY_DATABASE_URI(self): 
+    #     return f"postgresql://{DB_SERVER}/opendata_ve_pg"
+    # @property
+    # def SQLALCHEMY_BINDS(self): 
+    #     binds = {
+    #         # dequa_collected_data has usage, errors, feedback and so on
+    #         "collected_data": f'postgresql://{DB_SERVER}/dequa_collected_data',
+    #         # dequa_config_data has error codes, languages and so on
+    #         "config_data": f'postgresql://{DB_SERVER}/dequa_config_data',
+    #         # dequa_internal has the registered users, the tokens and apis
+    #         "internal": f'postgresql://{DB_SERVER}/dequa_internal',
+    #         # geotag has the information for the geoposting part
+    #         "geotag": f'postgresql://{DB_SERVER}/geotag'
+    #     }
+    #     return binds
     #"trackusage": 'sqlite:///' + os.path.join(basedir, 'trackusage.db'),
     #"users": 'sqlite:///' + os.path.join(basedir, 'users.db'),
     #"errors": 'sqlite:///' + os.path.join(basedir, 'errorMsg.db'),
@@ -67,3 +76,35 @@ class Config(object):
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     PROPAGATE_EXCEPTIONS = True
+
+class ProductionConfig(Config):
+    DB_SERVER = ''
+
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_SERVER}/opendata_ve_pg"
+
+    SQLALCHEMY_BINDS = {
+            # dequa_collected_data has usage, errors, feedback and so on
+            "collected_data": f'postgresql://{DB_SERVER}/dequa_collected_data',
+            # dequa_config_data has error codes, languages and so on
+            "config_data": f'postgresql://{DB_SERVER}/dequa_config_data',
+            # dequa_internal has the registered users, the tokens and apis
+            "internal": f'postgresql://{DB_SERVER}/dequa_internal',
+            # geotag has the information for the geoposting part
+            "geotag": f'postgresql://{DB_SERVER}/geotag'
+        }
+
+class DevelopmentConfig(Config):
+    DB_SERVER = 'dequa:dequa@localhost:5432'
+
+    SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_SERVER}/opendata_ve_pg"
+
+    SQLALCHEMY_BINDS = {
+            # dequa_collected_data has usage, errors, feedback and so on
+            "collected_data": f'postgresql://{DB_SERVER}/dequa_collected_data',
+            # dequa_config_data has error codes, languages and so on
+            "config_data": f'postgresql://{DB_SERVER}/dequa_config_data',
+            # dequa_internal has the registered users, the tokens and apis
+            "internal": f'postgresql://{DB_SERVER}/dequa_internal',
+            # geotag has the information for the geoposting part
+            "geotag": f'postgresql://{DB_SERVER}/geotag'
+        }

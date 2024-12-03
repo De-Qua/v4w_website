@@ -495,6 +495,8 @@ def correct_name(name):
     name = name.replace("s.","san ")
     # 2. Rimozione doppi spazi
     name = name.replace("  "," ")
+    # 3. Sostituzione apostrofo
+    name = name.replace("’", "'")
     # Ritorna stringa corretta
     return name.upper()
 

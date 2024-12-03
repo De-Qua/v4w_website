@@ -23,18 +23,18 @@ def make_shell_context():
 # Create the tables for the users and roles and add a user to the user table
 # This decorator registers a function to be run before the first request to the app
 #  i.e. calling localhost:5000 from the browser
-@app.before_first_request
-def before_first_request():
-    if app.debug:
-        # Create any database tables that don't exist yet.
-        app.logger.debug("Before first request")
-        db.create_all(bind='internal')
-        create_first_user_role(db.session)
-        app.logger.debug("User created")
-        create_all_api(db.session)
-        app.logger.debug("Api created")
-        create_admin_token(db.session)
-        app.logger.debug("Admin token created")
+# @app.before_first_request
+# def before_first_request():
+#     if app.debug:
+#         # Create any database tables that don't exist yet.
+#         app.logger.debug("Before first request")
+#         db.create_all(bind='internal')
+#         create_first_user_role(db.session)
+#         app.logger.debug("User created")
+#         create_all_api(db.session)
+#         app.logger.debug("Api created")
+#         create_admin_token(db.session)
+#         app.logger.debug("Admin token created")
 
 
 def create_all_api(session):

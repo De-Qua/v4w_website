@@ -2,7 +2,7 @@ import datetime
 from flask import Flask, url_for, redirect
 from flask.logging import default_handler
 import yaml
-from config import Config
+from config import ProductionConfig, DevelopmentConfig
 import sys
 import os
 import logging
@@ -32,7 +32,11 @@ from flask_apscheduler import APScheduler
 #
 
 app = Flask(__name__)
-app.config.from_object(Config)
+if os.environ.get('ENV') == 'prod':
+    app.config.from_object(ProductionConfig)
+else:
+    print("DEVELOPMENT CONFIGURATION")
+    app.config.from_object(DevelopmentConfig)
 
 ### words
 import app.src.libpy.words_gen.words_list as words_list
@@ -184,6 +188,7 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
+
 # create database for data
 db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention), model_class=BaseModel)
 migrate = Migrate(app=app, db=db)
@@ -200,13 +205,15 @@ with app.app_context():
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app, [track_datastore])
 
-from app import routes, errors, models
+from app import routes, errors, models, geotag_models
 from app.models import Errors, Feedbacks
 from app.models import Ideas
 from app.models import FlaskUsage
 from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCategoryType, Street
 from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
 from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
+
+from app.geotag_models import *
 
 #
 # Users setup
@@ -249,6 +256,21 @@ admin.add_view(AnalyticsView(name='Analytics', endpoint="analytics", category="U
 admin.add_view(ErrorsModelView(Errors, db.session))
 admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Feedback"))
 admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visualization", category="Feedback"))
+admin.add_view(AdminModelView(Geouser, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Language, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Tag, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Visibility, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(Layer, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItem, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerContributionPolicy, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataGroup, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataType, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameter, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterValue, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemExtraDataParameterValueTranslations, db.session, category="GeoTag"))
 
 #
 # Flask Restful API setup

@@ -67,3 +67,19 @@ psql -f internal.sql dequa_internal
 psql -f collected.sql dequa_collected_data
 psql -f config.sql dequa_config_data
 ```
+
+## Docker version
+
+### Setup database
+
+```bash
+docker compose up -d
+```
+
+### Restore database
+
+```bash
+docker cp ./db/db_dump/opendata.sql dq_postgres:/tmp/ 
+
+docker exec -it dq_postgres psql -U dequa -f /tmp/opendata.sql opendata_ve_pg
+```

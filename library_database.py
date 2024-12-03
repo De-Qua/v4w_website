@@ -21,6 +21,7 @@ import geopy.distance
 from poi import library_overpass as op
 import sqlalchemy
 import time
+import datetime as dt
 import json
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipolygon import MultiPolygon
@@ -392,7 +393,7 @@ def update_locations(shp, showFig=False, explain=False):
         elif len(sestieri) == 1:
             sestiere = sestieri[0]
         elif len(sestieri) > 1:
-            ipdb.set_trace()
+            # ipdb.set_trace()
             # se c'è più di un sestiere cerca di capire quale è quello giusto
             sestiere = []
 
@@ -783,7 +784,7 @@ def update_addresses(shp, showFig=False, explain=False):
         write = csv.writer(f)
         write.writerows(err_report)
 
-    ipdb.set_trace()
+    # ipdb.set_trace()
     return err_civ
 
 
@@ -980,7 +981,7 @@ def update_POI(pois,explain=False):
                     setattr(p, "osm_other_tags", poi_osm_other_tags)
                     print(f'new value for osm_other_tags = {poi_osm_other_tags}')
                     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
-                
+                p.last_change = dt.datetime.now()
                 # AGGIORNO il database
                 if has_something_changed == True:
                     db.session.commit()
@@ -1047,6 +1048,92 @@ def update_POI(pois,explain=False):
                     db.session.add(loc)
                     new_loc += 1
 
+# <<<<<<< gt_words_ubuntu
+#             else:
+#                 # il poi va aggiunto ad una location con indirizzo
+#                 # cerco la location più vicina
+#                 closest, dist = closest_location(lat, lon, housenumber=True)
+#                 if not closest:
+#                     err_poi.append((3,poi))
+#                     continue
+#                 # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
+#                 elif dist > max_dist:
+#                     err_poi.append((4,poi))
+#                     continue
+#                 loc = closest
+#             # creo il poi
+#             p = Poi(location=loc, osm_id=poi['id'])
+
+#             # errors in the tag names (too long)
+#             # should be don in models.py
+#             try:
+#                 # loop sui tag del poi
+#                 for tag_name in poi['tags']:
+#                     # aggiungo attributi al poi
+#                     if tag_name in tags_col.keys():
+#                         col_name = tags_col[tag_name]
+#                         value = None
+#                         # i nostri boolean su osm sono "yes"/"no"
+#                         if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
+#                             if poi['tags'][tag_name] == "yes":
+#                                 value = True
+#                             elif poi['tags'][tag_name] == "no":
+#                                 value = False
+#                         else:
+#                             value = poi['tags'][tag_name]
+#                             # control length
+#                             if tag_name == 'name':
+#                                 if len(value) > 127:
+#                                     print("truncating name..")
+#                                     value = value[:127]
+#                             if tag_name == 'phone':
+#                                 if len(value) > 32:
+#                                     print("truncating phone numbers..")
+#                                     value = value[:32]
+#                             if tag_name == 'wheelchair':
+#                                 if len(value) > 7:
+#                                     print("truncating wheelchair..")
+#                                     value = value[:7]
+#                         setattr(p, col_name, value)
+#                     # aggiungo categorie al poi
+#                     elif tag_name in tags_cat.keys():
+#                         cat_name = tags_cat[tag_name]
+#                         # if cat_name == 'name':
+#                         #     if len(value) > 32:
+#                         #         print("truncating poi category name..")
+#                         #         value = value[:32]
+#                         # estraggo o creo la categoria corrispondente
+#                         c = category_query.filter_by(name=cat_name).one_or_none()
+#                         if not c:
+#                             c = PoiCategory(name = cat_name)
+#                             db.session.add(c)
+#                             new_cat += 1
+#                         # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
+#                         all_types = poi['tags'][tag_name]
+#                         all_types = all_types.split(";")
+#                         for typ in all_types:
+#                             t = type_query.filter_by(name=typ.strip()).one_or_none()
+#                             if not t:
+#                                 t = PoiCategoryType(name=typ,category=c)
+#                                 db.session.add(t)
+#                                 new_typ += 1
+#                             # aggiungo all'oggetto poi
+#                             p.add_type(t)
+#                     # aggiungo altri tag al poi
+#                     else:
+#                         if not p.osm_other_tags:
+#                             p.osm_other_tags = ""
+#                         p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
+#                 # aggiungo al database
+#                 db.session.add(p)
+#                 db.session.commit()
+#                 new_poi += 1
+#             except:
+#                 print("Error in the attribute in the poi p", p)
+#                 # print('category', c)
+#                 # print('category type', t)
+#                 db.session.rollback()            
+# <<<<<<<< DOCKER branch version
             else:
                 # il poi va aggiunto ad una location con indirizzo
                 # cerco la location più vicina
@@ -1061,79 +1148,70 @@ def update_POI(pois,explain=False):
                 loc = closest
             # creo il poi
             p = Poi(location=loc, osm_id=poi['id'])
-
-            # errors in the tag names (too long)
-            # should be don in models.py
-            try:
-                # loop sui tag del poi
-                for tag_name in poi['tags']:
-                    # aggiungo attributi al poi
-                    if tag_name in tags_col.keys():
-                        col_name = tags_col[tag_name]
-                        value = None
-                        # i nostri boolean su osm sono "yes"/"no"
-                        if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
-                            if poi['tags'][tag_name] == "yes":
-                                value = True
-                            elif poi['tags'][tag_name] == "no":
-                                value = False
-                        else:
-                            value = poi['tags'][tag_name]
-                            # control length
-                            if tag_name == 'name':
-                                if len(value) > 127:
-                                    print("truncating name..")
-                                    value = value[:127]
-                            if tag_name == 'phone':
-                                if len(value) > 32:
-                                    print("truncating phone numbers..")
-                                    value = value[:32]
-                            if tag_name == 'wheelchair':
-                                if len(value) > 7:
-                                    print("truncating wheelchair..")
-                                    value = value[:7]
-                        setattr(p, col_name, value)
-                    # aggiungo categorie al poi
-                    elif tag_name in tags_cat.keys():
-                        cat_name = tags_cat[tag_name]
-                        # if cat_name == 'name':
-                        #     if len(value) > 32:
-                        #         print("truncating poi category name..")
-                        #         value = value[:32]
-                        # estraggo o creo la categoria corrispondente
-                        c = category_query.filter_by(name=cat_name).one_or_none()
-                        if not c:
-                            c = PoiCategory(name = cat_name)
-                            db.session.add(c)
-                            new_cat += 1
-                        # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
-                        all_types = poi['tags'][tag_name]
-                        all_types = all_types.split(";")
-                        for typ in all_types:
-                            t = type_query.filter_by(name=typ.strip()).one_or_none()
-                            if not t:
-                                t = PoiCategoryType(name=typ,category=c)
-                                db.session.add(t)
-                                new_typ += 1
-                            # aggiungo all'oggetto poi
-                            p.add_type(t)
-                    # aggiungo altri tag al poi
+            is_poi_new = True
+        # loop sui tag del poi
+        for tag_name in poi['tags']:
+            # aggiungo attributi al poi
+            if tag_name in tags_col.keys():
+                value = poi['tags'][tag_name]
+                col_name = tags_col[tag_name]
+                col_type = p.__table__.c[col_name].type
+                # i nostri boolean su osm sono "yes"/"no"
+                if type(col_type)==sqlalchemy.types.Boolean:
+                    if value == "yes":
+                        value = True
                     else:
-                        if not p.osm_other_tags:
-                            p.osm_other_tags = ""
-                        p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
-                # aggiungo al database
-                db.session.add(p)
-                db.session.commit()
-                new_poi += 1
-            except:
-                print("Error in the attribute in the poi p", p)
-                # print('category', c)
-                # print('category type', t)
-                db.session.rollback()            
-            ############################
-            # END OF NEW POI INSERTION #
-            ############################
+                        value = False
+
+                elif type(col_type)==sqlalchemy.types.String:
+                    col_length = col_type.length
+                    if len(value) >= col_length:
+                        print(f"Truncating {col_name}:{value}...")
+                        value = value[:col_length-1]
+
+                setattr(p, col_name, value)
+            # aggiungo categorie al poi
+            elif tag_name in tags_cat.keys():
+                cat_name = tags_cat[tag_name]
+                # estraggo o creo la categoria corrispondente
+                c = category_query.filter_by(name=cat_name).one_or_none()
+                if not c:
+                    c = PoiCategory(name = cat_name)
+                    max_length_poi_category = c.__table__.c["name"].type.length
+                    if len(c.name) > max_length_poi_category:
+                        print(f"Truncating {c.name}...")
+                        c.name = c.name[:max_length_poi_category]
+                    db.session.add(c)
+                    new_cat += 1
+                # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
+                all_types = poi['tags'][tag_name]
+                all_types = all_types.split(";")
+                for typ in all_types:
+                    t = type_query.filter_by(name=typ.strip()).one_or_none()
+                    if not t:
+                        t = PoiCategoryType(name=typ,category=c)
+                        max_length_poi_category_type = t.__table__.c["name"].type.length
+                        if len(t.name) > max_length_poi_category_type:
+                            print(f"Truncating {t.name}...")
+                            t.name = t.name[:max_length_poi_category_type]
+                        db.session.add(t)
+                        new_typ += 1
+                    # aggiungo all'oggetto poi
+                    p.add_type(t)
+            # aggiungo altri tag al poi
+            else:
+                if not p.osm_other_tags:
+                    p.osm_other_tags = ""
+                p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
+        # aggiungo al database
+        if is_poi_new:
+            db.session.add(p)
+            new_poi += 1
+        else:
+            p.last_change = dt.datetime.now()
+        ############################
+        # END OF NEW POI INSERTION #
+        ############################
 
     if explain:
         print("committo nel database..")

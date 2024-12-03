@@ -172,6 +172,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                                   avoid_tide=False, tide_level=None, boots_height=0,
                                   alternatives=False, avoid_public_transport=True,
                                   prefer_public_transport=False, start_time=None,
+                                  transport_change_penalty=61,
                                   **kwargs):
     """
     It calculates the shortest path by calling the methods in lib_graph_tool.
@@ -204,6 +205,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             time_edge_property = None
             transport_property = None
             timetable_property = None
+            direction_property = None
         elif transport == "with_public_transport":
             graph = current_app.graphs['waterbus']
             use_public_transport = True
@@ -213,6 +215,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             time_edge_property = dqg_weight.get_weight_time(graph=graph['graph'], speed=speed)
             transport_property = graph['graph'].vp.transport_stop
             timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
+            direction_property = graph['graph'].ep.direction
 
         # get tide if not present
         if avoid_tide and not tide_level:
@@ -238,7 +241,9 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
                 start_time=start_time,
                 time_edge_property=time_edge_property,
                 transport_property=transport_property,
-                timetable_property=timetable_property
+                timetable_property=timetable_property,
+                direction_property=direction_property,
+                transport_change_penalty=transport_change_penalty
             )
 
         except dqg_err.NoPathFound:
@@ -449,12 +454,16 @@ def generate_short_url(payload: str, endpoint: str, length: int, words_code: boo
     Saves the payload in the database (as text in a json file) and the endpoint,
     generates a short code which is saved as well and returned to the frontend.
     """
+    short_colde_valid = False
+    while not short_colde_valid:
+        if not words_code: # use words!
+            short_code = generate_short_code(num_of_chars=length)
+        else: # efficient short code
+            short_code = generate_words_code()
+        if not ShortURL.query.filter_by(shortcode=short_code).one_or_none():
+            short_colde_valid = True
     generation_date = dt.datetime.today()
     expiration_date = generation_date + dt.timedelta(days=7)
-    if not words_code: # use words!
-        short_code = generate_short_code(num_of_chars=length)
-    else: # efficient short code
-        short_code = generate_words_code()
     short_url = ShortURL(endpoint=endpoint, shortcode=short_code, payload=payload, generation_date=generation_date, expiration_date=expiration_date)
     db.session.add(short_url)
     db.session.commit()
