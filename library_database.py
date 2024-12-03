@@ -977,7 +977,7 @@ def update_POI(pois,explain=False):
                 elif type(col_type)==sqlalchemy.types.String:
                     col_length = col_type.length
                     if len(value) >= col_length:
-                        print(f"Truncating {col_name}...")
+                        print(f"Truncating {col_name}:{value}...")
                         value = value[:col_length-1]
 
                 setattr(p, col_name, value)
@@ -988,6 +988,10 @@ def update_POI(pois,explain=False):
                 c = category_query.filter_by(name=cat_name).one_or_none()
                 if not c:
                     c = PoiCategory(name = cat_name)
+                    max_length_poi_category = c.__table__.c["name"].type.length
+                    if len(c.name) > max_length_poi_category:
+                        print(f"Truncating {c.name}...")
+                        c.name = c.name[:max_length_poi_category]
                     db.session.add(c)
                     new_cat += 1
                 # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
@@ -997,6 +1001,10 @@ def update_POI(pois,explain=False):
                     t = type_query.filter_by(name=typ.strip()).one_or_none()
                     if not t:
                         t = PoiCategoryType(name=typ,category=c)
+                        max_length_poi_category_type = t.__table__.c["name"].type.length
+                        if len(t.name) > max_length_poi_category_type:
+                            print(f"Truncating {t.name}...")
+                            t.name = t.name[:max_length_poi_category_type]
                         db.session.add(t)
                         new_typ += 1
                     # aggiungo all'oggetto poi
