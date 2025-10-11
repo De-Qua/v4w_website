@@ -6,6 +6,7 @@ DUMP_FILES[opendata_ve_pg]="opendata.sql"
 DUMP_FILES[dequa_internal]="internal.sql" 
 DUMP_FILES[dequa_collected_data]="collected.sql" 
 DUMP_FILES[dequa_config_data]="config.sql" 
+DUMP_FILES[dequa_geotag]="geotag.sql" 
 
 CONTAINER_NAME=dq_postgres
 POSTGRES_USER=dequa

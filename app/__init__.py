@@ -205,7 +205,7 @@ with app.app_context():
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app, [track_datastore])
 
-from app import routes, errors, models, geotag_models
+from app import routes, errors, models
 from app.models import Errors, Feedbacks
 from app.models import Ideas
 from app.models import FlaskUsage
@@ -213,7 +213,7 @@ from app.models import Area, Location, Neighborhood, Poi, PoiCategory, PoiCatego
 from app.models import Languages, ErrorGroups, ErrorCodes, ErrorTranslations
 from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
 
-from app.geotag_models import *
+from app.geotag.models import *
 
 #
 # Users setup
@@ -232,7 +232,9 @@ from app.views import IdeasModelView
 from app.views import UsageModelView, AnalyticsView
 from app.views import TokenModelView, TokenTypeModelView, ApiModelView, TokenApiCounterView
 from app.views import AdminModelView, UserModelView, RolesModelView
-
+from app.geotag.views import LanguageModelView, NameOnlyModelView
+from app.geotag.views import GeouserModelView, TagModelView, DatagroupModelView
+from app.geotag.views import LayerModelView, LayerItemModelView, LayerItemDatagroupParameterModelView
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
 
@@ -256,21 +258,22 @@ admin.add_view(AnalyticsView(name='Analytics', endpoint="analytics", category="U
 admin.add_view(ErrorsModelView(Errors, db.session))
 admin.add_view(FeedbacksModelView(Feedbacks, db.session, category="Feedback"))
 admin.add_view(FeedbackVisualizationView(name="Visualization", endpoint="fb_visualization", category="Feedback"))
-admin.add_view(AdminModelView(Geouser, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(Language, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(Tag, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(Visibility, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(Layer, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItem, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerContributionPolicy, db.session, category="GeoTag"))
+# Geotag
+admin.add_view(LanguageModelView(Language, db.session, category="GeoTag"))
+admin.add_view(NameOnlyModelView(Contribution, db.session, category="GeoTag"))
+admin.add_view(NameOnlyModelView(Visibility, db.session, category="GeoTag"))
+admin.add_view(NameOnlyModelView(Datatype, db.session, category="GeoTag"))
+admin.add_view(GeouserModelView(Geouser, db.session, category="GeoTag"))
+admin.add_view(TagModelView(Tag, db.session, category="GeoTag"))
+admin.add_view(DatagroupModelView(Datagroup, db.session, category="GeoTag"))
+admin.add_view(LayerModelView(Layer, db.session, category="GeoTag"))
 admin.add_view(AdminModelView(LayerTranslation, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataGroup, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataType, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataParameter, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataParameterTranslation, db.session, category="GeoTag"))
+admin.add_view(LayerItemModelView(LayerItem, db.session, category="GeoTag"))
 admin.add_view(AdminModelView(LayerItemTranslation, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataParameterValue, db.session, category="GeoTag"))
-admin.add_view(AdminModelView(LayerItemExtraDataParameterValueTranslations, db.session, category="GeoTag"))
+admin.add_view(LayerItemDatagroupParameterModelView(LayerItemDatagroupParameter, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemDatagroupParameterTranslation, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemDatagroupParameterValue, db.session, category="GeoTag"))
+admin.add_view(AdminModelView(LayerItemDatagroupParameterValueTranslation, db.session, category="GeoTag"))
 
 #
 # Flask Restful API setup

@@ -20,7 +20,7 @@ services:
     container_name: dq_postgres
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 1s
       timeout: 5s
       retries: 10
@@ -38,6 +38,7 @@ services:
     volumes:
       - ./db/init_dbs.sql:/docker-entrypoint-initdb.d/init_dbs.sql
       - ./db/pgdata:/var/lib/postgresql/data
+      - ./db/backup:/tmp
 
     environment:
       POSTGRES_USER: dequa  # The PostgreSQL user (useful to connect to the database)
