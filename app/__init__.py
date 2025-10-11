@@ -32,7 +32,7 @@ from flask_apscheduler import APScheduler
 #
 
 app = Flask(__name__)
-if os.environ.get('ENV') == 'prod':
+if os.environ.get('FLASK_ENV') == 'prod':
     app.config.from_object(ProductionConfig)
 else:
     print("DEVELOPMENT CONFIGURATION")
