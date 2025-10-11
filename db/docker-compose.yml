@@ -42,5 +42,5 @@ services:
     environment:
       POSTGRES_USER: dequa  # The PostgreSQL user (useful to connect to the database)
       POSTGRES_PASSWORD: dequa # The PostgreSQL password (useful to connect to the database)
-      POSTGRES_DB: dequa # The PostgreSQL default database (automatically created at first launch)
+      POSTGRES_DB: default # The PostgreSQL default database (automatically created at first launch)
   
