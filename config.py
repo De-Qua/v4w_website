@@ -78,7 +78,7 @@ class Config(object):
     PROPAGATE_EXCEPTIONS = True
 
 class ProductionConfig(Config):
-    DB_SERVER = ''
+    DB_SERVER = os.environ.get('DB_SERVER')
 
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_SERVER}/opendata_ve_pg"
 
@@ -90,7 +90,9 @@ class ProductionConfig(Config):
             # dequa_internal has the registered users, the tokens and apis
             "internal": f'postgresql://{DB_SERVER}/dequa_internal',
             # geotag has the information for the geoposting part
-            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag'
+            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag',
+            # data_versions has the information of the versions of graphs and other stuff
+            "data_versions": f'postgresql://{DB_SERVER}/dequa_data_versions',
         }
 
 class DevelopmentConfig(Config):
@@ -106,5 +108,7 @@ class DevelopmentConfig(Config):
             # dequa_internal has the registered users, the tokens and apis
             "internal": f'postgresql://{DB_SERVER}/dequa_internal',
             # geotag has the information for the geoposting part
-            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag'
+            "geotag": f'postgresql://{DB_SERVER}/dequa_geotag',
+            # # data_versions has the information of the versions of graphs and other stuff
+            # "data_versions": f'postgresql://{DB_SERVER}/dequa_data_versions',
         }
