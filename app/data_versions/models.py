@@ -20,7 +20,7 @@ from flask_sqlalchemy import SQLAlchemy
 ##################
 
 class CurrentData(db.Model):
-    __tablename__ = "CurrentData"
+    __tablename__ = "current_data"
     __bind_key__ = "data_versions"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -28,28 +28,28 @@ class CurrentData(db.Model):
     # Foreign keys to the latest versioned entries
     street_graph_id = db.Column(
         db.Integer,
-        db.ForeignKey("GraphStreet.id"),
+        db.ForeignKey("graph_street.id"),
         nullable=False
     )
     waterbus_graph_id = db.Column(
         db.Integer,
-        db.ForeignKey("GraphStreetWaterbus.id"),
+        db.ForeignKey("graph_waterbus.id"),
         nullable=False
     )
     water_graph_id = db.Column(
         db.Integer,
-        db.ForeignKey("GraphWater.id"),
+        db.ForeignKey("graph_water.id"),
         nullable=False
     )
     tide_id = db.Column(
         db.Integer,
-        db.ForeignKey("TideNew.id"),
+        db.ForeignKey("tide_new.id"),
         nullable=False
     )
 
     # Relationships to access the actual objects
     street_graph = db.relationship("GraphStreet", lazy=True)
-    waterbus_graph = db.relationship("GraphStreetWaterbus", lazy=True)
+    waterbus_graph = db.relationship("GraphWaterbus", lazy=True)
     water_graph = db.relationship("GraphWater", lazy=True)  
     tide = db.relationship("TideNew", lazy=True)
 
@@ -60,8 +60,8 @@ class CurrentData(db.Model):
 ############
 
 class GraphStreet(db.Model):
-    __tablename__ = 'GraphStreet'
-    __bindkey__ = 'data_versions'
+    __tablename__ = 'graph_street'
+    __bind_key__ = 'data_versions'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     version = db.Column(db.Integer, nullable=False)
@@ -69,8 +69,8 @@ class GraphStreet(db.Model):
     data = db.Column(db.LargeBinary, nullable=False)
     # Define relationship (one GraphStreet → many GraphStreetWaterbus)
     waterbus_graphs = db.relationship(
-        "GraphStreetWaterbus",
-        backref="graphstreet",
+        "GraphWaterbus",
+        backref="graph_street",
         cascade="all, delete-orphan",
         lazy=True
     )
@@ -79,9 +79,9 @@ class GraphStreet(db.Model):
         return self.name
 
 
-class GraphStreetWaterbus(db.Model):
-    __tablename__ = 'GraphStreetWaterbus'
-    __bindkey__ = 'data_versions'
+class GraphWaterbus(db.Model):
+    __tablename__ = 'graph_waterbus'
+    __bind_key__ = 'data_versions'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False)
@@ -90,9 +90,9 @@ class GraphStreetWaterbus(db.Model):
     valid_from = db.Column(db.DateTime, nullable=False)
     valid_to = db.Column(db.DateTime, nullable=False)
     # Foreign key to indicate which GraphStreet it was derived from
-    graphstreet_id = db.Column(
+    graph_street_id = db.Column(
         db.Integer,
-        db.ForeignKey("GraphStreet.id", ondelete="CASCADE"),
+        db.ForeignKey("graph_street.id", ondelete="CASCADE"),
         nullable=False
     )
     
@@ -100,8 +100,8 @@ class GraphStreetWaterbus(db.Model):
         return self.name
     
 class GraphWater(db.Model):
-    __tablename__ = 'GraphWater'
-    __bindkey__ = 'data_versions'
+    __tablename__ = 'graph_water'
+    __bind_key__ = 'data_versions'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     version = db.Column(db.Integer, nullable=False)
@@ -116,8 +116,8 @@ class GraphWater(db.Model):
 ##########
 
 class TideNew(db.Model):
-    __tablename__ = "TideNew"
-    __bindkey__ = 'data_versions'
+    __tablename__ = "tide_new"
+    __bind_key__ = 'data_versions'
     id = db.Column(db.Integer(), primary_key=True)
     id_station = db.Column(db.String(8))
     station = db.Column(db.String(64))

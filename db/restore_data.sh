@@ -19,5 +19,5 @@ do
     echo "Copying $file in docker"
     docker cp $DUMP_DIR/$file $CONTAINER_NAME:/tmp/
     echo "Restoring db $db"
-    docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $db -f /tmp/$file $db
+    docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $db -f /tmp/$file
 done

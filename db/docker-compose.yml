@@ -12,7 +12,7 @@ services:
   # Note: This may change the commands you are going to use a little bit.
   database:
     # Official Postgres image from DockerHub (we use the last version)
-    image: postgis/postgis:14-3.4
+    image: postgis/postgis:14-3.4-alpine
 
     # build:
     #   dockerfile: ./docker/database.dockerfile

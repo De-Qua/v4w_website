@@ -109,6 +109,6 @@ class DevelopmentConfig(Config):
             "internal": f'postgresql://{DB_SERVER}/dequa_internal',
             # geotag has the information for the geoposting part
             "geotag": f'postgresql://{DB_SERVER}/dequa_geotag',
-            # # data_versions has the information of the versions of graphs and other stuff
-            # "data_versions": f'postgresql://{DB_SERVER}/dequa_data_versions',
+            # data_versions has the information of the versions of graphs and other stuff
+            "data_versions": f'postgresql://{DB_SERVER}/dequa_data_versions',
         }

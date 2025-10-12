@@ -10,7 +10,7 @@ class GraphStreetModelView(AdminModelView):
     column_searchable_list = ('name',)
     column_filters = ('version', 'created_at')
 
-class GraphStreetWaterbusModelView(AdminModelView):
+class GraphWaterbusModelView(AdminModelView):
     column_list = ('id', 'name', 'gtfs_number', 'valid_from', 'valid_to', 'graphstreet_id')
     form_excluded_columns = ('data',)
     column_searchable_list = ('name',)

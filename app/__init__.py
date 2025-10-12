@@ -215,7 +215,7 @@ from app.models import Users, Roles, Tokens, TokenTypes, Apis, TokenApiCounters
 
 from app.geotag.models import *
 
-from app.data_versions.models import CurrentData, GraphStreet, GraphStreetWaterbus, GraphWater, TideNew
+from app.data_versions.models import CurrentData, GraphStreet, GraphWaterbus, GraphWater, TideNew
 
 #
 # Users setup
@@ -237,7 +237,7 @@ from app.views import AdminModelView, UserModelView, RolesModelView
 from app.geotag.views import LanguageModelView, NameOnlyModelView
 from app.geotag.views import GeouserModelView, TagModelView, DatagroupModelView
 from app.geotag.views import LayerModelView, LayerItemModelView, LayerItemDatagroupParameterModelView
-from app.data_versions.views import CurrentDataModelView, GraphStreetModelView, GraphStreetWaterbusModelView, GraphWaterModelView, TideModelView
+from app.data_versions.views import CurrentDataModelView, GraphStreetModelView, GraphWaterbusModelView, GraphWaterModelView, TideModelView
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
 
 
@@ -280,7 +280,7 @@ admin.add_view(AdminModelView(LayerItemDatagroupParameterValueTranslation, db.se
 # Data versions
 admin.add_view(CurrentDataModelView(CurrentData, db.session, category="Data Version"))
 admin.add_view(GraphStreetModelView(GraphStreet, db.session, category="Data Version"))
-admin.add_view(GraphStreetWaterbusModelView(GraphStreetWaterbus, db.session, category="Data Version"))
+admin.add_view(GraphWaterbusModelView(GraphWaterbus, db.session, category="Data Version"))
 admin.add_view(GraphWaterModelView(GraphWater, db.session, category="Data Version"))
 admin.add_view(TideModelView(TideNew, db.session, category="Data Version"))
 

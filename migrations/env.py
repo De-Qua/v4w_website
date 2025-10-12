@@ -11,6 +11,9 @@ from flask import current_app
 
 from alembic import context
 
+## Not available in current geoalchemy version
+# from geoalchemy2 import alembic_helpers
+
 USE_TWOPHASE = False
 
 # this is the Alembic Config object, which provides
@@ -86,6 +89,10 @@ def run_migrations_offline():
                 output_buffer=buffer,
                 target_metadata=get_metadata(name),
                 literal_binds=True,
+                ## Not available in current geoalchemy version
+                # include_object=alembic_helpers.include_object,
+                # process_revision_directives=alembic_helpers.writer,
+                # render_item=alembic_helpers.render_item,
             )
             with context.begin_transaction():
                 context.run_migrations(engine_name=name)
@@ -150,6 +157,10 @@ def run_migrations_online():
                 downgrade_token="%s_downgrades" % name,
                 target_metadata=get_metadata(name),
                 process_revision_directives=process_revision_directives,
+                ## Not available in current geoalchemy version
+                # include_object=alembic_helpers.include_object,
+                # process_revision_directives=alembic_helpers.writer,
+                # render_item=alembic_helpers.render_item,
                 **current_app.extensions['migrate'].configure_args
             )
             context.run_migrations(engine_name=name)
