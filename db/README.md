@@ -6,11 +6,13 @@ To start a freshly new database:
 docker compose up -d
 ```
 It will automatically create the databases with postgis extensions in some of them
+
 2. From the main flask folder run the alembic upgrade
 ```
 flask db upgrade
 ```
 It will create all the tables and relationships
+
 3. From the db folder restore all the data
 ```
 ./restore_data.sh
