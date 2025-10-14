@@ -1,8 +1,7 @@
 from app.views import AdminModelView
 
 class CurrentDataModelView(AdminModelView):
-    column_list = ('id', 'street_graph_id', 'waterbus_graph_id', 'water_graph_id', 'tide_id', 'updated_at')
-    column_filters = ('updated_at',)
+    column_list = ('id', 'street_graph_id', 'waterbus_graph_id', 'water_graph_id', 'tide_id', 'graph_updated_at', 'graph_check_at')
 
 class GraphStreetModelView(AdminModelView):
     column_list = ('id', 'name', 'version', 'created_at')

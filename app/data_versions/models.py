@@ -53,7 +53,8 @@ class CurrentData(db.Model):
     water_graph = db.relationship("GraphWater", lazy=True)  
     tide = db.relationship("TideNew", lazy=True)
 
-    updated_at = db.Column(db.DateTime, nullable=False)  # timestamp of last update
+    graph_updated_at = db.Column(db.DateTime, nullable=False)  # timestamp of last update
+    graph_check_at = db.Column(db.DateTime, nullable=False)  # timestamp of last check
 
 ############
 ## GRAPHS ##
