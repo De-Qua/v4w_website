@@ -43,6 +43,20 @@ target_metadata = current_app.extensions['migrate'].db.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def include_object(object, name, type_, reflected, compare_to):
+    if type_ == "table" and name == "spatial_ref_sys":
+        return False
+    
+    # Ignore GiST / GIN indexes typically created by PostGIS
+    if type_ == "index":
+        # You can be more or less strict depending on your naming conventions
+        if "gist" in getattr(object, 'dialect_options', {}).get('postgresql', {}).get('using', ''):
+            return False
+        if name.startswith("idx_") and "shape" in name:
+            return False
+        
+    return True
+
 
 def get_metadata(bind):
     """Return the metadata for a bind."""
@@ -88,6 +102,7 @@ def run_migrations_offline():
                 url=rec['url'],
                 output_buffer=buffer,
                 target_metadata=get_metadata(name),
+                include_object=include_object,
                 literal_binds=True,
                 ## Not available in current geoalchemy version
                 # include_object=alembic_helpers.include_object,
@@ -156,6 +171,7 @@ def run_migrations_online():
                 upgrade_token="%s_upgrades" % name,
                 downgrade_token="%s_downgrades" % name,
                 target_metadata=get_metadata(name),
+                include_object=include_object,
                 process_revision_directives=process_revision_directives,
                 ## Not available in current geoalchemy version
                 # include_object=alembic_helpers.include_object,
