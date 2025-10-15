@@ -126,6 +126,9 @@ from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_
 if os.path.exists(path_graph_street_only) and os.path.exists(path_graph_street_plus_waterbus):
     app.logger.info("Loading the graphs...")
     graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs(path_graph_street_only, path_graph_water, path_graph_street_plus_waterbus)
+    # TEST PERFORMANCE: instead of graph_street_only we filter out waterbus from graph_street_plus_waterbus
+    import graph_tool.all as gt
+    graph_street_only = gt.GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
 else:
     raise Exception("Graph files don't exist!")
     # app.logger.info("Loading the graphs...")
