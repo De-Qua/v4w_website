@@ -1047,7 +1047,7 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                     if verbosity > 1:
                         print("nothing changed")
             except:
-                breakpoint()
+                # breakpoint()
                 print("Error when updating the poi p", p)
                 db.session.rollback()    
             ########################
