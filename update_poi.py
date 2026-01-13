@@ -24,5 +24,5 @@ for poi_file in poi_files:
         poi_list = pois['elements']
         print("-" * 50)
         print(f"updating from {poi_file}")
-        num_new_poi, num_updated_poi, num_errors = lb.update_POI(poi_list, explain=True)
+        num_new_poi, num_updated_poi, num_errors = lb.update_POI(poi_list, explain=True, err_file=poi_file)
         breakpoint()

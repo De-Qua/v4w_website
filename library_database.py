@@ -821,12 +821,24 @@ def download_POI(categories,bbox=44741,explain=False):
 
 
 
-def update_POI(pois, explain=False, verbosity=0):
+def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
     global neigh_query, streets_query, location_query, poi_query, category_query, type_query
     # Lista di tipi di poi che non avranno una corrispondenza con un numero civico(ad esempio chiese o fontanelle)
+    types_without_name = {
+        "amenity":["drinking_water",
+                "bench",
+                "toilets",
+                "clock",
+                "waste_basket",
+                "recycling"],
+        "shop":["newsagent",
+                "kiosk"],
+        "building":["kiosk"],
+        "man_made":["water_well"]
+    }
     types_without_address={
         "amenity":["drinking_water",
                 "place_of_worship",
@@ -838,7 +850,8 @@ def update_POI(pois, explain=False, verbosity=0):
                 "recycling"],
         "building":["church",
                     "kiosk",
-                    "column"]
+                    "column"],
+        "landuse":["cemetery"]
     }
 
     # Corrispondenza tags osm - colonne db
@@ -888,6 +901,9 @@ def update_POI(pois, explain=False, verbosity=0):
         "water":"water",
         "waterway":"waterway", 
         }
+    
+    # dataframe per errori
+    df_err = pd.DataFrame(columns=["url","type","id","name","tags"])
         
     # loop per aggiungere tutti i poi
     err_poi = []
@@ -1098,10 +1114,26 @@ def update_POI(pois, explain=False, verbosity=0):
                 closest, dist = closest_location(lat, lon, housenumber=True)
                 if not closest:
                     err_poi.append((3,poi))
+                    poi_err = {
+                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                        "type":poi["type"],
+                        "id": poi["id"],
+                        "name": poi["tags"].get("name",""),
+                        "tags": poi["tags"]
+                        }
+                    df_err.loc[len(df_err)] = poi_err
                     continue
                 # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
                 elif dist > max_dist:
                     err_poi.append((4,poi))
+                    poi_err = {
+                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                        "type":poi["type"],
+                        "id": poi["id"],
+                        "name": poi["tags"].get("name",""),
+                        "tags": poi["tags"]
+                        }
+                    df_err.loc[len(df_err)] = poi_err
                     continue
                 loc = closest
             # creo il poi
@@ -1212,8 +1244,8 @@ def update_POI(pois, explain=False, verbosity=0):
             err_type[err[0]].append(err)
         print("Tipi di errori\n{}".format([len(err) for err in err_type]))
     print("#" * 70)
-
-    return len(new_poi), len(updated_poi), len(err_poi)
+    df_err.to_csv(f"{err_file}.csv")
+    return new_poi, updated_poi, len(err_poi)
 
 
 
