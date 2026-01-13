@@ -14,7 +14,7 @@ files = poi_folder.iterdir()
 # os.listdir(poi_folder)
 poi_files = [file for file in files if file.name.endswith('.json')]
 
-pdb.set_trace()
+# pdb.set_trace()
 
 for poi_file in poi_files:
     if poi_file != "water.json":
@@ -24,5 +24,5 @@ for poi_file in poi_files:
         poi_list = pois['elements']
         print("-" * 50)
         print(f"updating from {poi_file}")
-        lb.update_POI(poi_list, explain=True)
-        pdb.set_trace()
+        num_new_poi, num_updated_poi, num_errors = lb.update_POI(poi_list, explain=True)
+        breakpoint()
