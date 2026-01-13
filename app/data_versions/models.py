@@ -29,22 +29,22 @@ class CurrentData(db.Model):
     street_graph_id = db.Column(
         db.Integer,
         db.ForeignKey("graph_street.id"),
-        nullable=False
+        nullable=True
     )
     waterbus_graph_id = db.Column(
         db.Integer,
         db.ForeignKey("graph_waterbus.id"),
-        nullable=False
+        nullable=True
     )
     water_graph_id = db.Column(
         db.Integer,
         db.ForeignKey("graph_water.id"),
-        nullable=False
+        nullable=True
     )
     tide_id = db.Column(
         db.Integer,
         db.ForeignKey("tide_new.id"),
-        nullable=False
+        nullable=True
     )
 
     # Relationships to access the actual objects
@@ -53,8 +53,8 @@ class CurrentData(db.Model):
     water_graph = db.relationship("GraphWater", lazy=True)  
     tide = db.relationship("TideNew", lazy=True)
 
-    graph_updated_at = db.Column(db.DateTime, nullable=False)  # timestamp of last update
-    graph_check_at = db.Column(db.DateTime, nullable=False)  # timestamp of last check
+    graph_updated_at = db.Column(db.DateTime)  # timestamp of last update
+    graph_check_at = db.Column(db.DateTime)  # timestamp of last check
 
 ############
 ## GRAPHS ##

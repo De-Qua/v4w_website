@@ -27,3 +27,8 @@ If you want you can run the script
 which will dump all the data of the different databases in the folder `db_dump`!
 
 Evviva!
+
+
+TODO
+install functions
+in opendata CREATE EXTENSION pg_trgm;
