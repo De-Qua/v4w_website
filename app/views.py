@@ -111,10 +111,11 @@ class AnalyticsView(BaseView):
             return redirect(url_for('security.login'))
 
 class StreetModelView(AdminModelView):
+    column_list = ['name', 'name_alt', 'name_spe', 'name_den', 'neighborhood', 'score']
     column_searchable_list = ['name', 'name_alt']
-    column_editable_list = ['name_alt', 'score']
-    column_exclude_list = ['shape']
-    column_filters = ['name_alt','name_spe', 'name_den', 'score']
+    # column_editable_list = ['name_alt', 'score']
+    # column_exclude_list = ['shape']
+    column_filters = ['name_alt','name_spe', 'name_den', 'score', 'neighborhood']
     # not anymore in postgres, they are automatically binded but not columns
     # , 'neighborhoods', 'areas']
 
@@ -127,6 +128,7 @@ class AreaModelView(AdminModelView):
 class NeighborhoodModelView(AdminModelView):
     def is_accessible(self):
         return (current_user.has_role('admin'))
+    column_list = ['name', 'zipcode']
     column_searchable_list = ['name']
     column_filters = ['zipcode']
     column_exclude_list = ['shape']

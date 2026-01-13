@@ -20,23 +20,23 @@ from flask_sqlalchemy import SQLAlchemy
 # #                             db.Column('layer_datagroup_id', db.Integer(), db.ForeignKey('datagroup.id')))
 # #                             #info={'bind_key': 'geotag'})
 
-layer_tag_table = db.Table('layer_tag',
-                            db.Column('layer_id', db.Integer(), db.ForeignKey('layer.id')),
-                            db.Column('tag_id', db.Integer(), db.ForeignKey('tag.id')),
+layer_tag_table = db.Table('LayerTag',
+                            db.Column('layer_id', db.Integer(), db.ForeignKey('Layer.id')),
+                            db.Column('tag_id', db.Integer(), db.ForeignKey('Tag.id')),
                             info={'bind_key': 'geotag'}
                             )
 
-layer_item_tag_table = db.Table('layer_item_tag',
-                            db.Column('layer_item_id', db.Integer(), db.ForeignKey('layer_item.id')),
-                            db.Column('tag_id', db.Integer(), db.ForeignKey('tag.id')),
+layer_item_tag_table = db.Table('LayerItemTag',
+                            db.Column('layer_item_id', db.Integer(), db.ForeignKey('LayerItem.id')),
+                            db.Column('tag_id', db.Integer(), db.ForeignKey('Tag.id')),
                             info={'bind_key': 'geotag'})
 
-layer_datagroup_table = db.Table('layer_datagroup',
-                            db.Column('layer_id', db.Integer(), db.ForeignKey('layer.id')),
-                            db.Column('datagroup_id', db.Integer(), db.ForeignKey('datagroup.id')))
-                            #info={'bind_key': 'geotag'})
+layer_datagroup_table = db.Table('LayerDatagroup',
+                            db.Column('layer_id', db.Integer(), db.ForeignKey('Layer.id')),
+                            db.Column('datagroup_id', db.Integer(), db.ForeignKey('Datagroup.id')),
+                            info={'bind_key': 'geotag'})
 class Geouser(db.Model):
-    __tablename__ = 'geouser'
+    __tablename__ = 'Geouser'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -56,6 +56,7 @@ class Geouser(db.Model):
 
 class Language(db.Model):
     __bind_key__ = 'geotag'
+    __tablename__ = 'Language'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(32), nullable=False)
     code = db.Column(db.String(2), nullable=False)
@@ -71,16 +72,17 @@ class Language(db.Model):
         return self.name
 class Tag(db.Model):
     __bind_key__ = 'geotag'
+    __tablename__ = 'Tag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(32), unique=True, nullable=False)
     ## ForeignKey
-    geouser_id = db.Column(db.Integer, db.ForeignKey("geouser.id"), nullable=False)
-    layer_id = db.Column(db.Integer, db.ForeignKey("layer.id"))
-    layer_item_id = db.Column(db.Integer, db.ForeignKey("layer_item.id"))
+    geouser_id = db.Column(db.Integer, db.ForeignKey("Geouser.id"), nullable=False)
+    # layer_id = db.Column(db.Integer, db.ForeignKey("Layer.id"))
+    # layer_item_id = db.Column(db.Integer, db.ForeignKey("LayerItem.id"))
     # creator = user.id
 
 class Visibility(db.Model):
-    __tablename__ = 'visibility'
+    __tablename__ = 'Visibility'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(32), nullable=False)
@@ -91,6 +93,7 @@ class Visibility(db.Model):
         return self.name    
 
 class Layer(db.Model):
+    __tablename__ = 'Layer'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False) #internal name
@@ -108,10 +111,10 @@ class Layer(db.Model):
     layer_items = db.relationship('LayerItem', lazy=True, backref=db.backref('layer', lazy=True))
     datagroups = db.relationship('LayerItemExtraDataGroup', secondary=layer_datagroup_table, backref=db.backref('layers', lazy=True))
     ## ForeignKey
-    geouser_id = db.Column(db.Integer, db.ForeignKey("geouser.id"), nullable=False)
-    language_id = db.Column(db.Integer, db.ForeignKey("language.id"), nullable=False)
-    visibility_id = db.Column(db.Integer, db.ForeignKey("visibility.id"), nullable=False)
-    policy_id = db.Column(db.Integer, db.ForeignKey("policy.id"), nullable=False)
+    geouser_id = db.Column(db.Integer, db.ForeignKey("Geouser.id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("Language.id"), nullable=False)
+    visibility_id = db.Column(db.Integer, db.ForeignKey("Visibility.id"), nullable=False)
+    contribution_id = db.Column(db.Integer, db.ForeignKey("Contribution.id"), nullable=False)
     # datagroup_id = db.Column(db.Integer, db.ForeignKey("datagroup.id"), nullable=False)
 #     # owner = user.id
 #     # visibility = LayerVisibility.id
@@ -119,31 +122,32 @@ class Layer(db.Model):
 #     # default_language = language.id
 
 class LayerContributionPolicy(db.Model):
-    __tablename__ = 'policy'
+    __tablename__ = 'Contribution'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(32), nullable=False)
     # Relations
-    layers = db.relationship('Layer', lazy=True, backref=db.backref('policy', lazy=True))
+    layers = db.relationship('Layer', lazy=True, backref=db.backref('contribution', lazy=True))
 
     def __str__(self):
         return self.name 
 
 class LayerTranslation(db.Model):
+    __tablename__ = 'LayerTranslation'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     abstract = db.Column(db.String(255))
     description = db.Column(db.String(255))
 
-    language_id = db.Column(db.Integer, db.ForeignKey("language.id"), nullable=False)
-    layer_id = db.Column(db.Integer, db.ForeignKey("layer.id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("Language.id"), nullable=False)
+    layer_id = db.Column(db.Integer, db.ForeignKey("Layer.id"), nullable=False)
     
 #     # layer = layer.id
 #     # language = language.id
     
 class LayerItemExtraDataGroup(db.Model):
-    __tablename__ = 'datagroup'
+    __tablename__ = 'Datagroup'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -152,11 +156,12 @@ class LayerItemExtraDataGroup(db.Model):
     parameters = db.relationship('LayerItemExtraDataParameter', lazy=True, backref=db.backref('datagroup', lazy=True))
     layer_items = db.relationship('LayerItem', lazy=True, backref=db.backref('datagroup', lazy=True))
     ## ForeignKeys
-    geouser_id = db.Column(db.Integer, db.ForeignKey("geouser.id"), nullable=False)
-    layer_id = db.Column(db.Integer, db.ForeignKey("layer.id"), nullable=False)
+    geouser_id = db.Column(db.Integer, db.ForeignKey("Geouser.id"), nullable=False)
+    # layer_id = db.Column(db.Integer, db.ForeignKey("layer.id"), nullable=False)
+
 
 class LayerItemExtraDataType(db.Model):
-    __tablename__ = 'datatype'
+    __tablename__ = 'Datatype'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -165,7 +170,7 @@ class LayerItemExtraDataType(db.Model):
 
 
 class LayerItemExtraDataParameter(db.Model):
-    __tablename__ = 'parameter'       
+    __tablename__ = 'LayerItemDatagroupParameter'       
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     keyname = db.Column(db.String(255), nullable=False)
@@ -173,17 +178,18 @@ class LayerItemExtraDataParameter(db.Model):
     translations = db.relationship('LayerItemExtraDataParameterTranslation', lazy=True, backref=db.backref('parameter', lazy=True))
     parameter_values = db.relationship('LayerItemExtraDataParameterValue', lazy=True, backref=db.backref('parameter', lazy=True))
     ## ForeignKeys
-    datagroup_id = db.Column(db.Integer, db.ForeignKey("datagroup.id"), nullable=False)
-    datatype_id = db.Column(db.Integer, db.ForeignKey("datatype.id"), nullable=False)
-    paramval_translation_id = db.Column(db.Integer, db.ForeignKey("paramval_translation.id"), nullable=False)
+    datagroup_id = db.Column(db.Integer, db.ForeignKey("Datagroup.id"), nullable=False)
+    datatype_id = db.Column(db.Integer, db.ForeignKey("Datatype.id"), nullable=False)
+    paramval_translation_id = db.Column(db.Integer, db.ForeignKey("LayerItemDatagroupParameterValueTranslation.id"), nullable=False)
 
 class LayerItemExtraDataParameterTranslation(db.Model):
+    __tablename__ = 'LayerItemDatagroupParameterTranslation'       
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
     ## ForeignKeys
-    language_id = db.Column(db.Integer, db.ForeignKey("language.id"), nullable=False)
-    parameter_id = db.Column(db.Integer, db.ForeignKey("parameter.id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("Language.id"), nullable=False)
+    parameter_id = db.Column(db.Integer, db.ForeignKey("LayerItemDatagroupParameter.id"), nullable=False)
 
 
     # LayerItemExtraDataParameterId = LayerItemExtraDataParameter.id
@@ -191,7 +197,7 @@ class LayerItemExtraDataParameterTranslation(db.Model):
 
 
 class LayerItem(db.Model):
-    __tablename__ = 'layer_item'
+    __tablename__ = 'LayerItem'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
 
@@ -212,15 +218,16 @@ class LayerItem(db.Model):
     tags = db.relationship('Tag', secondary=layer_item_tag_table, backref=db.backref('layer_items', lazy=True))
     parameter_values = db.relationship('LayerItemExtraDataParameterValue', lazy=True, backref=db.backref('layer_item', lazy=True))
     ## ForeignKeys
-    geouser_id = db.Column(db.Integer, db.ForeignKey("geouser.id"), nullable=False)
-    layer_id = db.Column(db.Integer, db.ForeignKey("layer.id"), nullable=False)
-    datagroup_id = db.Column(db.Integer, db.ForeignKey("datagroup.id"))
+    geouser_id = db.Column(db.Integer, db.ForeignKey("Geouser.id"), nullable=False)
+    layer_id = db.Column(db.Integer, db.ForeignKey("Layer.id"), nullable=False)
+    datagroup_id = db.Column(db.Integer, db.ForeignKey("Datagroup.id"))
 
 #     # owner = user.id
 #     # layer = layer.id
 #     # data_group = LayerItemExtraDataGroup.id
 
 class LayerItemTranslation(db.Model):
+    __tablename__ = 'LayerItemTranslation'
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255))
@@ -230,8 +237,8 @@ class LayerItemTranslation(db.Model):
     video_url = db.Column(db.String(255))
     external_url = db.Column(db.String(255))
     ## ForeignKeys
-    language_id = db.Column(db.Integer, db.ForeignKey("language.id"), nullable=False)
-    layer_item_id = db.Column(db.Integer, db.ForeignKey("layer_item.id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("Language.id"), nullable=False)
+    layer_item_id = db.Column(db.Integer, db.ForeignKey("LayerItem.id"), nullable=False)
 
 
 #     # layer_item = layerItem.id
@@ -239,23 +246,23 @@ class LayerItemTranslation(db.Model):
 
 
 class LayerItemExtraDataParameterValue(db.Model):
-    __tablename__ = 'parameter_value' 
+    __tablename__ = 'LayerItemDatagroupParameterValue' 
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     ## ForeignKeys
-    layer_item_id = db.Column(db.Integer, db.ForeignKey("layer_item.id"), nullable=False)
-    parameter_id = db.Column(db.Integer, db.ForeignKey("parameter.id"), nullable=False)
-    paramval_translation_id = db.Column(db.Integer, db.ForeignKey("paramval_translation.id"), nullable=False)
+    layer_item_id = db.Column(db.Integer, db.ForeignKey("LayerItem.id"), nullable=False)
+    parameter_id = db.Column(db.Integer, db.ForeignKey("LayerItemDatagroupParameter.id"), nullable=False)
+    paramval_translation_id = db.Column(db.Integer, db.ForeignKey("LayerItemDatagroupParameterValueTranslation.id"), nullable=False)
 
 
 class LayerItemExtraDataParameterValueTranslations(db.Model):
-    __tablename__ = 'paramval_translation' 
+    __tablename__ = 'LayerItemDatagroupParameterValueTranslation' 
     __bind_key__ = 'geotag'
     id = db.Column(db.Integer(), primary_key=True)
     value = db.Column(db.String(255))
     ## Relationship
     parameters = db.relationship('LayerItemExtraDataParameterValue', lazy=True, backref=db.backref('value_translation', lazy=True))
     ## ForeignKeys
-    language_id = db.Column(db.Integer, db.ForeignKey("language.id"), nullable=False)
+    language_id = db.Column(db.Integer, db.ForeignKey("Language.id"), nullable=False)
   
     # language = language.id
