@@ -4,6 +4,13 @@ import pdb
 import json 
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+for env_file in ('.env', '.flaskenv'):
+    env = os.path.join(os.getcwd(), env_file)
+    if os.path.exists(env):
+        load_dotenv(env)
+
 current_folder = Path(__file__).parent
 static_folder = current_folder.parent / "static"
 poi_folder = static_folder / "files" / "poi"
