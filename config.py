@@ -94,8 +94,7 @@ class ProductionConfig(Config):
         }
 
 class DevelopmentConfig(Config):
-    #DB_SERVER = 'dequa:dequa@localhost:5432'
-    DB_SERVER = 'palma:palma@localhost:5432'
+    DB_SERVER = 'dequa:dequa@localhost:5432'
 
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_SERVER}/opendata_ve_pg"
 
