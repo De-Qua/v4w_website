@@ -833,11 +833,32 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                 "toilets",
                 "clock",
                 "waste_basket",
-                "recycling"],
+                "recycling"
+                "ferry_terminal"],
         "shop":["newsagent",
                 "kiosk"],
-        "building":["kiosk"],
-        "man_made":["water_well"]
+        "building":["kiosk",
+                    "tower",
+                    "ruins"],
+        "man_made":["water_well",
+                    "tower"],
+        "historic":["memorial",
+                    "archaeological_site",
+                    "building"],
+        "memorial":["statue"],
+        "public_transport":["platform",
+                            "station"],
+        "leisure": ["marina", 
+                    "pitch",
+                    "park",
+                    "swimming_pool",
+                    "garden"],
+        "water": ["canal",
+                  "harbour"],
+        "tourism": ["viewpoint",
+                    "attraction",
+                    "information",
+                    "artwork"]
     }
     types_without_address={
         "amenity":["drinking_water",
@@ -1078,31 +1099,41 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                 err_poi.append((0,poi))
                 continue
 
+            # # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
+            # without_address = False
+            # for key in types_without_address.keys():
+            #     if key in poi['tags'].keys():
+            #         if poi['tags'][key] in types_without_address[key]:
+            #             without_address = True
+            #             # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
+            #             break
             # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
-            without_address = False
-            for key in types_without_address.keys():
+            category_without_name = False
+            for key in types_without_name.keys():
                 if key in poi['tags'].keys():
-                    if poi['tags'][key] in types_without_address[key]:
-                        without_address = True
-                        # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
+                    if poi['tags'][key] in types_without_name[key]:
+                        category_without_name = True
+                        # se c'è almeno un elemento che indica che il poi è senza nome esco dal for loop senza controllare gli altri
                         break
-            if without_address:
+
+            ## Decido se creare oppure no una location nuova
+            if category_without_name:
                 # controllo che non esista già la location a quelle coordinate
                 loc = location_query.filter_by(latitude=lat, longitude=lon).first()
                 if not loc:
                     # trovo la strada a cui appartiene il POI
                     # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
-                    streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
-                    if len(streets) == 0:
-                        # se non ho trovato nessuna strada cerco la location più vicina
-                        # closest,dist = closest_location(poi['lat'],poi['lon'])
-                        # if not closest or dist > max_dist:
-                        #     err_poi.append((1,poi))
-                        #     continue
-                        streets = [None]
-                    elif len(streets) > 1:
-                        err_poi.append((2,poi))
-                        continue
+                    # streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
+                    # if len(streets) == 0:
+                    #     # se non ho trovato nessuna strada cerco la location più vicina
+                    #     # closest,dist = closest_location(poi['lat'],poi['lon'])
+                    #     # if not closest or dist > max_dist:
+                    #     #     err_poi.append((1,poi))
+                    #     #     continue
+                    #     streets = [None]
+                    # elif len(streets) > 1:
+                    #     err_poi.append((2,poi))
+                    #     continue
                     # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
                     loc = Location(latitude=lat, longitude=lon, shape=poi_point)
                     db.session.add(loc)
@@ -1112,30 +1143,48 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                 # il poi va aggiunto ad una location con indirizzo
                 # cerco la location più vicina
                 closest, dist = closest_location(lat, lon, housenumber=True)
-                if not closest:
-                    err_poi.append((3,poi))
-                    poi_err = {
-                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
-                        "type":poi["type"],
-                        "id": poi["id"],
-                        "name": poi["tags"].get("name",""),
-                        "tags": poi["tags"]
-                        }
-                    df_err.loc[len(df_err)] = poi_err
-                    continue
-                # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
-                elif dist > max_dist:
-                    err_poi.append((4,poi))
-                    poi_err = {
-                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
-                        "type":poi["type"],
-                        "id": poi["id"],
-                        "name": poi["tags"].get("name",""),
-                        "tags": poi["tags"]
-                        }
-                    df_err.loc[len(df_err)] = poi_err
-                    continue
-                loc = closest
+                # if not closest:
+                #     err_poi.append((3,poi))
+                #     poi_err = {
+                #         "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                #         "type":poi["type"],
+                #         "id": poi["id"],
+                #         "name": poi["tags"].get("name",""),
+                #         "tags": poi["tags"]
+                #         }
+                #     df_err.loc[len(df_err)] = poi_err
+                #     continue
+                # # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
+                # elif dist > max_dist:
+                #     err_poi.append((4,poi))
+                #     poi_err = {
+                #         "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                #         "type":poi["type"],
+                #         "id": poi["id"],
+                #         "name": poi["tags"].get("name",""),
+                #         "tags": poi["tags"]
+                #         }
+                #     df_err.loc[len(df_err)] = poi_err
+                #     continue
+                if not closest or dist > max_dist:
+                    poi_name = poi["tags"].get("name","")
+                    if poi_name:
+                        loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+                        db.session.add(loc)
+                        new_loc += 1
+                    else:
+                        err_poi.append((3,poi))
+                        poi_err = {
+                            "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                            "type":poi["type"],
+                            "id": poi["id"],
+                            "name": poi["tags"].get("name",""),
+                            "tags": poi["tags"]
+                            }
+                        df_err.loc[len(df_err)] = poi_err
+                        continue
+                else:
+                    loc = closest
             # creo il poi
             p = Poi(location=loc, osm_id=poi['id'])
             # is_poi_new = True
