@@ -791,33 +791,33 @@ def update_addresses(shp, showFig=False, explain=False):
 def update_addresses_info():
     return 1
 
-def download_POI(categories,bbox=44741,explain=False):
-    """
-    Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
-    """
-    # poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
-    # poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
-    # poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
-    #
-    # return poi_csv, poi_pd
-    all_pois = []
-    ids_already_there = []
-    for category in categories:
-        if category[0] != "'":
-            category = "'"+category
-        if category[-1] != "'":
-            category = category + "'"
-        pois = op.download_data(bbox, [category], what='all')
-        pois_as_list = op.remove_headers_and_tolist(pois)
-        for poi in pois_as_list:
-            if (poi['type'],poi['id']) not in ids_already_there:
-                ids_already_there.append((poi['type'],poi['id']))
-                all_pois.append(poi)
-        time.sleep(15)
+# def download_POI(categories,bbox=44741,explain=False):
+#     """
+#     Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
+#     """
+#     # poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
+#     # poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+#     # poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+#     #
+#     # return poi_csv, poi_pd
+#     all_pois = []
+#     ids_already_there = []
+#     for category in categories:
+#         if category[0] != "'":
+#             category = "'"+category
+#         if category[-1] != "'":
+#             category = category + "'"
+#         pois = op.download_data(bbox, [category], what='all')
+#         pois_as_list = op.remove_headers_and_tolist(pois)
+#         for poi in pois_as_list:
+#             if (poi['type'],poi['id']) not in ids_already_there:
+#                 ids_already_there.append((poi['type'],poi['id']))
+#                 all_pois.append(poi)
+#         time.sleep(15)
 
-    if explain:
-        print("aggiunti {} poi".format(len(all_pois)))
-    return all_pois
+#     if explain:
+#         print("aggiunti {} poi".format(len(all_pois)))
+#     return all_pois
 
 
 
