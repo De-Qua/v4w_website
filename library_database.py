@@ -1058,6 +1058,19 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                     if verbosity > 1:
                         print(f'new value for (poi#{p.id}), osm_other_tags = {poi_osm_other_tags}')
                     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
+                
+                err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
+                if err_loc:
+                    print("Error when updating the LOCATION")
+                    raise Exception("Location error")
+                
+                if is_a_new_loc:
+                    new_loc += 1
+                
+                if loc != p.location:
+                    has_something_changed = True 
+                    p.location = loc
+                
                 # AGGIORNO il database
                 if has_something_changed == True:
                     p.last_change = dt.datetime.now()
@@ -1079,112 +1092,29 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
             ######################
             ##  INSERT NEW POI  ##
             ######################
-            # estrai coordinate
-            if poi['type'] == 'node':
-                lat = poi['lat']
-                lon = poi['lon']
-            else:
-                lat = poi['center']['lat']
-                lon = poi['center']['lon']
-            # controllo che il poi appartenga a uno dei neighborhood
-            poi_point = Point(lon, lat)
-            # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
-            neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
-            # se il poi non è contenuto in nessun passa al successivo
-            if len(neighborhoods)==0:
-                outside_venice += 1
+            err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
+            
+            if err_loc > 0:
+                if err_loc == 1:
+                    outside_venice += 1
+                elif err_loc == 2:
+                    # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+                    err_poi.append((0,poi))
+                elif err_loc == 3:
+                    err_poi.append((3,poi))
+                    poi_err = {
+                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                        "type":poi["type"],
+                        "id": poi["id"],
+                        "name": poi["tags"].get("name",""),
+                        "tags": poi["tags"]
+                        }
+                    df_err.loc[len(df_err)] = poi_err
                 continue
-            elif len(neighborhoods)>1:
-                # se c'è più di un sestiere aggiungi agli errori e passa al successivo
-                err_poi.append((0,poi))
-                continue
+            
+            if is_a_new_loc:
+                new_loc += 1
 
-            # # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
-            # without_address = False
-            # for key in types_without_address.keys():
-            #     if key in poi['tags'].keys():
-            #         if poi['tags'][key] in types_without_address[key]:
-            #             without_address = True
-            #             # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
-            #             break
-            # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
-            category_without_name = False
-            for key in types_without_name.keys():
-                if key in poi['tags'].keys():
-                    if poi['tags'][key] in types_without_name[key]:
-                        category_without_name = True
-                        # se c'è almeno un elemento che indica che il poi è senza nome esco dal for loop senza controllare gli altri
-                        break
-
-            ## Decido se creare oppure no una location nuova
-            if category_without_name:
-                # controllo che non esista già la location a quelle coordinate
-                loc = location_query.filter_by(latitude=lat, longitude=lon).first()
-                if not loc:
-                    # trovo la strada a cui appartiene il POI
-                    # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
-                    # streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
-                    # if len(streets) == 0:
-                    #     # se non ho trovato nessuna strada cerco la location più vicina
-                    #     # closest,dist = closest_location(poi['lat'],poi['lon'])
-                    #     # if not closest or dist > max_dist:
-                    #     #     err_poi.append((1,poi))
-                    #     #     continue
-                    #     streets = [None]
-                    # elif len(streets) > 1:
-                    #     err_poi.append((2,poi))
-                    #     continue
-                    # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
-                    loc = Location(latitude=lat, longitude=lon, shape=poi_point)
-                    db.session.add(loc)
-                    new_loc += 1
-
-            else:
-                # il poi va aggiunto ad una location con indirizzo
-                # cerco la location più vicina
-                closest, dist = closest_location(lat, lon, housenumber=True)
-                # if not closest:
-                #     err_poi.append((3,poi))
-                #     poi_err = {
-                #         "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
-                #         "type":poi["type"],
-                #         "id": poi["id"],
-                #         "name": poi["tags"].get("name",""),
-                #         "tags": poi["tags"]
-                #         }
-                #     df_err.loc[len(df_err)] = poi_err
-                #     continue
-                # # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
-                # elif dist > max_dist:
-                #     err_poi.append((4,poi))
-                #     poi_err = {
-                #         "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
-                #         "type":poi["type"],
-                #         "id": poi["id"],
-                #         "name": poi["tags"].get("name",""),
-                #         "tags": poi["tags"]
-                #         }
-                #     df_err.loc[len(df_err)] = poi_err
-                #     continue
-                if not closest or dist > max_dist:
-                    poi_name = poi["tags"].get("name","")
-                    if poi_name:
-                        loc = Location(latitude=lat, longitude=lon, shape=poi_point)
-                        db.session.add(loc)
-                        new_loc += 1
-                    else:
-                        err_poi.append((3,poi))
-                        poi_err = {
-                            "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
-                            "type":poi["type"],
-                            "id": poi["id"],
-                            "name": poi["tags"].get("name",""),
-                            "tags": poi["tags"]
-                            }
-                        df_err.loc[len(df_err)] = poi_err
-                        continue
-                else:
-                    loc = closest
             # creo il poi
             p = Poi(location=loc, osm_id=poi['id'])
             # is_poi_new = True
@@ -1728,6 +1658,74 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
 
     return closest,distance
 
+def get_or_create_poi_location(poi, types_without_name, max_dist):
+    """
+    Trova o crea una location per un poi.
+    Errori:
+        0: Nessun errore
+        1: Fuori venezia (i.e. nessun neighborhoods)
+        2: Interseca più sestieri (non dovrebbe accadere essendo dei punti)
+        3: Poi senza nome ma di categoria a cui serve un nome
+    """
+    err = 0
+    new_loc = False
+    loc = None
+    
+    # estrai coordinate
+    if poi['type'] == 'node':
+        lat = poi['lat']
+        lon = poi['lon']
+    else:
+        lat = poi['center']['lat']
+        lon = poi['center']['lon']
+    # controllo che il poi appartenga a uno dei neighborhood
+    poi_point = Point(lon, lat)
+    neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+    # se il poi non è contenuto in nessun passa al successivo
+    if len(neighborhoods)==0:
+        err = 1
+        return err, new_loc, loc
+    elif len(neighborhoods)>1:
+        # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+        err = 2
+        return err, new_loc, loc
+
+    # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
+    category_without_name = False
+    for key in types_without_name.keys():
+        if key in poi['tags'].keys():
+            if poi['tags'][key] in types_without_name[key]:
+                category_without_name = True
+                # se c'è almeno un elemento che indica che il poi è senza nome esco dal for loop senza controllare gli altri
+                break
+
+    # Decido se creare oppure no una location nuova
+    if category_without_name:
+        # controllo che non esista già la location a quelle coordinate
+        loc = location_query.filter_by(latitude=lat, longitude=lon).first()
+        if not loc:
+            loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+            db.session.add(loc)
+            new_loc = True
+    else:
+        # il poi va aggiunto ad una location con indirizzo
+        # cerco la location più vicina
+        closest, dist = closest_location(lat, lon, housenumber=True)
+        
+        if not closest or dist > max_dist:
+            poi_name = poi["tags"].get("name","")
+            if poi_name:
+                loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+                db.session.add(loc)
+                new_loc = True
+            else:
+                err = 3
+                return err, new_loc, loc
+        else:
+            loc = closest
+
+    return err, new_loc, loc
+    
 def tell_me_something_I_dont_know():
     """
     It will tell you something from our database - Fun facts for shapefile nerds.
