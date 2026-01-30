@@ -1,15 +1,13 @@
-import os, sys
-import library_database as lb
-import pdb
-import json 
 from pathlib import Path
-
+import json 
 from dotenv import load_dotenv
 
 for env_file in ('.env', '.flaskenv'):
-    env = os.path.join(os.getcwd(), env_file)
-    if os.path.exists(env):
+    env = Path.cwd() / env_file
+    if env.exists():
         load_dotenv(env)
+
+import library_database as lb
 
 current_folder = Path(__file__).parent
 static_folder = current_folder.parent / "static"
@@ -25,7 +23,7 @@ poi_files = [file for file in files if file.name.endswith('.json')]
 
 for poi_file in poi_files:
     if poi_file != "water.json":
-        full_path_poi_file = os.path.join(poi_folder, poi_file)
+        full_path_poi_file = poi_folder / poi_file
         with open(full_path_poi_file, 'r') as opj:
             pois = json.load(opj)
         poi_list = pois['elements']
