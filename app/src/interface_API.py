@@ -44,6 +44,7 @@ from app.src.api import errors
 from app.models import ShortURL, ShortURLCounter
 
 
+from shapely import wkb, geometry
 
 def check_format_coordinates(*args):
     """Check if input strings are coordinates in the format "longitude,latitude".
@@ -371,7 +372,7 @@ def get_suggestions(input, max_num=5):
                   else "No name",
             latitude=s[1],
             longitude=s[2],
-            shape=s[3],
+            shape=geometry.mapping(wkb.loads(s[3], hex=True)), # Se serve da aggiungere dumps
             address_street=s[4],
             address_neigh=s[5],
             housenumber=s[6],
