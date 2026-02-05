@@ -878,7 +878,7 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
     # Corrispondenza tags osm - colonne db
     tags_col = {
         "name":"name",
-        "name_alt":"name_alt",
+        "alt_name":"name_alt",
         "opening_hours":"opening_hours",
         "wheelchair":"wheelchair",
         "toilets":"toilets",
@@ -978,6 +978,7 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
             poi_tags = poi['tags']
             try:
                 poi_osm_other_tags = "" # it's a cumulative string!
+                poi_osm_tags = {} # New version json!
                 for tag_name in poi_tags:
                     # here the tags
                     if tag_name in tags_col.keys():
@@ -994,7 +995,9 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                                 new_tag = False 
                         if tag_name == 'name' and len(tag_name) > 127:
                             new_tag = new_tag[:127]
-                        elif (tag_name == 'phone' or tag_name == 'contact:phone') and len(new_tag) > 32: 
+                        if tag_name == 'alt_name' and len(tag_name) > 127:
+                            new_tag = new_tag[:127]
+                        if (tag_name == 'phone' or tag_name == 'contact:phone') and len(new_tag) > 32: 
                             if new_tag.find(";") > 0:
                                 new_tag = new_tag.split(';')[0] # sometimes they have two phones, we take the first only
                             new_tag = new_tag[:31]
@@ -1046,6 +1049,7 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                     # aggiungo altri tag alla stringa cumulativa e controllo alla fine
                     else:
                         poi_osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi_tags[tag_name])
+                        poi_osm_tags[tag_name] = poi_tags[tag_name]
                 # print(f'db: poi {p.name} with id {p.id}')
                 # print(f'db: poi osm_value: {p.osm_other_tags}')
                 # print(f'new one: poi osm_value: {poi_osm_other_tags}')
@@ -1058,6 +1062,16 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                     if verbosity > 1:
                         print(f'new value for (poi#{p.id}), osm_other_tags = {poi_osm_other_tags}')
                     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
+                
+                ## TODO: UNCOMMENT AND COMMIT ONLY WHEN OSM_TAGS IS A COLUMN IN DATABASE!
+                # if not p.osm_tags:
+                #     p.osm_tags = ""
+                # if p.osm_tags != poi_osm_tags:
+                #     has_something_changed = True
+                #     setattr(p, "osm_tags", poi_osm_tags)
+                #     if verbosity > 1:
+                #         print(f'new value for (poi#{p.id}), osm_other_tags = {poi_osm_other_tags}')
+                #     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
                 
                 err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
                 if err_loc:
