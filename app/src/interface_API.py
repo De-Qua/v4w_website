@@ -386,9 +386,6 @@ def get_suggestions(input, max_num=5):
             phone=s[14]
         ) for s in suggestions
     ]
-    print('before', suggestions[0][3])
-    print('s3', formatted_suggestions[0]['shape'])
-
     return formatted_suggestions
 
 
