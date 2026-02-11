@@ -326,7 +326,7 @@ def format_response_address(**kwargs):
         'title': kwargs.get("title", ""),
         'latitude': kwargs.get("latitude", 0),
         'longitude': kwargs.get("longitude", 0),
-        'shape': kwargs.get("longitude", None),
+        'shape': kwargs.get("shape", None),
         # ADDRESS
         'address_street': kwargs.get("address_street", ""),
         'address_neigh': kwargs.get("address_neigh", ""),
@@ -386,6 +386,9 @@ def get_suggestions(input, max_num=5):
             phone=s[14]
         ) for s in suggestions
     ]
+    print('before', suggestions[0][3])
+    print('s3', formatted_suggestions[0]['shape'])
+
     return formatted_suggestions
 
 
