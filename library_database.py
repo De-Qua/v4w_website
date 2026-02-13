@@ -892,6 +892,11 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
         # "website":"website"
         # "contact:website":"website"
         }
+    
+    # Tags that currently are columns but deprecated, therefore we put them also in osm_tags
+    tags_col_but_also_other = [
+        "wikipedia", "phone", "contact:phone"
+    ]
 
     # Corrispondenza tags 
     # osm --> poi type in our dequa DB
@@ -1009,6 +1014,8 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                             if verbosity > 1:
                                 print(f'new value for tag {tags_col[tag_name]} = {new_tag}')
                             setattr(p, tags_col[tag_name], new_tag)
+                        if tag_name in tags_col_but_also_other:
+                            poi_osm_tags[tag_name] = new_tag
                 
                     # aggiungo categorie al poi se sono nuove!
                     elif tag_name in tags_cat.keys():
@@ -1064,14 +1071,14 @@ def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
                     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
                 
                 ## TODO: UNCOMMENT AND COMMIT ONLY WHEN OSM_TAGS IS A COLUMN IN DATABASE!
-                # if not p.osm_tags:
-                #     p.osm_tags = ""
-                # if p.osm_tags != poi_osm_tags:
-                #     has_something_changed = True
-                #     setattr(p, "osm_tags", poi_osm_tags)
-                #     if verbosity > 1:
-                #         print(f'new value for (poi#{p.id}), osm_other_tags = {poi_osm_other_tags}')
-                #     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
+                if not p.osm_tags:
+                    p.osm_tags = {}
+                if p.osm_tags != poi_osm_tags:
+                    has_something_changed = True
+                    setattr(p, "osm_tags", poi_osm_tags)
+                    if verbosity > 1:
+                        print(f'new value for (poi#{p.id}), osm_tags = {poi_osm_tags}')
+                    # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
                 
                 err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
                 if err_loc:

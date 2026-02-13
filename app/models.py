@@ -373,7 +373,7 @@ class Poi(db.Model):
     osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
     ## UNCOMMENT WHEN READY TO UPDATE DB
-    # osm_tags = db.Column(JSONB)
+    osm_tags = db.Column(JSONB)
     __table_args__ = (CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),)
 
     def open_status(self):
@@ -430,7 +430,8 @@ class Poi(db.Model):
                 address_neigh="{}".format(self.location.address[0].address_neigh if self.location.address else self.location),
                 osm_type=self.osm_type,
                 osm_id=self.osm_id,
-                osm_other_tags=self.osm_other_tags
+                osm_other_tags=self.osm_other_tags,
+                osm_tags = self.osm_tags
                 )
         except:
             return self.__repr__()
