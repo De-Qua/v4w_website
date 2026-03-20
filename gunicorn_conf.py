@@ -3,6 +3,12 @@ from __future__ import print_function
 import json
 import multiprocessing
 import os
+from dotenv import load_dotenv
+
+for env_file in ('.env', '.flaskenv'):
+    env = os.path.join(os.getcwd(), env_file)
+    if os.path.exists(env):
+        load_dotenv(env)
 
 workers_per_core_str = os.getenv("WORKERS_PER_CORE", "2")
 web_concurrency_str = os.getenv("WEB_CONCURRENCY", None)

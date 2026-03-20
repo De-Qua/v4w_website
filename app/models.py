@@ -15,11 +15,15 @@ import datetime
 from sqlalchemy import CheckConstraint
 from flask_security import RoleMixin, UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import validates
 from flask_jwt_extended import create_access_token
 from geoalchemy2.types import Geometry
 from geoalchemy2.shape import to_shape
 import shapely
 from shapely import geometry
+
+import opening_hours as oh
 #from app.token_helper import add_token_to_database
 # # TODO: FUTUREWARNING
 # .format is deprecated
@@ -368,8 +372,30 @@ class Poi(db.Model):
     osm_type = db.Column(db.String(8))
     osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
+    ## UNCOMMENT WHEN READY TO UPDATE DB
+    osm_tags = db.Column(JSONB)
     __table_args__ = (CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),)
 
+    def open_status(self):
+        """
+        Return True if open, False if close, None if not parsed and as second element the next change
+        """
+        is_open = None
+        next_change = None
+        if not self.opening_hours:
+            return is_open, next_change
+        
+        try:
+            o_h = oh.OpeningHours(self.opening_hours, country="IT", coords=(45.43781139259761, 12.329813434940968))
+        except:
+            # Parsing failed
+            return is_open, next_change
+        
+        is_open = None if o_h.is_unknown() else o_h.is_open()
+        next_change = None if o_h.is_unknown() else o_h.next_change()
+        
+        return is_open, next_change
+ 
     def add_type(self, type):
         if not self.is_type(type):
             self.types.append(type)
@@ -404,7 +430,8 @@ class Poi(db.Model):
                 address_neigh="{}".format(self.location.address[0].address_neigh if self.location.address else self.location),
                 osm_type=self.osm_type,
                 osm_id=self.osm_id,
-                osm_other_tags=self.osm_other_tags
+                osm_other_tags=self.osm_other_tags,
+                osm_tags = self.osm_tags
                 )
         except:
             return self.__repr__()

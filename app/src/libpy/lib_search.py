@@ -736,3 +736,51 @@ def get_parameters():
     cutoff = 0.6
     max_result = 5
     return [cutoff, max_result]
+
+def find_nearby_items(coordinates, item_category, max_num_items):
+                    # fallback_strategy='increase_radius'):
+    """
+    The code to find nearby items (entries of our database: street, addresses, poi, ..) 
+    given a valid coordinate. 
+    ---------
+    inputs:
+    - coordinates: should already be validated - passed through `check_format_coordinates`
+    - search_radius: how far we search (in meters). If we do not find, we check our `fallback_strategy`
+    - item_category: one of choices=('all', 'street', 'address', 'poi'), if we want to 
+                     restrict the search to specific categories (check choices in api.py)
+                     default should be 'street' (as we will mainly use it from POI)
+    - max_num_items: returning only up to this number of items found
+    - fallback_strategy: what to do in case of failure of the search:
+            1. increase_radius (default): increase radius given to fetch results (one-time?)
+            2. return_empty: just return empty list
+            3. ?
+    """
+    lat = coordinates[0]
+    lon = coordinates[1]
+
+    nearby_items = execute_nearby_query(lon, lat, item_category, max_num_items)
+    
+    # if len(nearby_items) == 0:
+    #     if fallback_strategy == 'return_empty':
+    #         return nearby_items
+    #     elif fallback_strategy == 'increase_radius':
+    #         # search_radius = min(search_radius * 3, 500) # max 500 meters
+    #         nearby_items = execute_nearby_query(lon, lat, item_category, max_num_items)
+    #         return nearby_items
+    #     else:
+    #         raise custom_errors.UserError("Non abbiamo trovato niente vicino a ({lon}, {lat}) e non abbiamo nemmeno un piano B: fiasco totale!")
+
+    return [list(ni) for ni in nearby_items]
+
+def execute_nearby_query(lon, lat, item_category, max_num_items):
+    """ just a wrapper for the different cases of the category """
+    if item_category == 'street':
+        nearby_items = db.session.execute('SELECT * FROM dq_GetNearbyStreets(:lon, :lat, :k)',
+                    {'lon': lon, 'lat': lat, 'k': max_num_items}).all()
+    elif item_category == 'address':
+        nearby_items = db.session.execute('SELECT * FROM dq_GetNearbyAddresses(:lon, :lat, :k)',
+                    {'lon': lon, 'lat': lat, 'k': max_num_items}).all()
+    else:   #if item_category == 'all':
+        nearby_items = db.session.execute('SELECT * FROM dq_GetNearbyItems(:lon, :lat, :k)',
+                    {'lon': lon, 'lat': lat, 'k': max_num_items}).all()
+    return nearby_items

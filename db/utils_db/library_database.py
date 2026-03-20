@@ -791,42 +791,75 @@ def update_addresses(shp, showFig=False, explain=False):
 def update_addresses_info():
     return 1
 
-def download_POI(categories,bbox=44741,explain=False):
-    """
-    Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
-    """
-    # poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
-    # poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
-    # poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
-    #
-    # return poi_csv, poi_pd
-    all_pois = []
-    ids_already_there = []
-    for category in categories:
-        if category[0] != "'":
-            category = "'"+category
-        if category[-1] != "'":
-            category = category + "'"
-        pois = op.download_data(bbox, [category], what='all')
-        pois_as_list = op.remove_headers_and_tolist(pois)
-        for poi in pois_as_list:
-            if (poi['type'],poi['id']) not in ids_already_there:
-                ids_already_there.append((poi['type'],poi['id']))
-                all_pois.append(poi)
-        time.sleep(15)
+# def download_POI(categories,bbox=44741,explain=False):
+#     """
+#     Read POIs from OpenStreetMap and save it as list. Default bbox is the id of Venezia
+#     """
+#     # poi_csv = np.loadtxt(file_poi,delimiter = "|",dtype='str')
+#     # poi_pd = pd.read_csv(file_poi,sep="|",dtype='str')
+#     # poi_pd[["lat","lon"]]=poi_pd[["lat","lon"]].apply(pd.to_numeric)
+#     #
+#     # return poi_csv, poi_pd
+#     all_pois = []
+#     ids_already_there = []
+#     for category in categories:
+#         if category[0] != "'":
+#             category = "'"+category
+#         if category[-1] != "'":
+#             category = category + "'"
+#         pois = op.download_data(bbox, [category], what='all')
+#         pois_as_list = op.remove_headers_and_tolist(pois)
+#         for poi in pois_as_list:
+#             if (poi['type'],poi['id']) not in ids_already_there:
+#                 ids_already_there.append((poi['type'],poi['id']))
+#                 all_pois.append(poi)
+#         time.sleep(15)
 
-    if explain:
-        print("aggiunti {} poi".format(len(all_pois)))
-    return all_pois
+#     if explain:
+#         print("aggiunti {} poi".format(len(all_pois)))
+#     return all_pois
 
 
 
-def update_POI(pois,explain=False):
+def update_POI(pois, explain=False, verbosity=0, err_file="poi_errors"):
     """
     Updates the POI Table and returns the number of errors, so 0 is the desired output.
     """
     global neigh_query, streets_query, location_query, poi_query, category_query, type_query
     # Lista di tipi di poi che non avranno una corrispondenza con un numero civico(ad esempio chiese o fontanelle)
+    types_without_name = {
+        "amenity":["drinking_water",
+                "bench",
+                "toilets",
+                "clock",
+                "waste_basket",
+                "recycling"
+                "ferry_terminal"],
+        "shop":["newsagent",
+                "kiosk"],
+        "building":["kiosk",
+                    "tower",
+                    "ruins"],
+        "man_made":["water_well",
+                    "tower"],
+        "historic":["memorial",
+                    "archaeological_site",
+                    "building"],
+        "memorial":["statue"],
+        "public_transport":["platform",
+                            "station"],
+        "leisure": ["marina", 
+                    "pitch",
+                    "park",
+                    "swimming_pool",
+                    "garden"],
+        "water": ["canal",
+                  "harbour"],
+        "tourism": ["viewpoint",
+                    "attraction",
+                    "information",
+                    "artwork"]
+    }
     types_without_address={
         "amenity":["drinking_water",
                 "place_of_worship",
@@ -838,13 +871,14 @@ def update_POI(pois,explain=False):
                 "recycling"],
         "building":["church",
                     "kiosk",
-                    "column"]
+                    "column"],
+        "landuse":["cemetery"]
     }
 
     # Corrispondenza tags osm - colonne db
     tags_col = {
         "name":"name",
-        "alt_name":"name",
+        "alt_name":"name_alt",
         "opening_hours":"opening_hours",
         "wheelchair":"wheelchair",
         "toilets":"toilets",
@@ -858,19 +892,45 @@ def update_POI(pois,explain=False):
         # "website":"website"
         # "contact:website":"website"
         }
+    
+    # Tags that currently are columns but deprecated, therefore we put them also in osm_tags
+    tags_col_but_also_other = [
+        "wikipedia", "phone", "contact:phone"
+    ]
 
-    # Corrispondenza tags osm - category db
+    # Corrispondenza tags 
+    # osm --> poi type in our dequa DB
+    #   "osm" : "PoiType" 
     tags_cat = {
         "amenity":"amenity",
         "shop":"shop",
         "cuisine":"cuisine",
         "tourism":"tourism",
         "building":"building",
-        "sport":"sport"
-        # TODO
-        # We could add:
-        # "craft":"craft"
+        "sport":"sport",
+        # added later
+        "craft":"craft",
+        "emergency":"emergency",
+        "healthcare":"healthcare",
+        "highway":"highway",
+        "historic":"historic",
+        "landuse":"landuse",
+        "leisure":"leisure",
+        "natural":"natural",
+        "office":"office",
+        "place":"place",
+        "power":"power",
+        "public_transport":"public_transport",
+        "railway":"railway",
+        "route":"route",
+        "tourism":"tourism",
+        "water":"water",
+        "waterway":"waterway", 
         }
+    
+    # dataframe per errori
+    df_err = pd.DataFrame(columns=["url","type","id","name","tags"])
+        
     # loop per aggiungere tutti i poi
     err_poi = []
     new_poi = 0
@@ -881,6 +941,8 @@ def update_POI(pois,explain=False):
     updated_poi = 0
     #massima distanza in metri per considerare una location
     max_dist = 50
+    outside_venice = 0
+    routes = 0
 
     poi_num = 0
     poi_tot = len(pois)
@@ -896,9 +958,12 @@ def update_POI(pois,explain=False):
             if poi['tags']['type']:
                 if poi['tags']['type'] == 'route':
                     if 'name' in poi['tags'].keys():
-                        print(f"it's a path, skipping {poi['tags']['name']}")
+                        if verbosity > 0:
+                            print(f"it's a path, skipping {poi['tags']['name']}")
                     else:
-                        print(f'skipping path without known name')
+                        if verbosity > 0:
+                            print(f'skipping path without known name')
+                    routes += 1
                     continue
         # Estrai poi in base all'id di OSM
         #p = poi_query.filter_by(osm_type=poi['type'], osm_id = poi['id']).one_or_none()
@@ -912,13 +977,14 @@ def update_POI(pois,explain=False):
             ##  UPDATING POI  ##
             ####################
             has_something_changed = False
-            print("updating poi", p)
+            if verbosity > 0:
+                print("updating poi", p)
             # loop sui tag del poi
             poi_tags = poi['tags']
             try:
                 poi_osm_other_tags = "" # it's a cumulative string!
+                poi_osm_tags = {} # New version json!
                 for tag_name in poi_tags:
-
                     # here the tags
                     if tag_name in tags_col.keys():
                         new_tag = poi_tags[tag_name]
@@ -929,11 +995,14 @@ def update_POI(pois,explain=False):
                             elif poi_tags[tag_name] == "no":
                                 new_tag = False
                             else:
-                                print("warning, they had value `{new_tag}` for the tag {tags_col[tag_name]}, which we do not recognized. We set it as `False`")
+                                if verbosity > 0:
+                                    print("warning, they had value `{new_tag}` for the tag {tags_col[tag_name]}, which we do not recognized. We set it as `False`")
                                 new_tag = False 
                         if tag_name == 'name' and len(tag_name) > 127:
                             new_tag = new_tag[:127]
-                        elif (tag_name == 'phone' or tag_name == 'contact:phone') and len(new_tag) > 32: 
+                        if tag_name == 'alt_name' and len(tag_name) > 127:
+                            new_tag = new_tag[:127]
+                        if (tag_name == 'phone' or tag_name == 'contact:phone') and len(new_tag) > 32: 
                             if new_tag.find(";") > 0:
                                 new_tag = new_tag.split(';')[0] # sometimes they have two phones, we take the first only
                             new_tag = new_tag[:31]
@@ -942,8 +1011,11 @@ def update_POI(pois,explain=False):
                         #### here update the attribute
                         if new_tag != getattr(p, tags_col[tag_name]):
                             has_something_changed = True
-                            print(f'new value for tag {tags_col[tag_name]} = {new_tag}')
+                            if verbosity > 1:
+                                print(f'new value for tag {tags_col[tag_name]} = {new_tag}')
                             setattr(p, tags_col[tag_name], new_tag)
+                        if tag_name in tags_col_but_also_other:
+                            poi_osm_tags[tag_name] = new_tag
                 
                     # aggiungo categorie al poi se sono nuove!
                     elif tag_name in tags_cat.keys():
@@ -952,6 +1024,11 @@ def update_POI(pois,explain=False):
                         c = category_query.filter_by(name=cat_name).one_or_none()
                         if not c:
                             c = PoiCategory(name = cat_name)
+                            max_length_poi_category = c.__table__.c["name"].type.length
+                            if len(c.name) > max_length_poi_category:
+                                if verbosity > 0:
+                                    print(f"Truncating {c.name}...")
+                                c.name = c.name[:max_length_poi_category]
                             db.session.add(c)
                             new_cat += 1
                         # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
@@ -961,6 +1038,11 @@ def update_POI(pois,explain=False):
                             t = type_query.filter_by(name=typ.strip()).one_or_none()
                             if not t:
                                 t = PoiCategoryType(name=typ,category=c)
+                                max_length_poi_category_type = t.__table__.c["name"].type.length
+                                if len(t.name) > max_length_poi_category_type:
+                                    if verbosity > 0:
+                                        print(f"Truncating {t.name}...")
+                                    t.name = t.name[:max_length_poi_category_type]
                                 db.session.add(t)
                                 new_typ += 1
                             # aggiorno l'oggetto POI (del db)
@@ -974,257 +1056,180 @@ def update_POI(pois,explain=False):
                     # aggiungo altri tag alla stringa cumulativa e controllo alla fine
                     else:
                         poi_osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi_tags[tag_name])
+                        poi_osm_tags[tag_name] = poi_tags[tag_name]
+                # print(f'db: poi {p.name} with id {p.id}')
+                # print(f'db: poi osm_value: {p.osm_other_tags}')
+                # print(f'new one: poi osm_value: {poi_osm_other_tags}')
+                # breakpoint()
                 if not p.osm_other_tags:
                     p.osm_other_tags = ""
                 if p.osm_other_tags != poi_osm_other_tags:
                     has_something_changed = True
                     setattr(p, "osm_other_tags", poi_osm_other_tags)
-                    print(f'new value for osm_other_tags = {poi_osm_other_tags}')
+                    if verbosity > 1:
+                        print(f'new value for (poi#{p.id}), osm_other_tags = {poi_osm_other_tags}')
                     # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
-                p.last_change = dt.datetime.now()
+                
+                ## TODO: UNCOMMENT AND COMMIT ONLY WHEN OSM_TAGS IS A COLUMN IN DATABASE!
+                if not p.osm_tags:
+                    p.osm_tags = {}
+                if p.osm_tags != poi_osm_tags:
+                    has_something_changed = True
+                    setattr(p, "osm_tags", poi_osm_tags)
+                    if verbosity > 1:
+                        print(f'new value for (poi#{p.id}), osm_tags = {poi_osm_tags}')
+                    # same as p.osm_other_tags = poi_osm_other_tags ? probably yes
+                
+                err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
+                if err_loc:
+                    print("Error when updating the LOCATION")
+                    raise Exception("Location error")
+                
+                if is_a_new_loc:
+                    new_loc += 1
+                
+                if loc != p.location:
+                    has_something_changed = True 
+                    p.location = loc
+                
                 # AGGIORNO il database
                 if has_something_changed == True:
+                    p.last_change = dt.datetime.now()
                     db.session.commit()
                     updated_poi += 1
-                    print("updated!")
+                    # print("updated!")
                 else:
-                    print("nothing changed")
+                    if verbosity > 1:
+                        print("nothing changed")
             except:
-                breakpoint()
+                # breakpoint()
                 print("Error when updating the poi p", p)
                 db.session.rollback()    
-
+            ########################
+            ##  END UPDATING POI  ##
+            ########################
 
         else:
             ######################
             ##  INSERT NEW POI  ##
             ######################
-            # estrai coordinate
-            if poi['type'] == 'node':
-                lat = poi['lat']
-                lon = poi['lon']
-            else:
-                lat = poi['center']['lat']
-                lon = poi['center']['lon']
-            # controllo che il poi appartenga a uno dei neighborhood
-            poi_point = Point(lon, lat)
-            # neighborhoods = [n for n in neigh_query.all() if n.shape.contains(poi_point)]
-            neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
-            # se il poi non è contenuto in nessun passa al successivo
-            if len(neighborhoods)==0:
-                continue
-            elif len(neighborhoods)>1:
-                # se c'è più di un sestiere aggiungi agli errori e passa al successivo
-                err_poi.append((0,poi))
-                continue
-
-            # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
-            without_address = False
-            for key in types_without_address.keys():
-                if key in poi['tags'].keys():
-                    if poi['tags'][key] in types_without_address[key]:
-                        without_address = True
-                        # se c'è almeno un elemento che indica che il poi è senza indirizzo esco dal for loop senza controllare gli altri
-                        break
-            if without_address:
-                # controllo che non esista già la location a quelle coordinate
-                loc = location_query.filter_by(latitude=lat, longitude=lon).first()
-                if not loc:
-                    # trovo la strada a cui appartiene il POI
-                    # streets = [s for s in streets_query.join(streets_neighborhoods).join(Neighborhood).filter_by(name=neighborhoods[0].name).all() if s.shape.contains(poi_point)]
-                    streets = streets_query.filter(func.ST_Intersects(Street.shape, poi_point.to_wkt())).all()
-                    if len(streets) == 0:
-                        # se non ho trovato nessuna strada cerco la location più vicina
-                        # closest,dist = closest_location(poi['lat'],poi['lon'])
-                        # if not closest or dist > max_dist:
-                        #     err_poi.append((1,poi))
-                        #     continue
-                        streets = [None]
-                    elif len(streets) > 1:
-                        err_poi.append((2,poi))
-                        continue
-                    # loc = Location(latitude=lat,longitude=lon,street=streets[0],neighborhood=neighborhoods[0],shape=poi_point)
-                    loc = Location(latitude=lat, longitude=lon, shape=poi_point)
-                    db.session.add(loc)
-                    new_loc += 1
-
-# <<<<<<< gt_words_ubuntu
-#             else:
-#                 # il poi va aggiunto ad una location con indirizzo
-#                 # cerco la location più vicina
-#                 closest, dist = closest_location(lat, lon, housenumber=True)
-#                 if not closest:
-#                     err_poi.append((3,poi))
-#                     continue
-#                 # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
-#                 elif dist > max_dist:
-#                     err_poi.append((4,poi))
-#                     continue
-#                 loc = closest
-#             # creo il poi
-#             p = Poi(location=loc, osm_id=poi['id'])
-
-#             # errors in the tag names (too long)
-#             # should be don in models.py
-#             try:
-#                 # loop sui tag del poi
-#                 for tag_name in poi['tags']:
-#                     # aggiungo attributi al poi
-#                     if tag_name in tags_col.keys():
-#                         col_name = tags_col[tag_name]
-#                         value = None
-#                         # i nostri boolean su osm sono "yes"/"no"
-#                         if type(p.__table__.c[col_name].type)==sqlalchemy.types.Boolean:
-#                             if poi['tags'][tag_name] == "yes":
-#                                 value = True
-#                             elif poi['tags'][tag_name] == "no":
-#                                 value = False
-#                         else:
-#                             value = poi['tags'][tag_name]
-#                             # control length
-#                             if tag_name == 'name':
-#                                 if len(value) > 127:
-#                                     print("truncating name..")
-#                                     value = value[:127]
-#                             if tag_name == 'phone':
-#                                 if len(value) > 32:
-#                                     print("truncating phone numbers..")
-#                                     value = value[:32]
-#                             if tag_name == 'wheelchair':
-#                                 if len(value) > 7:
-#                                     print("truncating wheelchair..")
-#                                     value = value[:7]
-#                         setattr(p, col_name, value)
-#                     # aggiungo categorie al poi
-#                     elif tag_name in tags_cat.keys():
-#                         cat_name = tags_cat[tag_name]
-#                         # if cat_name == 'name':
-#                         #     if len(value) > 32:
-#                         #         print("truncating poi category name..")
-#                         #         value = value[:32]
-#                         # estraggo o creo la categoria corrispondente
-#                         c = category_query.filter_by(name=cat_name).one_or_none()
-#                         if not c:
-#                             c = PoiCategory(name = cat_name)
-#                             db.session.add(c)
-#                             new_cat += 1
-#                         # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
-#                         all_types = poi['tags'][tag_name]
-#                         all_types = all_types.split(";")
-#                         for typ in all_types:
-#                             t = type_query.filter_by(name=typ.strip()).one_or_none()
-#                             if not t:
-#                                 t = PoiCategoryType(name=typ,category=c)
-#                                 db.session.add(t)
-#                                 new_typ += 1
-#                             # aggiungo all'oggetto poi
-#                             p.add_type(t)
-#                     # aggiungo altri tag al poi
-#                     else:
-#                         if not p.osm_other_tags:
-#                             p.osm_other_tags = ""
-#                         p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
-#                 # aggiungo al database
-#                 db.session.add(p)
-#                 db.session.commit()
-#                 new_poi += 1
-#             except:
-#                 print("Error in the attribute in the poi p", p)
-#                 # print('category', c)
-#                 # print('category type', t)
-#                 db.session.rollback()            
-# <<<<<<<< DOCKER branch version
-            else:
-                # il poi va aggiunto ad una location con indirizzo
-                # cerco la location più vicina
-                closest, dist = closest_location(lat, lon, housenumber=True)
-                if not closest:
+            err_loc, is_a_new_loc, loc = get_or_create_poi_location(poi, types_without_name, max_dist)
+            
+            if err_loc > 0:
+                if err_loc == 1:
+                    outside_venice += 1
+                elif err_loc == 2:
+                    # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+                    err_poi.append((0,poi))
+                elif err_loc == 3:
                     err_poi.append((3,poi))
-                    continue
-                # se la location trovata è più distante di max_dist aggiungi agli errori e passa al successivo
-                elif dist > max_dist:
-                    err_poi.append((4,poi))
-                    continue
-                loc = closest
+                    poi_err = {
+                        "url":f"https://www.openstreetmap.org/{poi['type']}/{poi['id']}",
+                        "type":poi["type"],
+                        "id": poi["id"],
+                        "name": poi["tags"].get("name",""),
+                        "tags": poi["tags"]
+                        }
+                    df_err.loc[len(df_err)] = poi_err
+                continue
+            
+            if is_a_new_loc:
+                new_loc += 1
+
             # creo il poi
             p = Poi(location=loc, osm_id=poi['id'])
-            is_poi_new = True
-        # loop sui tag del poi
-        for tag_name in poi['tags']:
-            # aggiungo attributi al poi
-            if tag_name in tags_col.keys():
-                value = poi['tags'][tag_name]
-                col_name = tags_col[tag_name]
-                col_type = p.__table__.c[col_name].type
-                # i nostri boolean su osm sono "yes"/"no"
-                if type(col_type)==sqlalchemy.types.Boolean:
-                    if value == "yes":
-                        value = True
-                    else:
-                        value = False
+            # is_poi_new = True
+            # loop sui tag del poi
+            for tag_name in poi['tags']:
+                osm_other_tags = ""
+                # aggiungo attributi al poi
+                if tag_name in tags_col.keys():
+                    value = poi['tags'][tag_name]
+                    col_name = tags_col[tag_name]
+                    col_type = p.__table__.c[col_name].type
+                    # i nostri boolean su osm sono "yes"/"no"
+                    if type(col_type)==sqlalchemy.types.Boolean:
+                        if value == "yes":
+                            value = True
+                        else:
+                            value = False
 
-                elif type(col_type)==sqlalchemy.types.String:
-                    col_length = col_type.length
-                    if len(value) >= col_length:
-                        print(f"Truncating {col_name}:{value}...")
-                        value = value[:col_length-1]
+                    elif type(col_type)==sqlalchemy.types.String:
+                        col_length = col_type.length
+                        if len(value) >= col_length:
+                            if verbosity > 0:
+                                print(f"Truncating {col_name}:{value}...")
+                            value = value[:col_length-1]
 
-                setattr(p, col_name, value)
-            # aggiungo categorie al poi
-            elif tag_name in tags_cat.keys():
-                cat_name = tags_cat[tag_name]
-                # estraggo o creo la categoria corrispondente
-                c = category_query.filter_by(name=cat_name).one_or_none()
-                if not c:
-                    c = PoiCategory(name = cat_name)
-                    max_length_poi_category = c.__table__.c["name"].type.length
-                    if len(c.name) > max_length_poi_category:
-                        print(f"Truncating {c.name}...")
-                        c.name = c.name[:max_length_poi_category]
-                    db.session.add(c)
-                    new_cat += 1
-                # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
-                all_types = poi['tags'][tag_name]
-                all_types = all_types.split(";")
-                for typ in all_types:
-                    t = type_query.filter_by(name=typ.strip()).one_or_none()
-                    if not t:
-                        t = PoiCategoryType(name=typ,category=c)
-                        max_length_poi_category_type = t.__table__.c["name"].type.length
-                        if len(t.name) > max_length_poi_category_type:
-                            print(f"Truncating {t.name}...")
-                            t.name = t.name[:max_length_poi_category_type]
-                        db.session.add(t)
-                        new_typ += 1
-                    # aggiungo all'oggetto poi
-                    p.add_type(t)
-            # aggiungo altri tag al poi
-            else:
-                if not p.osm_other_tags:
-                    p.osm_other_tags = ""
-                p.osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
-        # aggiungo al database
-        if is_poi_new:
-            db.session.add(p)
-            new_poi += 1
-        else:
-            p.last_change = dt.datetime.now()
-        ############################
-        # END OF NEW POI INSERTION #
-        ############################
+                    setattr(p, col_name, value)
+                # aggiungo categorie al poi
+                elif tag_name in tags_cat.keys():
+                    cat_name = tags_cat[tag_name]
+                    # estraggo o creo la categoria corrispondente
+                    c = category_query.filter_by(name=cat_name).one_or_none()
+                    if not c:
+                        c = PoiCategory(name = cat_name)
+                        max_length_poi_category = c.__table__.c["name"].type.length
+                        if len(c.name) > max_length_poi_category:
+                            if verbosity > 0:
+                                print(f"Truncating {c.name}...")
+                            c.name = c.name[:max_length_poi_category]
+                        db.session.add(c)
+                        new_cat += 1
+                    # estraggo dal poi osm i valori della categoria (se più di uno sono divisi da ;) e li aggiungo al db
+                    all_types = poi['tags'][tag_name]
+                    all_types = all_types.split(";")
+                    for typ in all_types:
+                        t = type_query.filter_by(name=typ.strip()).one_or_none()
+                        if not t:
+                            t = PoiCategoryType(name=typ,category=c)
+                            max_length_poi_category_type = t.__table__.c["name"].type.length
+                            if len(t.name) > max_length_poi_category_type:
+                                if verbosity > 0:
+                                    print(f"Truncating {t.name}...")
+                                t.name = t.name[:max_length_poi_category_type]
+                            db.session.add(t)
+                            new_typ += 1
+                        # aggiungo all'oggetto poi
+                        p.add_type(t)
+                # aggiungo altri tag al poi
+                else:
+                    osm_other_tags += "{name}={value}\n".format(name=tag_name,value=poi['tags'][tag_name])
+            if not p.osm_other_tags:
+                p.osm_other_tags = osm_other_tags
+            # aggiungo al database
+            try:
+                db.session.add(p)
+                db.session.commit()
+                new_poi += 1
+            except:
+                print("Error in the attribute in the poi p", p)
+                # print('category', c)
+                # print('category type', t)
+                db.session.rollback()  
+            ############################
+            # END OF NEW POI INSERTION #
+            ############################
 
-    if explain:
-        print("committo nel database..")
-    try:
-        # forse non serve
-        db.session.commit()
-    except:
-        db.session.rollback()
-        warnings.warn("Errore nel commit")
-
-    print("Numero di POI: {poi}\nErrori: {err}\nNuovi POI: {new_p}\nNuove Location: {new_l}\nNuove Categorie: {new_c}\nNuovi Tipi: {new_t}\nGia' presenti: {alt}\nAggiornati: {agg}".format(
+    # if explain:
+    #     print("committo nel database..")
+    # try:
+    #     # forse non serve
+    #     db.session.commit()
+    # except:
+    #     db.session.rollback()
+    #     warnings.warn("Errore nel commit")
+    print("#" * 70)
+    print("\nNumero di POI nel db: {poi}\nPoi dal file .json: {poi_tot} \
+        \n\tErrori: {err}\n\tFuori dai sestieri: {out}\n\tRoutes: {rts}\n\tPOI da aggiungere: {new_p} \
+        \n\tGia' presenti: {alt}\n\tAggiornati: {agg} \
+        \n\nNuove Location: {new_l}\nNuove Categorie: {new_c}\nNuovi Tipi: {new_t}\
+        ".format(
             poi=len(Poi.query.all()),
+            poi_tot=poi_tot,
             err=len(err_poi),
+            out=outside_venice,
+            rts=routes,
             new_p=new_poi,
             new_l=new_loc,
             new_c=new_cat,
@@ -1232,13 +1237,15 @@ def update_POI(pois,explain=False):
             alt=already_there, 
             agg=updated_poi))
 
+    print("-" * 70)
     if explain:
         err_type = [[],[],[],[],[]]
         for err in err_poi:
             err_type[err[0]].append(err)
         print("Tipi di errori\n{}".format([len(err) for err in err_type]))
-
-    return err_poi
+    print("#" * 70)
+    df_err.to_csv(f"{err_file}.csv")
+    return new_poi, updated_poi, len(err_poi)
 
 
 
@@ -1672,6 +1679,74 @@ def closest_location(lat,lon,tolerance=0.001,housenumber=None):
 
     return closest,distance
 
+def get_or_create_poi_location(poi, types_without_name, max_dist):
+    """
+    Trova o crea una location per un poi.
+    Errori:
+        0: Nessun errore
+        1: Fuori venezia (i.e. nessun neighborhoods)
+        2: Interseca più sestieri (non dovrebbe accadere essendo dei punti)
+        3: Poi senza nome ma di categoria a cui serve un nome
+    """
+    err = 0
+    new_loc = False
+    loc = None
+    
+    # estrai coordinate
+    if poi['type'] == 'node':
+        lat = poi['lat']
+        lon = poi['lon']
+    else:
+        lat = poi['center']['lat']
+        lon = poi['center']['lon']
+    # controllo che il poi appartenga a uno dei neighborhood
+    poi_point = Point(lon, lat)
+    neighborhoods = neigh_query.filter(func.ST_Intersects(Neighborhood.shape, poi_point.to_wkt())).all()
+    # se il poi non è contenuto in nessun passa al successivo
+    if len(neighborhoods)==0:
+        err = 1
+        return err, new_loc, loc
+    elif len(neighborhoods)>1:
+        # se c'è più di un sestiere aggiungi agli errori e passa al successivo
+        err = 2
+        return err, new_loc, loc
+
+    # controlla se il poi è nella lista dei poi da aggiungere senza indirizzo
+    category_without_name = False
+    for key in types_without_name.keys():
+        if key in poi['tags'].keys():
+            if poi['tags'][key] in types_without_name[key]:
+                category_without_name = True
+                # se c'è almeno un elemento che indica che il poi è senza nome esco dal for loop senza controllare gli altri
+                break
+
+    # Decido se creare oppure no una location nuova
+    if category_without_name:
+        # controllo che non esista già la location a quelle coordinate
+        loc = location_query.filter_by(latitude=lat, longitude=lon).first()
+        if not loc:
+            loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+            db.session.add(loc)
+            new_loc = True
+    else:
+        # il poi va aggiunto ad una location con indirizzo
+        # cerco la location più vicina
+        closest, dist = closest_location(lat, lon, housenumber=True)
+        
+        if not closest or dist > max_dist:
+            poi_name = poi["tags"].get("name","")
+            if poi_name:
+                loc = Location(latitude=lat, longitude=lon, shape=poi_point)
+                db.session.add(loc)
+                new_loc = True
+            else:
+                err = 3
+                return err, new_loc, loc
+        else:
+            loc = closest
+
+    return err, new_loc, loc
+    
 def tell_me_something_I_dont_know():
     """
     It will tell you something from our database - Fun facts for shapefile nerds.

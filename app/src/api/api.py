@@ -10,7 +10,7 @@ from flask import current_app, request
 
 
 # INTERNAL IMPORTS
-from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate
+from app.src.libpy.lib_search import find_address_in_db, check_if_is_already_a_coordinate, find_nearby_items
 from app.src.libpy.lib_graph import estimate_path_length_time
 from app.src.interface import find_what_needs_to_be_found
 
@@ -81,6 +81,10 @@ AVAILABLE_APIS = {
     "resolveShortUrl": {
         "name": "resolve url",
         "endpoint": "resolve_url"
+    },
+    "getNearbyItems": {
+        "name": "nearby items",
+        "endpoint": "nearby_items"
     }
 }
 
@@ -674,6 +678,58 @@ class resolveShortUrl(Resource):
             current_app.logger.error(f"Endpoint {endpoint} not valid!")
             return api_response(code=GENERIC_ERROR_CODE)
 
+
+# ███    ██ ███████  █████  ██████  ██████  ██    ██     ██ ████████ ███████ ███    ███ ███████ 
+# ████   ██ ██      ██   ██ ██   ██ ██   ██  ██  ██      ██    ██    ██      ████  ████ ██      
+# ██ ██  ██ █████   ███████ ██████  ██████    ████       ██    ██    █████   ██ ████ ██ ███████ 
+# ██  ██ ██ ██      ██   ██ ██   ██ ██   ██    ██        ██    ██    ██      ██  ██  ██      ██ 
+# ██   ████ ███████ ██   ██ ██   ██ ██████     ██        ██    ██    ███████ ██      ██ ███████ 
+# -----------------------------
+class getNearbyItems(Resource):
+    """
+    API to retrieve nearby items from a coordinate (lat/lon). 
+    Used to find items near a POI (calle, campo, ecc..)
+    """
+
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('coords', type=str, required=True,
+                                   help="We neeed the coordinates (lat, lon) that will be used to find nearby items")
+        # we can restrict the search looking for nearby items only of a certain category!
+        self.reqparse.add_argument('item_category', choices=('all', 'street', 'address', 'poi'), default='street', help='Bad choice: {error_msg}')
+        # (initial) search radius (in meters)
+        self.reqparse.add_argument('search_radius', type=float, default=50) 
+        # limit the number of nearby items (sql style)
+        self.reqparse.add_argument('limit', type=int, default=1) 
+        self.reqparse.add_argument('language', type=str, default=DEFAULT_LANGUAGE_CODE)
+        super(getNearbyItems, self).__init__()
+
+    @permission_required
+    @update_api_counter
+    def get(self):
+        try:
+            args = self.reqparse.parse_args()
+        except Exception as e:
+            err_msg = e.data['message']
+            all_err = [err_msg[argument] for argument in err_msg.keys()]
+            msg = '. '.join(all_err)
+            return api_response(code=UNKNOWN_EXCEPTION, message=msg)
+        lang = args['language']
+        # validate the coordinates
+        try:
+            valid_coords = check_format_coordinates(args['coords'])
+        except (err.CoordinatesFormatError, err.CoordinatesNumberError) as e:
+            return api_response(code=e.code, lang=lang)
+
+        try:
+            nearby_items = find_nearby_items(coordinates=valid_coords, 
+                                # search_radius=args['search_radius'], 
+                                item_category=args['item_category'],
+                                max_num_items=args['limit'])
+            return api_response(data=nearby_items, lang=lang)
+        except Exception as e:
+            current_app.logger.error(str(e))
+            return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
 
 #
 #  ██████  ██      ██████       █████  ██████  ██
