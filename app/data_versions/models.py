@@ -55,6 +55,13 @@ class CurrentData(db.Model):
 
     graph_updated_at = db.Column(db.DateTime)  # timestamp of last update
     graph_check_at = db.Column(db.DateTime)  # timestamp of last check
+    
+    def get_graphs_versions(self):
+        return {
+            "graph_street_version": self.street_graph.version,
+            "graph_water_version": self.water_graph.version,
+            "gtfs_number": self.waterbus_graph.gtfs_number,
+        }
 
 ############
 ## GRAPHS ##
@@ -77,7 +84,7 @@ class GraphStreet(db.Model):
     )
     
     def __str__(self):
-        return self.name
+        return f"Graph Street - v{self.version}"
 
 
 class GraphWaterbus(db.Model):
@@ -98,7 +105,7 @@ class GraphWaterbus(db.Model):
     )
     
     def __str__(self):
-        return self.name
+        return f"{self.graph_street} | GTFS - v{self.gtfs_number}"
     
 class GraphWater(db.Model):
     __tablename__ = 'graph_water'
@@ -110,7 +117,7 @@ class GraphWater(db.Model):
     data = db.Column(db.LargeBinary, nullable=False)
     
     def __str__(self):
-        return self.name
+        return f"Graph Water - v{self.version}"
 
 ##########
 ## TIDE ##
@@ -132,6 +139,21 @@ class TideNew(db.Model):
     value = db.Column(db.Float)
     
     def __str__(self):
-        return f"{self.updated_at} - {self.value}"
+        return f"{self.value}cm"
+    
+    def get_dict(self):
+        return {
+            "id_station": self.id_station,
+            "station": self.station,
+            "short_name": self.short_name,
+            "latDMSN": self.latDMSN,
+            "lonDMSE": self.lonDMSE,
+            "latDDN": self.latDDN,
+            "lonDDE": self.lonDDE,
+            "updated_at": self.updated_at,
+            "uploaded_at": self.uploaded_at,
+            "value": self.value,
+            "tide_level": int(100*self.value)
+        }
 
 

@@ -1,8 +1,9 @@
 from app.views import AdminModelView
 
 class CurrentDataModelView(AdminModelView):
-    column_list = ('id', 'street_graph_id', 'waterbus_graph_id', 'water_graph_id', 'tide_id', 'graph_updated_at', 'graph_check_at')
-
+    column_list = ('id', 'street_graph', 'waterbus_graph', 'water_graph', 'tide', 'graph_updated_at', 'graph_check_at')
+    # Abilita i link alle relazioni
+    column_auto_select_related = True
 class GraphStreetModelView(AdminModelView):
     column_list = ('id', 'name', 'version', 'created_at')
     form_excluded_columns = ('data', 'waterbus_graphs')  # large binary + relationship

@@ -1,16 +1,9 @@
 import os
-basedir = os.path.abspath(os.path.dirname(__file__))
-staticdir = os.path.abspath(os.path.join(basedir, "..", "static"))
-
 
 class Config(object):
     # Version
     VERSION = '0.1.5'
     API_VERSION = '1.0'
-
-    # Static files
-    STATIC_PATH = os.path.join(staticdir)
-    STATIC_FILE_NAME = "files_names.yaml"
 
     # Secret key
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'indovina-indovinello'

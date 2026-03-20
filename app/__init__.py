@@ -47,28 +47,28 @@ app.wcg = wg.WordsCodeGen()
 # Graph files
 #
 
-folder = app.config.get("STATIC_PATH")
-yaml_static_files = app.config.get("STATIC_FILE_NAME")
-with open(os.path.join(folder, yaml_static_files), 'r') as f:
-    list_files = yaml.load(f, Loader=yaml.FullLoader)
-folder_files = os.path.join(folder, "files")
-folder_graph = os.path.join(folder_files, list_files["graph_folder"])
+# folder = app.config.get("STATIC_PATH")
+# yaml_static_files = app.config.get("STATIC_FILE_NAME")
+# with open(os.path.join(folder, yaml_static_files), 'r') as f:
+#     list_files = yaml.load(f, Loader=yaml.FullLoader)
+# folder_files = os.path.join(folder, "files")
+# folder_graph = os.path.join(folder_files, list_files["graph_folder"])
 
-path_graph_street = os.path.join(folder_graph, list_files["graph_street_file"])
-path_graph_water = os.path.join(folder_graph, list_files["graph_water_file"])
-path_graph_street_plus_waterbus = os.path.join(folder_graph, list_files["graph_street_plus_waterbus_file"])
-path_graph_street_only = os.path.join(folder_graph, list_files["graph_street_only_file"])
+# path_graph_street = os.path.join(folder_graph, list_files["graph_street_file"])
+# path_graph_water = os.path.join(folder_graph, list_files["graph_water_file"])
+# path_graph_street_plus_waterbus = os.path.join(folder_graph, list_files["graph_street_plus_waterbus_file"])
+# path_graph_street_only = os.path.join(folder_graph, list_files["graph_street_only_file"])
 
-# Save names of used graphs
-app.current_variables = list_files
-app.is_updating = False
+# # Save names of used graphs
+# app.current_variables = list_files
+# app.is_updating = False
 
-# last_gtfs_number = list_files["gtfs_last_number"]
+# # last_gtfs_number = list_files["gtfs_last_number"]
 
-high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
-app.high_tide_file = high_tide_file
-app.tide_values = {}
-#
+# high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
+# app.high_tide_file = high_tide_file
+# app.tide_values = {}
+# #
 # Logging
 #
 # remove default handler
@@ -89,74 +89,6 @@ app.logger.addHandler(file_handler)
 
 
 app.logger.info("Starting the website...")
-
-# version of the software
-
-
-def getCurrentVersion():
-    return app.config.get('VERSION')
-
-
-__version__ = getCurrentVersion()
-app.logger.info(f"Version: {__version__}")
-
-started_at = datetime.datetime.now()
-
-app.info = {
-    "version": __version__,
-    "started_at": started_at.strftime("%d/%m/%Y %H:%M:%S"),
-    "updated_at": None
-}
-
-#
-# Email setup
-#
-email = Mail(app)
-
-#
-# CORS setup
-#
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-#
-# Graph setup
-#
-from dequa_graph.utils import load_graphs, get_all_coordinates, add_waterbus_to_street
-
-if os.path.exists(path_graph_street_only) and os.path.exists(path_graph_street_plus_waterbus):
-    app.logger.info("Loading the graphs...")
-    graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs(path_graph_street_only, path_graph_water, path_graph_street_plus_waterbus)
-    # TEST PERFORMANCE: instead of graph_street_only we filter out waterbus from graph_street_plus_waterbus
-    import graph_tool.all as gt
-    graph_street_only = gt.GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
-else:
-    raise Exception("Graph files don't exist!")
-    # app.logger.info("Loading the graphs...")
-    # graph_street, graph_water = load_graphs(path_graph_street, path_graph_water)
-    # app.logger.info("Adding waterbus to the graph...")
-    # graph_street_only, graph_street_waterbus = add_waterbus_to_street(graph_street, path_gtfs_waterbus)
-# Add graphs info as attributes of the app
-app.graphs = {
-    'street': {
-        'graph': graph_street_only,
-        'all_vertices': get_all_coordinates(graph_street_only),
-    },
-    'water': {
-        'graph': graph_water,
-        'all_vertices': get_all_coordinates(graph_water),
-    },
-    'waterbus': {
-        'graph': graph_street_plus_waterbus,
-        'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
-    }
-}
-
-#
-# Model setup
-#
-# Crea un modello base per scrivere in modo più leggibile i repr delle classi
-
-
 class BaseModel(Model):
     def __repr__(self) -> str:
         return self._repr(id=self.id)
@@ -202,13 +134,98 @@ with app.app_context():
     else:
         migrate.init_app(app, db)
 
+# version of the software
+
+
+def getCurrentVersion():
+    return app.config.get('VERSION')
+
+
+__version__ = getCurrentVersion()
+app.logger.info(f"Version: {__version__}")
+
+started_at = datetime.datetime.now()
+
+app.info = {
+    "version": __version__,
+    "started_at": started_at.strftime("%d/%m/%Y %H:%M:%S"),
+    "updated_at": None
+}
+
+#
+# Email setup
+#
+email = Mail(app)
+
+#
+# CORS setup
+#
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+#
+# Current data
+#
+from app.data_versions.models import CurrentData
+curr_data = CurrentData.query.first()
+app.current_variables = curr_data.get_graphs_versions()
+app.is_updating = False
+
+#
+# Graph setup
+#
+from dequa_graph.utils import load_graphs_binary, get_all_coordinates, add_waterbus_to_street
+
+app.logger.info("Loading the graphs...")
+if curr_data.street_graph_id and curr_data.water_graph_id and curr_data.waterbus_graph_id:
+    graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs_binary(curr_data.street_graph.data, curr_data.water_graph.data, curr_data.waterbus_graph.data)
+    # TEST PERFORMANCE: instead of graph_street_only we filter out waterbus from graph_street_plus_waterbus
+    import graph_tool.all as gt
+    graph_street_only = gt.GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
+else:
+    raise Exception("Graph files don't exist!")
+# Add graphs info as attributes of the app
+app.graphs = {
+    'street': {
+        'graph': graph_street_only,
+        'all_vertices': get_all_coordinates(graph_street_only),
+    },
+    'water': {
+        'graph': graph_water,
+        'all_vertices': get_all_coordinates(graph_water),
+    },
+    'waterbus': {
+        'graph': graph_street_plus_waterbus,
+        'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
+    }
+}
+
+#
+# Tide setup
+#
+if curr_data.tide:
+    app.tide_values = curr_data.tide.get_dict()
+else:
+    app.tide_values = {}
+# # last_gtfs_number = list_files["gtfs_last_number"]
+
+# high_tide_file = os.path.join(folder_files, list_files["tide_folder"], list_files["tide_file"])
+# app.high_tide_file = high_tide_file
+# app.tide_values = {}
+
+#
+# Model setup
+#
+# Crea un modello base per scrivere in modo più leggibile i repr delle classi
+
+
+
 #
 # TrackUsage setup
 #
 track_datastore = SQLStorage(engine=db.get_engine(bind="collected_data"))
 t = TrackUsage(app, [track_datastore])
 
-from app import routes, errors, models
+# from app import routes, errors, models
 from app.models import Errors, Feedbacks
 from app.models import Ideas
 from app.models import FlaskUsage
@@ -351,7 +368,6 @@ def check_updates():
 def check_tide():
     with scheduler.app.app_context():
         update_tide()
-
 
 scheduler.start()
 
