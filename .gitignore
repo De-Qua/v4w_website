@@ -156,3 +156,6 @@ db/db_dump/*
 
 # secrets
 DEQUA_SECRETS.env
+
+# environment
+.gitignore
