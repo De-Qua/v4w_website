@@ -89,7 +89,7 @@ class ProductionConfig(Config):
         }
 
 class DevelopmentConfig(Config):
-    DB_SERVER = 'dequa:dequa@127.0.0.1:5432'
+    DB_SERVER = os.environ.get('DB_SERVER', 'dequa:dequa@127.0.0.1:5432')
 
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_SERVER}/opendata_ve_pg"
 

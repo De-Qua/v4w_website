@@ -179,8 +179,8 @@ app.logger.info("Loading the graphs...")
 if curr_data.street_graph_id and curr_data.water_graph_id and curr_data.waterbus_graph_id:
     graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs_binary(curr_data.street_graph.data, curr_data.water_graph.data, curr_data.waterbus_graph.data)
     # TEST PERFORMANCE: instead of graph_street_only we filter out waterbus from graph_street_plus_waterbus
-    import graph_tool.all as gt
-    graph_street_only = gt.GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
+    from graph_tool import GraphView
+    graph_street_only = GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
 else:
     raise Exception("Graph files don't exist!")
 # Add graphs info as attributes of the app

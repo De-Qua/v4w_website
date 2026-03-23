@@ -1,0 +1,21 @@
+services:
+  dq_backend:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0      # fondamentale, altrimenti il container non è raggiungibile
+      # - PORT=5000
+      - LOG_LEVEL=info
+      - WORKERS_PER_CORE=2
+      - DB_SERVER=dequa:dequa@dq_postgres:5432
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  default:
+    name: dequa_nw
+    external: true
