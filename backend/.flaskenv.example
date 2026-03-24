@@ -1,3 +1,27 @@
 FLASK_APP=flask_app.py
 FLASK_DEBUG=1
 FLASK_ENV=dev
+
+# Server
+DB_SERVER=user:psw@db_address:port
+
+# Secrets
+SECRET_KEY=indovina-indovinello
+SECURITY_PASSWORD_SALT=indovina-indovinello
+JWT_SECRET_KEY=indovina-indovinello
+
+# Mail
+MAIL_SERVER=smtps.mail.server
+MAIL_PORT=587
+MAIL_USE_TLS=1
+MAIL_USERNAME=info@dequa.it
+MAIL_PASSWORD=my_secret_password
+MAIL_DEFAULT_SENDER=info@dequa.it
+
+# Gunicorn
+WORKERS_PER_CORE=2
+WEB_CONCURRENCY=''
+HOST=0.0.0.0
+PORT=5000
+BIND=''
+LOG_LEVEL=info

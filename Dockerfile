@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:latest
+FROM condaforge/miniforge3:latest
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -18,8 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY envs/environment_old.yml ./environment.yml
-RUN conda env create -f environment.yml && conda clean -afy
-# RUN conda run -n dequa pip install git+https://github.com/De-Qua/dequa-graph.git
+RUN mamba env create -f environment.yml && \
+    conda clean -afy && \
+    find /opt/conda/envs/dequa -name "*.pyc" -delete && \
+    find /opt/conda/envs/dequa -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null; true
 
 COPY backend .
 
