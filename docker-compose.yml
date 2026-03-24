@@ -2,6 +2,7 @@ services:
   dq_backend:
     container_name: dq_backend
     build: .
+    command: ["gunicorn", "-k", "egg:meinheld#gunicorn_worker", "-c", "gunicorn_conf.py", "app:app"]
     ports:
       - "5000:5000"
     environment:

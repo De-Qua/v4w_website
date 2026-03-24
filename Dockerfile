@@ -27,5 +27,4 @@ COPY backend .
 
 EXPOSE 5000
 
-CMD ["conda", "run", "--no-capture-output", "-n", "dequa", \
-     "gunicorn", "-k", "egg:meinheld#gunicorn_worker", "-c", "gunicorn_conf.py", "app:app"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "dequa"]
