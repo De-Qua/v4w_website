@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libc-dev \
     libpq-dev \
-    gcc \
+    build-essential \
     libxcursor1 \
     libxrender1 \
     libxext6 \
