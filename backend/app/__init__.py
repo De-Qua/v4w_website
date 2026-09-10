@@ -166,8 +166,13 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # Current data
 #
 from app.data_versions.models import CurrentData
-curr_data = CurrentData.query.first()
-app.current_variables = curr_data.get_graphs_versions()
+try:
+    curr_data = CurrentData.query.first()
+    app.current_variables = curr_data.get_graphs_versions()
+except:
+    curr_data = None
+    app.current_variables = None
+    app.logger.error("No current data!")
 app.is_updating = False
 
 #
@@ -176,33 +181,41 @@ app.is_updating = False
 from dequa_graph.utils import load_graphs_binary, get_all_coordinates, add_waterbus_to_street
 
 app.logger.info("Loading the graphs...")
-if curr_data.street_graph_id and curr_data.water_graph_id and curr_data.waterbus_graph_id:
+if curr_data and curr_data.street_graph_id and curr_data.water_graph_id and curr_data.waterbus_graph_id:
     graph_street_only, graph_water, graph_street_plus_waterbus = load_graphs_binary(curr_data.street_graph.data, curr_data.water_graph.data, curr_data.waterbus_graph.data)
     # TEST PERFORMANCE: instead of graph_street_only we filter out waterbus from graph_street_plus_waterbus
     from graph_tool import GraphView
     graph_street_only = GraphView(graph_street_plus_waterbus, vfilt=lambda v: not graph_street_plus_waterbus.vp.transport_stop[v])
 else:
-    raise Exception("Graph files don't exist!")
+    graph_street_only = None 
+    graph_water = None 
+    graph_street_plus_waterbus = None
+    app.logger.error("Graph files don't exist!")
 # Add graphs info as attributes of the app
-app.graphs = {
-    'street': {
-        'graph': graph_street_only,
-        'all_vertices': get_all_coordinates(graph_street_only),
-    },
-    'water': {
-        'graph': graph_water,
-        'all_vertices': get_all_coordinates(graph_water),
-    },
-    'waterbus': {
-        'graph': graph_street_plus_waterbus,
-        'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
+
+if curr_data:
+    app.graphs = {
+        'street': {
+            'graph': graph_street_only,
+            'all_vertices': get_all_coordinates(graph_street_only),
+        },
+        'water': {
+            'graph': graph_water,
+            'all_vertices': get_all_coordinates(graph_water),
+        },
+        'waterbus': {
+            'graph': graph_street_plus_waterbus,
+            'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
+        }
     }
-}
+else:
+    app.graphs = {}
+    app.logger.error("Graphs not loaded!")
 
 #
 # Tide setup
 #
-if curr_data.tide:
+if curr_data and curr_data.tide:
     app.tide_values = curr_data.tide.get_dict()
 else:
     app.tide_values = {}
