@@ -5,11 +5,13 @@ services:
     command: ["gunicorn", "-k", "egg:meinheld#gunicorn_worker", "-c", "gunicorn_conf.py", "app:app"]
     ports:
       - "5000:5000"
-    environment:
-      - HOST=0.0.0.0      # fondamentale, altrimenti il container non è raggiungibile
-      # - PORT=5000
-      - LOG_LEVEL=info
-      - WORKERS_PER_CORE=2
+    # environment:
+    #   - HOST=0.0.0.0      # fondamentale, altrimenti il container non è raggiungibile
+    #   # - PORT=5000
+    #   - LOG_LEVEL=info
+    #   - WORKERS_PER_CORE=2
+    env_file:
+      - .flaskenv
     restart: unless-stopped
     networks:
       - default

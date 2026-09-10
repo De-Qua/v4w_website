@@ -1,0 +1,6 @@
+services:
+  dq_backend:
+    # command: "conda"
+    volumes:
+      - ./backend:/app
+    
