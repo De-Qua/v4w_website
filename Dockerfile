@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libx11-6 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY envs/environment_old.yml ./environment.yml
+COPY envs/environment.yml ./environment.yml
 RUN mamba env create -f environment.yml && \
     conda clean -afy && \
     find /opt/conda/envs/dequa -name "*.pyc" -delete && \
