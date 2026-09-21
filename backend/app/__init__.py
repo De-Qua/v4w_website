@@ -169,6 +169,7 @@ from app.data_versions.models import CurrentData
 try:
     curr_data = CurrentData.query.first()
     app.current_variables = curr_data.get_graphs_versions()
+    app.logger.info(f"Graph street version: {app.current_variables['graph_street_version']}, Graph water version: {app.current_variables['graph_water_version']}, GTFS: {app.current_variables['gtfs_number']}")
 except:
     curr_data = None
     app.current_variables = None
