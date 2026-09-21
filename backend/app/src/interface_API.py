@@ -179,8 +179,6 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
-    breakpoint()
-
     graph = current_app.graphs['waterbus']
     start_v, end_v, stop_v = dqg_topo.find_path_vertices(start, end, stop, all_vertices=graph['all_vertices'])
     if stop:
