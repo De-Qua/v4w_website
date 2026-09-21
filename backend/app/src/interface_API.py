@@ -179,6 +179,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
     It calculates the shortest path by calling the methods in lib_graph_tool.
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
+    breakpoint()
 
     graph = current_app.graphs['waterbus']
     start_v, end_v, stop_v = dqg_topo.find_path_vertices(start, end, stop, all_vertices=graph['all_vertices'])
@@ -217,6 +218,8 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             transport_property = graph['graph'].vp.transport_stop
             timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
             direction_property = graph['graph'].ep.direction
+            if not timetable_property.a:
+                raise errors.EmptyTimetableError()
 
         # get tide if not present
         if avoid_tide and not tide_level:

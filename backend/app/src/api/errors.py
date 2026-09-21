@@ -48,3 +48,12 @@ class WorkInProgressError(Exception):
         self.code = cst.WORK_IN_PROGRESS
         self.message = message
         super().__init__(self.message)
+
+class EmptyTimetableError(Exception):
+    """Error to indicate that timetable is missing"""
+    def __init__(self, message="Timetable is empty"):
+        self.code = cst.EMPTY_TIMETABLE
+        self.message = message
+        super().__init__(self.message)
+    
+    
