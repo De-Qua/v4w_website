@@ -216,8 +216,8 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             transport_property = graph['graph'].vp.transport_stop
             timetable_property = dqg_weight.get_timetables(graph=graph['graph'], date=start_time)
             direction_property = graph['graph'].ep.direction
-            if not timetable_property.a:
-                raise errors.EmptyTimetableError()
+            # if not timetable_property.get_2d_array([0]):
+            #     raise errors.EmptyTimetableError()
 
         # get tide if not present
         if avoid_tide and not tide_level:
@@ -232,6 +232,7 @@ def gt_shortest_path_walk_wrapper(start, end, stop=None,
             weights = [weight]
         # get the path
         try:
+            # breakpoint()
             tmp_v_list, tmp_e_list, tmp_t_list = dqg_topo.calculate_path(
                 graph=graph['graph'],
                 coords_start=start,
