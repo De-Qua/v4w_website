@@ -80,7 +80,7 @@ color_handler.setFormatter(formatter)
 app.logger.addHandler(color_handler)
 # add handler for files
 if not os.path.exists('logs'):
-    os.mkdir('logs')
+    os.mkdir('logs', exist_ok=True)
 file_handler = RotatingFileHandler('logs/v4w.log', maxBytes=100000, backupCount=10)
 formatter = logging.Formatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] [%(levelname)s] %(message)s')
 file_handler.setFormatter(formatter)
