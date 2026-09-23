@@ -38,6 +38,14 @@ bind = use_bind
 keepalive = 120
 timeout = set_timeout
 errorlog = "-"
+# Preload app così carica il grafo una volta sola
+preload_app = True
+# Necessario altrimenti tutti i worker utilizzerebbero la stessa connessione al db creando problemi
+def post_fork(server, worker):
+    from app import app, db
+    with app.app_context():
+        db.engine.dispose()
+        db.get_engine(bind="collected_data").dispose()
 
 # For debugging and testing
 log_data = {
