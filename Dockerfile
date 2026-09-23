@@ -21,7 +21,7 @@ COPY envs/environment.yml ./environment.yml
 RUN mamba env create -f environment.yml && \
     conda clean -afy && \
     find /opt/conda/envs/dequa -name "*.pyc" -delete && \
-    find /opt/conda/envs/dequa -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null; true
+    (find /opt/conda/envs/dequa -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true)
 
 COPY backend .
 
