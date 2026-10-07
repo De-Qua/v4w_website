@@ -13,8 +13,15 @@ services:
     env_file:
       - .flaskenv
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
     networks:
       - default
+    
 
 networks:
   default:

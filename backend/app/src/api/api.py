@@ -579,7 +579,6 @@ class resolveShortUrl(Resource):
             msg = "Short Code does not exist"
             return api_response(code=UNKNOWN_EXCEPTION, message=msg)
         if endpoint == 'path':
-            print('path')
             # load dictionary from string
             payload_dict = json.loads(payload)
             labels_dict = {
