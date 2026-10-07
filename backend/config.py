@@ -38,7 +38,7 @@ class Config(object):
     #"feed_err": 'sqlite:///' + os.path.join(basedir, 'feed_err.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Flask-APScheduler
-    SCHEDULER_API_ENABLED = True
+    SCHEDULER_API_ENABLED = False
     SCHEDULER_API_PREFIX = "/scheduler"
 
     # TrackUsage

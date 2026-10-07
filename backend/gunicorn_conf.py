@@ -38,14 +38,21 @@ bind = use_bind
 keepalive = 120
 timeout = set_timeout
 errorlog = "-"
+
+# Tell the app it runs under gunicorn: the scheduler is started per worker in post_fork
+os.environ["DEQUA_GUNICORN"] = "1"
+
 # Preload app così carica il grafo una volta sola
 preload_app = True
 # Necessario altrimenti tutti i worker utilizzerebbero la stessa connessione al db creando problemi
 def post_fork(server, worker):
-    from app import app, db
+    from app import app, db, scheduler
     with app.app_context():
-        db.engine.dispose()
-        db.get_engine(bind="collected_data").dispose()
+        # Drop every connection inherited from the master, for the default engine and all binds
+        for bind in [None, *app.config.get("SQLALCHEMY_BINDS", {})]:
+            db.get_engine(bind=bind).dispose()
+    # Threads don't survive fork: start the scheduler inside each worker
+    scheduler.start()
 
 # For debugging and testing
 log_data = {

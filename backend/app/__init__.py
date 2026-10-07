@@ -386,7 +386,9 @@ def check_tide():
     with scheduler.app.app_context():
         update_tide()
 
-scheduler.start()
+# Under gunicorn the scheduler is started in each worker (see post_fork in gunicorn_conf.py)
+if not os.environ.get("DEQUA_GUNICORN"):
+    scheduler.start()
 
 
 app.logger.info('Website is up')
