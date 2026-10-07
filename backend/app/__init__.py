@@ -8,7 +8,6 @@ import os
 import logging
 import colorlog
 import typing
-from logging.handlers import RotatingFileHandler
 from flask_sqlalchemy import Model, SQLAlchemy
 from flask_migrate import Migrate
 import sqlalchemy as sa
@@ -73,14 +72,21 @@ app.wcg = wg.WordsCodeGen()
 # #
 # Logging
 #
-# remove default handler
-app.logger.removeHandler(default_handler)
 # add handler for the normal console log
 color_handler = colorlog.StreamHandler()
 formatter = colorlog.ColoredFormatter('[%(asctime)s] [%(name)s:%(filename)s:%(lineno)d] %(log_color)s[%(levelname)s]%(reset)s %(message)s')
 color_handler.setFormatter(formatter)
-app.logger.addHandler(color_handler)
+root_logger = logging.getLogger()
+root_logger.addHandler(color_handler)
+# Third part libraries set level warning
+root_logger.setLevel(logging.WARNING)
+
+# remove default handler
+app.logger.removeHandler(default_handler)
 app.logger.setLevel(LOG_LEVEL)
+
+dequa_graph_logger = logging.getLogger("dequa_graph")
+dequa_graph_logger.setLevel(LOG_LEVEL)
 # # add handler for files
 # if not os.path.exists('logs'):
 #     os.makedirs('logs', exist_ok=True)
