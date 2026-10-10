@@ -38,7 +38,7 @@ import opening_hours as oh
 Tabella per collegamento molti-a-molti POI-Types
 """
 poi_types = db.Table("poi_types",
-                     db.Column("poi_id", db.Integer, db.ForeignKey("poi.id"), primary_key=True),
+                     db.Column("poi_id", db.Integer, db.ForeignKey("poi.id", ondelete="CASCADE"), primary_key=True),
                      db.Column("type_id", db.Integer, db.ForeignKey("poi_category_type.id"), primary_key=True)
                      )
 
@@ -368,13 +368,18 @@ class Poi(db.Model):
                             lazy="dynamic",
                             backref=db.backref("pois", lazy="dynamic")
                             )
+    names = db.relationship("PoiName", backref="poi", lazy="dynamic",
+                            cascade="all, delete-orphan", passive_deletes=True)
     score = db.Column(db.Integer, nullable=False, default=0)
     osm_type = db.Column(db.String(8))
     osm_id = db.Column(db.BigInteger, nullable=True)
     osm_other_tags = db.Column(db.String)
     ## UNCOMMENT WHEN READY TO UPDATE DB
     osm_tags = db.Column(JSONB)
-    __table_args__ = (CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),)
+    __table_args__ = (
+        CheckConstraint(db.and_(0 <= score, score <= 100), name="check_score"),
+        db.UniqueConstraint("osm_type", "osm_id", name="uq_poi_osm_type_osm_id"),
+    )
 
     def open_status(self):
         """
@@ -448,7 +453,25 @@ class Poi(db.Model):
         else:
             return "No name for POI {}".format(self.id)
 
+class PoiName(db.Model):
+    """
+    Alternative names of a POI, from OSM tags such as alt_name, old_name, short_name,
+    loc_name, official_name and name:<lang> (e.g. name:vec)
+    """
+    """
+    Alternative names of a POI, from OSM tags such as alt_name, old_name, short_name,
+    loc_name, official_name and name:<lang> (e.g. name:vec)
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    poi_id = db.Column(db.Integer, db.ForeignKey("poi.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = db.Column(db.String(256), nullable=False, index=True)
+    # 'alt', 'old', 'short', 'loc', 'official' or 'lang'
+    kind = db.Column(db.String(16), nullable=False)
+    # language code, only for kind='lang' (it, en, vec, ...)
+    lang = db.Column(db.String(8))
 
+    def __repr__(self):
+        return self._repr(id=self.id, poi_id=self.poi_id, name=self.name, kind=self.kind, lang=self.lang)
 class PoiCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True, unique=True, nullable=False)
