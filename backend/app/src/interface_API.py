@@ -34,6 +34,8 @@ from dequa_graph import topology as dqg_topo
 from dequa_graph import formatting as dqg_form
 from dequa_graph import weights as dqg_weight
 from dequa_graph import errors as dqg_err
+
+from graph_tool import GraphView
 # lib search
 from app.src.libpy import lib_search as ls
 # communication for formatting
@@ -144,15 +146,20 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
     It calculates the shortest path using a boat
     It returns 2 values, list of vertices and list of edges. If no path is found it raises a NoPathFound exception.
     """
-    graph = current_app.graphs['water']
     # Define the weight that we will use
     if alternatives:
         raise errors.WorkInProgressError("Alternatives not implemented yet")
-    else:
-        weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat',
-                                       motor_boat=motor, boat_speed=boat_speed,
-                                       boat_width=boat_width, boat_height=boat_height)
-        weights = [weight]
+        # TODO
+    
+    if motor: # motore ma non pompieri    
+        graph = current_app.graphs['water']
+    else: # barca a remi o pompieri
+        graph = current_app.graphs['water_undirected']
+
+    weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat',
+                                    motor_boat=motor, boat_speed=boat_speed,
+                                    boat_width=boat_width, boat_height=boat_height)
+    weights = [weight]
     # get the path
     try:
         v_list, e_list, t_list = dqg_topo.calculate_path(

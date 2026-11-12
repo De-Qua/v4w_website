@@ -213,6 +213,10 @@ if curr_data:
             'graph': graph_water,
             'all_vertices': get_all_coordinates(graph_water),
         },
+        'water_undirected': {
+            'graph': GraphView(graph_water, directed=False),
+            'all_vertices': get_all_coordinates(graph_water),
+        },
         'waterbus': {
             'graph': graph_street_plus_waterbus,
             'all_vertices': get_all_coordinates(graph_street_plus_waterbus),
