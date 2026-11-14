@@ -293,14 +293,25 @@ def format_path_walk_data(v_list, e_list, t_list, avoid_public_transport=False, 
     return info
 
 
-def format_path_boat_data(v_list, e_list, t_list, avoid_public_transport=False, start_time=None, **kwargs):
+def format_path_boat_data(v_list, e_list, t_list, avoid_public_transport=False, start_time=None, boat_type="row", **kwargs):
     """
     Function to format the data of a path
     """
+    print(boat_type)
+    if boat_type == "row":
+        motor = False
+        graph = current_app.graphs['water_undirected']['graph']
+    elif boat_type == "vvf":
+        motor = True
+        graph = current_app.graphs['water_undirected']['graph']
+    else:
+        motor = True
+        graph = current_app.graphs['water']['graph']
+        
     info = dqg_form.retrieve_info_from_path_water(
-        graph=current_app.graphs['water']['graph'],
+        graph=graph,
         paths_vertices=v_list, paths_edges=e_list, times_edges=t_list,
-        start_time=start_time, **kwargs)
+        start_time=start_time, motor=motor, **kwargs)
     return info
 
 
