@@ -136,7 +136,7 @@ def find_shortest_path_from_coordinates(start, end, mode='walk', start_time=None
 
 
 def gt_shortest_path_boat_wrapper(start, end, stop=None,
-                                  motor=False, boat_speed=5,
+                                  boat_type="row", boat_speed=5,
                                   boat_width=0, boat_height=0,
                                   alternatives=False, avoid_public_transport=True,
                                   start_time=None,
@@ -151,13 +151,14 @@ def gt_shortest_path_boat_wrapper(start, end, stop=None,
         raise errors.WorkInProgressError("Alternatives not implemented yet")
         # TODO
     
-    if motor: # motore ma non pompieri    
-        graph = current_app.graphs['water']
-    else: # barca a remi o pompieri
+    if boat_type in ("row", "vvf"):
         graph = current_app.graphs['water_undirected']
+    else:
+        graph = current_app.graphs['water']
+
 
     weight = dqg_weight.get_weight(graph=graph['graph'], mode='boat',
-                                    motor_boat=motor, boat_speed=boat_speed,
+                                    boat_type=boat_type, boat_speed=boat_speed,
                                     boat_width=boat_width, boat_height=boat_height)
     weights = [weight]
     # get the path

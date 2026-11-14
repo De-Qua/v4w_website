@@ -54,6 +54,10 @@ AVAILABLE_APIS = {
         "name": "general path",
         "endpoint": "path"
     },
+    "getGeneralPathVVF": {
+        "name": "general path_vvf",
+        "endpoint": "path_vvf"
+    },
     "getPathStreet": {
         "name": "path street",
         "endpoint": "gt_path"
@@ -141,7 +145,7 @@ class getGeneralPath(Resource):
         self.boatparse.add_argument("boatWidth", type=float, default=1.5, location=("boatOptions",))
         self.boatparse.add_argument("boatHeight", type=float, default=1, location=("boatOptions",))
         self.boatparse.add_argument("boatDraft", type=float, default=0.3, location=("boatOptions",))
-        self.boatparse.add_argument("boatType", type=str, choices=("motor", "row", "generic"), default="row", location=("boatOptions",))
+        self.boatparse.add_argument("boatType", type=str, choices=("motor", "row", "private"), default="row", location=("boatOptions",))
 
         super(getGeneralPath, self).__init__()
 
@@ -194,7 +198,7 @@ class getGeneralPath(Resource):
                 avoid_public_transport=not walk["usePublicTransport"],
                 prefer_public_transport=walk["preferPublicTransport"],
                 start_time=start_time,
-                motor=boat["boatType"] == "motor", boat_speed=boat["boatSpeed"],
+                boat_type=boat["boatType"], boat_speed=boat["boatSpeed"],
                 boat_width=boat["boatWidth"], boat_height=boat["boatHeight"], boat_draft=boat["boatDraft"],
                 alternatives=opt["alternatives"]
             )
@@ -203,6 +207,14 @@ class getGeneralPath(Resource):
             current_app.logger.error(str(e))
             return api_response(code=getattr(e, 'code', GENERIC_ERROR_CODE), lang=lang)
 
+class getGeneralPathVVF(getGeneralPath):
+    """
+    General Path with options for VVF
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.boatparse.replace_argument("boatType", type=str, choices=("motor", "row", "generic", "vvf"), default="vvf", location=("boatOptions",))
 
 class getPathStreet(Resource):
     """
