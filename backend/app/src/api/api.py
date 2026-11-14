@@ -55,7 +55,7 @@ AVAILABLE_APIS = {
         "endpoint": "path"
     },
     "getGeneralPathVVF": {
-        "name": "general path_vvf",
+        "name": "general path vvf",
         "endpoint": "path_vvf"
     },
     "getPathStreet": {
