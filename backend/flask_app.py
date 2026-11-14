@@ -1,8 +1,6 @@
-from app import app, db, user_datastore, security, admin
+from app import app, db, user_datastore
 from app.models import Location, Street, Neighborhood, Poi, Apis, TokenTypes
 from app.src.api.api import AVAILABLE_APIS
-from flask_admin import helpers as admin_helpers
-from flask import url_for
 from flask_security import utils
 from dotenv import load_dotenv
 import os
@@ -81,13 +79,3 @@ def create_first_user_role(session):
     user_datastore.add_role_to_user('someone', 'end-user')
     user_datastore.add_role_to_user('admin', 'admin')
     session.commit()
-
-# Include security variable to admin views
-@security.context_processor
-def security_context_processor():
-    return dict(
-        admin_base_template = admin.base_template,
-        admin_view = admin.index_view,
-        h = admin_helpers,
-        get_url = url_for
-    )

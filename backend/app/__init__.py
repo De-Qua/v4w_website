@@ -17,6 +17,7 @@ from flask_track_usage import TrackUsage
 from flask_track_usage.storage.sql import SQLStorage
 from flask_security import Security, SQLAlchemyUserDatastore
 from flask_admin import Admin
+from flask_admin import helpers as admin_helpers
 from flask_security import current_user
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
@@ -286,6 +287,17 @@ from app.geotag.views import GeouserModelView, TagModelView, DatagroupModelView
 from app.geotag.views import LayerModelView, LayerItemModelView, LayerItemDatagroupParameterModelView
 from app.data_versions.views import CurrentDataModelView, GraphStreetModelView, GraphWaterbusModelView, GraphWaterModelView, TideModelView
 admin = Admin(app, name='Admin', base_template='admin_master.html', template_mode='bootstrap4')
+
+
+# Template variables for the Flask-Security login pages (here, not in flask_app.py: gunicorn only imports `app`)
+@security.context_processor
+def security_context_processor():
+    return dict(
+        admin_base_template=admin.base_template,
+        admin_view=admin.index_view,
+        h=admin_helpers,
+        get_url=url_for
+    )
 
 
 admin.add_view(UserModelView(Users, db.session, category="Users"))
