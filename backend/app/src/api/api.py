@@ -214,7 +214,7 @@ class getGeneralPathVVF(getGeneralPath):
     
     def __init__(self):
         super().__init__()
-        self.boatparse.replace_argument("boatType", type=str, choices=("motor", "row", "generic", "vvf"), default="vvf", location=("boatOptions",))
+        self.boatparse.replace_argument("boatType", type=str, choices=("vvf"), default="vvf", location=("boatOptions",))
 
 class getPathStreet(Resource):
     """
